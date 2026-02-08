@@ -6458,14 +6458,15 @@ export default function ExportReportPage() {
             const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
             const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
             
-            const displayedRankings = showAllImpactDimensions ? rankings.slice(0, 5) : rankings.slice(0, 3);
-            
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                {/* Header - Clean */}
+                {/* Header */}
                 <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                    <div>
+                      <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                      <p className="text-slate-300 mt-1 text-sm">Year 1 roadmap: advance <span className="font-semibold text-white">{totalElementsY1}</span> support elements across <span className="font-semibold text-white">5</span> priority dimensions</p>
+                    </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
                       className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
@@ -6476,120 +6477,81 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 
-                <div className="p-6">
-                  {/* Accelerate & Build Definitions - Lighter */}
-                  <div className="mb-5 flex items-center gap-6 text-sm">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                      <span className="font-semibold text-slate-700">Accelerate</span>
-                      <span className="text-slate-500">— converts work already in motion</span>
-                      <span className="text-slate-400 ml-1">({totalAccel} elements)</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                      <span className="font-semibold text-slate-700">Build</span>
-                      <span className="text-slate-500">— introduces net-new capabilities</span>
-                      <span className="text-slate-400 ml-1">({totalBuild} elements)</span>
-                    </div>
-                  </div>
-                  
-                  {/* Year 1 Summary - Single light row */}
-                  <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-center justify-between">
-                      {/* Roadmap */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                <div className="px-8 py-6">
+                  {/* Accelerate & Build Explainers */}
+                  <div className="mb-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 uppercase font-semibold">Year 1 Roadmap</p>
-                          <p className="text-sm text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
+                          <p className="font-semibold text-slate-800 text-sm">Accelerate <span className="font-normal text-slate-500">({totalAccel} elements)</span></p>
+                          <p className="text-xs text-slate-500 mt-0.5">Converts work already in motion: <span className="font-medium">Implement</span> (Planning→Offering) or <span className="font-medium">Active Planning</span> (Assessing→Planning)</p>
                         </div>
                       </div>
-                      
-                      {/* Impact on Composite */}
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500 uppercase font-semibold">Impact on Overall Composite Score</p>
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-700 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         </div>
-                        
-                        {/* Score visualization */}
-                        <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-lg border border-slate-200">
-                          <div className="text-center">
-                            <p className="text-xs text-slate-400">Current</p>
-                            <p className="text-xl font-bold text-slate-600">{compositeScore || '--'}</p>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <svg className="w-8 h-5 text-amber-500" viewBox="0 0 32 20" fill="none">
-                              <path d="M2 10h20m0 0l-6-6m6 6l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                              <text x="26" y="14" fontSize="10" fill="currentColor" fontWeight="bold">+</text>
-                            </svg>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-xs text-slate-400">Year 1</p>
-                            <p className="text-xl font-bold text-slate-800">{projectedCompositeY1}</p>
-                          </div>
-                          <div className="pl-3 border-l border-slate-200 text-center">
-                            <p className="text-xs text-slate-400">Gain</p>
-                            <p className="text-xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
-                          </div>
+                        <div>
+                          <p className="font-semibold text-slate-800 text-sm">Build <span className="font-normal text-slate-500">({totalBuild} elements)</span></p>
+                          <p className="text-xs text-slate-500 mt-0.5">Introduces net-new capabilities: <span className="font-medium">Stand Up</span> (Not Offered→Offering) or <span className="font-medium">Design + Scope</span> (Not Offered→Planning)</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Priority Dimension Cards - Lighter */}
-                  <div className="space-y-3">
-                    {displayedRankings.map((r, idx) => {
+                  {/* Impact on Overall Composite Score */}
+                  <div className="mb-6 flex items-center justify-center">
+                    <div className="flex items-center gap-4 px-6 py-3 bg-slate-100 rounded-xl border border-slate-200">
+                      <span className="text-sm font-semibold text-slate-600">Impact on Overall Composite Score:</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold text-slate-500">{compositeScore || '--'}</span>
+                        <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <span className="text-xl font-bold text-slate-800">{projectedCompositeY1}</span>
+                        <span className="text-lg font-bold text-amber-600">(+{totalGainY1.toFixed(1)})</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Priority Dimension Cards - All 5 shown */}
+                  <div className="grid grid-cols-1 gap-4">
+                    {rankings.slice(0, 5).map((r, idx) => {
                       const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
                       const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
                       const buildCount = r.buildToOffering12 + r.buildToPlanning12;
-                      const expanded = expandedPriorities[r.dimNum] || { accel: false, build: false };
-                      
-                      const displayedAccel = expanded.accel ? accelerateItems : accelerateItems.slice(0, 3);
-                      const displayedBuild = expanded.build ? buildItems : buildItems.slice(0, 3);
                       
                       return (
-                      <div key={r.dimNum} className={`rounded-xl border overflow-hidden ${idx < 2 ? 'border-slate-300 shadow-sm' : 'border-slate-200'}`}>
-                        {/* Header - Lighter */}
+                      <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
+                        {/* Header */}
                         <div className={`px-5 py-3 flex items-center justify-between ${idx === 0 ? 'bg-indigo-700' : idx === 1 ? 'bg-slate-600' : 'bg-slate-500'}`}>
                           <div className="flex items-center gap-3">
                             <span className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
                             <h4 className="font-semibold text-white">{r.dimName}</h4>
                           </div>
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="text-white/70">Dimension: <span className="font-semibold text-white">{r.currentScore} → {r.projectedScore12}</span></span>
-                            <span className="bg-white/20 px-2 py-1 rounded text-white font-semibold">Composite +{r.potentialGain12}</span>
-                          </div>
+                          <span className="bg-white/20 px-3 py-1 rounded-lg text-white text-sm font-semibold">Composite +{r.potentialGain12}</span>
                         </div>
                         
-                        {/* Content - Two columns, much lighter */}
+                        {/* Content - 3 columns */}
                         <div className="p-4 bg-slate-50">
-                          <div className="grid grid-cols-2 gap-6">
+                          <div className="grid grid-cols-3 gap-4">
                             {/* ACCELERATE */}
-                            <div>
-                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                Accelerate ({accelCount})
-                              </p>
-                              {displayedAccel.length > 0 ? (
-                                <ul className="space-y-1 text-sm text-slate-700">
-                                  {displayedAccel.map((item, i) => (
-                                    <li key={i} className="flex items-start gap-1.5">
-                                      <span className="text-slate-400 mt-0.5">•</span>
-                                      <span>{item.name} <span className="text-slate-400">({item.to === 'Offering' ? 'Implement' : 'Active Planning'})</span></span>
+                            <div className="bg-white rounded-lg border border-slate-200 p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <span className="font-semibold text-slate-700 text-sm">Accelerate ({accelCount})</span>
+                              </div>
+                              {accelerateItems.length > 0 ? (
+                                <ul className="space-y-1.5">
+                                  {accelerateItems.map((item, i) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-amber-500"></span>
+                                      <span>{item.name} <span className="font-semibold text-slate-500">({item.to === 'Offering' ? 'Implement' : 'Active Planning'})</span></span>
                                     </li>
                                   ))}
-                                  {accelerateItems.length > 3 && !expanded.accel && (
-                                    <li>
-                                      <button 
-                                        onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: true } }))}
-                                        className="text-xs text-slate-500 hover:text-slate-700 ml-3"
-                                      >
-                                        +{accelerateItems.length - 3} more...
-                                      </button>
-                                    </li>
-                                  )}
                                 </ul>
                               ) : (
                                 <p className="text-sm text-slate-400 italic">No in-flight elements</p>
@@ -6597,33 +6559,41 @@ export default function ExportReportPage() {
                             </div>
                             
                             {/* BUILD */}
-                            <div>
-                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                Build ({buildCount})
-                              </p>
-                              {displayedBuild.length > 0 ? (
-                                <ul className="space-y-1 text-sm text-slate-700">
-                                  {displayedBuild.map((item, i) => (
-                                    <li key={i} className="flex items-start gap-1.5">
-                                      <span className="text-indigo-400 mt-0.5">•</span>
-                                      <span>{item.name} <span className="text-slate-400">({item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'})</span></span>
+                            <div className="bg-white rounded-lg border border-slate-200 p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="w-6 h-6 rounded bg-indigo-700 flex items-center justify-center">
+                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                </div>
+                                <span className="font-semibold text-slate-700 text-sm">Build ({buildCount})</span>
+                              </div>
+                              {buildItems.length > 0 ? (
+                                <ul className="space-y-1.5">
+                                  {buildItems.map((item, i) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-indigo-500"></span>
+                                      <span>{item.name} <span className="font-semibold text-slate-500">({item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'})</span></span>
                                     </li>
                                   ))}
-                                  {buildItems.length > 3 && !expanded.build && (
-                                    <li>
-                                      <button 
-                                        onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: true } }))}
-                                        className="text-xs text-slate-500 hover:text-slate-700 ml-3"
-                                      >
-                                        +{buildItems.length - 3} more...
-                                      </button>
-                                    </li>
-                                  )}
                                 </ul>
                               ) : (
                                 <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
                               )}
+                            </div>
+                            
+                            {/* DIMENSION IMPACT */}
+                            <div className="bg-white rounded-lg border border-slate-200 p-4">
+                              <p className="font-semibold text-slate-700 text-sm mb-3">Impact on Dimension Score</p>
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="text-center">
+                                  <p className="text-xs text-slate-400 uppercase">Current</p>
+                                  <p className="text-2xl font-bold text-slate-500">{r.currentScore}</p>
+                                </div>
+                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                <div className="text-center">
+                                  <p className="text-xs text-slate-400 uppercase">Year 1</p>
+                                  <p className="text-2xl font-bold text-slate-800">{r.projectedScore12} <span className="text-lg text-amber-600">(+{r.dimPotentialGain12})</span></p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -6632,27 +6602,7 @@ export default function ExportReportPage() {
                     })}
                   </div>
                   
-                  {/* Expand/Collapse Button */}
-                  {!showAllImpactDimensions && (
-                    <button
-                      onClick={() => setShowAllImpactDimensions(true)}
-                      className="w-full mt-4 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      Show Remaining 2 Dimensions
-                    </button>
-                  )}
-                  {showAllImpactDimensions && (
-                    <button
-                      onClick={() => setShowAllImpactDimensions(false)}
-                      className="w-full mt-3 py-2 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center gap-1"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                      Collapse
-                    </button>
-                  )}
-                  
-                  <p className="text-xs text-slate-400 mt-4 text-center">
+                  <p className="text-xs text-slate-400 mt-5 text-center">
                     Projections assume sustained execution; actual results vary based on feasibility.
                   </p>
                 </div>
@@ -9896,106 +9846,118 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 23: Impact-Ranked Priorities - lighter design */}
+                {/* Slide 23: Impact-Ranked Priorities */}
                 {currentSlide === 23 && (
                   <div className="overflow-hidden">
-                    <div className="px-10 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                    <div className="px-10 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            How It Works
-                          </div>
+                        <div>
+                          <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                          <p className="text-slate-300 mt-1 text-sm">Year 1 roadmap: advance <span className="font-semibold text-white">{rankings.reduce((s, r) => s + r.elementsProgressed12, 0)}</span> support elements across <span className="font-semibold text-white">5</span> priority dimensions</p>
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          How It Works
                         </div>
                       </div>
                     </div>
                     <div className="p-6">
-                      {/* Summary row */}
-                      <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                      {/* Explainers + Impact */}
+                      <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                              <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                              </div>
                               <span className="font-semibold text-slate-700">Accelerate</span>
                               <span className="text-slate-500">— work in motion</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                              <div className="w-6 h-6 rounded bg-indigo-700 flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                              </div>
                               <span className="font-semibold text-slate-700">Build</span>
-                              <span className="text-slate-500">— net-new capabilities</span>
+                              <span className="text-slate-500">— net-new</span>
                             </div>
                           </div>
-                          
-                          <div className="flex items-center gap-4">
-                            <span className="text-sm text-slate-500">Impact on Overall Composite:</span>
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-slate-200">
-                              <span className="text-lg font-bold text-slate-600">{compositeScore || '--'}</span>
-                              <span className="text-amber-500">→</span>
-                              <span className="text-lg font-bold text-slate-800">{Math.round(((compositeScore || 0) + rankings.reduce((s, x) => s + (x.potentialGain12 ?? 0), 0)) * 10) / 10}</span>
-                              <span className="text-sm font-semibold text-amber-600 ml-1">(+{rankings.reduce((s, x) => s + (x.potentialGain12 ?? 0), 0).toFixed(1)})</span>
-                            </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-slate-500">Impact on Composite:</span>
+                            <span className="text-lg font-bold text-slate-500">{compositeScore || '--'}</span>
+                            <span className="text-amber-500">→</span>
+                            <span className="text-lg font-bold text-slate-800">{Math.round(((compositeScore || 0) + rankings.reduce((s, x) => s + (x.potentialGain12 ?? 0), 0)) * 10) / 10}</span>
+                            <span className="font-bold text-amber-600">(+{rankings.reduce((s, x) => s + (x.potentialGain12 ?? 0), 0).toFixed(1)})</span>
                           </div>
                         </div>
                       </div>
                       
+                      {/* Dimension cards */}
                       <div className="space-y-3">
                         {rankings.slice(0, 5).map((r, idx) => {
                           const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
+                          const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
+                          const buildCount = r.buildToOffering12 + r.buildToPlanning12;
                           return (
-                          <div key={r.dimNum} className={`rounded-xl border overflow-hidden ${idx < 2 ? 'border-slate-300 shadow-sm' : 'border-slate-200'}`}>
-                            <div className={`px-5 py-3 flex items-center justify-between ${idx === 0 ? 'bg-indigo-700' : idx === 1 ? 'bg-slate-600' : 'bg-slate-500'}`}>
-                              <div className="flex items-center gap-3">
-                                <span className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
-                                <h4 className="font-semibold text-white">{r.dimName}</h4>
+                          <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className={`px-4 py-2.5 flex items-center justify-between ${idx === 0 ? 'bg-indigo-700' : idx === 1 ? 'bg-slate-600' : 'bg-slate-500'}`}>
+                              <div className="flex items-center gap-2">
+                                <span className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-base font-bold text-white">{idx + 1}</span>
+                                <h4 className="font-semibold text-white text-sm">{r.dimName}</h4>
                               </div>
-                              <div className="flex items-center gap-4 text-sm">
-                                <span className="text-white/70">Dimension: <span className="font-semibold text-white">{r.currentScore} → {r.projectedScore12}</span></span>
-                                <span className="bg-white/20 px-2 py-1 rounded text-white font-semibold">Composite +{r.potentialGain12}</span>
+                              <div className="flex items-center gap-3 text-xs">
+                                <span className="text-white/70">Dim: {r.currentScore}→{r.projectedScore12} (+{r.dimPotentialGain12})</span>
+                                <span className="bg-white/20 px-2 py-0.5 rounded text-white font-semibold">Composite +{r.potentialGain12}</span>
                               </div>
                             </div>
-                            
-                            <div className="p-4 bg-slate-50">
-                              <div className="grid grid-cols-2 gap-6">
-                                <div>
-                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                    Accelerate ({r.accelerateToOffering12 + r.accelerateToPlanning12})
-                                  </p>
-                                  <ul className="space-y-1 text-sm text-slate-700">
-                                    {accelerateItems.slice(0, 3).map((item, i) => (
-                                      <li key={i} className="flex items-start gap-1.5">
-                                        <span className="text-slate-400 mt-0.5">•</span>
-                                        <span>{item.name} <span className="text-slate-400">({item.to === 'Offering' ? 'Implement' : 'Active Planning'})</span></span>
+                            <div className="p-3 bg-slate-50 grid grid-cols-2 gap-4">
+                              {/* Accelerate */}
+                              <div>
+                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1">
+                                  <span className="w-4 h-4 rounded bg-slate-700 flex items-center justify-center">
+                                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                  </span>
+                                  Accelerate ({accelCount})
+                                </p>
+                                {accelerateItems.length > 0 ? (
+                                  <ul className="space-y-1">
+                                    {accelerateItems.map((item, i) => (
+                                      <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full mt-1.5 bg-amber-500"></span>
+                                        <span>{item.name} <span className="font-semibold">({item.to === 'Offering' ? 'Implement' : 'Active Planning'})</span></span>
                                       </li>
                                     ))}
-                                    {accelerateItems.length > 3 && <li className="text-xs text-slate-400 ml-3">+{accelerateItems.length - 3} more...</li>}
-                                    {accelerateItems.length === 0 && <li className="text-slate-400 italic">No in-flight elements</li>}
                                   </ul>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                                    <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                    Build ({r.buildToOffering12 + r.buildToPlanning12})
-                                  </p>
-                                  <ul className="space-y-1 text-sm text-slate-700">
-                                    {buildItems.slice(0, 3).map((item, i) => (
-                                      <li key={i} className="flex items-start gap-1.5">
-                                        <span className="text-indigo-400 mt-0.5">•</span>
-                                        <span>{item.name} <span className="text-slate-400">({item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'})</span></span>
+                                ) : (
+                                  <p className="text-xs text-slate-400 italic">No in-flight</p>
+                                )}
+                              </div>
+                              {/* Build */}
+                              <div>
+                                <p className="text-xs font-semibold text-slate-500 mb-2 flex items-center gap-1">
+                                  <span className="w-4 h-4 rounded bg-indigo-700 flex items-center justify-center">
+                                    <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                  </span>
+                                  Build ({buildCount})
+                                </p>
+                                {buildItems.length > 0 ? (
+                                  <ul className="space-y-1">
+                                    {buildItems.map((item, i) => (
+                                      <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full mt-1.5 bg-indigo-500"></span>
+                                        <span>{item.name} <span className="font-semibold">({item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'})</span></span>
                                       </li>
                                     ))}
-                                    {buildItems.length > 3 && <li className="text-xs text-slate-400 ml-3">+{buildItems.length - 3} more...</li>}
-                                    {buildItems.length === 0 && <li className="text-slate-400 italic">Focus on accelerating</li>}
                                   </ul>
-                                </div>
+                                ) : (
+                                  <p className="text-xs text-slate-400 italic">Focus on accelerating</p>
+                                )}
                               </div>
                             </div>
                           </div>
                           );
                         })}
                       </div>
-                      <p className="text-xs text-slate-400 mt-4 text-center">Projections assume sustained execution; actual results vary based on feasibility.</p>
+                      <p className="text-xs text-slate-400 mt-3 text-center">Projections assume sustained execution; actual results vary based on feasibility.</p>
                     </div>
                   </div>
                 )}
