@@ -1088,11 +1088,56 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
 }
 
 // Calculate impact-ranked improvement priorities
-function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; potentialGain12: number; dimPotentialGain: number; dimPotentialGain12: number; headroomPct: number; headroomPct12: number; effort: string; effortTag: 'quick-win' | 'foundation'; recommendation: string; recommendations: string[]; topGap: string; gapLevel: string; weight: number }[] {
-  // HEADROOM-BASED METHODOLOGY
-  // Calculate realistic improvement potential based on actual support element status counts
-  // Near-term (90-day): Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), NotPlanned→Assessing (+2 pts, capped at 2)
-  // Annual (12-month): Same accelerations + more new initiatives can reach Planning stage
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { 
+  dimName: string; 
+  dimNum: number; 
+  currentScore: number; 
+  tier: string; 
+  potentialGain: number; 
+  potentialGain12: number; 
+  dimPotentialGain: number; 
+  dimPotentialGain12: number; 
+  headroomPct: number; 
+  headroomPct12: number; 
+  projectedScore: number;
+  projectedScore12: number;
+  // Track details for UI
+  accelerateToOffering: number;
+  accelerateToPlanning: number;
+  buildToOffering: number;
+  buildToPlanning: number;
+  buildToAssessing: number;
+  accelerateToOffering12: number;
+  accelerateToPlanning12: number;
+  buildToOffering12: number;
+  buildToPlanning12: number;
+  elementsProgressed: number;
+  elementsProgressed12: number;
+  hasMomentum: boolean;
+  effort: string; 
+  effortTag: 'quick-win' | 'foundation'; 
+  recommendation: string; 
+  recommendations: string[]; 
+  topGap: string; 
+  gapLevel: string; 
+  weight: number;
+}[] {
+  // ============================================================
+  // TWO-TRACK IMPROVEMENT MODEL
+  // ============================================================
+  // 
+  // TRACK 1: ACCELERATE (in-flight work)
+  //   - Planning → Offering
+  //   - Assessing → Planning (90-day) or → Offering (Year-1 subset)
+  //
+  // TRACK 2: BUILD (new initiatives)
+  //   - Not Planned → Assessing/Planning/Offering
+  //   - Scaled by element count and momentum
+  //
+  // MOMENTUM = existing Planning + Assessing counts
+  //   - High momentum = more aggressive Year-1 assumptions
+  //   - Low momentum = conservative Year-1 assumptions
+  // ============================================================
   
   return dimAnalysis
     .map(d => {
@@ -1102,58 +1147,95 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const notPlannedCount = d.gaps?.length || 0;
       const maxPoints = elementCount * 5;
       
-      // ========================================
-      // 90-DAY (NEAR-TERM) CALCULATION
-      // ========================================
-      const planningToOffering = planningCount * 2;
-      const assessingToPlanning = assessingCount * 1;
-      const notPlannedToAssessing = Math.min(notPlannedCount, 2) * 2;
-      
-      const totalPointsDelta = planningToOffering + assessingToPlanning + notPlannedToAssessing;
-      
-      // Convert to dimension score delta
-      const rawDimGain = (totalPointsDelta / maxPoints) * 100;
-      const dimPotentialGain = Math.round(Math.min(rawDimGain, 100 - d.score));
-      
-      // Calculate composite impact
-      const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
-      const potentialGain = Math.round(weightedImpact * 10) / 10;
+      // Momentum indicator: does this dimension have work in flight?
+      const momentum = planningCount + assessingCount;
+      const hasMomentum = momentum >= 2;
       
       // ========================================
-      // 12-MONTH (ANNUAL) CALCULATION
+      // 90-DAY (QUICK WINS)
       // ========================================
-      // More realistic for strategic planning - allows more new initiatives to progress
-      const startCap12 = Math.min(
+      // Track 1: Accelerate
+      const accel_planningToOffering = planningCount;      // All Planning → Offering (+2 pts each)
+      const accel_assessingToPlanning = assessingCount;    // All Assessing → Planning (+1 pt each)
+      
+      // Track 2: Build (conservative - just start assessing)
+      const build_newToAssessing = Math.min(notPlannedCount, 2);  // Cap at 2 new starts
+      
+      const acceleratePoints = (accel_planningToOffering * 2) + (accel_assessingToPlanning * 1);
+      const buildPoints = build_newToAssessing * 2;  // 0 → Assessing = 2 pts
+      
+      const totalPointsDelta = acceleratePoints + buildPoints;
+      const elementsProgressed = accel_planningToOffering + accel_assessingToPlanning + build_newToAssessing;
+      
+      // ========================================
+      // YEAR-1 (SUSTAINED EXECUTION)
+      // ========================================
+      // Track 1: Accelerate (more aggressive)
+      const accel12_planningToOffering = planningCount;    // All Planning → Offering (+2 pts each)
+      
+      // Assessing: 40% go to Offering, 60% go to Planning
+      const assessingToOffering12 = Math.floor(assessingCount * 0.4);
+      const assessingToPlanning12 = assessingCount - assessingToOffering12;
+      
+      // Track 2: Build (scaled by momentum and element count)
+      const buildCap = Math.min(
         notPlannedCount,
-        Math.max(4, Math.ceil(elementCount * 0.30)) // 30% of elements, min 4
+        Math.max(4, Math.ceil(elementCount * 0.30))  // 30% of elements, min 4
       );
       
-      const toPlanning12 = Math.min(startCap12, 2);              // up to 2 can reach Planning in 12 months
-      const toAssessing12 = Math.max(0, startCap12 - toPlanning12);
+      // Net-new to Offering: 1 default, 2 if strong momentum
+      const build12_toOffering = hasMomentum ? Math.min(buildCap, 2) : Math.min(buildCap, 1);
+      const remainingBuildCap = Math.max(0, buildCap - build12_toOffering);
       
-      const notPlannedToPlanning12 = toPlanning12 * 3;           // 0 → Planning (3 points)
-      const notPlannedToAssessing12 = toAssessing12 * 2;         // 0 → Assessing (2 points)
+      // Remaining new initiatives: split between Planning and Assessing
+      const build12_toPlanning = Math.min(remainingBuildCap, 2);
+      const build12_toAssessing = Math.max(0, remainingBuildCap - build12_toPlanning);
       
-      const totalPointsDelta12 =
-        planningToOffering +
-        assessingToPlanning +
-        notPlannedToPlanning12 +
-        notPlannedToAssessing12;
+      const acceleratePoints12 = 
+        (accel12_planningToOffering * 2) +           // Planning → Offering
+        (assessingToOffering12 * 3) +                 // Assessing → Offering (+3 pts: 2→5)
+        (assessingToPlanning12 * 1);                  // Assessing → Planning (+1 pt: 2→3)
+      
+      const buildPoints12 = 
+        (build12_toOffering * 5) +                    // 0 → Offering (5 pts)
+        (build12_toPlanning * 3) +                    // 0 → Planning (3 pts)
+        (build12_toAssessing * 2);                    // 0 → Assessing (2 pts)
+      
+      const totalPointsDelta12 = acceleratePoints12 + buildPoints12;
+      const elementsProgressed12 = 
+        accel12_planningToOffering + 
+        assessingToOffering12 + assessingToPlanning12 + 
+        build12_toOffering + build12_toPlanning + build12_toAssessing;
+      
+      // ========================================
+      // SCORE CALCULATIONS
+      // ========================================
+      const rawDimGain = (totalPointsDelta / maxPoints) * 100;
+      const dimPotentialGain = Math.round(Math.min(rawDimGain, 100 - d.score));
+      const projectedScore = Math.min(100, d.score + dimPotentialGain);
       
       const rawDimGain12 = (totalPointsDelta12 / maxPoints) * 100;
       const dimPotentialGain12 = Math.round(Math.min(rawDimGain12, 100 - d.score));
+      const projectedScore12 = Math.min(100, d.score + dimPotentialGain12);
+      
+      // Composite impact
+      const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
+      const potentialGain = Math.round(weightedImpact * 10) / 10;
       
       const weightedImpact12 = (dimPotentialGain12 * d.weight) / 100 * 0.9;
       const potentialGain12 = Math.round(weightedImpact12 * 10) / 10;
       
+      // Headroom percentages
+      const remainingHeadroom = 100 - d.score;
+      const headroomPct = remainingHeadroom > 0 ? Math.round((dimPotentialGain / remainingHeadroom) * 100) : 0;
+      const headroomPct12 = remainingHeadroom > 0 ? Math.round((dimPotentialGain12 / remainingHeadroom) * 100) : 0;
+      
       // ========================================
       // READINESS & RECOMMENDATIONS
       // ========================================
-      // Readiness tag (display only, not for ranking)
       const hasQuickPath = planningCount > 0 || (notPlannedCount <= 2 && assessingCount >= 2);
       const effortTag: 'quick-win' | 'foundation' = hasQuickPath ? 'quick-win' : 'foundation';
       
-      // Gap level for display
       const totalGapCount = (d.gaps?.length || 0) + (d.unsure?.length || 0);
       let gapLevel = 'Some Gaps';
       if (totalGapCount > 5) { gapLevel = 'Many Gaps'; }
@@ -1163,7 +1245,7 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const recommendations: string[] = [];
       
       if (planningCount > 0) {
-        recommendations.push(`Accelerate ${planningCount} in-progress support element${planningCount > 1 ? 's' : ''} to full implementation`);
+        recommendations.push(`Accelerate ${planningCount} in-progress element${planningCount > 1 ? 's' : ''} to full implementation`);
       }
       
       if (d.gaps?.length > 0 && d.gaps[0]?.name) {
@@ -1174,7 +1256,7 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       }
       
       if (assessingCount > 0 && recommendations.length < 3) {
-        recommendations.push(`Advance ${assessingCount} support element${assessingCount > 1 ? 's' : ''} from assessment to active planning`);
+        recommendations.push(`Advance ${assessingCount} element${assessingCount > 1 ? 's' : ''} from assessment to planning`);
       }
       
       if (recommendations.length === 0) {
@@ -1182,11 +1264,6 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       }
       
       const topGap = d.gaps?.[0]?.name || d.needsAttention?.[0]?.name || 'No specific gaps identified';
-      
-      // Calculate % of remaining headroom
-      const remainingHeadroom = 100 - d.score;
-      const headroomPct = remainingHeadroom > 0 ? Math.round((dimPotentialGain / remainingHeadroom) * 100) : 0;
-      const headroomPct12 = remainingHeadroom > 0 ? Math.round((dimPotentialGain12 / remainingHeadroom) * 100) : 0;
       
       return {
         dimName: d.name,
@@ -1199,6 +1276,21 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
         dimPotentialGain12,
         headroomPct,
         headroomPct12,
+        projectedScore,
+        projectedScore12,
+        // Track details
+        accelerateToOffering: accel_planningToOffering,
+        accelerateToPlanning: accel_assessingToPlanning,
+        buildToOffering: 0,
+        buildToPlanning: 0,
+        buildToAssessing: build_newToAssessing,
+        accelerateToOffering12: accel12_planningToOffering + assessingToOffering12,
+        accelerateToPlanning12: assessingToPlanning12,
+        buildToOffering12: build12_toOffering,
+        buildToPlanning12: build12_toPlanning,
+        elementsProgressed,
+        elementsProgressed12,
+        hasMomentum,
         gapLevel,
         effort: effortTag === 'quick-win' ? 'Quick Win' : 'Foundation Build',
         effortTag,
@@ -1209,7 +1301,8 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       };
     })
     .sort((a, b) => {
-      if (b.potentialGain !== a.potentialGain) return b.potentialGain - a.potentialGain;
+      // Sort by Year-1 potential (shows strategic value)
+      if (b.potentialGain12 !== a.potentialGain12) return b.potentialGain12 - a.potentialGain12;
       if (a.effortTag !== b.effortTag) return a.effortTag === 'quick-win' ? -1 : 1;
       return 0;
     })
@@ -2911,10 +3004,10 @@ export default function ExportReportPage() {
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
-      what: 'Ranks dimensions by potential composite score impact, calculated from your actual support element status. Shows both near-term (90-day) and annual (Year 1) improvement potential to help with tactical and strategic planning.',
-      how: 'Near-term improvement derived from status transitions: Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), Not Planned→Assessing (+2 pts, capped at 2 elements). Year 1 estimates allow more new initiatives to progress (up to 30% of elements). Formula: ΔComposite = 0.9 × (weight/100) × ΔDimScore. The "distance to next tier" context shows how combined improvements close the gap to the next performance level.',
-      when: 'Use near-term estimates for quarterly planning and immediate wins. Use Year 1 estimates for annual roadmaps and strategic prioritization. The combined Top 5 impact helps frame what\'s achievable with focused effort.',
-      questions: ['Where will effort most efficiently improve our score?', 'How much of the gap to the next tier can we realistically close?', 'What\'s achievable in 90 days vs. 12 months?', 'Which initiatives should we accelerate first?']
+      what: 'Ranks your top 5 dimensions by Year 1 composite score impact using a two-track improvement model. Shows projected scores, elements progressed, and the breakdown between accelerating existing work vs. building new capabilities.',
+      how: 'The two-track model separates: (1) ACCELERATE — moving in-flight work forward (Planning→Offering, Assessing→Planning or Offering), and (2) BUILD — launching new capabilities (Not Planned→Assessing/Planning/Offering). Dimensions with "momentum" (2+ elements already in progress) can achieve more ambitious Year 1 goals. Composite impact = 0.9 × (weight/100) × ΔDimScore.',
+      when: 'Use projected scores and gap closure % to frame strategic conversations. The Accelerate/Build breakdown helps assign ownership: Accelerate work typically needs project management, while Build work needs program design and stakeholder alignment.',
+      questions: ['What\'s our realistic path to the next tier?', 'How much comes from accelerating vs. building new?', 'Which dimensions have the most momentum?', 'What projected score can we commit to for Year 1?']
     },
     excellence: {
       title: 'Areas of Excellence',
@@ -6331,8 +6424,18 @@ export default function ExportReportPage() {
           
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
+            // Calculate totals for context
+            const totalElements90 = rankings.reduce((s, r) => s + r.elementsProgressed, 0);
+            const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
+            const totalGain90 = rankings.reduce((s, r) => s + r.potentialGain, 0);
+            const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
+            const projectedComposite90 = Math.round(((compositeScore || 0) + totalGain90) * 10) / 10;
+            const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
+            const gapClosurePct = pointsToNextTier ? Math.min(100, Math.round((totalGainY1 / pointsToNextTier) * 100)) : 0;
+            
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+                {/* Header */}
                 <div className="px-10 py-6 bg-gradient-to-r from-teal-700 via-teal-800 to-slate-800 relative overflow-hidden">
                   <div className="absolute inset-0 opacity-10">
                     <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -6347,7 +6450,7 @@ export default function ExportReportPage() {
                   <div className="relative flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-teal-200 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
+                      <p className="text-teal-200 mt-1 text-base">Year 1 impact from accelerating in-flight work and building new capabilities</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <button 
@@ -6357,50 +6460,80 @@ export default function ExportReportPage() {
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Learn More
                       </button>
-                      <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
-                        <svg className="w-5 h-5 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                        <span className="text-white font-semibold">Top 5 Priorities</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Summary Stats Banner */}
+                <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-emerald-50 border-b border-slate-200">
+                  <div className="grid grid-cols-4 gap-6">
+                    {/* Projected Composite */}
+                    <div className="text-center">
+                      <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Projected Score (Year 1)</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</span>
+                        <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <span className="text-2xl font-bold text-emerald-600">{projectedCompositeY1}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Gap Closure */}
+                    {nextTierUp && pointsToNextTier && (
+                      <div className="text-center">
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Gap to {nextTierUp.name}</p>
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-2xl font-bold" style={{ color: nextTierUp.color }}>{gapClosurePct}%</span>
+                          <span className="text-sm text-slate-500">closed</span>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Elements Progressed */}
+                    <div className="text-center">
+                      <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Elements Progressed</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl font-bold text-blue-600">{totalElementsY1}</span>
+                        <span className="text-sm text-slate-500">across Top 5</span>
+                      </div>
+                    </div>
+                    
+                    {/* Composite Gain */}
+                    <div className="text-center">
+                      <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Composite Impact</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</span>
+                        <span className="text-sm text-slate-500">points</span>
                       </div>
                     </div>
                   </div>
                 </div>
+                
                 <div className="p-8">
-                  <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex flex-wrap items-start gap-6">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-teal-600 text-white">Quick Win</span>
-                        <span className="text-sm text-slate-600">Accelerate in-progress initiatives or activate existing resources</span>
+                  {/* Two-Track Legend */}
+                  <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-sm">Accelerate</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Move in-flight work forward: Planning→Offering, Assessing→Planning/Offering</p>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-600 text-white">Foundation Build</span>
-                        <span className="text-sm text-slate-600">Requires new programs, policies, or vendor partnerships</span>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-800 text-sm">Build</p>
+                          <p className="text-xs text-slate-500 mt-0.5">Launch new capabilities: Not Planned→Assessing/Planning/Offering</p>
+                        </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Context: Distance to Next Tier & Combined Impact */}
-                  {pointsToNextTier !== null && nextTierUp && (
-                    <div className="mb-5 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-2 text-sm text-emerald-900">
-                          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                          <span>You are <span className="font-bold text-emerald-700">{pointsToNextTier.toFixed(1)}</span> points from <span className="font-semibold" style={{ color: nextTierUp.color }}>{nextTierUp.name}</span> tier</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-emerald-900">
-                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                          {(() => {
-                            const total12 = rankings.reduce((s, x) => s + (x.potentialGain12 ?? x.potentialGain), 0);
-                            const pct = Math.min(100, (total12 / pointsToNextTier) * 100);
-                            return (
-                              <span>
-                                <span className="font-semibold">Top 5 combined (Year 1):</span> <span className="font-bold text-teal-700">+{total12.toFixed(1)}</span> pts <span className="text-emerald-600">({Math.round(pct)}% of gap)</span>
-                              </span>
-                            );
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Priority Cards */}
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
                       const tag = getPriorityTag(r);
@@ -6413,7 +6546,7 @@ export default function ExportReportPage() {
                         
                         <div className="flex items-stretch">
                           {/* Priority Number */}
-                          <div className={`flex items-center justify-center w-20 text-3xl font-black ${
+                          <div className={`flex items-center justify-center w-16 text-2xl font-black ${
                             idx === 0 ? 'bg-gradient-to-b from-teal-600 to-teal-700 text-white' : 
                             idx === 1 ? 'bg-gradient-to-b from-teal-500 to-teal-600 text-white' : 
                             'bg-slate-100 text-slate-400'
@@ -6421,88 +6554,112 @@ export default function ExportReportPage() {
                             {idx + 1}
                           </div>
                           
-                          {/* Content */}
-                          <div className="flex-1 p-5">
-                            <div className="flex items-start justify-between gap-6">
-                              {/* Dimension Info */}
-                              <div className="flex-1">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
-                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
-                                    r.gapLevel === 'Few Gaps' ? 'bg-teal-100 text-teal-700 border border-teal-200' :
-                                    r.gapLevel === 'Some Gaps' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                                    'bg-slate-100 text-slate-700 border border-slate-200'
-                                  }`}>
-                                    {r.gapLevel === 'Few Gaps' ? (
-                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                    ) : r.gapLevel === 'Some Gaps' ? (
-                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" /></svg>
-                                    ) : (
-                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                                    )}
-                                    {r.gapLevel}
+                          {/* Main Content */}
+                          <div className="flex-1 p-4">
+                            {/* Header Row */}
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
+                                {r.hasMomentum && (
+                                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm4.707 5.707a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L8.414 11H14a1 1 0 100-2H8.414l1.293-1.293z" /></svg>
+                                    Momentum
                                   </span>
-                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${tag.className}`}>{tag.label}</span>
-                                </div>
-                                
-                                {/* Recommendations */}
-                                {editMode ? (
-                                  <div className="flex flex-col gap-2">
-                                    <input
-                                      type="text"
-                                      value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
-                                      onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                      className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                      placeholder="Enter custom recommendations..."
-                                    />
-                                    {customRecommendations[r.dimNum] && (
-                                      <button 
-                                        onClick={() => updateCustomRecommendation(r.dimNum, '')}
-                                        className="text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
-                                      >
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                        Reset
-                                      </button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="text-sm text-slate-600 space-y-1">
-                                    {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
-                                      <p key={i} className="flex items-start gap-2">
-                                        <span className="text-cyan-500 mt-0.5">→</span>
-                                        <span>{rec}</span>
-                                      </p>
-                                    ))}
-                                  </div>
                                 )}
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${tag.className}`}>{tag.label}</span>
                               </div>
                               
-                              {/* Metrics */}
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                {/* Current Score */}
-                                <div className="text-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
-                                  <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
-                                  <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
-                                  <p className="text-xs text-slate-400">{r.tier}</p>
+                              {/* Score Projection - Compact */}
+                              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
+                                <span className="text-lg font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
+                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                <span className="text-lg font-bold text-emerald-600">{r.projectedScore12}</span>
+                                <span className="text-xs text-slate-400 ml-1">Year 1</span>
+                              </div>
+                            </div>
+                            
+                            {/* Two-Track Progress Bars */}
+                            <div className="grid grid-cols-2 gap-4 mb-3">
+                              {/* Accelerate Track */}
+                              <div className="bg-blue-50/50 rounded-lg p-3 border border-blue-100">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    Accelerate
+                                  </span>
+                                  <span className="text-xs text-blue-600">{r.accelerateToOffering12 + r.accelerateToPlanning12} elements</span>
                                 </div>
-                                
-                                {/* Arrow */}
-                                <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                
-                                {/* Dimension Impact */}
-                                <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
-                                  <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
-                                  <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
-                                  <p className="text-[11px] text-blue-500 mt-0.5">{r.headroomPct}% of headroom</p>
-                                </div>
-                                
-                                {/* Composite Impact */}
-                                <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                                  <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Composite</p>
-                                  <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                  <p className="text-[11px] text-emerald-500 mt-0.5">Year 1: +{r.potentialGain12}</p>
+                                <div className="flex gap-2 text-xs">
+                                  {r.accelerateToOffering12 > 0 && (
+                                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded">{r.accelerateToOffering12} → Offering</span>
+                                  )}
+                                  {r.accelerateToPlanning12 > 0 && (
+                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-200">{r.accelerateToPlanning12} → Planning</span>
+                                  )}
+                                  {r.accelerateToOffering12 === 0 && r.accelerateToPlanning12 === 0 && (
+                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded">No in-flight work</span>
+                                  )}
                                 </div>
                               </div>
+                              
+                              {/* Build Track */}
+                              <div className="bg-violet-50/50 rounded-lg p-3 border border-violet-100">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs font-semibold text-violet-700 uppercase tracking-wide flex items-center gap-1">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                    Build
+                                  </span>
+                                  <span className="text-xs text-violet-600">{r.buildToOffering12 + r.buildToPlanning12} new</span>
+                                </div>
+                                <div className="flex gap-2 text-xs">
+                                  {r.buildToOffering12 > 0 && (
+                                    <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded">{r.buildToOffering12} → Offering</span>
+                                  )}
+                                  {r.buildToPlanning12 > 0 && (
+                                    <span className="px-2 py-0.5 bg-violet-50 text-violet-600 rounded border border-violet-200">{r.buildToPlanning12} → Planning</span>
+                                  )}
+                                  {r.buildToOffering12 === 0 && r.buildToPlanning12 === 0 && (
+                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded">Limited new capacity</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Recommendations (editable) */}
+                            {editMode ? (
+                              <div className="flex flex-col gap-2">
+                                <input
+                                  type="text"
+                                  value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
+                                  onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                                  className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                  placeholder="Enter custom recommendations..."
+                                />
+                              </div>
+                            ) : (
+                              <div className="text-sm text-slate-600 flex flex-wrap gap-x-4 gap-y-1">
+                                {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps']).map((rec: string, i: number) => (
+                                  <span key={i} className="flex items-center gap-1.5">
+                                    <span className="text-teal-500">→</span>
+                                    <span>{rec}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Impact Metrics - Vertical Stack */}
+                          <div className="flex flex-col justify-center gap-2 px-4 py-3 bg-slate-50 border-l border-slate-200 min-w-[140px]">
+                            <div className="text-center">
+                              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Dim Impact</p>
+                              <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain12}</p>
+                              <p className="text-[10px] text-blue-500">{r.headroomPct12}% headroom</p>
+                            </div>
+                            <div className="w-full h-px bg-slate-200"></div>
+                            <div className="text-center">
+                              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Composite</p>
+                              <p className="text-xl font-bold text-emerald-600">+{r.potentialGain12}</p>
+                              <p className="text-[10px] text-emerald-500">{r.elementsProgressed12} elements</p>
                             </div>
                           </div>
                         </div>
@@ -6510,7 +6667,14 @@ export default function ExportReportPage() {
                       );
                     })}
                   </div>
-                  <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement (% of remaining headroom shown). Composite = impact on overall score. Year 1 estimates assume sustained focus and additional initiatives progressing.</p>
+                  
+                  {/* Footer */}
+                  <div className="mt-6 pt-4 border-t border-slate-200">
+                    <p className="text-xs text-slate-400 text-center">
+                      Year 1 projections use a two-track model: <span className="text-blue-500 font-medium">Accelerate</span> existing work-in-progress + <span className="text-violet-500 font-medium">Build</span> new capabilities. 
+                      Dimensions with momentum (2+ in-flight elements) can achieve more ambitious Year 1 goals.
+                    </p>
+                  </div>
                 </div>
               </div>
             );
