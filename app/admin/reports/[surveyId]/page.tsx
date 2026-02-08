@@ -6480,7 +6480,7 @@ export default function ExportReportPage() {
             
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                {/* Header - Simplified */}
+                {/* Header */}
                 <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-center justify-between">
                     <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
@@ -6495,7 +6495,7 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="p-6">
-                  {/* Accelerate & Build Definitions - with inline descriptions */}
+                  {/* Accelerate & Build Definitions */}
                   <div className="mb-5 grid grid-cols-2 gap-4">
                     {/* Accelerate Card */}
                     <div className="rounded-xl overflow-hidden border border-slate-200">
@@ -6542,9 +6542,9 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Year 1 Summary - 4 compact cards */}
+                  {/* Year 1 Summary - 4 compact cards with corrected order */}
                   <div className="mb-6 grid grid-cols-4 gap-3">
-                    {/* Year 1 Roadmap Card */}
+                    {/* 1. Year 1 Roadmap Card */}
                     <div className="rounded-xl overflow-hidden border border-slate-300 bg-gradient-to-br from-slate-800 to-slate-900">
                       <div className="px-4 py-2 border-b border-slate-600">
                         <p className="text-xs font-bold text-white uppercase tracking-wide">Year 1 Roadmap</p>
@@ -6554,34 +6554,35 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Current Score */}
+                    {/* 2. Impact on Overall Composite Score */}
+                    <div className="rounded-xl overflow-hidden border border-amber-300 bg-amber-50">
+                      <div className="px-3 py-1.5 border-b border-amber-200 bg-amber-100">
+                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wide">Impact on Overall Composite Score</p>
+                      </div>
+                      <div className="p-3 text-center">
+                        <p className="text-3xl font-black text-amber-600">+{totalGainY1.toFixed(1)}</p>
+                        <p className="text-[10px] text-amber-700 mt-1">{totalAccel} accelerated • {totalBuild} built</p>
+                      </div>
+                    </div>
+                    
+                    {/* 3. Current Composite Score */}
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                       <div className="px-3 py-1.5 border-b border-slate-200 bg-slate-100">
-                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Current Overall Composite Score</p>
+                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Current Composite Score</p>
                       </div>
                       <div className="p-3 text-center">
                         <p className="text-3xl font-black text-slate-600">{compositeScore || '--'}</p>
                       </div>
                     </div>
                     
-                    {/* Projected Year 1 */}
+                    {/* 4. Projected Year 1 Score */}
                     <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-800">
                       <div className="px-3 py-1.5 border-b border-slate-600">
                         <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Projected Year 1 Score</p>
                       </div>
                       <div className="p-3 text-center">
                         <p className="text-3xl font-black text-white">{projectedCompositeY1}</p>
-                      </div>
-                    </div>
-                    
-                    {/* Projected Gain */}
-                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-700">
-                      <div className="px-3 py-1.5 border-b border-slate-600">
-                        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Projected Gain</p>
-                      </div>
-                      <div className="p-3 text-center">
-                        <p className="text-3xl font-black text-white">+{totalGainY1.toFixed(1)}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">{totalAccel} accelerated • {totalBuild} built</p>
+                        <p className="text-[10px] text-slate-400 mt-1">({compositeScore || '--'} + {totalGainY1.toFixed(1)})</p>
                       </div>
                     </div>
                   </div>
@@ -6635,8 +6636,8 @@ export default function ExportReportPage() {
                                         <div key={i} className="px-3 py-2 text-xs">
                                           <div className="flex items-start justify-between gap-2">
                                             <span className="font-medium text-slate-700 flex-1">{item.name}</span>
-                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                              {item.to === 'Offering' ? 'Complete Implementation' : 'Active Planning'}
+                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                              {item.to === 'Offering' ? 'Implement' : 'Active Planning'}
                                             </span>
                                           </div>
                                           {bench !== null && (
@@ -6678,8 +6679,8 @@ export default function ExportReportPage() {
                                         <div key={i} className="px-3 py-2 text-xs">
                                           <div className="flex items-start justify-between gap-2">
                                             <span className="font-medium text-slate-700 flex-1">{item.name}</span>
-                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                              {item.to === 'Offering' ? 'Stand Up / Implement' : 'Design + Scope'}
+                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                              {item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'}
                                             </span>
                                           </div>
                                           {bench !== null && (
@@ -10138,15 +10139,15 @@ export default function ExportReportPage() {
                                     {/* Dimension Impact */}
                                     <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
                                       <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
-                                      <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
+                                      <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain12}</p>
                                       <p className="text-[11px] text-blue-500 mt-0.5">{r.headroomPct}% of headroom</p>
                                     </div>
                                     
                                     {/* Composite Impact */}
                                     <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
                                       <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Composite</p>
-                                      <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                      <p className="text-[11px] text-emerald-500 mt-0.5">Year 1: +{r.potentialGain12}</p>
+                                      <p className="text-xl font-bold text-emerald-600">+{r.potentialGain12}</p>
+                                      <p className="text-[11px] text-emerald-500 mt-0.5">Year 1</p>
                                     </div>
                                   </div>
                                 </div>
