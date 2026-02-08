@@ -2589,7 +2589,7 @@ export default function ExportReportPage() {
     const customNote = customNotes[noteKey] || '';
     
     const defaultNotes: Record<number, string> = {
-      0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a 90-day action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
+      0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
       2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
       3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by strategic importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
@@ -2862,7 +2862,7 @@ export default function ExportReportPage() {
   const infoContent = {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
-      what: 'Connects the dots across your scores to highlight bottlenecks—places where one weaker area may be limiting the impact of stronger programs elsewhere.',
+      what: 'Connects the dots across your scores to highlight bottlenecks, places where one weaker area may be limiting the impact of stronger programs elsewhere.',
       how: 'The system checks for a set of common cross-score patterns (for example, Culture is strong but Manager Preparedness is low). When your scores match a pattern, it surfaces a plain-English explanation and a recommended action you can assign to an owner. Patterns are ranked by severity so you see the most impactful issues first.',
       when: 'Use this section to align HR and leaders on root causes, prioritize a small number of moves that unlock multiple areas, and clarify what to confirm first before finalizing scores.',
       questions: ['Where are we investing, but employees may still struggle to access support?', 'What is the "weak link" that could be limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?']
@@ -2892,7 +2892,7 @@ export default function ExportReportPage() {
       title: 'Strategic Recommendations',
       what: 'A focused, decision-ready roadmap: four priority dimensions translated into clear actions, owners, and a pragmatic sequence (quick wins first, foundations next).',
       how: 'We use a balanced 2+2 method. Two dimensions are selected by lowest score ("Foundation Focus") to address areas where employees are most likely to experience support gaps. Two additional dimensions are selected by weighted opportunity ("Strategic Leverage"), combining dimension importance with remaining improvement headroom. To avoid spotlighting areas that are already strong, dimensions scoring above 85 are excluded from the Strategic Leverage selection.',
-      when: 'Use this section to align HR and leadership on the few moves that matter most, build a 90-day action plan, and map the initiatives that require longer-term program development.',
+      when: 'Use this section to align HR and leadership on the few moves that matter most, build a practical action plan, and map the initiatives that require longer-term program development.',
       questions: ['Where are the most immediate vulnerabilities in our support system?', 'Which actions will drive the greatest system-wide improvement in the next 90 days?', 'What should we prioritize for a 12-month roadmap (and what can wait)?', 'Who should own each initiative, and what CAC resources can accelerate progress?']
     }
   };
