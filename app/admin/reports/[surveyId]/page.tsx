@@ -202,6 +202,100 @@ const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 
 const D10_EXCLUDED_ITEMS = ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'];
 
+
+// ============================================
+// REPORT POLISH HELPERS (UI + WORKFLOW)
+// ============================================
+
+type StrategicSpineStage = 'confirm' | 'prioritize' | 'plan' | 'track';
+
+function StrategicSpine({ active }: { active: StrategicSpineStage }) {
+  const steps: { key: StrategicSpineStage; label: string }[] = [
+    { key: 'confirm', label: 'Confirm' },
+    { key: 'prioritize', label: 'Prioritize' },
+    { key: 'plan', label: 'Plan' },
+    { key: 'track', label: 'Track' },
+  ];
+  const activeIdx = steps.findIndex(s => s.key === active);
+  return (
+    <div className="mt-3 flex items-center gap-2 flex-wrap" aria-label="Confirm to Track workflow">
+      {steps.map((s, idx) => {
+        const isActive = idx == activeIdx;
+        const isDone = idx < activeIdx;
+        const base = isActive
+          ? 'bg-slate-900 text-white border-slate-900'
+          : isDone
+            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            : 'bg-white text-slate-600 border-slate-200';
+        return (
+          <div key={s.key} className="flex items-center gap-2">
+            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${base}`}>
+              {idx + 1}
+            </span>
+            <span className={`text-xs font-semibold ${isActive ? 'text-slate-900' : isDone ? 'text-emerald-700' : 'text-slate-500'}`}>
+              {s.label}
+            </span>
+            {idx < steps.length - 1 && (
+              <svg className="w-3.5 h-3.5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function getConfirmationGuidance(itemName: string): { owner: string; evidence: string } {
+  const n = (itemName || '').toLowerCase();
+  const has = (...keywords: string[]) => keywords.some(k => n.includes(k));
+
+  if (has('health plan', 'oncology', 'nurse', 'care navigation', 'case management', 'navigation')) {
+    return { owner: 'Benefits / Health Plan Owner', evidence: 'Health plan summary, vendor contract, plan portal screenshot' };
+  }
+  if (has('short-term disability', 'long-term disability', 'std', 'ltd')) {
+    return { owner: 'Benefits / Leave Vendor', evidence: 'STD/LTD policy, carrier materials, eligibility rules' };
+  }
+  if (has('leave', 'fmla', 'medical leave', 'paid leave', 'pto', 'time off')) {
+    return { owner: 'HR Ops / Benefits', evidence: 'Employee handbook, leave policy doc, intranet page' };
+  }
+  if (has('eap', 'employee assistance')) {
+    return { owner: 'Benefits', evidence: 'EAP vendor confirmation, benefits guide, intranet link' };
+  }
+  if (has('accommodation', 'ada', 'reasonable')) {
+    return { owner: 'HRBP / Legal', evidence: 'Accommodation process doc, ADA policy, case workflow' };
+  }
+  if (has('manager', 'training', 'leader', 'supervisor')) {
+    return { owner: 'HR L&D / People Team', evidence: 'Training deck, LMS screenshot, program calendar' };
+  }
+  if (has('communication', 'awareness', 'resource guide', 'toolkit', 'intranet', 'portal', 'share')) {
+    return { owner: 'Internal Comms / HR', evidence: 'Comms plan, intranet page, email templates' };
+  }
+  if (has('caregiver', 'family')) {
+    return { owner: 'Benefits / HR', evidence: 'Benefits guide, caregiver policy, vendor program details' };
+  }
+  if (has('return to work', 're-entry', 'phased return')) {
+    return { owner: 'HR Ops / HRBP', evidence: 'Return-to-work protocol, manager checklist, template forms' };
+  }
+  if (has('wellness', 'screening', 'prevention')) {
+    return { owner: 'Wellness / Benefits', evidence: 'Wellness program materials, screening benefit summary' };
+  }
+
+  return { owner: 'HR Ops / Benefits', evidence: 'Policy documentation or program owner confirmation' };
+}
+
+function getPriorityTag(r: any): { label: string; className: string } {
+  const inProgress = (r?.planningCount || 0) + (r?.assessingCount || 0);
+  const gaps = r?.gapCount || r?.notPlannedCount || 0;
+  const hasPlanning = (r?.planningCount || 0) > 0;
+  // Quick Win: Has items already in motion; Foundation Build: Requires new infrastructure
+  const isQuickWin = hasPlanning || (inProgress > 0 && inProgress >= gaps);
+  return isQuickWin
+    ? { label: 'Quick Win', className: 'bg-emerald-100 text-emerald-700 border-emerald-300' }
+    : { label: 'Foundation Build', className: 'bg-slate-100 text-slate-700 border-slate-300' };
+}
+
 // ============================================
 // STRATEGIC INSIGHTS FOR EACH DIMENSION
 // ============================================
@@ -807,10 +901,15 @@ function getBenchmarkNarrative(score: number, benchmark: number | null, dimName:
 }
 
 // Identify meaningful cross-dimension patterns
+// Identify meaningful cross-dimension patterns (ranked by severity, tier-consistent)
+// Methodology: Evaluates cross-dimensional bottleneck rules and surfaces the top 3 
+// based on the size of the mismatch and the opportunity in the weaker dimension.
 function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; implication: string; recommendation: string }[] {
-  const patterns: { pattern: string; implication: string; recommendation: string }[] = [];
-  
+  type Cand = { pattern: string; implication: string; recommendation: string; score: number };
+  const cands: Cand[] = [];
+
   const findDim = (num: number) => dimAnalysis.find(d => d.dim === num);
+
   const culture = findDim(6);
   const manager = findDim(3);
   const navigation = findDim(4);
@@ -822,147 +921,234 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
   const continuous = findDim(12);
   const accommodations = findDim(5);
   const career = findDim(7);
-  
-  // Pattern: Strong culture but weak manager training
-  if (culture && manager && culture.score >= 70 && manager.score < 55) {
-    patterns.push({
-      pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})`,
-      implication: 'Employees likely feel safe disclosing health challenges, but managers may lack confidence and tools to respond effectively. This creates risk of inconsistent support experiences.',
+
+  // Tier-consistent helpers (aligned to actual tier boundaries)
+  const isLeadingPlus = (d: any) => (d?.score ?? 0) >= 75;   // Leading/Exemplary
+  const isWeak = (d: any) => (d?.score ?? 0) < 60;           // Emerging/Developing
+  const headroom = (d: any) => 100 - (d?.score ?? 0);
+
+  // Opportunity proxy: headroom weighted by strategic importance (dampened so it informs but doesn't dominate)
+  const avgWeight = dimAnalysis.reduce((s, d) => s + (d.weight || 0), 0) / Math.max(dimAnalysis.length, 1);
+  const weightFactor = (w: number) => {
+    const ratio = (w || 0) / Math.max(avgWeight, 1);
+    const damp = Math.sqrt(ratio);
+    return Math.min(1.2, Math.max(0.8, damp));
+  };
+  const opp = (d: any) => headroom(d) * weightFactor(d?.weight || 0);
+
+  // High unsure modifier - notes when score is pending confirmation
+  const hasHighUnsure = (d: any) => (d?.unsure?.length || 0) >= 3;
+  const unsureNote = (d: any) => hasHighUnsure(d) ? ' (score pending confirmation of ' + d.unsure.length + ' items)' : '';
+
+  const add = (p: Omit<Cand, 'score'>, score: number) => {
+    // Severity floor: only add if score > 10 to avoid marginal mismatches
+    if (score > 10) {
+      cands.push({ ...p, score });
+    }
+  };
+
+  // 1) Strong culture but weak manager training
+  if (culture && manager && isLeadingPlus(culture) && isWeak(manager)) {
+    add({
+      pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})${unsureNote(manager)}`,
+      implication: 'Employees likely feel safe disclosing health challenges, but managers may lack confidence and tools to respond effectively—creating inconsistent support experiences.',
       recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to help—give them the skills to do so effectively.'
-    });
+    }, (culture.score - manager.score) + 0.25 * opp(manager));
   }
-  
-  // Pattern: Good benefits but poor navigation  
-  if (insurance && navigation && insurance.score >= 65 && navigation.score < 50) {
-    patterns.push({
-      pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})`,
-      implication: 'You\'ve invested in comprehensive benefits, but employees may struggle to find and access them when needed. Benefits utilization is likely below potential, reducing ROI.',
-      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub. This maximizes return on your existing benefits investment.'
-    });
+
+  // 2) Good benefits but poor navigation
+  if (insurance && navigation && isLeadingPlus(insurance) && isWeak(navigation)) {
+    add({
+      pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})${unsureNote(navigation)}`,
+      implication: 'You have invested in comprehensive benefits, but employees may struggle to find and access them when needed—reducing utilization and ROI.',
+      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub—to maximize return on existing benefits.'
+    }, (insurance.score - navigation.score) + 0.25 * opp(navigation));
   }
-  
-  // Pattern: Low communication with strong programs
-  if (communication && communication.score < 50) {
-    const strongDims = dimAnalysis.filter(d => d.score >= 70 && d.dim !== 13);
+
+  // 3) Enablement bottleneck (front door is unclear + managers not equipped)
+  // Common root cause of low confidence/utilization even when programs exist
+  if (manager && navigation && communication && manager.score < 55 && navigation.score < 55 && communication.score < 55) {
+    add({
+      pattern: `Enablement bottleneck: Navigation (${navigation.score}), Communication (${communication.score}), and Manager Preparedness (${manager.score}) are all underdeveloped`,
+      implication: 'Even if you have solid benefits or policies, employees may not know where to start—and managers may not have clear tools to guide them. The result is low confidence, inconsistent experiences, and underutilization of support.',
+      recommendation: 'Create a clear "front door" for support (single contact/path), equip managers with a short playbook (what to do/say, referral steps, boundaries), and run a simple awareness cadence (3-touch communications + intranet hub). This combination tends to unlock multiple dimensions at once.'
+    }, (55 - Math.min(manager.score, navigation.score, communication.score)) + 0.3 * (opp(manager) + opp(navigation) + opp(communication)) / 3);
+  }
+
+  // 4) Low communication with strong programs (awareness bottleneck)
+  if (communication && isWeak(communication)) {
+    const strongDims = dimAnalysis.filter(d => d.dim !== 13 && isLeadingPlus(d));
     if (strongDims.length >= 2) {
-      patterns.push({
-        pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}`,
-        implication: `You have strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness may be limiting utilization. Employees may not know these resources exist when they need them.`,
-        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, just need visibility.'
-      });
+      add({
+        pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}${unsureNote(communication)}`,
+        implication: `You have strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness may be limiting utilization—employees may not know resources exist when they need them.`,
+        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, now build visibility.'
+      }, (75 - communication.score) + 0.15 * strongDims.length * 10);
     }
   }
-  
-  // Pattern: Strong leave but weak return-to-work
-  if (leave && returnToWork && leave.score >= 65 && returnToWork.score < 50) {
-    patterns.push({
-      pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})`,
-      implication: 'Employees get the time they need for treatment, but may struggle with the transition back. This risks losing the investment made during leave through failed re-entry.',
-      recommendation: 'Implement structured return-to-work protocols: phased re-entry schedules, regular check-ins, and temporary accommodation plans. Protect your leave investment.'
-    });
+
+  // 5) Strong leave but weak return-to-work
+  if (leave && returnToWork && isLeadingPlus(leave) && isWeak(returnToWork)) {
+    add({
+      pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})${unsureNote(returnToWork)}`,
+      implication: 'Employees get time for treatment, but may struggle with the transition back—risking avoidable attrition or prolonged productivity loss.',
+      recommendation: 'Implement structured return-to-work protocols: phased re-entry schedules, regular check-ins, and temporary accommodation plans to protect your leave investment.'
+    }, (leave.score - returnToWork.score) + 0.25 * opp(returnToWork));
   }
-  
-  // Pattern: Accommodations strong but career weak
-  if (accommodations && career && accommodations.score >= 65 && career.score < 50) {
-    patterns.push({
-      pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})`,
-      implication: 'Employees can adjust their work during treatment, but may fear long-term career impact. This can lead to hidden diagnoses or premature departures despite good day-to-day support.',
-      recommendation: 'Add explicit career protection policies—promotion eligibility during medical leave, transparent communication about performance expectations, and success stories of career progression post-diagnosis.'
-    });
+
+  // 6) Accommodations strong but career continuity weak
+  if (accommodations && career && isLeadingPlus(accommodations) && isWeak(career)) {
+    add({
+      pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})${unsureNote(career)}`,
+      implication: 'Employees can adjust work during treatment, but may fear long-term career impact—leading to hidden diagnoses or premature departures despite day-to-day support.',
+      recommendation: 'Add explicit career protection norms—clarity on promotion eligibility during leave, expectations transparency, and visible success stories of career progression post-diagnosis.'
+    }, (accommodations.score - career.score) + 0.25 * opp(career));
   }
-  
-  // Pattern: Low executive commitment with other gaps
-  if (executive && executive.score < 45) {
-    const avgOtherScore = dimAnalysis.filter(d => d.dim !== 9).reduce((sum, d) => sum + d.score, 0) / 12;
-    if (avgOtherScore < 65) {
-      patterns.push({
-        pattern: `Low Executive Commitment (${executive.score}) correlating with program gaps`,
-        implication: 'Without visible leadership engagement, cancer support operates as an isolated HR initiative rather than organizational priority. This limits resources and cross-functional coordination.',
-        recommendation: 'Build the executive business case connecting cancer support to retention metrics, productivity data, and employer brand. Identify an executive sponsor to champion the program.'
-      });
+
+  // 7) Low executive commitment correlating with broader gaps
+  if (executive && isWeak(executive)) {
+    const avgOther = dimAnalysis.filter(d => d.dim !== 9).reduce((s, d) => s + d.score, 0) / 12;
+    if (avgOther < 65) {
+      add({
+        pattern: `Low Executive Commitment (${executive.score}) correlating with program gaps${unsureNote(executive)}`,
+        implication: 'Without visible leadership engagement, cancer support tends to operate as an isolated HR initiative rather than an organizational priority—limiting resources and cross-functional coordination.',
+        recommendation: 'Build the executive business case linking cancer support to retention, productivity, and employer brand. Identify an executive sponsor to champion the program.'
+      }, (65 - avgOther) + 0.35 * opp(executive));
     }
   }
-  
-  // Pattern: Consistently strong performance
+
+  // 8) High gaps with low continuous improvement infrastructure
+  if (continuous && isWeak(continuous)) {
+    const totalGaps = dimAnalysis.reduce((sum, d) => sum + (d.gaps?.length || 0), 0);
+    const totalConfirming = dimAnalysis.reduce((sum, d) => sum + (d.unsure?.length || 0), 0);
+    const totalItems = totalGaps + totalConfirming;
+    if (totalItems > 25) {
+      add({
+        pattern: `${totalGaps} gaps + ${totalConfirming} items needing confirmation with limited Continuous Improvement infrastructure (${continuous.score})`,
+        implication: 'Significant improvement opportunities exist, but without systematic review processes, progress may be slow and lessons from individual cases can be lost.',
+        recommendation: 'Establish quarterly program reviews, employee feedback mechanisms, and case documentation practices to create infrastructure that drives and sustains improvements.'
+      }, (totalItems - 25) + 0.25 * opp(continuous));
+    }
+  }
+
+  // 9) Improvement momentum - dimension with active work underway
+  const dimsWithMomentum = dimAnalysis.filter(d => {
+    const planningCount = d.planning?.length || 0;
+    const assessingCount = d.assessing?.length || 0;
+    return isWeak(d) && (planningCount + assessingCount) >= 3;
+  });
+  if (dimsWithMomentum.length > 0) {
+    const topMomentum = dimsWithMomentum.sort((a, b) => 
+      ((b.planning?.length || 0) + (b.assessing?.length || 0)) - ((a.planning?.length || 0) + (a.assessing?.length || 0))
+    )[0];
+    const inProgress = (topMomentum.planning?.length || 0) + (topMomentum.assessing?.length || 0);
+    add({
+      pattern: `Active improvement momentum in ${topMomentum.name} (${topMomentum.score}) with ${inProgress} items in planning/assessment`,
+      implication: `This dimension shows current score of ${topMomentum.score}, but you have ${inProgress} support elements actively being developed or assessed. Completing these could meaningfully shift the score.`,
+      recommendation: `Prioritize converting "Planning" items to "Offering" status in ${topMomentum.name}. Track progress quarterly to demonstrate ROI on current improvement investments.`
+    }, 15 + inProgress * 2); // Moderate priority - good news worth surfacing
+  }
+
+  // 10) Consistently strong performance (positive strategic signal) - boosted scoring
   const avgScore = dimAnalysis.reduce((sum, d) => sum + d.score, 0) / dimAnalysis.length;
   const lowestDim = [...dimAnalysis].sort((a, b) => a.score - b.score)[0];
-  if (avgScore >= 72 && lowestDim.score >= 50) {
-    patterns.push({
-      pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average)`,
-      implication: 'Your comprehensive, balanced approach to cancer support is a genuine organizational differentiator. This positions you well for employer brand recognition and talent attraction.',
-      recommendation: `Leverage this strong foundation to build thought leadership in workplace cancer support. Focus refinement on ${lowestDim.name} (${lowestDim.score}) to achieve full excellence across all dimensions.`
-    });
+  if (avgScore >= 72 && lowestDim?.score >= 50) {
+    add({
+      pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average, ${lowestDim.score} floor)`,
+      implication: 'Your balanced approach to cancer support is a genuine differentiator, positioning you well for employer brand recognition and talent attraction.',
+      recommendation: `Leverage this foundation for thought leadership. Refine ${lowestDim.name} (${lowestDim.score}) to move from strong performance to full excellence.`
+    }, 30 + (avgScore - 72) * 2); // Boosted so truly strong companies see this
   }
-  
-  // Pattern: High gaps with low continuous improvement
-  if (continuous && continuous.score < 45) {
-    const totalGaps = dimAnalysis.reduce((sum, d) => sum + d.gaps.length, 0);
-    if (totalGaps > 25) {
-      patterns.push({
-        pattern: `${totalGaps} total gaps with limited Continuous Improvement infrastructure (${continuous.score})`,
-        implication: 'Significant improvement opportunities exist, but without systematic review processes, progress may be slow and lessons from individual cases are lost.',
-        recommendation: 'Establish quarterly program reviews, employee feedback mechanisms, and case documentation practices. This creates the infrastructure to drive and sustain improvements.'
-      });
-    }
+
+  // Rank by severity and return top 3
+  const ranked = cands.sort((a, b) => b.score - a.score).slice(0, 3).map(({ score, ...rest }) => rest);
+
+  // Fallback: ensure section always provides value
+  if (ranked.length === 0) {
+    const byScoreAsc = [...dimAnalysis].sort((a, b) => (a.score ?? 0) - (b.score ?? 0));
+    const byScoreDesc = [...dimAnalysis].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    const lowest = byScoreAsc[0];
+    const strongest = byScoreDesc[0];
+
+    // Identify top uncertainty areas
+    const byUnsure = [...dimAnalysis].sort((a, b) => ((b.unsure?.length || 0) - (a.unsure?.length || 0)));
+    const topUnsure = byUnsure.filter(d => (d.unsure?.length || 0) > 0).slice(0, 2);
+    const unsureText = topUnsure.length > 0
+      ? ` Prioritize confirming "Needs Confirmation" items in ${topUnsure.map(d => `${d.name} (${d.unsure.length})`).join(' and ')}—those confirmations can materially change the story.`
+      : '';
+
+    return [{
+      pattern: 'No major cross-dimensional bottlenecks detected',
+      implication: `Your scores do not match any of the common "weak link" patterns we look for. That is a good sign—your program appears relatively balanced, with strengths that can support improvements in weaker areas.${unsureText}`,
+      recommendation: `Use your strongest area (${strongest?.name}, ${strongest?.score}) as a repeatable playbook. Focus next on the lowest-scoring dimension (${lowest?.name}, ${lowest?.score}) by selecting 1–2 specific improvements that are feasible in the next 60–90 days, then reassess to confirm progress.`
+    }];
   }
-  
-  return patterns.slice(0, 3); // Return top 3 most relevant
+
+  return ranked;
 }
 
 // Calculate impact-ranked improvement priorities
-function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; dimPotentialGain: number; effort: string; recommendation: string; recommendations: string[]; topGap: string }[] {
-  // Realistic improvement potential varies by current score
-  const getRealisticImprovement = (score: number) => {
-    if (score < 40) return 25;  // Low scores: lots of quick wins available
-    if (score < 60) return 20;  // Mid scores: moderate improvement potential
-    if (score < 80) return 15;  // Higher scores: harder to move
-    return 10;                   // High performers: marginal gains
-  };
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; dimPotentialGain: number; effort: string; effortTag: 'quick-win' | 'foundation'; recommendation: string; recommendations: string[]; topGap: string; gapLevel: string; weight: number }[] {
+  // HEADROOM-BASED METHODOLOGY
+  // Calculate realistic improvement potential based on actual support element status counts
+  // Planning→Offering (+2 pts), Assessing→Planning (+1 pt), NotPlanned→Assessing (+2 pts, capped at 2)
   
   return dimAnalysis
     .map(d => {
-      // Calculate potential dimension score improvement
-      const improvementPotential = Math.min(100 - d.score, getRealisticImprovement(d.score));
-      const dimPotentialGain = improvementPotential; // Direct dimension score gain
+      const elementCount = d.elements?.length || 10;
+      const planningCount = d.planning?.length || 0;
+      const assessingCount = d.assessing?.length || 0;
+      const notPlannedCount = d.gaps?.length || 0;
       
-      // Calculate potential composite score impact
-      const weightedImpact = (improvementPotential * d.weight) / 100 * 0.9; // 90% dimension weight factor
+      // Calculate points delta from realistic status transitions
+      const planningToOffering = planningCount * 2;
+      const assessingToPlanning = assessingCount * 1;
+      const notPlannedToAssessing = Math.min(notPlannedCount, 2) * 2;
+      
+      const totalPointsDelta = planningToOffering + assessingToPlanning + notPlannedToAssessing;
+      
+      // Convert to dimension score delta
+      const maxPoints = elementCount * 5;
+      const rawDimGain = (totalPointsDelta / maxPoints) * 100;
+      const dimPotentialGain = Math.round(Math.min(rawDimGain, 100 - d.score));
+      
+      // Calculate composite impact
+      const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
-      // Determine gap level based on gap count (includes both Not Planned and Needs Confirmation)
-      const totalGapCount = d.gaps.length + (d.unsure?.length || 0);
-      let gapLevel = 'Some Gaps';  // 3-5 gaps
-      let gapScore = 2;
-      if (totalGapCount > 5) { gapLevel = 'Many Gaps'; gapScore = 1; }
-      else if (totalGapCount <= 2) { gapLevel = 'Few Gaps'; gapScore = 3; }
+      // Readiness tag (display only, not for ranking)
+      const hasQuickPath = planningCount > 0 || (notPlannedCount <= 2 && assessingCount >= 2);
+      const effortTag: 'quick-win' | 'foundation' = hasQuickPath ? 'quick-win' : 'foundation';
       
-      // Generate up to 3 specific recommendations based on their data
+      // Gap level for display
+      const totalGapCount = (d.gaps?.length || 0) + (d.unsure?.length || 0);
+      let gapLevel = 'Some Gaps';
+      if (totalGapCount > 5) { gapLevel = 'Many Gaps'; }
+      else if (totalGapCount <= 2) { gapLevel = 'Few Gaps'; }
+      
+      // Generate recommendations
       const recommendations: string[] = [];
       
-      // First recommendation: Planning items (highest priority - already in progress)
-      if (d.planning.length > 0) {
-        recommendations.push(`Accelerate ${d.planning.length} in-progress initiative${d.planning.length > 1 ? 's' : ''} for quickest impact`);
+      if (planningCount > 0) {
+        recommendations.push(`Accelerate ${planningCount} in-progress support element${planningCount > 1 ? 's' : ''} to full implementation`);
       }
       
-      // Second recommendation: Top gaps to address
-      if (d.gaps.length > 0 && d.gaps[0]?.name) {
+      if (d.gaps?.length > 0 && d.gaps[0]?.name) {
         recommendations.push(`Implement: ${d.gaps[0].name}`);
         if (d.gaps.length > 1 && d.gaps[1]?.name && recommendations.length < 3) {
           recommendations.push(`Add: ${d.gaps[1].name}`);
         }
       }
       
-      // Third recommendation: Assessing items to move forward
-      if (d.assessing.length > 0 && recommendations.length < 3) {
-        recommendations.push(`Move ${d.assessing.length} item${d.assessing.length > 1 ? 's' : ''} from assessment to planning`);
+      if (assessingCount > 0 && recommendations.length < 3) {
+        recommendations.push(`Advance ${assessingCount} support element${assessingCount > 1 ? 's' : ''} from assessment to active planning`);
       }
       
-      // Fallback if no other recommendations
       if (recommendations.length === 0) {
-        recommendations.push('Optimize and document existing programs');
+        recommendations.push('Strengthen documentation and communication of existing programs');
       }
       
-      const topGap = d.gaps[0]?.name || d.needsAttention[0]?.name || 'No specific gaps identified';
+      const topGap = d.gaps?.[0]?.name || d.needsAttention?.[0]?.name || 'No specific gaps identified';
       
       return {
         dimName: d.name,
@@ -972,19 +1158,19 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
         potentialGain,
         dimPotentialGain,
         gapLevel,
-        gapScore,
-        recommendation: recommendations[0], // Keep for backward compatibility
-        recommendations: recommendations.slice(0, 3), // Up to 3
-        topGap
+        effort: effortTag === 'quick-win' ? 'Quick Win' : 'Foundation Build',
+        effortTag,
+        recommendation: recommendations[0],
+        recommendations: recommendations.slice(0, 3),
+        topGap,
+        weight: d.weight
       };
     })
     .sort((a, b) => {
-      // Prioritize: high impact + fewer gaps = best ROI
-      const aROI = a.potentialGain * a.gapScore;
-      const bROI = b.potentialGain * b.gapScore;
-      return bROI - aROI;
+      if (b.potentialGain !== a.potentialGain) return b.potentialGain - a.potentialGain;
+      if (a.effortTag !== b.effortTag) return a.effortTag === 'quick-win' ? -1 : 1;
+      return 0;
     })
-    .map(({ gapScore, ...rest }) => rest) // Remove gapScore from output
     .slice(0, 5);
 }
 
@@ -1783,7 +1969,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               });
                             })()}
                           </div>
-                          <p className="text-[10px] text-slate-400 italic mt-3">Note: If both USA and non-USA values provided, scores are averaged.</p>
+                          <p className="text-[10px] text-slate-400 mt-3">Note: If both USA and non-USA values provided, scores are averaged.</p>
                         </div>
                       )}
                       
@@ -2130,7 +2316,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             });
                           })()}
                         </div>
-                        <p className="text-[10px] text-slate-400 italic mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
+                        <p className="text-[10px] text-slate-400 mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
                       </div>
                     )}
                     
@@ -2220,10 +2406,16 @@ export default function ExportReportPage() {
   const [elementDetails, setElementDetails] = useState<any>(null);
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
+  const [tierDistribution, setTierDistribution] = useState<{ exemplary: number; leading: number; progressing: number; emerging: number; developing: number } | null>(null);
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
+  
+  // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
+  const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
+  const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
+  
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
@@ -2248,14 +2440,16 @@ export default function ExportReportPage() {
   }>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
-
+  
   // Computed total slides - base 35 + any additional dimension deep dives
-  const totalSlides = 35 + additionalAnalyzedDims.length;
-
+  const totalSlides = 38 + additionalAnalyzedDims.length;
+  
   const [showDimSelector, setShowDimSelector] = useState(false);
+  const [showTierOverlay, setShowTierOverlay] = useState(false);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
   const [customDimRoadmaps, setCustomDimRoadmaps] = useState<Record<number, { 
@@ -2364,20 +2558,31 @@ export default function ExportReportPage() {
   const renderPresenterNotesWindow = (win: Window, slideNum: number, isInitialRender: boolean = false) => {
     if (!win || win.closed) return;
     
+    const addDimCount = additionalAnalyzedDims.length;
     const slideNames: Record<number, string> = {
       0: 'Title & Overview',
       1: 'How Index Was Developed', 
-      2: 'How to Use This Report',
-      3: 'Executive Summary',
-      4: 'Dimension Performance',
-      30: 'Implementation Roadmap',
-      31: 'Working with Cancer Pledge',
-      32: 'How CAC Can Help',
-      33: 'Methodology',
-      34: 'Thank You'
+      2: 'Understanding Your Composite Score',
+      3: 'The 13 Dimensions',
+      4: 'How to Use This Report',
+      5: 'Executive Summary',
+      6: 'Dimension Performance'
     };
-    for (let i = 5; i <= 17; i++) slideNames[i] = `Dimension ${i - 4} Deep Dive`;
-    for (let i = 18; i <= 29; i++) slideNames[i] = `Strategic Content ${i - 17}`;
+    // Dimension deep dives: slides 7-19
+    for (let i = 7; i <= 19; i++) slideNames[i] = `Dimension ${i - 6} Deep Dive`;
+    // Strategic content: slides 20-31
+    for (let i = 20; i <= 31; i++) slideNames[i] = `Strategic Content ${i - 19}`;
+    // Additional analyzed dimensions: slides 32 to 32+addDimCount-1
+    for (let i = 0; i < addDimCount; i++) {
+      const dimNum = additionalAnalyzedDims[i];
+      slideNames[32 + i] = `Additional Analysis: Dimension ${dimNum}`;
+    }
+    // Final slides (shifted by addDimCount)
+    slideNames[32 + addDimCount] = 'Implementation Roadmap';
+    slideNames[33 + addDimCount] = 'Working with Cancer Pledge';
+    slideNames[34 + addDimCount] = 'How CAC Can Help';
+    slideNames[35 + addDimCount] = 'Methodology';
+    slideNames[36 + addDimCount] = 'Thank You';
     
     const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
     const noteKey = `slide_${slideNum}`;
@@ -2386,37 +2591,37 @@ export default function ExportReportPage() {
     const defaultNotes: Record<number, string> = {
       0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a 90-day action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
-      2: 'Walk through the four-step workflow: Confirm, then Prioritize, then Plan, then Track. Explain that items marked "Needs confirmation" are the first unlock because they are scored as Not Planned until verified. Focus attention on high-weight gaps first since small changes there move the overall score fastest.',
-      3: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
-      4: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
-      18: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
-      19: 'Use this slide to calibrate ambition. Ask whether they are behind peers because of policy gaps, execution issues, or awareness problems. Benchmarks should be used to set realistic targets, not to chase vanity scores. Help them distinguish between quick parity moves and true differentiator investments.',
-      20: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
-      21: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
-      22: 'Use this as a portfolio view by asking where they are over-invested versus under-invested. The goal is balance in the highest-weight dimensions rather than perfect symmetry across all. Identify which spokes need strengthening first.',
-      23: 'This slide builds stakeholder buy-in by showing real employee impact. Translate score gaps into day-to-day reality like manager conversations, navigating treatment, and return-to-work experiences. These quotes are powerful for internal communications and leadership alignment.',
-      24: 'The message here is that improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Encourage momentum by suggesting they pick a ladder step and commit to moving it this cycle. Celebrate progress rather than waiting for perfection.',
-      25: 'Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve. Caution against overreacting to low-base elements and encourage prioritizing by weight and feasibility instead.',
-      26: 'Use this slide to reinforce the cadence of quarterly check-ins plus annual reassessment. Celebrate gains and frame any regressions as signals to investigate rather than failures. Set specific targets for the next assessment cycle.',
-      27: 'Translate this into an actionable checklist by confirming the uncertain items and picking 3 fast wins to pursue. Clarify dependencies for each item by asking whether it requires policy change, vendor coordination, or manager enablement.',
-      28: 'Explain why some gaps matter more than others. Weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently. Point out that the larger segments have more impact on the total score.',
-      29: 'Give the executive takeaway by summarizing what changed, what is pending confirmation, and what comes next. This slide works as the board-ready snapshot with total elements assessed, confirmation rates, and overall maturity indicators.',
-      30: 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.',
-      31: 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.',
-      32: 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.',
-      33: 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.',
-      34: 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.'
+      2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
+      3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by strategic importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
+      4: 'Walk through the four-step workflow: Confirm, then Prioritize, then Plan, then Track. Explain that items marked "Needs confirmation" are the first unlock because they are scored as Not Planned until verified. Focus attention on high-weight gaps first since small changes there move the overall score fastest.',
+      5: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
+      6: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
+      20: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
+      21: 'Use this slide to calibrate ambition by comparing to benchmarks. Ask whether they are behind peers because of policy gaps, execution issues, or awareness problems. Benchmarks should be used to set realistic targets, not to chase vanity scores. Help them distinguish between quick parity moves and true differentiator investments.',
+      22: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
+      23: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
+      24: 'This slide builds stakeholder buy-in by showing real strengths. Celebrate what is working and ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer.',
+      25: 'The message here is that improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Frame gaps as opportunities, not failures. Encourage momentum by suggesting they pick a ladder step and commit to moving it this cycle.',
+      26: 'These initiatives represent momentum - work already underway. Confirm timelines and owners for each initiative. Ask what is blocking completion and how can we accelerate. Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve.',
+      27: 'Introduce the strategic recommendations framework. These are tailored based on assessment findings. Each recommendation ties to specific dimension gaps. Set up the audience for the detailed recommendations that follow.',
+      28: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming the uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
+      29: 'Continue with the second recommendation. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
+      30: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
+      31: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
     };
+    // Additional analyzed dimensions get notes (slides 32 to 32+addDimCount-1)
+    for (let i = 0; i < addDimCount; i++) {
+      defaultNotes[32 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
+    }
+    // Final slides (shifted by addDimCount)
+    defaultNotes[32 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
+    defaultNotes[33 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
+    defaultNotes[34 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
+    defaultNotes[35 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
+    defaultNotes[36 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
     
-    // Default notes for dimension slides (5-17) - flowing prose template
-    const dimensionNames = [
-      '', '', '', '', '', // 0-4 already defined above
-      'Medical Leave', 'Manager Preparedness', 'HR Capability', 'Insurance & Benefits', 
-      'Accommodations', 'Communication', 'Employee Assistance', 'Mental Health',
-      'Return to Work', 'Career Protection', 'Prevention & Screening', 'Culture & Inclusion', 'Caregiver Support'
-    ];
-    for (let i = 5; i <= 17; i++) {
-      const dimName = dimensionNames[i] || `Dimension ${i - 4}`;
+    // Default notes for dimension deep dive slides (7-19) - flowing prose template
+    for (let i = 7; i <= 19; i++) {
       defaultNotes[i] = 'Start with the outcome this dimension determines by explaining what employees can or cannot do when support is present or absent. Walk through the element breakdown where green items are strengths to protect and communicate, blue items show momentum on initiatives in progress, and red gaps are opportunities to discuss. Use the benchmark to calibrate where peers typically are and what a realistic next step looks like. End with a clear action by identifying who owns this, what the 30-60 day next step is, and what done looks like.';
     }
     
@@ -2425,6 +2630,7 @@ export default function ExportReportPage() {
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
       try {
+        // Use '*' for origin to ensure message is received (same-origin windows)
         win.postMessage({
           type: 'updateSlide',
           slideNum: slideNum,
@@ -2433,7 +2639,7 @@ export default function ExportReportPage() {
           customNote: customNote,
           laserActive: laserPointer,
           totalSlides: totalSlides
-        }, window.location.origin);
+        }, '*');
         return;
       } catch (e) {
         console.log('postMessage failed, doing full render');
@@ -2525,6 +2731,12 @@ export default function ExportReportPage() {
             </svg>
             Laser (L)
           </button>
+          <button onclick="window.close();" style="background: #dc2626; margin-left: 8px;" title="Close this window">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+            Close
+          </button>
         </div>
         
         <div class="section">
@@ -2564,7 +2776,7 @@ export default function ExportReportPage() {
             if (expectedOrigin !== '*' && event.origin !== expectedOrigin) return;
             
             if (event.data && event.data.type === 'updateSlide') {
-              document.getElementById('slideNumber').textContent = 'SLIDE ' + (event.data.slideNum + 1) + ' OF 35';
+              document.getElementById('slideNumber').textContent = 'SLIDE ' + (event.data.slideNum + 1) + ' OF ' + event.data.totalSlides;
               document.getElementById('slideName').textContent = event.data.slideName;
               document.getElementById('defaultNotesContent').textContent = event.data.defaultNote;
               document.getElementById('currentSlideData').setAttribute('data-slide', String(event.data.slideNum));
@@ -2626,7 +2838,7 @@ export default function ExportReportPage() {
     if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed && presentationMode) {
       renderPresenterNotesWindow(presenterNotesWindowRef.current, currentSlide, false);
     }
-  }, [currentSlide, presentationMode, customNotes, presenterNotesOpen, laserPointer]);
+  }, [currentSlide, presentationMode, customNotes, presenterNotesOpen, laserPointer, additionalAnalyzedDims.length]);
   
   // Listen for messages from presenter notes window
   useEffect(() => {
@@ -2637,35 +2849,35 @@ export default function ExportReportPage() {
       } else if (event.data.type === 'prevSlide') {
         setCurrentSlide(prev => Math.max(0, prev - 1));
       } else if (event.data.type === 'nextSlide') {
-        setCurrentSlide(prev => Math.min(34, prev + 1));
+        setCurrentSlide(prev => Math.min(37 + additionalAnalyzedDims.length, prev + 1));
       } else if (event.data.type === 'toggleLaser') {
         setLaserPointer(prev => !prev);
       }
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [customNotes]);
+  }, [customNotes, additionalAnalyzedDims.length]);
   
   // Info modal content
   const infoContent = {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
-      what: 'Identifies meaningful patterns that emerge when comparing different dimensions together. These insights reveal systemic organizational issues or opportunities that wouldn\'t be visible looking at dimensions individually.',
-      how: 'The system checks for specific pattern combinations—for example, if Culture scores high but Manager Preparedness scores low, it surfaces the insight that "employees feel safe disclosing but managers lack tools to respond." Each pattern has specific score thresholds that trigger it.',
-      when: 'Use these insights to understand the "why" behind your scores and identify root causes. They\'re especially valuable for leadership discussions and strategic planning.',
-      questions: ['Why aren\'t employees using our benefits?', 'What systemic issues should leadership understand?', 'Are there hidden connections between our programs?', 'What organizational dynamics affect our cancer support?']
+      what: 'Connects the dots across your scores to highlight bottlenecks—places where one weaker area may be limiting the impact of stronger programs elsewhere.',
+      how: 'The system checks for a set of common cross-score patterns (for example, Culture is strong but Manager Preparedness is low). When your scores match a pattern, it surfaces a plain-English explanation and a recommended action you can assign to an owner. Patterns are ranked by severity so you see the most impactful issues first.',
+      when: 'Use this section to align HR and leaders on root causes, prioritize a small number of moves that unlock multiple areas, and clarify what to confirm first before finalizing scores.',
+      questions: ['Where are we investing, but employees may still struggle to access support?', 'What is the "weak link" that could be limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?']
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
-      what: 'Ranks all 13 dimensions by which ones will give you the biggest "bang for your buck" if you improve them. This considers both the potential score improvement AND the dimension\'s weight in your composite score.',
-      how: 'Calculates ROI as: (potential score gain × dimension weight) × gap factor. Potential improvement varies based on your starting score—lower-scoring dimensions have more room for quick gains, while higher-scoring dimensions see more incremental improvements. Gap level indicates how many elements need attention: Few Gaps (1-2), Some Gaps (3-5), or Many Gaps (6+).',
-      when: 'Use this for tactical, short-term prioritization—deciding where to focus resources this quarter or this year.',
-      questions: ['Where should we focus resources this quarter?', 'What will move our composite score the most?', 'Which improvements offer the best ROI?', 'What\'s the most efficient path to improvement?']
+      what: 'Ranks dimensions by potential composite score impact, calculated from your actual support element status. Dimensions with more items ready to advance rank higher.',
+      how: 'Improvement potential derived from status transitions: Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), Not Planned→Assessing (+2 pts, capped at 2 elements). Formula: ΔComposite = 0.9 × (weight/100) × ΔDimScore. Readiness tags indicate implementation complexity but do not affect ranking.',
+      when: 'Use this for tactical prioritization—identifying where focused effort will most efficiently improve your composite score.',
+      questions: ['Where will effort most efficiently improve our score?', 'Which dimensions have actionable improvement paths?', 'What\'s the fastest route to meaningful progress?', 'Which initiatives should we accelerate first?']
     },
     excellence: {
       title: 'Areas of Excellence',
-      what: 'Highlights your top-performing dimensions—those where you\'re already doing well and can leverage as competitive advantages.',
-      how: 'Simply identifies dimensions with the highest scores, representing your strongest current capabilities in cancer support.',
+      what: 'Highlights your top-performing dimensions—those where you\'re delivering strong support and can leverage as competitive advantages.',
+      how: 'Identifies dimensions with the highest scores, representing your strongest capabilities in supporting employees managing cancer.',
       when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
       questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
     },
@@ -2678,10 +2890,10 @@ export default function ExportReportPage() {
     },
     strategicRecos: {
       title: 'Strategic Recommendations',
-      what: 'Provides comprehensive analysis and detailed action plans for your 4 lowest-scoring dimensions. This is your long-term roadmap for addressing your biggest weaknesses.',
-      how: 'Sorts all 13 dimensions by score (lowest first) and provides deep-dive analysis including gaps, in-progress items, strengths, evidence, insights, and step-by-step roadmaps.',
-      when: 'Use this for long-term strategic planning, building detailed improvement roadmaps, and comprehensive program development.',
-      questions: ['What\'s our 12-month improvement plan?', 'What specific actions should we take?', 'How do we build comprehensive cancer support?', 'What resources does CAC offer to help?']
+      what: 'A focused, decision-ready roadmap: four priority dimensions translated into clear actions, owners, and a pragmatic sequence (quick wins first, foundations next).',
+      how: 'We use a balanced 2+2 method. Two dimensions are selected by lowest score ("Foundation Focus") to address areas where employees are most likely to experience support gaps. Two additional dimensions are selected by weighted opportunity ("Strategic Leverage"), combining dimension importance with remaining improvement headroom. To avoid spotlighting areas that are already strong, dimensions scoring above 85 are excluded from the Strategic Leverage selection.',
+      when: 'Use this section to align HR and leadership on the few moves that matter most, build a 90-day action plan, and map the initiatives that require longer-term program development.',
+      questions: ['Where are the most immediate vulnerabilities in our support system?', 'Which actions will drive the greatest system-wide improvement in the next 90 days?', 'What should we prioritize for a 12-month roadmap (and what can wait)?', 'Who should own each initiative, and what CAC resources can accelerate progress?']
     }
   };
   
@@ -2794,6 +3006,7 @@ export default function ExportReportPage() {
       
       if (error) throw error;
       setHasUnsavedChanges(false);
+      setLastSavedAt(new Date().toISOString());
       showToast('Customizations saved successfully!', 'success');
     } catch (err) {
       console.error('Save error:', err);
@@ -2918,6 +3131,24 @@ export default function ExportReportPage() {
             const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
             setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
             setTotalCompanies(allComposites.length);
+            
+            // Calculate tier distribution across all participating companies
+            const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
+            allComposites.forEach(score => {
+              if (score >= 90) tierCounts.exemplary++;
+              else if (score >= 75) tierCounts.leading++;
+              else if (score >= 60) tierCounts.progressing++;
+              else if (score >= 40) tierCounts.emerging++;
+              else tierCounts.developing++;
+            });
+            const total = allComposites.length;
+            setTierDistribution({
+              exemplary: Math.round((tierCounts.exemplary / total) * 100),
+              leading: Math.round((tierCounts.leading / total) * 100),
+              progressing: Math.round((tierCounts.progressing / total) * 100),
+              emerging: Math.round((tierCounts.emerging / total) * 100),
+              developing: Math.round((tierCounts.developing / total) * 100),
+            });
           }
         }
         
@@ -2958,10 +3189,10 @@ export default function ExportReportPage() {
         setCurrentSlide(0);
       } else if ((e.key === 'ArrowRight' && e.metaKey) || (e.key === 'ArrowDown' && e.metaKey) || e.key === 'End') {
         e.preventDefault();
-        setCurrentSlide(34 + additionalAnalyzedDims.length);
+        setCurrentSlide(37 + additionalAnalyzedDims.length);
       } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === '>' || e.key === '.' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, 34 + additionalAnalyzedDims.length));
+        setCurrentSlide(prev => Math.min(prev + 1, 36 + additionalAnalyzedDims.length));
       } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'Delete' || e.key === '<' || e.key === ',' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 0));
@@ -3450,7 +3681,6 @@ export default function ExportReportPage() {
   const reportSections = [
     { id: 'report-hero-section', label: 'Overview & Score', iconKey: 'overview' },
     { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
-    { id: 'score-composition-section', label: 'Score Composition', iconKey: 'composition' },
     { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
@@ -3493,6 +3723,26 @@ export default function ExportReportPage() {
   const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
+  
+  // STRATEGIC PRIORITY DIMENSIONS: 2+2 Hybrid Selection with headroom threshold
+  const avgWeight = dimensionAnalysis.reduce((sum, d) => sum + d.weight, 0) / dimensionAnalysis.length;
+  const bottom2ByScore = allDimensionsByScore.slice(0, 2);
+  const remainingDims = allDimensionsByScore.slice(2);
+  const eligibleForImpact = remainingDims.filter(d => (100 - d.score) >= 15);
+  const impactPool = eligibleForImpact.length >= 2 ? eligibleForImpact : remainingDims;
+  const top2ByOpportunity = [...impactPool]
+    .map(d => ({
+      ...d,
+      opportunityIndex: (100 - d.score) * Math.min(Math.max(Math.sqrt(d.weight / avgWeight), 0.8), 1.2)
+    }))
+    .sort((a, b) => b.opportunityIndex - a.opportunityIndex)
+    .slice(0, 2);
+  
+  const combinedPriority = [
+    ...bottom2ByScore.map(d => ({ ...d, selectionReason: 'risk' as const })),
+    ...top2ByOpportunity.map(d => ({ ...d, selectionReason: 'impact' as const }))
+  ];
+  const strategicPriorityDims = combinedPriority.filter((d, i, arr) => arr.findIndex(x => x.dim === d.dim) === i).slice(0, 4);
   
   // Initiatives in progress - sorted: Planning first, then Assessing
   const quickWinOpportunities = dimensionAnalysis
@@ -3545,7 +3795,7 @@ export default function ExportReportPage() {
   const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
   
   return (
-      <div className="min-h-screen bg-slate-100">
+    <div className="min-h-screen bg-slate-100">
         <style jsx global>{`
           @media print { 
             body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
@@ -3568,6 +3818,7 @@ export default function ExportReportPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Back
               </button>
+              <span className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold tracking-wider">ADMIN MODE</span>
               
               {/* Jump To Dropdown */}
               <div className="relative">
@@ -3668,6 +3919,24 @@ export default function ExportReportPage() {
                 )}
                 {generatingLink ? 'Generating...' : 'Share Link'}
               </button>
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                {savingEdits ? (
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span className="font-medium">Saving…</span>
+                  </div>
+                ) : hasUnsavedChanges ? (
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span className="font-medium">Unsaved changes</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span className="font-medium">Saved{lastSavedAt ? ` · ${new Date(lastSavedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}</span>
+                  </div>
+                )}
+              </div>
               <button 
                 onClick={() => {
                   setCurrentSlide(0);
@@ -3794,8 +4063,9 @@ export default function ExportReportPage() {
                   
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in your composite score. Dimensions that 
-                    employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your 
-                    score reflects what actually matters to the people in your organization.
+                    employees managing cancer and HR leaders consistently ranked as most critical carry greater weight. 
+                    While some dimensions are more heavily weighted, <strong className="text-slate-800">all dimensions can have a lasting impact</strong> on 
+                    employees facing serious health challenges.
                   </p>
                 </div>
                 
@@ -3809,6 +4079,241 @@ export default function ExportReportPage() {
                   </p>
                 </div>
               </div>
+            </div>
+            
+            
+            {/* Understanding Your Composite Score — Collapsible */}
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">Understanding Your Composite Score</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center transition-transform duration-200 ${showCompositeScoreGuide ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showCompositeScoreGuide && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-gradient-to-br from-violet-50/80 via-white to-slate-50 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-6">
+                      {/* What This Score Represents - Tightened */}
+                      <div className="mb-6">
+                        <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                          What This Score Represents
+                        </h4>
+                        <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                          Your <span className="font-semibold text-violet-700">Composite Score</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
+                        </p>
+                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                          <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
+                          <ul className="space-y-1.5">
+                            <li className="text-sm text-slate-600 flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                              Each dimension is weighted by real-world impact on employee experience and organizational outcomes.
+                            </li>
+                            <li className="text-sm text-slate-600 flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                              Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      
+                      {/* Two column: Tiers + Journey */}
+                      <div className="flex gap-8">
+                        {/* Left: Tier Distribution - Properly structured table */}
+                        <div className="w-[480px] flex-shrink-0">
+                          <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                            Composite Score Tiers
+                          </h4>
+                          
+                          {/* Column Headers */}
+                          <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            <div className="w-28">Tier</div>
+                            <div className="w-20 text-center">Range</div>
+                            <div className="flex-1 text-center">Distribution</div>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {[
+                              { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
+                              { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
+                              { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
+                              { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
+                              { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                            ].map((t) => {
+                              const isCurrentTier = tier?.name === t.name;
+                              return (
+                                <div 
+                                  key={t.name}
+                                  className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`}
+                                  style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}
+                                >
+                                  {/* "You are here" marker */}
+                                  {isCurrentTier && (
+                                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
+                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
+                                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="w-28 flex items-center gap-2">
+                                    <span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span>
+                                  </div>
+                                  <div className="w-20 text-center">
+                                    <span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span>
+                                  </div>
+                                  <div className="flex-1 flex items-center gap-3">
+                                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                                      <div 
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }}
+                                      />
+                                    </div>
+                                    <span className={`text-sm font-bold w-10 text-right ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.pct}%</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                        </div>
+                        
+                        {/* Right: Journey message - Better balanced layout */}
+                        <div className="flex-1 min-w-0">
+                          <div className="h-full p-6 bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-xl">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                              </div>
+                              <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
+                            </div>
+                            <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                              Workplace cancer support is still evolving. Few organizations reach the top tiers today, and participating puts you among employers actively building stronger, more consistent support.
+                            </p>
+                            <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                <strong className="text-violet-700">The goal is progress:</strong> confirm what&apos;s in place, prioritize high-leverage moves, and revisit over time.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="px-6 py-4 bg-gradient-to-r from-violet-700 to-purple-700 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                      </div>
+                      <p className="text-sm text-violet-100">
+                        <span className="font-semibold text-white">This score is just the beginning.</span> The detailed analysis that follows lets you 
+                        explore each dimension in depth, identifying specific strengths to leverage and opportunities to strengthen your 
+                        support for employees managing cancer.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* The 13 Dimensions Overview — Collapsible */}
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The 13 Dimensions of Workplace Cancer Support</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showDimensionsOverview ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showDimensionsOverview && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-6">
+                      {/* Lead-in text */}
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
+                      </p>
+                      
+                      {/* Dimensions Grid - 3x4 + 1 */}
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
+                          { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
+                          { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
+                          { dim: 4, name: 'Cancer Support Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
+                          { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
+                          { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
+                          { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
+                          { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
+                          { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
+                          { dim: 10, name: 'Caregiver & Family Support', color: '#F59E0B', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
+                          { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
+                          { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
+                          { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
+                        ].map((d) => {
+                          const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
+                          const elementCount = dimData?.elements?.length || 0;
+                          return (
+                            <div 
+                              key={d.dim}
+                              className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all"
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <div 
+                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
+                                  style={{ backgroundColor: d.color }}
+                                >
+                                  {d.dim}
+                                </div>
+                                <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
+                              </div>
+                              <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
+                              <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                <span>{elementCount} support elements</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <p className="text-sm text-slate-600">
+                          Each dimension is weighted based on its impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* How to Use This Report — Collapsible */}
@@ -3836,41 +4341,37 @@ export default function ExportReportPage() {
                   <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
                     <div className="p-6">
                       <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                        This report provides a detailed baseline of your organization's cancer support infrastructure across 
-                        13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
-                        a one-size-fits-all prescription.
+                        <strong className="text-slate-800">Use this report to align on priorities, confirm what&apos;s in place, and build a practical action plan.</strong> It&apos;s designed as a starting point for strategic conversations, not a one-size-fits-all prescription.
                       </p>
                       <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                        We recognize that every organization is different. Your industry, workforce, benefits structure, and current 
-                        capabilities all shape what's realistic and impactful for your team. Some recommendations may already align 
-                        with your priorities; others may not be feasible given where you're starting, and that's expected.
+                        Every organization is different. Your industry, workforce, and current capabilities shape what&apos;s realistic and impactful. Some recommendations will align with your priorities; others may not be feasible yet, and that&apos;s expected.
                       </p>
                       
                       <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this assessment:</p>
                       <div className="grid grid-cols-2 gap-3 mb-5">
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-sky-700">1</span>
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-white">1</span>
                           </div>
-                          <p className="text-sm text-slate-600">Review your dimension scores and the specific elements within each</p>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Review</strong> your overall composite and dimension scores and the specific support elements within each</p>
                         </div>
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-sky-700">2</span>
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-white">2</span>
                           </div>
-                          <p className="text-sm text-slate-600">Identify where quick wins align with your existing infrastructure</p>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Identify</strong> where quick wins align with your existing infrastructure</p>
                         </div>
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-sky-700">3</span>
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-white">3</span>
                           </div>
-                          <p className="text-sm text-slate-600">Note areas where deeper exploration would be valuable</p>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Confirm</strong> areas where deeper exploration or validation is needed</p>
                         </div>
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-sky-700">4</span>
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-white">4</span>
                           </div>
-                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> to build a tailored action plan for {companyName}</p>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Act</strong>: connect with Cancer and Careers to build a tailored action plan for {companyName}</p>
                         </div>
                       </div>
                     </div>
@@ -3879,7 +4380,7 @@ export default function ExportReportPage() {
                       <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                       <p className="text-sm text-slate-200">
                         <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
-                        industry context, and implementation support to help you prioritize what matters most for your workforce.
+                        industry context, and implementation support to help you prioritize what matters most.
                       </p>
                     </div>
                   </div>
@@ -3927,6 +4428,81 @@ export default function ExportReportPage() {
                       {isProvisional && (
                         <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
                       )}
+                      <button 
+                        onClick={() => setShowTierOverlay(true)}
+                        className="mt-3 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
+                      >
+                        Show All Tiers
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Tier Overlay */}
+                  {showTierOverlay && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm" onClick={() => setShowTierOverlay(false)}>
+                      <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl shadow-2xl p-8 max-w-xl mx-4 border border-slate-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6 gap-4">
+                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">Composite & Dimension Tier Ranges</h3>
+                          <button onClick={() => setShowTierOverlay(false)} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Header row */}
+                        <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                          <div className="w-32">Tier</div>
+                          <div className="w-24 text-center">Score Range</div>
+                          <div className="flex-1 text-center">% of Participants</div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          {[
+                            { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: tierDistribution?.exemplary ?? 0 },
+                            { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
+                            { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.progressing ?? 0 },
+                            { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.emerging ?? 0 },
+                            { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.developing ?? 0 }
+                          ].map((t) => {
+                            const isCurrentTier = tier?.name === t.name;
+                            return (
+                              <div 
+                                key={t.name}
+                                className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}
+                              >
+                                <div className="w-32 flex items-center gap-2">
+                                  {isCurrentTier && (
+                                    <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color }}>
+                                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                    </span>
+                                  )}
+                                  <span className={`font-bold ${t.text} ${isCurrentTier ? 'text-base' : 'text-sm'}`}>{t.name}</span>
+                                </div>
+                                <div className="w-24 text-center">
+                                  <span className={`text-sm font-medium ${t.text}`}>{t.range}</span>
+                                </div>
+                                <div className="flex-1 flex items-center gap-2">
+                                  <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200">
+                                    <div 
+                                      className="h-full rounded-full transition-all duration-500"
+                                      style={{ width: `${Math.max(t.pct, 2)}%`, backgroundColor: t.color }}
+                                    />
+                                  </div>
+                                  <span className={`text-sm font-bold w-10 text-right ${t.text}`}>{t.pct}%</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+                          <p className="text-sm text-slate-600">
+                            Your current score: <span className="font-bold" style={{ color: tier?.color }}>{compositeScore}</span>
+                            <span className="mx-2">·</span>
+                            <span className="font-bold" style={{ color: tier?.color }}>{tier?.name}</span>
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -3949,10 +4525,10 @@ export default function ExportReportPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-base font-bold text-slate-800 group-hover:text-[#F37021] transition-colors">
-                        Confirmatory Checklist — {unsureItems} Items Requiring Confirmation
+                        Confirmatory Checklist — {unsureItems} Support Elements Requiring Confirmation
                       </p>
                       <p className="text-sm text-slate-600">
-                        Review items marked "Unsure" to finalize your assessment scores
+                        Review support elements marked "Unsure" to finalize your assessment scores
                       </p>
                     </div>
                   </div>
@@ -3973,7 +4549,7 @@ export default function ExportReportPage() {
                     <div className="bg-white border-2 rounded-xl overflow-hidden shadow-lg" style={{ borderColor: '#F37021' }}>
                       <div className="p-4 border-b" style={{ borderColor: '#fde5d8', background: 'linear-gradient(135deg, #fffcfa 0%, #fff8f3 100%)' }}>
                         <p className="text-sm text-slate-700 leading-relaxed">
-                          These items should be confirmed before finalizing your score. Cancer and Careers can work with your team to 
+                          These support elements should be confirmed before finalizing your score. For scoring, "Unsure" is treated the same as "Not Planned" until confirmed. Cancer and Careers can work with your team to 
                           determine the status of these items. Once confirmed as <strong className="text-emerald-700">Offered</strong>, <strong className="text-blue-700">Planning</strong>, <strong className="text-violet-700">Assessing</strong>, or <strong className="text-slate-600">Not Planned</strong>, your scores will be updated accordingly.
                         </p>
                       </div>
@@ -3982,10 +4558,11 @@ export default function ExportReportPage() {
                         <div className="flex justify-end mb-3">
                           <button
                             onClick={() => {
-                              const rows = [['Dimension', 'Tier', 'Weight', 'Item Name']];
+                              const rows = [['Dimension', 'Tier', 'Weight', 'Item Name', 'Most likely owner to confirm', 'Fastest evidence to validate']];
                               dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
                                 dim.unsure.forEach((item: any) => {
-                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name]);
+                                  const guidance = getConfirmationGuidance(item.name);
+                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name, guidance.owner, guidance.evidence]);
                                 });
                               });
                               const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
@@ -4016,6 +4593,7 @@ export default function ExportReportPage() {
                                       {dim.dim}
                                     </span>
                                     <span className="text-sm font-semibold text-slate-800">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
+                                    <span className="text-xs text-slate-400 font-medium">({dim.weight}%)</span>
                                   </div>
                                   <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#fff5eb', color: '#F37021' }}>
                                     {dim.unsure.length}
@@ -4099,9 +4677,9 @@ export default function ExportReportPage() {
                       {nextTierUp && pointsToNextTier ? (
                         <>
                           <p className="text-base font-bold text-violet-800">
-                            {pointsToNextTier} points from {nextTierUp.name} tier
+                            {pointsToNextTier} points away from {nextTierUp.name} tier
                             {nextTierUp.name !== 'Exemplary' && (
-                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points from Exemplary</span>
+                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points away from Exemplary</span>
                             )}
                           </p>
                           <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
@@ -4117,109 +4695,75 @@ export default function ExportReportPage() {
                 );
               })()}
               
-              {/* Key Metrics */}
-              <div className="mt-8 grid grid-cols-4 gap-6">
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-currently-offering">{currentlyOffering}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-in-development">{planningItems + assessingItems}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-gaps">{gapItems + unsureItems}</p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps:</p>
-                  <p className="text-xs text-slate-400 mt-1">{notPlannedItems} Not Planned</p>
-                  <p className="text-xs text-slate-400">{unsureItems} Needs Confirmation</p>
-                </div>
-                <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                  <p className="text-4xl font-bold text-slate-800" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
-                  <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
-                </div>
-              </div>
-            </div>
-            
-            {/* Key Findings Strip */}
-            <div className="bg-slate-900 px-12 py-8">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">Key Findings</h3>
-              <div className="grid grid-cols-4 gap-6">
-                <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Top Strength</p>
-                  <p className="text-white font-bold text-lg">{topDimension?.name || 'N/A'}</p>
-                  <p className="text-emerald-400 text-sm mt-1 font-semibold">Score: {topDimension?.score}</p>
-                </div>
-                <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Primary Opportunity</p>
-                  <p className="text-white font-bold text-lg">{bottomDimension?.name || 'N/A'}</p>
-                  <p className="text-amber-400 text-sm mt-1 font-semibold">Score: {bottomDimension?.score}</p>
-                </div>
-                <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">In Progress</p>
-                  <p className="text-white font-bold text-lg">{planningItems + assessingItems} items</p>
-                  <p className="text-sky-400 text-sm mt-1 font-semibold">{planningItems} planning, {assessingItems} assessing</p>
-                </div>
-                <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                  <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Tier Distribution</p>
-                  <p className="text-white font-bold text-lg">{tierCounts.exemplary + tierCounts.leading} / 13 Leading+</p>
-                  <p className="text-violet-400 text-sm mt-1 font-semibold">{tierCounts.exemplary} Exemplary, {tierCounts.leading} Leading</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          {/* ============ SCORE COMPOSITION ============ */}
-          <div id="score-composition-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
-            <div className="px-12 py-6 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900 text-xl">Score Composition</h3>
-              <p className="text-slate-500 mt-1 text-base">Click any component to see detailed breakdown</p>
-            </div>
-            <div className="px-12 py-10">
-              {/* Visual Formula - Clickable boxes with more spacing */}
-              <div className="flex items-center justify-center gap-8 flex-wrap">
-                {/* Composite Score - Static */}
-                <div className="text-center px-10 py-6 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border-2 border-slate-700 shadow-xl min-w-[180px]">
-                  <p className="text-5xl font-bold text-white">{compositeScore ?? '—'}</p>
-                  <p className="text-sm text-slate-300 font-semibold uppercase tracking-wider mt-3">Composite Score</p>
+              {/* Combined Key Findings Section */}
+              <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
+                
+                {/* Top Row - Stats */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+                    <p className="text-4xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
+                    <p className="text-base text-slate-400 mt-2">of {totalElements} support elements offered</p>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+                    <p className="text-4xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
+                    <p className="text-base text-slate-400 mt-2">support elements in development</p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm text-sky-400">{planningItems} planned</p>
+                      <p className="text-sm text-sky-400">{assessingItems} assessing</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+                    <p className="text-4xl font-bold text-white" data-export="metric-gaps">{gapItems + unsureItems}</p>
+                    <p className="text-base text-slate-400 mt-2">identified support element gaps</p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm text-amber-400">{notPlannedItems} not planned</p>
+                      <p className="text-sm text-amber-400">{unsureItems} need confirmation</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
+                    <p className="text-4xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
+                    <p className="text-base text-slate-400 mt-2">dimensions at Leading+</p>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm text-violet-400">{tierCounts.exemplary} Exemplary</p>
+                      <p className="text-sm text-violet-400">{tierCounts.leading} Leading</p>
+                    </div>
+                  </div>
                 </div>
                 
-                <span className="text-5xl text-slate-400 font-light">=</span>
-                
-                {/* Weighted Dims - Clickable */}
-                <div 
-                  onClick={() => setActiveScoreOverlay('weightedDim')}
-                  className="text-center px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-slate-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-slate-400 hover:scale-105 transition-all group"
-                >
-                  <p className="text-4xl font-bold text-slate-800">{weightedDimScore ?? '—'}</p>
-                  <p className="text-base text-slate-600 mt-2 font-semibold">Weighted Dims</p>
-                  <p className="text-sm text-slate-500 font-bold">× 90%</p>
-                  <p className="text-xs text-slate-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
-                </div>
-                
-                <span className="text-4xl text-slate-400 font-light">+</span>
-                
-                {/* Maturity - Clickable */}
-                <div 
-                  onClick={() => setActiveScoreOverlay('maturity')}
-                  className="text-center px-8 py-5 bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl border-2 border-amber-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all group"
-                >
-                  <p className="text-4xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
-                  <p className="text-base text-amber-700 mt-2 font-semibold">Maturity</p>
-                  <p className="text-sm text-amber-600 font-bold">× 5%</p>
-                  <p className="text-xs text-amber-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
-                </div>
-                
-                <span className="text-4xl text-slate-400 font-light">+</span>
-                
-                {/* Breadth - Clickable */}
-                <div 
-                  onClick={() => setActiveScoreOverlay('breadth')}
-                  className="text-center px-8 py-5 bg-gradient-to-br from-violet-50 to-violet-100 rounded-2xl border-2 border-violet-300 min-w-[160px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all group"
-                >
-                  <p className="text-4xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
-                  <p className="text-base text-violet-700 mt-2 font-semibold">Breadth</p>
-                  <p className="text-sm text-violet-600 font-bold">× 5%</p>
-                  <p className="text-xs text-violet-500 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Click for details →</p>
+                {/* Bottom Row - Top Strengths and Opportunities */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Top 3 Strengths */}
+                  <div className="bg-emerald-900/30 rounded-xl p-5 border border-emerald-700/50">
+                    <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-3">Top Strengths</p>
+                    <div className="space-y-2">
+                      {[...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3).map((d, idx) => (
+                        <div key={d.dim} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-emerald-400 font-bold text-sm">{idx + 1}.</span>
+                            <span className="text-white font-semibold">{d.name}</span>
+                          </div>
+                          <span className="text-emerald-400 font-bold">Score: {d.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Top 3 Opportunities */}
+                  <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
+                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Primary Opportunities for Improvement</p>
+                    <div className="space-y-2">
+                      {[...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map((d, idx) => (
+                        <div key={d.dim} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
+                            <span className="text-white font-semibold">{d.name}</span>
+                          </div>
+                          <span className="text-amber-400 font-bold">Score: {d.score}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4489,67 +5033,93 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div id="dimension-performance-table" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-slate-900 text-xl">Dimension Performance</h3>
-                <p className="text-slate-500 mt-1 text-sm">All 13 dimensions sorted by strategic weight</p>
+          <div id="dimension-performance-table" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            {/* Dark dramatic header */}
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10">
+                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <pattern id="dimPerfGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                      <circle cx="5" cy="5" r="1" fill="white" opacity="0.3"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#dimPerfGrid)" />
+                </svg>
               </div>
-              <span className="bg-cyan-100 text-cyan-700 px-3 py-1.5 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
+              <div className="relative flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-xl">Dimension Performance</h3>
+                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {company?.company_name || 'your'}&apos;s score</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm">Click any dimension for element-level details</span>
+                  <span className="flex items-center gap-2 text-xs text-slate-400">
+                    <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
+                    <span>= Benchmark Score</span>
+                  </span>
+                </div>
+              </div>
             </div>
             <div className="px-12 py-4">
               {/* Table Header */}
-              <div className="flex items-center py-2 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                <div className="w-64">Dimension</div>
+              <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 <div className="w-20 text-center">Weight</div>
+                <div className="w-64">Dimension</div>
                 <div className="flex-1 text-center">Performance</div>
-                <div className="w-20 text-center">Score</div>
+                <div className="w-24 text-center">Your Score</div>
                 <div className="w-28 text-center">Benchmark</div>
-                <div className="w-28 text-center">Tier</div>
+                <div className="w-28 text-center">Dim Tier</div>
               </div>
               <div className="divide-y divide-slate-100">
-                {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
+                {[...dimensionAnalysis].sort((a, b) => b.score - a.score).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   return (
                     <div 
                       key={d.dim} 
                       onClick={() => setDimensionDetailModal(d.dim)}
-                      className={`flex items-center py-3 cursor-pointer hover:bg-cyan-50 transition-colors ${idx % 2 === 0 ? '' : 'bg-slate-50/50'} -mx-4 px-4`}
+                      className={`flex items-center py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
                     >
+                      <div className="w-20 text-center">
+                        <span className="text-sm font-medium text-slate-600">{d.weight}%</span>
+                      </div>
                       <div className="w-64 flex items-center gap-3">
-                        <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
                           {d.dim}
                         </span>
-                        <span className="text-sm text-slate-800 font-semibold hover:text-cyan-700">{d.name}</span>
-                      </div>
-                      <div className="w-20 text-center">
-                        <span className="text-sm text-slate-500">{d.weight}%</span>
+                        <span className="text-sm text-slate-800 font-semibold hover:text-slate-900">{d.name}</span>
                       </div>
                       <div className="flex-1 px-4">
-                        <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
+                        <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
                           <div 
                             className="absolute left-0 top-0 h-full rounded-full transition-all" 
                             style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
                           />
                           {d.benchmark !== null && (
                             <div 
-                              className="absolute -top-3" 
+                              className="absolute -top-2.5" 
                               style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                             >
-                              <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
+                              <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#64748b"/></svg>
                             </div>
                           )}
                         </div>
                       </div>
-                      <div className="w-20 text-center">
+                      <div className="w-24 text-center">
                         <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
                       <div className="w-28 text-center">
                         {d.benchmark !== null ? (
-                          <div>
-                            <span className="text-sm text-slate-400">{d.benchmark}</span>
-                            <span className={`ml-1.5 text-xs font-semibold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                              ({diff !== null && diff >= 0 ? '+' : ''}{diff})
+                          <div className="flex items-center justify-center gap-1">
+                            <span className="text-sm text-slate-500">{d.benchmark}</span>
+                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${diff !== null && diff >= 0 ? 'bg-teal-50 text-teal-600' : 'bg-amber-50 text-amber-600'}`}>
+                              {diff !== null && diff >= 0 ? '+' : ''}{diff}
                             </span>
                           </div>
                         ) : (
@@ -4558,8 +5128,8 @@ export default function ExportReportPage() {
                       </div>
                       <div className="w-28 flex justify-center">
                         <span 
-                          className={`text-xs font-bold px-3 py-1 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
-                          style={{ color: d.tier.color }}
+                          className="text-xs font-bold px-3 py-1 rounded-full text-white" 
+                          style={{ backgroundColor: d.tier.color }}
                         >
                           {d.tier.name}
                         </span>
@@ -4572,18 +5142,28 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
-              <div>
-                <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
-                <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. strategic weight. <span className="text-cyan-600 font-medium">Hover for details, click to explore.</span></p>
+          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+            <div className="px-12 py-6 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                  <svg className="w-6 h-6 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
+                  <p className="text-slate-500 mt-0.5">Dimensions plotted by performance vs. strategic weight. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => setShowBenchmarkRings(!showBenchmarkRings)}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${
                     showBenchmarkRings 
-                      ? 'bg-violet-100 border-violet-400 text-violet-700 shadow-sm' 
+                      ? 'bg-slate-700 border-slate-700 text-white shadow-sm' 
                       : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                   }`}
                 >
@@ -4591,7 +5171,7 @@ export default function ExportReportPage() {
                 </button>
               </div>
             </div>
-            <div ref={matrixRef} id="export-matrix" className="px-4 py-6 bg-gradient-to-b from-white to-slate-50/50">
+            <div ref={matrixRef} id="export-matrix" className="px-4 py-6 bg-gradient-to-b from-slate-50 to-white">
               {/* Enhanced Matrix with hover tooltips, better benchmark circles, wider layout */}
               {(() => {
                 const MAX_WEIGHT = 15;
@@ -4665,8 +5245,8 @@ export default function ExportReportPage() {
                           <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.2"/>
                         </filter>
                         <linearGradient id="chartBgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#f8fafc" />
-                          <stop offset="100%" stopColor="#f1f5f9" />
+                          <stop offset="0%" stopColor="#fafafa" />
+                          <stop offset="100%" stopColor="#f5f5f5" />
                         </linearGradient>
                       </defs>
                       
@@ -4674,31 +5254,31 @@ export default function ExportReportPage() {
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Quadrant labels - Top */}
-                        <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#DC2626" stroke="#B91C1C" strokeWidth="1" />
+                        {/* Quadrant labels - Top - More refined colors */}
+                        <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#be123c" />
                         <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
                         
-                        <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#059669" stroke="#047857" strokeWidth="1" />
+                        <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#0d9488" />
                         <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
                         
-                        {/* Quadrant backgrounds - muted, professional */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FCA5A5" fillOpacity="0.15" />
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#6EE7B7" fillOpacity="0.15" />
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#E5E7EB" fillOpacity="0.3" />
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#93C5FD" fillOpacity="0.15" />
+                        {/* Quadrant backgrounds - Refined, distinct */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" fillOpacity="0.8" />
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" fillOpacity="0.8" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" fillOpacity="0.9" />
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" fillOpacity="0.8" />
                         
-                        {/* Grid lines */}
-                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="6 4" />
-                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" strokeDasharray="6 4" />
+                        {/* Grid lines - SOLID */}
+                        <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1.5" />
+                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" />
                         
                         {/* Border */}
                         <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#64748B" strokeWidth="2" rx="4" />
                         
-                        {/* Bottom labels */}
-                        <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#6B7280" stroke="#4B5563" strokeWidth="1" />
+                        {/* Bottom labels - More refined */}
+                        <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#64748b" />
                         <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">MONITOR</text>
                         
-                        <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#2563EB" stroke="#1D4ED8" strokeWidth="1" />
+                        <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#4f46e5" />
                         <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
                         
                         {/* X-axis */}
@@ -4982,7 +5562,7 @@ export default function ExportReportPage() {
                   
                   {/* Table Header Row */}
                   <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                    <div className="col-span-3">Element</div>
+                    <div className="col-span-3">Support Element</div>
                     <div className="col-span-1 text-center">Your Status</div>
                     <div className="col-span-5 text-center">
                       <div>Benchmark Distribution</div>
@@ -5528,65 +6108,181 @@ export default function ExportReportPage() {
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-              <div className="px-12 py-6 bg-indigo-700">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
-                    <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
+            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+              {/* Header with gradient and visual interest */}
+              <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                      <pattern id="crossGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 20 M 10 -10 L -10 10 M 30 10 L 10 30" stroke="white" strokeWidth="0.5" fill="none" opacity="0.3"/>
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#crossGrid)" />
+                  </svg>
+                </div>
+                <div className="relative flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-2xl tracking-tight">Cross-Dimensional Insights</h3>
+                        <p className="text-slate-400 text-sm mt-0.5">Connecting the dots across your assessment</p>
+                      </div>
+                    </div>
+                    <p className="text-slate-300 text-base leading-relaxed max-w-2xl mt-4">
+                      These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere. These are the hidden bottlenecks that often explain why good investments underperform.
+                    </p>
                   </div>
                   <button 
                     onClick={() => setInfoModal('crossDimensional')}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     Learn More
                   </button>
                 </div>
-              </div>
-              <div className="px-12 py-8 space-y-6">
-                {patterns.map((p, idx) => (
-                  <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden">
-                    <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                      <p className="font-bold text-slate-800 text-lg">{p.pattern}</p>
+                {/* Quick context bar */}
+                <div className="relative mt-6 pt-5 border-t border-white/10">
+                  <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        {/* Custom magnifying glass with nodes icon */}
+                        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="10" cy="10" r="6" />
+                          <path d="M14.5 14.5L20 20" strokeLinecap="round" />
+                          <circle cx="8" cy="9" r="1.5" fill="currentColor" stroke="none" />
+                          <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" />
+                          <path d="M8.5 9.5L11.5 10.5" strokeWidth="1" />
+                        </svg>
+                      </div>
+                      <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottleneck{patterns.length !== 1 ? 's' : ''} identified</span>
                     </div>
-                    <div className="px-6 py-5 grid grid-cols-2 gap-8">
-                      <div>
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">What This Means</p>
-                        <p className="text-base text-slate-600 leading-relaxed">{p.implication}</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        {/* Custom target/bullseye with arrow icon */}
+                        <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="8" />
+                          <circle cx="12" cy="12" r="4" />
+                          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                          <path d="M12 2v4M22 12h-4" strokeLinecap="round" />
+                        </svg>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3">
-                          Recommended Action
-                          {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
-                        </p>
-                        {editMode ? (
-                          <div className="flex flex-col gap-2">
-                            <textarea
-                              value={customCrossRecommendations[idx] ?? p.recommendation}
-                              onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                              className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                              placeholder="Enter custom recommendation..."
-                            />
-                            {customCrossRecommendations[idx] && (
-                              <button 
-                                onClick={() => updateCustomCrossRecommendation(idx, '')}
-                                className="text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1 self-start"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Reset to default
-                              </button>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-base text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
-                        )}
-                      </div>
+                      <span className="text-slate-300 text-sm">Each with <span className="text-white font-semibold">actionable recommendation</span></span>
                     </div>
                   </div>
-                ))}
+                </div>
+              </div>
+
+              {/* Pattern Cards */}
+              <div className="p-8">
+                <div className="space-y-5">
+                  {patterns.map((p, idx) => (
+                    <div key={idx} className="group relative">
+                      {/* Priority indicator */}
+                      <div className="absolute -left-3 top-6 w-6 h-6 rounded-full bg-slate-800 text-white text-xs font-bold flex items-center justify-center shadow-lg border-2 border-white z-10">
+                        {idx + 1}
+                      </div>
+                      
+                      <div className="ml-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        {/* Pattern header */}
+                        <div className="px-8 py-5 border-b border-slate-100 bg-white">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-bold text-slate-900 text-lg leading-snug">{p.pattern}</h4>
+                            </div>
+                            <div className="flex-shrink-0">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold">
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Priority {idx + 1}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Two-column content */}
+                        <div className="grid grid-cols-2 divide-x divide-slate-100">
+                          {/* Implication */}
+                          <div className="px-8 py-6">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                              </div>
+                              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">What This Means</span>
+                            </div>
+                            <p className="text-slate-600 text-sm leading-relaxed">{p.implication}</p>
+                          </div>
+                          
+                          {/* Recommendation */}
+                          <div className="px-8 py-6 bg-slate-50/50">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="w-6 h-6 rounded bg-slate-800 flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                              </div>
+                              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                Recommended Action
+                                {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                              </span>
+                            </div>
+                            {editMode ? (
+                              <div className="flex flex-col gap-2">
+                                <textarea
+                                  value={customCrossRecommendations[idx] ?? p.recommendation}
+                                  onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
+                                  className="w-full text-sm text-slate-700 leading-relaxed bg-white border border-slate-300 rounded-lg px-4 py-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 resize-y"
+                                  placeholder="Enter custom recommendation..."
+                                />
+                                {customCrossRecommendations[idx] && (
+                                  <button 
+                                    onClick={() => updateCustomCrossRecommendation(idx, '')}
+                                    className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 self-start"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Reset to default
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-slate-700 text-sm leading-relaxed font-medium">{customCrossRecommendations[idx] || p.recommendation}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bottom guidance */}
+                <div className="mt-8 pt-6 border-t border-slate-200">
+                  <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                      {/* Custom conversation/strategy icon */}
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="4" width="18" height="14" rx="2" />
+                        <path d="M7 9h10M7 13h6" strokeLinecap="round" />
+                        <circle cx="17" cy="13" r="1.5" fill="currentColor" stroke="none" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white text-sm">How to use these insights</h4>
+                      <p className="text-violet-100 text-sm mt-1 leading-relaxed">
+                        Use these patterns as a <span className="font-semibold text-white">discussion guide for leadership alignment</span>. Validate internally where needed, then assign owners to the recommended actions. These bottlenecks often explain why existing investments underperform. Addressing them typically <span className="font-semibold text-white">unlocks value across multiple dimensions</span>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -5595,12 +6291,21 @@ export default function ExportReportPage() {
           {(() => {
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDQwIEwgNDAgMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJyZ2JhKDI1NSwyNTUsMjU1LDAuMDUpIiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=')] opacity-50"></div>
+                <div className="px-10 py-6 bg-gradient-to-r from-teal-700 via-teal-800 to-slate-800 relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-10">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <defs>
+                        <pattern id="impactGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                          <path d="M 20 0 L 0 20" stroke="white" strokeWidth="0.5" fill="none"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#impactGrid)" />
+                    </svg>
+                  </div>
                   <div className="relative flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-cyan-100 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
+                      <p className="text-teal-200 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <button 
@@ -5611,26 +6316,40 @@ export default function ExportReportPage() {
                         Learn More
                       </button>
                       <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
-                        <svg className="w-5 h-5 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                        <svg className="w-5 h-5 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                         <span className="text-white font-semibold">Top 5 Priorities</span>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="p-8">
+                  <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div className="flex flex-wrap items-start gap-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-teal-600 text-white">Quick Win</span>
+                        <span className="text-sm text-slate-600">Accelerate in-progress initiatives or activate existing resources</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-600 text-white">Foundation Build</span>
+                        <span className="text-sm text-slate-600">Requires new programs, policies, or vendor partnerships</span>
+                      </div>
+                    </div>
+                  </div>
                   <div className="space-y-4">
-                    {rankings.slice(0, 5).map((r, idx) => (
+                    {rankings.slice(0, 5).map((r, idx) => {
+                      const tag = getPriorityTag(r);
+                      return (
                       <div key={r.dimNum} className={`relative rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg ${
-                        idx === 0 ? 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-white' : 
-                        idx === 1 ? 'border-cyan-200 bg-gradient-to-r from-cyan-50/50 to-white' : 
+                        idx === 0 ? 'border-teal-400 bg-white' : 
+                        idx === 1 ? 'border-teal-300 bg-white' : 
                         'border-slate-200 bg-white hover:border-slate-300'
                       }`}>
                         
                         <div className="flex items-stretch">
                           {/* Priority Number */}
                           <div className={`flex items-center justify-center w-20 text-3xl font-black ${
-                            idx === 0 ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white' : 
-                            idx === 1 ? 'bg-gradient-to-b from-cyan-400 to-cyan-500 text-white' : 
+                            idx === 0 ? 'bg-gradient-to-b from-teal-600 to-teal-700 text-white' : 
+                            idx === 1 ? 'bg-gradient-to-b from-teal-500 to-teal-600 text-white' : 
                             'bg-slate-100 text-slate-400'
                           }`}>
                             {idx + 1}
@@ -5644,7 +6363,7 @@ export default function ExportReportPage() {
                                 <div className="flex items-center gap-3 mb-2">
                                   <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
                                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
-                                    r.gapLevel === 'Few Gaps' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                    r.gapLevel === 'Few Gaps' ? 'bg-teal-100 text-teal-700 border border-teal-200' :
                                     r.gapLevel === 'Some Gaps' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
                                     'bg-slate-100 text-slate-700 border border-slate-200'
                                   }`}>
@@ -5657,6 +6376,7 @@ export default function ExportReportPage() {
                                     )}
                                     {r.gapLevel}
                                   </span>
+                                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${tag.className}`}>{tag.label}</span>
                                 </div>
                                 
                                 {/* Recommendations */}
@@ -5721,25 +6441,33 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                  <p className="text-xs text-slate-400 mt-6 text-center italic">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
+                  <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
                 </div>
               </div>
             );
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div id="areas-of-excellence" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-5 bg-emerald-700">
+          <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                  <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                    <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                  </div>
                 </div>
                 <button 
                   onClick={() => setInfoModal('excellence')}
-                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Learn More
@@ -5750,7 +6478,7 @@ export default function ExportReportPage() {
               {strengthDimensions.length > 0 ? (
                 <div className="grid grid-cols-2 gap-5">
                   {strengthDimensions.slice(0, 6).map((d) => (
-                    <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
+                    <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-teal-300 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                       <div className="flex items-center justify-between mb-3">
                         <p className="font-semibold text-slate-800 text-base">{d.name}</p>
                         <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
@@ -5758,7 +6486,9 @@ export default function ExportReportPage() {
                       <ul className="space-y-1.5">
                         {d.strengths.slice(0, 3).map((e: any, i: number) => (
                           <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <CheckIcon className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                            <svg className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
                             <span>{e.name}</span>
                           </li>
                         ))}
@@ -5775,16 +6505,23 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div id="growth-opportunities" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-            <div className="px-12 py-5 bg-amber-600">
+          <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                  <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                    <p className="text-slate-300 mt-0.5 text-sm">Dimensions with improvement potential</p>
+                  </div>
                 </div>
                 <button 
                   onClick={() => setInfoModal('growth')}
-                  className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-400 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Learn More
@@ -5794,7 +6531,7 @@ export default function ExportReportPage() {
             <div className="px-12 py-6">
               <div className="grid grid-cols-2 gap-5">
                 {allDimensionsByScore.slice(0, 6).map((d) => (
-                  <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDimensionDetailModal(d.dim)}>
+                  <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-semibold text-slate-800 text-base">{d.name}</p>
                       <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
@@ -5803,13 +6540,13 @@ export default function ExportReportPage() {
                       <ul className="space-y-1.5">
                         {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
                           <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                            <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-500'}`}></span>
                             <span>{e.name}</span>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                      <p className="text-sm text-slate-400">Focus on completing planned initiatives</p>
                     )}
                   </div>
                 ))}
@@ -5819,14 +6556,22 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-              <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
+            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+              <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                    <p className="text-blue-200 mt-1">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M9 14l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                      <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                    </div>
                   </div>
-                  <div className="bg-white/20 rounded-lg px-5 py-2.5">
+                  <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
                     <p className="text-white font-semibold">Fastest path to improvement</p>
                   </div>
                 </div>
@@ -5834,17 +6579,17 @@ export default function ExportReportPage() {
               <div className="px-12 py-8">
                 <div className="grid grid-cols-2 gap-5">
                   {quickWinOpportunities.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-start gap-4 p-5 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 hover:shadow-md transition-shadow">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100' : 'bg-amber-100'}`}>
+                    <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-violet-300 transition-all">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-violet-600' : 'bg-slate-600'}`}>
                         {item.type === 'Planning' ? (
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                         ) : (
-                          <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{item.type}</span>
+                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                           <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
                         </div>
                         <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
@@ -5858,76 +6603,345 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div id="strategic-recommendations" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" id="appendix-start" data-export="appendix-start">
-            <div className="px-12 py-10 bg-slate-800">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
-                  <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
+          <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" data-export="appendix-start">
+            {/* Header with visual interest */}
+            <div className="px-10 py-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+              <div className="absolute inset-0 opacity-5">
+                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <defs>
+                    <pattern id="stratGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                      <circle cx="5" cy="5" r="1" fill="white"/>
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#stratGrid)" />
+                </svg>
+              </div>
+              <div className="relative flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
+                      <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-3xl tracking-tight">Strategic Recommendations</h3>
+                      <p className="text-slate-400 text-base mt-1">From diagnosis to action in four priority dimensions</p>
+                    </div>
+                  </div>
+                  <p className="text-slate-300 text-lg leading-relaxed max-w-3xl">
+                    Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
+                    This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
+                  </p>
                 </div>
                 <button 
                   onClick={() => setInfoModal('strategicRecos')}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Learn More
                 </button>
               </div>
             </div>
-            <div className="px-12 py-10">
-              <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>, those 
-                with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
-              </p>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="flex items-start gap-4 p-5 bg-red-50 rounded-xl border border-red-200">
-                  <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+
+            <div className="p-10">
+              {/* Selection Methodology - Visual Explanation */}
+              <div className="mb-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
                   </div>
                   <div>
-                    <p className="font-bold text-red-800 text-lg">Improvement Opportunities</p>
-                    <p className="text-base text-red-700 mt-1">Specific gaps where you're not currently offering, with participant benchmarks</p>
+                    <h4 className="font-bold text-slate-900 text-lg">Balanced 2+2 Selection</h4>
+                    <p className="text-slate-500 text-sm">Two by greatest need, two by strategic opportunity</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-200">
-                  <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                
+                {/* Expanded explanation */}
+                <p className="text-slate-600 text-sm leading-relaxed mb-6 max-w-4xl">
+                  Rather than addressing all 13 dimensions at once, we prioritize <span className="font-semibold text-slate-800">four dimensions</span> using a balanced methodology. 
+                  This ensures you address both <span className="font-semibold text-slate-800">immediate support gaps</span> (where employees are most likely to fall through the cracks today) 
+                  and <span className="font-semibold text-slate-800">high-leverage opportunities</span> (where investment yields system-wide improvements). 
+                  Dimensions scoring above 85 are excluded from Strategic Leverage selection since they're already strong.
+                </p>
+
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Foundation Focus Card */}
+                  <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl border-2 border-amber-200 overflow-hidden">
+                    <div className="px-6 py-4 bg-amber-500 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 21h18" strokeLinecap="round" />
+                            <path d="M5 21v-6l7-8 7 8v6" strokeLinecap="round" strokeLinejoin="round" />
+                            <circle cx="12" cy="13" r="2" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-white text-lg">Foundation Focus</h5>
+                          <p className="text-amber-100 text-xs">Core support gaps to address</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-slate-600 text-sm mb-4">
+                        <span className="font-semibold text-slate-800">Lowest-scoring dimensions</span>: where employees managing cancer are most likely to experience gaps in support today.
+                      </p>
+                      <div className="space-y-3">
+                        {strategicPriorityDims.filter(d => d.selectionReason === 'risk').map((d) => (
+                          <div key={d.dim} className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+                                {d.dim}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-amber-500 rounded-lg p-2.5">
+                                <div className="text-xs text-amber-100 font-medium mb-1">Score</div>
+                                <div className="flex items-end gap-1">
+                                  <span className="text-xl font-bold text-white">{d.score}</span>
+                                  <span className="text-xs text-amber-200 mb-1">/100</span>
+                                </div>
+                              </div>
+                              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
+                                <div className="text-xs text-slate-500 font-medium mb-1">Weight</div>
+                                <div className="flex items-end gap-1">
+                                  <span className="text-xl font-bold text-slate-700">{d.weight}</span>
+                                  <span className="text-xs text-slate-400 mb-1">%</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-blue-800 text-lg">In Development</p>
-                    <p className="text-base text-blue-700 mt-1">Initiatives in planning that can be accelerated for faster impact</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4 p-5 bg-emerald-50 rounded-xl border border-emerald-200">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-emerald-800 text-lg">Current Strengths</p>
-                    <p className="text-base text-emerald-700 mt-1">Elements you're already offering that form your foundation</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4 p-5 bg-violet-50 rounded-xl border border-violet-200">
-                  <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-violet-800 text-lg">Tailored Insights & CAC Support</p>
-                    <p className="text-base text-violet-700 mt-1">Key evidence, strategic insight, recommended roadmap, and CAC programs</p>
+
+                  {/* Strategic Leverage Card */}
+                  <div className="bg-gradient-to-br from-slate-100 to-white rounded-2xl border-2 border-slate-300 overflow-hidden">
+                    <div className="px-6 py-4 bg-slate-700 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M17 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-white text-lg">Strategic Leverage</h5>
+                          <p className="text-slate-300 text-xs">High-impact improvement paths</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-slate-600 text-sm mb-4">
+                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where strategic importance × headroom creates system-wide impact.
+                      </p>
+                      <div className="space-y-3">
+                        {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
+                          <div key={d.dim} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+                                {d.dim}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
+                                <div className="text-xs text-slate-500 font-medium mb-1">Score</div>
+                                <div className="flex items-end gap-1">
+                                  <span className="text-xl font-bold text-slate-600">{d.score}</span>
+                                  <span className="text-xs text-slate-400 mb-1">/100</span>
+                                </div>
+                              </div>
+                              <div className="bg-slate-700 rounded-lg p-2.5">
+                                <div className="text-xs text-slate-300 font-medium mb-1">Weight</div>
+                                <div className="flex items-end gap-1">
+                                  <span className="text-xl font-bold text-white">{d.weight}</span>
+                                  <span className="text-xs text-slate-300 mb-1">%</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+
+              {/* Action Framework */}
+              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 mb-10 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 opacity-5">
+                  <svg viewBox="0 0 200 200" className="w-full h-full">
+                    <circle cx="100" cy="100" r="80" fill="none" stroke="white" strokeWidth="2"/>
+                    <circle cx="100" cy="100" r="60" fill="none" stroke="white" strokeWidth="2"/>
+                    <circle cx="100" cy="100" r="40" fill="none" stroke="white" strokeWidth="2"/>
+                  </svg>
+                </div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                        {/* Custom roadmap/path icon */}
+                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 19h4v-7H4v7zM10 19h4V8h-4v11zM16 19h4V4h-4v15z" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-xl">From Insight to Action</h4>
+                        <p className="text-slate-400 text-sm">A practical framework to move from diagnosis to ownership</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Step 1: Validate */}
+                    <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">1</div>
+                      <div className="flex items-center gap-3 mb-3 pt-2">
+                        <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                          {/* Custom validate/confirm icon */}
+                          <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <h5 className="font-bold text-white">Validate</h5>
+                      </div>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        Review the four priorities. Do they match your internal view? Flag any <span className="text-amber-300 font-medium">"Needs Confirmation"</span> items that require verification before committing resources.
+                      </p>
+                    </div>
+
+                    {/* Step 2: Assign */}
+                    <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">2</div>
+                      <div className="flex items-center gap-3 mb-3 pt-2">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                          {/* Custom assign/people icon */}
+                          <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="9" cy="7" r="3" />
+                            <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" strokeLinecap="round" />
+                            <path d="M16 3.13a4 4 0 010 7.75" strokeLinecap="round" />
+                            <path d="M21 21v-2a4 4 0 00-3-3.87" strokeLinecap="round" />
+                          </svg>
+                        </div>
+                        <h5 className="font-bold text-white">Assign Owners</h5>
+                      </div>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        For each dimension, select <span className="text-emerald-300 font-medium">2–3 specific actions</span>. Assign clear ownership: HR, Benefits, Communications, People Leaders, or cross-functional teams.
+                      </p>
+                    </div>
+
+                    {/* Step 3: Execute */}
+                    <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
+                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">3</div>
+                      <div className="flex items-center gap-3 mb-3 pt-2">
+                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                          {/* Custom execute/launch icon */}
+                          <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <h5 className="font-bold text-white">Sequence & Track</h5>
+                      </div>
+                      <p className="text-slate-300 text-sm leading-relaxed">
+                        Prioritize <span className="text-blue-300 font-medium">quick wins (0–90 days)</span> over foundation work (3–12 months). Set quarterly checkpoints to measure progress.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Analyze Another Dimension note */}
+                  <div className="mt-6 pt-5 border-t border-white/10">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" />
+                          <path d="M12 8v8M8 12h8" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                      <p className="text-slate-400 text-sm">
+                        <span className="text-violet-300 font-medium">Need deeper analysis on another dimension?</span> Use the &quot;Analyze Another Dimension&quot; button at the bottom of this section to add any dimension to this strategic review.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-base text-slate-500 mt-8 italic px-12 pb-6">
-                Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
-              </p>
+
+              {/* What Each Analysis Includes */}
+              <div>
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <h4 className="font-bold text-slate-900">What You'll Find in Each Dimension Analysis</h4>
+                </div>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center mb-3">
+                      {/* Gap/target icon */}
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="2" />
+                      </svg>
+                    </div>
+                    <h5 className="font-semibold text-slate-900 text-sm mb-1">Gaps to Address</h5>
+                    <p className="text-slate-500 text-xs leading-relaxed">Support elements not currently offered. Your primary improvement targets.</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center mb-3">
+                      {/* In progress/building icon */}
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round" />
+                      </svg>
+                    </div>
+                    <h5 className="font-semibold text-slate-900 text-sm mb-1">In Development</h5>
+                    <p className="text-slate-500 text-xs leading-relaxed">Initiatives already underway. Candidates to accelerate or prioritize.</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center mb-3">
+                      {/* Shield/strength icon */}
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
+                        <circle cx="12" cy="12" r="9" />
+                      </svg>
+                    </div>
+                    <h5 className="font-semibold text-slate-900 text-sm mb-1">Current Strengths</h5>
+                    <p className="text-slate-500 text-xs leading-relaxed">What's working today. Your foundation to build upon.</p>
+                  </div>
+                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                    <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center mb-3">
+                      {/* Insight/lightbulb icon */}
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <h5 className="font-semibold text-slate-900 text-sm mb-1">Strategic Insight</h5>
+                    <p className="text-slate-500 text-xs leading-relaxed">Tailored recommendations with CAC resource alignment</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
-              {allDimensionsByScore.slice(0, 4).map((d, idx) => {
+              {strategicPriorityDims.map((d, idx) => {
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
                 const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                 const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
@@ -5938,21 +6952,26 @@ export default function ExportReportPage() {
                   <div key={d.dim} id={`dimension-card-${d.dim}`} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                     {/* Dimension Header */}
                     <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
-                          {d.dim}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="text-xl font-bold text-white">{d.name}</h4>
-                          <div className="flex items-center gap-4 mt-1">
-                            <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                            <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
-                            <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
-                            {d.benchmark !== null && (
-                              <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
-                            )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                            {d.dim}
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                            <div className="flex items-center gap-4 mt-1">
+                              <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                              <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                              <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                              {d.benchmark !== null && (
+                                <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                              )}
+                            </div>
                           </div>
                         </div>
+                        <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${d.selectionReason === 'risk' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-600/30 text-slate-300 border border-slate-500/40'}`}>
+                          {d.selectionReason === 'risk' ? 'Foundation Focus' : 'Strategic Leverage'}
+                        </span>
                       </div>
                     </div>
                     
@@ -5967,61 +6986,80 @@ export default function ExportReportPage() {
                       {/* Current State - 3 columns */}
                       <div className="grid grid-cols-3 gap-6 mb-6">
                         {/* Improvement Opportunities */}
-                        <div className="border border-red-200 rounded-xl overflow-hidden">
-                          <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                            <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                        <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
+                          <div className="px-4 py-3 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="6" />
+                                <circle cx="12" cy="12" r="2" />
+                              </svg>
+                            </div>
+                            <h5 className="font-bold text-white text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                           </div>
-                          <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                          <div className="p-4 max-h-64 overflow-y-auto">
                             {d.needsAttention?.length > 0 ? (
                               <ul className="space-y-2">
                                 {d.needsAttention.map((item: any, i: number) => (
-                                  <li key={i} className="text-base text-slate-600 flex items-start gap-2">
+                                  <li key={i} className="text-base text-slate-700 flex items-start gap-2">
                                     <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                                      item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'
+                                      item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'
                                     }`}></span>
                                     <span>{item.name}</span>
                                   </li>
                                 ))}
                               </ul>
-                            ) : <p className="text-base text-slate-400 italic">No gaps identified</p>}
+                            ) : <p className="text-base text-slate-400">No gaps identified</p>}
                           </div>
                         </div>
                         
                         {/* In Development */}
-                        <div className="border border-blue-200 rounded-xl overflow-hidden">
-                          <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                            <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                        <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
+                          <div className="px-4 py-3 bg-violet-600 border-b border-violet-500 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                            <h5 className="font-bold text-white text-base">In Development ({d.planning?.length || 0})</h5>
                           </div>
-                          <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                          <div className="p-4 max-h-64 overflow-y-auto">
                             {d.planning?.length > 0 ? (
                               <ul className="space-y-2">
                                 {d.planning.map((item: any, i: number) => (
-                                  <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0"></span>
+                                  <li key={i} className="text-base text-slate-700 flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
                                     <span>{item.name}</span>
                                   </li>
                                 ))}
                               </ul>
-                            ) : <p className="text-base text-slate-400 italic">No initiatives in planning</p>}
+                            ) : <p className="text-base text-slate-400">No initiatives in planning</p>}
                           </div>
                         </div>
                         
                         {/* Strengths */}
-                        <div className="border border-emerald-200 rounded-xl overflow-hidden">
-                          <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                            <h5 className="font-bold text-emerald-800 text-base">Strengths ({d.strengths?.length || 0})</h5>
+                        <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
+                          <div className="px-4 py-3 bg-teal-600 border-b border-teal-500 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
+                                <circle cx="12" cy="12" r="9" />
+                              </svg>
+                            </div>
+                            <h5 className="font-bold text-white text-base">Strengths ({d.strengths?.length || 0})</h5>
                           </div>
-                          <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                          <div className="p-4 max-h-64 overflow-y-auto">
                             {d.strengths?.length > 0 ? (
                               <ul className="space-y-2">
                                 {d.strengths.map((s: any, i: number) => (
-                                  <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400 mt-2 flex-shrink-0"></span>
+                                  <li key={i} className="text-base text-slate-700 flex items-start gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-teal-500 mt-2 flex-shrink-0"></span>
                                     <span>{s.name}</span>
                                   </li>
                                 ))}
                               </ul>
-                            ) : <p className="text-base text-slate-400 italic">Building toward first strengths</p>}
+                            ) : <p className="text-base text-slate-400">Building toward first strengths</p>}
                           </div>
                         </div>
                       </div>
@@ -6036,11 +7074,11 @@ export default function ExportReportPage() {
                               <div className="space-y-2">
                                 {evidence.topStrength && (
                                   <div className="flex items-start gap-2">
-                                    <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-emerald-600 text-sm">✓</span>
+                                    <span className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                      <span className="text-teal-600 text-sm">✓</span>
                                     </span>
                                     <p className="text-base text-slate-700">
-                                      <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                      <span className="font-medium">Strength:</span> <span className="font-semibold text-teal-700">{evidence.topStrength.name}</span>
                                       <span className="text-slate-500"> ({evidence.topStrength.benchPct})% of participants)</span>
                                     </p>
                                   </div>
@@ -6062,6 +7100,11 @@ export default function ExportReportPage() {
                           
                           <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
                             <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
                               Strategic Insight
                               {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
                             </h5>
@@ -6283,64 +7326,83 @@ export default function ExportReportPage() {
                         {/* Current State - 3 columns */}
                         <div className="grid grid-cols-3 gap-6 mb-6">
                           {/* Improvement Opportunities */}
-                          <div className="border border-red-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-red-50 border-b border-red-200">
-                              <h5 className="font-bold text-red-800 text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                          <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-3 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="12" cy="12" r="10" />
+                                  <circle cx="12" cy="12" r="6" />
+                                  <circle cx="12" cy="12" r="2" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                            <div className="p-4 max-h-64 overflow-y-auto">
                               {d.needsAttention?.length > 0 ? (
                                 <ul className="space-y-2">
                                   {d.needsAttention.map((item: any, i: number) => (
-                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                                      <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                    <li key={i} className="text-base text-slate-700 flex items-start gap-2">
+                                      <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'}`}></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-base text-slate-400 italic">No improvement opportunities identified</p>
+                                <p className="text-base text-slate-400">No improvement opportunities identified</p>
                               )}
                             </div>
                           </div>
                           
                           {/* In Development */}
-                          <div className="border border-blue-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-blue-50 border-b border-blue-200">
-                              <h5 className="font-bold text-blue-800 text-base">In Development ({d.planning?.length || 0})</h5>
+                          <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-3 bg-violet-600 border-b border-violet-500 flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-base">In Development ({d.planning?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                            <div className="p-4 max-h-64 overflow-y-auto">
                               {d.planning?.length > 0 ? (
                                 <ul className="space-y-2">
                                   {d.planning.map((item: any, i: number) => (
-                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0"></span>
+                                    <li key={i} className="text-base text-slate-700 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-base text-slate-400 italic">No initiatives in development</p>
+                                <p className="text-base text-slate-400">No initiatives in development</p>
                               )}
                             </div>
                           </div>
                           
                           {/* Current Strengths */}
-                          <div className="border border-emerald-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-3 bg-emerald-50 border-b border-emerald-200">
-                              <h5 className="font-bold text-emerald-800 text-base">Current Strengths ({d.strengths?.length || 0})</h5>
+                          <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-3 bg-teal-600 border-b border-teal-500 flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
+                                  <circle cx="12" cy="12" r="9" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-base">Current Strengths ({d.strengths?.length || 0})</h5>
                             </div>
-                            <div className="p-4 bg-white max-h-64 overflow-y-auto">
+                            <div className="p-4 max-h-64 overflow-y-auto">
                               {d.strengths?.length > 0 ? (
                                 <ul className="space-y-2">
                                   {d.strengths.map((item: any, i: number) => (
-                                    <li key={i} className="text-base text-slate-600 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-emerald-500 mt-2 flex-shrink-0"></span>
+                                    <li key={i} className="text-base text-slate-700 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full bg-teal-500 mt-2 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-base text-slate-400 italic">No strengths identified</p>
+                                <p className="text-base text-slate-400">No strengths identified</p>
                               )}
                             </div>
                           </div>
@@ -6381,7 +7443,14 @@ export default function ExportReportPage() {
                             )}
                             
                             <div className="border border-slate-200 rounded-xl p-4 bg-white">
-                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide">Strategic Insight</h5>
+                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </div>
+                                Strategic Insight
+                              </h5>
                               <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                             </div>
                           </div>
@@ -6459,7 +7528,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="grid grid-cols-3 gap-3">
                     {allDimensionsByScore
-                      .filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim))
+                      .filter(d => !strategicPriorityDims.some(top => top.dim === d.dim))
                       .filter(d => !additionalAnalyzedDims.includes(d.dim))
                       .map(d => {
                         const tierColor = getScoreColor(d.score);
@@ -6485,7 +7554,7 @@ export default function ExportReportPage() {
                         );
                       })}
                   </div>
-                  {allDimensionsByScore.filter(d => !allDimensionsByScore.slice(0, 4).some(top => top.dim === d.dim)).filter(d => !additionalAnalyzedDims.includes(d.dim)).length === 0 && (
+                  {allDimensionsByScore.filter(d => !strategicPriorityDims.some(top => top.dim === d.dim)).filter(d => !additionalAnalyzedDims.includes(d.dim)).length === 0 && (
                     <div className="text-center py-8">
                       <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
@@ -6504,8 +7573,10 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
+                  <div className="mt-3">
+                  </div>
                   <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
-                </div>
+</div>
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => setWhatIfModal(true)}
@@ -6667,7 +7738,7 @@ export default function ExportReportPage() {
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-sm text-slate-400 italic">Continue expanding strengths and monitoring program effectiveness</p>
+                          <p className="text-sm text-slate-400">Continue expanding strengths and monitoring program effectiveness</p>
                         )
                       )}
                     </div>
@@ -6961,6 +8032,41 @@ export default function ExportReportPage() {
               <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
             </div>
             <div className="px-12 py-6">
+              {/* Score Composition Visual */}
+              <div className="mb-8 pb-6 border-b border-slate-200">
+                <p className="font-bold text-slate-700 mb-2 text-center">Score Composition</p>
+                <p className="text-xs text-slate-500 mb-4 text-center">Click on Maturity or Breadth to learn more</p>
+                <div className="flex items-center justify-center gap-4 flex-wrap">
+                  <div className="text-center px-6 py-4 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 min-w-[120px]">
+                    <p className="text-3xl font-bold text-white">{compositeScore ?? '—'}</p>
+                    <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-2">Composite</p>
+                  </div>
+                  <span className="text-2xl text-slate-400 font-light">=</span>
+                  <div className="text-center px-5 py-3 bg-white rounded-xl border-2 border-slate-200 min-w-[100px]">
+                    <p className="text-2xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
+                    <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
+                    <p className="text-xs text-slate-400">× 90%</p>
+                  </div>
+                  <span className="text-xl text-slate-400 font-light">+</span>
+                  <div 
+                    onClick={() => setActiveScoreOverlay('maturity')}
+                    className="text-center px-5 py-3 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all"
+                  >
+                    <p className="text-2xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                    <p className="text-xs text-amber-600 mt-1">Maturity</p>
+                    <p className="text-xs text-amber-500">× 5%</p>
+                  </div>
+                  <span className="text-xl text-slate-400 font-light">+</span>
+                  <div 
+                    onClick={() => setActiveScoreOverlay('breadth')}
+                    className="text-center px-5 py-3 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all"
+                  >
+                    <p className="text-2xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                    <p className="text-xs text-violet-600 mt-1">Breadth</p>
+                    <p className="text-xs text-violet-500">× 5%</p>
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-4 gap-6 text-base text-slate-600">
                 <div>
                   <p className="font-bold text-slate-700 mb-2">Scoring Framework</p>
@@ -7300,8 +8406,8 @@ export default function ExportReportPage() {
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
                       This same research drives how each dimension is weighted in your composite score. Dimensions that 
-                      employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your 
-                      score reflects what actually matters to the people in your organization.
+                      employees managing cancer and HR leaders consistently ranked as most critical carry greater weight. While some 
+                      dimensions are more heavily weighted, all dimensions can have a lasting impact on your employees.
                     </p>
                     
                     {/* Bottom bar */}
@@ -7317,8 +8423,227 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 2: How to Use This Report (matches Image 3) */}
+                {/* Slide 2: Understanding Your Composite Score */}
                 {currentSlide === 2 && (
+                  <div className="p-10">
+                    {/* Header bar matching the collapsible style */}
+                    <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl mb-6">
+                      <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                      </div>
+                      <div className="text-left">
+                        <span className="text-sm font-bold text-slate-800">Understanding Your Composite Score</span>
+                        <span className="text-sm text-slate-600 ml-3 font-medium">How your overall performance is measured</span>
+                      </div>
+                      <div className="ml-auto w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center rotate-180">
+                        <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                    </div>
+                    
+                    {/* Content box */}
+                    <div className="bg-gradient-to-br from-violet-50/80 via-white to-slate-50 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
+                      <div className="p-6">
+                        {/* Tightened text section */}
+                        <div className="mb-6">
+                          <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                            What This Score Represents
+                          </h4>
+                          <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                            Your <span className="font-semibold text-violet-700">Composite Score</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
+                          </p>
+                          <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                            <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
+                            <ul className="space-y-1.5">
+                              <li className="text-sm text-slate-600 flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                Each dimension is weighted by real-world impact on employee experience and organizational outcomes.
+                              </li>
+                              <li className="text-sm text-slate-600 flex items-start gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                        
+                        {/* Two column layout: Tier Distribution + Journey message */}
+                        <div className="flex gap-8">
+                          {/* Left: Tier Distribution */}
+                          <div className="w-[480px] flex-shrink-0">
+                            <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                              <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                              Composite Score Tiers
+                            </h4>
+                            
+                            {/* Column Headers */}
+                            <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                              <div className="w-28">Tier</div>
+                              <div className="w-20 text-center">Range</div>
+                              <div className="flex-1 text-center">Distribution</div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              {[
+                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
+                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
+                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
+                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
+                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                              ].map((t) => {
+                                const isCurrentTier = tier?.name === t.name;
+                                return (
+                                  <div 
+                                    key={t.name}
+                                    className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`}
+                                    style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}
+                                  >
+                                    {/* Arrow marker for current tier */}
+                                    {isCurrentTier && (
+                                      <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
+                                        <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
+                                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="w-28 flex items-center gap-2">
+                                      <span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span>
+                                    </div>
+                                    <div className="w-20 text-center">
+                                      <span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span>
+                                    </div>
+                                    <div className="flex-1 flex items-center gap-3">
+                                      <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                                        <div 
+                                          className="h-full rounded-full transition-all duration-500"
+                                          style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }}
+                                        />
+                                      </div>
+                                      <span className={`text-sm font-bold w-10 text-right ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.pct}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                          </div>
+                          
+                          {/* Right: Journey message - Better balanced layout */}
+                          <div className="flex-1 min-w-0">
+                            <div className="h-full p-6 bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-xl">
+                              <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                  </svg>
+                                </div>
+                                <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
+                              </div>
+                              <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                                Workplace cancer support is still evolving. Few organizations reach the top tiers today, and participating puts you among employers actively building stronger, more consistent support.
+                              </p>
+                              <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
+                                <p className="text-sm text-slate-700 leading-relaxed">
+                                  <strong className="text-violet-700">The goal is progress:</strong> confirm what&apos;s in place, prioritize high-leverage moves, and revisit over time.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="px-6 py-4 bg-gradient-to-r from-violet-700 to-purple-700 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </div>
+                        <p className="text-sm text-violet-100">
+                          <span className="font-semibold text-white">This score is just the beginning.</span> The detailed analysis that follows lets you 
+                          explore each dimension in depth, identifying specific strengths to leverage and opportunities to strengthen your 
+                          support for employees managing cancer.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 3: The 13 Dimensions of Workplace Cancer Support */}
+                {currentSlide === 3 && (
+                  <div className="p-8">
+                    {/* Header bar */}
+                    <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl mb-5">
+                      <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                      </div>
+                      <div className="text-left">
+                        <span className="text-base font-bold text-slate-800">The 13 Dimensions of Workplace Cancer Support</span>
+                      </div>
+                      <div className="ml-auto w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center rotate-180">
+                        <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                      <div className="p-5">
+                        <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                          Your Composite Score is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
+                          <span className="font-semibold text-slate-800"> 152 individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
+                        </p>
+                        
+                        {/* Dimensions Grid - 3x4 + 1 */}
+                        <div className="grid grid-cols-3 gap-3">
+                          {[
+                            { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Time off for treatment, recovery, and appointments while maintaining job security.' },
+                            { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health coverage, disability benefits, and financial protections for serious illness.' },
+                            { dim: 3, name: 'Manager Preparedness', color: '#3B82F6', def: 'Training and resources for managers to support team members facing health conditions.' },
+                            { dim: 4, name: 'Cancer Support Resources', color: '#0EA5E9', def: 'Care coordinators, patient advocates, and navigation support services.' },
+                            { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments enabling work during and after treatment.' },
+                            { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'Environment where employees feel safe disclosing health conditions.' },
+                            { dim: 7, name: 'Career Continuity', color: '#22C55E', def: 'Policies protecting career progression for employees managing health conditions.' },
+                            { dim: 8, name: 'Work Resumption', color: '#84CC16', def: 'Structured programs supporting successful return to work after medical leave.' },
+                            { dim: 9, name: 'Executive Commitment', color: '#EAB308', def: 'Visible leadership support and dedicated resources for employee health support.' },
+                            { dim: 10, name: 'Caregiver Support', color: '#F59E0B', def: 'Programs for employees caring for family members with serious health conditions.' },
+                            { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health programs, preventive care, and legal compliance.' },
+                            { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Measuring effectiveness, gathering feedback, and improving support programs.' },
+                            { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic communication ensuring employees know what support is available.' },
+                          ].map((d) => {
+                            const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
+                            const elementCount = dimData?.elements?.length || 0;
+                            return (
+                              <div 
+                                key={d.dim}
+                                className="p-4 rounded-lg border border-slate-100 bg-slate-50/50"
+                              >
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div 
+                                    className="w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                                    style={{ backgroundColor: d.color }}
+                                  >
+                                    {d.dim}
+                                  </div>
+                                  <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
+                                <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: d.color }}>
+                                  <span>{elementCount} support elements</span>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      <div className="px-5 py-3 bg-slate-50 border-t border-slate-200">
+                        <p className="text-sm text-slate-600">
+                          Each dimension is weighted based on its impact on employee wellbeing. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful impact.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 4: How to Use This Report */}
+                {currentSlide === 4 && (
                   <div className="p-10">
                     {/* Header bar matching the collapsible style */}
                     <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl mb-6">
@@ -7337,53 +8662,42 @@ export default function ExportReportPage() {
                     {/* Content box */}
                     <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
                       <div className="p-6">
-                        {/* First paragraph */}
                         <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                          This report provides a detailed baseline of your organization's cancer support infrastructure across 
-                          13 dimensions. It is designed as a <strong className="text-slate-800">starting point for strategic conversations</strong>, not 
-                          a one-size-fits-all prescription.
+                          Use this report to <strong className="text-slate-800">align on priorities, confirm what&apos;s in place, and build a practical action plan</strong>.
                         </p>
-                        
-                        {/* Second paragraph */}
                         <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                          We recognize that every organization is different. Your industry, workforce, benefits structure, and current 
-                          capabilities all shape what's realistic and impactful for your team. Some recommendations may already align 
-                          with your priorities; others may not be feasible given where you're starting, and that's expected.
+                          Every organization is different. Your industry, workforce, and current capabilities shape what&apos;s realistic and impactful. Some recommendations will align with your priorities; others may not be feasible yet, and that&apos;s expected.
                         </p>
                         
-                        {/* Steps header */}
                         <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this assessment:</p>
-                        
-                        {/* 4 numbered steps in 2x2 grid */}
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-sky-700">1</span>
+                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">1</span>
                             </div>
-                            <p className="text-sm text-slate-600">Review your dimension scores and the specific elements within each</p>
+                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Review</strong> your overall composite and dimension scores and the specific support elements within each</p>
                           </div>
                           <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-sky-700">2</span>
+                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">2</span>
                             </div>
-                            <p className="text-sm text-slate-600">Identify where quick wins align with your existing infrastructure</p>
+                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Identify</strong> where quick wins align with your existing infrastructure and strategic priorities</p>
                           </div>
                           <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-sky-700">3</span>
+                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">3</span>
                             </div>
-                            <p className="text-sm text-slate-600">Note areas where deeper exploration would be valuable</p>
+                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Confirm</strong> areas where deeper exploration or validation is needed</p>
                           </div>
                           <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-sky-700">4</span>
+                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">4</span>
                             </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> to build a tailored action plan for {companyName}</p>
+                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Act</strong>: connect with Cancer and Careers to build a tailored action plan for {companyName}</p>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Dark footer bar */}
                       <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
                         <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         <p className="text-sm text-slate-200">
@@ -7395,8 +8709,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 3: Prepared For + Exec Summary + Key Findings (matches Image 1) */}
-                {currentSlide === 3 && (
+                {/* Slide 5: Executive Summary + Key Findings */}
+                {currentSlide === 5 && (
                   <div className="overflow-hidden">
                     {/* Top section - Prepared For header */}
                     <div className="px-12 py-8 border-b border-slate-100">
@@ -7425,12 +8739,20 @@ export default function ExportReportPage() {
                             <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
                           </div>
                           {tier && (
-                            <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
-                              <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
-                              <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
-                              {isProvisional && (
-                                <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
-                              )}
+                            <div className="flex flex-col items-center">
+                              <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
+                                <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
+                                <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                                {isProvisional && (
+                                  <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => setShowTierOverlay(true)}
+                                className="mt-3 text-xs text-slate-500 hover:text-slate-700 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-sm hover:shadow transition-all"
+                              >
+                                Show All Tiers
+                              </button>
                             </div>
                           )}
                         </div>
@@ -7483,7 +8805,7 @@ export default function ExportReportPage() {
                               {nextTierUp && pointsToNextTier ? (
                                 <>
                                   <p className="text-base font-bold text-violet-800">
-                                    {pointsToNextTier} points from {nextTierUp.name} tier
+                                    {pointsToNextTier} points away from {nextTierUp.name} tier
                                   </p>
                                   <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
                                 </>
@@ -7498,97 +8820,137 @@ export default function ExportReportPage() {
                         );
                       })()}
                       
-                      {/* 4 Stats Boxes */}
-                      <div className="mt-8 grid grid-cols-4 gap-6">
-                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                          <p className="text-4xl font-bold text-slate-800">{currentlyOffering}</p>
-                          <p className="text-sm text-slate-500 mt-2 font-medium">of {totalElements} elements offered</p>
+                      {/* Combined Key Findings Section */}
+                      <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
+                        
+                        {/* Top Row - Stats */}
+                        <div className="grid grid-cols-4 gap-4 mb-6">
+                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                            <p className="text-3xl font-bold text-white">{currentlyOffering}</p>
+                            <p className="text-sm text-slate-400 mt-1">of {totalElements} support elements offered</p>
+                          </div>
+                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                            <p className="text-3xl font-bold text-white">{planningItems + assessingItems}</p>
+                            <p className="text-sm text-slate-400 mt-1">support elements in development</p>
+                            <div className="mt-1 space-y-0.5">
+                              <p className="text-xs text-sky-400">{planningItems} planned</p>
+                              <p className="text-xs text-sky-400">{assessingItems} assessing</p>
+                            </div>
+                          </div>
+                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                            <p className="text-3xl font-bold text-white">{gapItems + unsureItems}</p>
+                            <p className="text-sm text-slate-400 mt-1">identified support element gaps</p>
+                            <div className="mt-1 space-y-0.5">
+                              <p className="text-xs text-amber-400">{notPlannedItems} not planned</p>
+                              <p className="text-xs text-amber-400">{unsureItems} need confirmation</p>
+                            </div>
+                          </div>
+                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
+                            <p className="text-3xl font-bold text-white">{tierCounts.exemplary + tierCounts.leading}<span className="text-lg font-normal text-slate-400 ml-1">/13</span></p>
+                            <p className="text-sm text-slate-400 mt-1">dimensions at Leading+</p>
+                            <div className="mt-1 space-y-0.5">
+                              <p className="text-xs text-violet-400">{tierCounts.exemplary} Exemplary</p>
+                              <p className="text-xs text-violet-400">{tierCounts.leading} Leading</p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                          <p className="text-4xl font-bold text-slate-800">{planningItems + assessingItems}</p>
-                          <p className="text-sm text-slate-500 mt-2 font-medium">initiatives in development</p>
-                        </div>
-                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                          <p className="text-4xl font-bold text-slate-800">{gapItems + unsureItems}</p>
-                          <p className="text-sm text-slate-500 mt-2 font-medium">identified gaps:</p>
-                          <p className="text-xs text-slate-400 mt-1">{notPlannedItems} Not Planned</p>
-                          <p className="text-xs text-slate-400">{unsureItems} Needs Confirmation</p>
-                        </div>
-                        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-                          <p className="text-4xl font-bold text-slate-800">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
-                          <p className="text-sm text-slate-500 mt-2 font-medium">dimensions at Leading+</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Key Findings Dark Strip */}
-                    <div className="bg-slate-900 px-12 py-8">
-                      <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">Key Findings</h3>
-                      <div className="grid grid-cols-4 gap-6">
-                        <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Top Strength</p>
-                          <p className="text-white font-bold text-lg">{topDimension?.name || 'N/A'}</p>
-                          <p className="text-emerald-400 text-sm mt-1 font-semibold">Score: {topDimension?.score}</p>
-                        </div>
-                        <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Primary Opportunity</p>
-                          <p className="text-white font-bold text-lg">{bottomDimension?.name || 'N/A'}</p>
-                          <p className="text-amber-400 text-sm mt-1 font-semibold">Score: {bottomDimension?.score}</p>
-                        </div>
-                        <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">In Progress</p>
-                          <p className="text-white font-bold text-lg">{planningItems + assessingItems} items</p>
-                          <p className="text-sky-400 text-sm mt-1 font-semibold">{planningItems} planning, {assessingItems} assessing</p>
-                        </div>
-                        <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">Tier Distribution</p>
-                          <p className="text-white font-bold text-lg">{tierCounts.exemplary + tierCounts.leading} / 13 Leading+</p>
-                          <p className="text-violet-400 text-sm mt-1 font-semibold">{tierCounts.exemplary} Exemplary, {tierCounts.leading} Leading</p>
+                        
+                        {/* Bottom Row - Top Strengths and Opportunities */}
+                        <div className="grid grid-cols-2 gap-4">
+                          {/* Top 3 Strengths */}
+                          <div className="bg-emerald-900/30 rounded-xl p-5 border border-emerald-700/50">
+                            <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-3">Top Strengths</p>
+                            <div className="space-y-3">
+                              {[...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3).map((d, idx) => (
+                                <div key={d.dim} className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-emerald-400 font-bold text-sm">{idx + 1}.</span>
+                                    <span className="text-white font-semibold">{d.name}</span>
+                                  </div>
+                                  <span className="text-emerald-400 font-bold">Score: {d.score}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Top 3 Opportunities */}
+                          <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
+                            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Primary Opportunities for Improvement</p>
+                            <div className="space-y-3">
+                              {[...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map((d, idx) => (
+                                <div key={d.dim} className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
+                                    <span className="text-white font-semibold">{d.name}</span>
+                                  </div>
+                                  <span className="text-amber-400 font-bold">Score: {d.score}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 4: Dimension Performance Table (matches Image 2 exactly) */}
-                {currentSlide === 4 && (
-                  <div className="p-8">
-                    {/* Header */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div>
-                        <h3 className="font-bold text-slate-900 text-2xl">Dimension Performance</h3>
-                        <p className="text-slate-500 mt-1">All 13 dimensions sorted by strategic weight</p>
+                {/* Slide 6: Dimension Performance Table */}
+                {currentSlide === 6 && (
+                  <div className="overflow-hidden">
+                    {/* Dark dramatic header - matching main report */}
+                    <div className="px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-10">
+                        <svg width="100%" height="100%"><pattern id="dots-pres6" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="white"/></pattern><rect fill="url(#dots-pres6)" width="100%" height="100%"/></svg>
                       </div>
-                      <span className="bg-cyan-100 text-cyan-700 px-4 py-2 rounded-lg font-semibold text-sm">👆 Click any dimension for element-level details</span>
+                      <div className="relative flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center border border-white/20">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-2xl">Dimension Performance</h3>
+                            <p className="text-slate-400 mt-1">All 13 dimensions sorted by score</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          <span className="bg-white/10 backdrop-blur text-white/90 px-4 py-2 rounded-lg font-medium text-sm border border-white/20">Click any dimension for details</span>
+                          <span className="flex items-center gap-2 text-xs text-slate-400">
+                            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
+                            <span>= Benchmark Score</span>
+                          </span>
+                        </div>
+                      </div>
                     </div>
                     
+                    <div className="p-8 pt-6">
                     {/* Table Header */}
                     <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      <div className="w-64">Dimension</div>
                       <div className="w-20 text-center">Weight</div>
+                      <div className="w-64">Dimension</div>
                       <div className="flex-1 text-center">Performance</div>
-                      <div className="w-20 text-center">Score</div>
+                      <div className="w-20 text-center">Your Score</div>
                       <div className="w-28 text-center">Benchmark</div>
                       <div className="w-28 text-center">Tier</div>
                     </div>
                     
                     {/* Table Rows */}
                     <div className="divide-y divide-slate-100">
-                      {[...dimensionAnalysis].sort((a, b) => b.weight - a.weight).map((d, idx) => {
+                      {[...dimensionAnalysis].sort((a, b) => b.score - a.score).map((d, idx) => {
                         const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                         return (
                           <div 
                             key={d.dim} 
                             className={`flex items-center py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
                           >
+                            <div className="w-20 text-center">
+                              <span className="text-sm text-slate-500">{d.weight}%</span>
+                            </div>
                             <div className="w-64 flex items-center gap-3">
                               <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
                                 {d.dim}
                               </span>
                               <span className="text-sm text-slate-800 font-medium">{d.name}</span>
-                            </div>
-                            <div className="w-20 text-center">
-                              <span className="text-sm text-slate-500">{d.weight}%</span>
                             </div>
                             <div className="flex-1 px-4">
                               <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
@@ -7623,8 +8985,8 @@ export default function ExportReportPage() {
                             </div>
                             <div className="w-28 flex justify-center">
                               <span 
-                                className={`text-xs font-bold px-3 py-1 rounded-lg ${d.tier.bgColor} border ${d.tier.borderColor}`} 
-                                style={{ color: d.tier.color }}
+                                className="text-xs font-bold px-3 py-1 rounded-full text-white" 
+                                style={{ backgroundColor: d.tier.color }}
                               >
                                 {d.tier.name}
                               </span>
@@ -7633,12 +8995,13 @@ export default function ExportReportPage() {
                         );
                       })}
                     </div>
+                    </div>
                   </div>
                 )}
 
-                {/* Slides 5-17: D1-D13 Deep Dives */}
-                {currentSlide >= 5 && currentSlide <= 17 && (() => {
-                  const dimNum = currentSlide - 4;
+                {/* Slides 6-18: D1-D13 Deep Dives */}
+                {currentSlide >= 7 && currentSlide <= 19 && (() => {
+                  const dimNum = currentSlide - 6;
                   const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                   if (!d) return <div className="p-10 text-center text-slate-500">Dimension {dimNum} data not available</div>;
                   
@@ -7716,7 +9079,7 @@ export default function ExportReportPage() {
                       
                       {/* Table Header */}
                       <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                        <div className="col-span-3">Element</div>
+                        <div className="col-span-3">Support Element</div>
                         <div className="col-span-1 text-center">Your Status</div>
                         <div className="col-span-5 text-center">
                           <div>Benchmark Distribution</div>
@@ -7779,8 +9142,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 18: Strategic Matrix WITHOUT Benchmarks */}
-                {currentSlide === 18 && (
+                {/* Slide 20: Strategic Matrix WITHOUT Benchmarks */}
+                {currentSlide === 20 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -7795,15 +9158,15 @@ export default function ExportReportPage() {
                     {/* Matrix Chart */}
                     {(() => {
                       const MAX_WEIGHT = 15;
-                      const CHART_WIDTH = 900;
-                      const CHART_HEIGHT = 420;
-                      const MARGIN = { top: 34, right: 20, bottom: 80, left: 60 };
+                      const CHART_WIDTH = 1000;
+                      const CHART_HEIGHT = 450;
+                      const MARGIN = { top: 34, right: 20, bottom: 90, left: 60 };
                       const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                       const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
                       
                       return (
                         <div className="flex flex-col items-center">
-                          <svg className="w-full max-w-4xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+                          <svg className="w-full max-w-5xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
                             <defs>
                               <filter id="dropShadow18" x="-50%" y="-50%" width="200%" height="200%">
                                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
@@ -7818,15 +9181,15 @@ export default function ExportReportPage() {
                               <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
                               <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
                               
-                              {/* Quadrant backgrounds */}
-                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF2F2" opacity="0.5" />
-                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ECFDF5" opacity="0.5" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" opacity="0.5" />
-                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" opacity="0.3" />
+                              {/* Quadrant backgrounds - subtle professional tones */}
+                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
+                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
+                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
                               
-                              {/* Grid lines */}
-                              <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
-                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
+                              {/* Grid lines - solid */}
+                              <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
+                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
                               
                               {/* Border */}
                               <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
@@ -7839,13 +9202,13 @@ export default function ExportReportPage() {
                               <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
                               
                               {/* X-axis */}
-                              <g transform={`translate(0, ${PLOT_HEIGHT + 32})`}>
+                              <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
                                 {[0, 25, 50, 75, 100].map((val) => (
                                   <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
                               </g>
                               
                               {/* Y-axis */}
@@ -7934,8 +9297,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 19: Strategic Matrix WITH Benchmarks */}
-                {currentSlide === 19 && (
+                {/* Slide 21: Strategic Matrix WITH Benchmarks */}
+                {currentSlide === 21 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -7950,15 +9313,15 @@ export default function ExportReportPage() {
                     {/* Matrix Chart with Benchmarks */}
                     {(() => {
                       const MAX_WEIGHT = 15;
-                      const CHART_WIDTH = 900;
-                      const CHART_HEIGHT = 420;
-                      const MARGIN = { top: 34, right: 20, bottom: 80, left: 60 };
+                      const CHART_WIDTH = 1000;
+                      const CHART_HEIGHT = 450;
+                      const MARGIN = { top: 34, right: 20, bottom: 90, left: 60 };
                       const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                       const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
                       
                       return (
                         <div className="flex flex-col items-center">
-                          <svg className="w-full max-w-4xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
+                          <svg className="w-full max-w-5xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
                             <defs>
                               <filter id="dropShadow19" x="-50%" y="-50%" width="200%" height="200%">
                                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
@@ -7973,15 +9336,15 @@ export default function ExportReportPage() {
                               <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
                               <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
                               
-                              {/* Quadrant backgrounds */}
-                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#FEF2F2" opacity="0.5" />
-                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ECFDF5" opacity="0.5" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F8FAFC" opacity="0.5" />
-                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#EFF6FF" opacity="0.3" />
+                              {/* Quadrant backgrounds - subtle professional tones */}
+                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
+                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
+                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
                               
-                              {/* Grid lines */}
-                              <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
-                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1" strokeDasharray="4 4" />
+                              {/* Grid lines - solid */}
+                              <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
+                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
                               
                               {/* Border */}
                               <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
@@ -7994,13 +9357,13 @@ export default function ExportReportPage() {
                               <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
                               
                               {/* X-axis */}
-                              <g transform={`translate(0, ${PLOT_HEIGHT + 32})`}>
+                              <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
                                 {[0, 25, 50, 75, 100].map((val) => (
                                   <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="22" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
                               </g>
                               
                               {/* Y-axis */}
@@ -8133,51 +9496,114 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 20: Cross-Dimensional Insights - exact match to report */}
-                {currentSlide === 20 && (
-                  <div className="overflow-hidden">
-                    <div className="px-12 py-6 bg-indigo-700">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
-                          <p className="text-indigo-200 mt-1 text-base">Patterns identified across your assessment that reveal strategic opportunities</p>
+                {/* Slide 22: Cross-Dimensional Insights - polished design */}
+                {currentSlide === 22 && (
+                  <div className="overflow-hidden h-full flex flex-col">
+                    {/* Header */}
+                    <div className="px-10 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden flex-shrink-0">
+                      <div className="absolute inset-0 opacity-10">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          <defs>
+                            <pattern id="crossGridSlide" width="20" height="20" patternUnits="userSpaceOnUse">
+                              <path d="M 20 0 L 0 20 M 10 -10 L -10 10 M 30 10 L 10 30" stroke="white" strokeWidth="0.5" fill="none" opacity="0.3"/>
+                            </pattern>
+                          </defs>
+                          <rect width="100%" height="100%" fill="url(#crossGridSlide)" />
+                        </svg>
+                      </div>
+                      <div className="relative flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
+                            <p className="text-slate-400 text-sm">Hidden bottlenecks limiting program impact</p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          Learn More
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/20 rounded-lg">
+                            <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span className="text-white text-sm font-semibold">{patterns.length} bottleneck{patterns.length !== 1 ? 's' : ''}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                    <div className="px-12 py-8 space-y-6">
-                      {patterns.map((p, idx) => (
-                        <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden">
-                          <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                            <p className="font-bold text-slate-800 text-lg">{p.pattern}</p>
-                          </div>
-                          <div className="px-6 py-5 grid grid-cols-2 gap-8">
-                            <div>
-                              <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">What This Means</p>
-                              <p className="text-base text-slate-600 leading-relaxed">{p.implication}</p>
+                    
+                    {/* Content */}
+                    <div className="flex-1 overflow-auto p-6">
+                      <div className="space-y-4">
+                        {patterns.map((p, idx) => (
+                          <div key={idx} className="relative">
+                            <div className="absolute -left-2 top-4 w-5 h-5 rounded-full bg-slate-800 text-white text-xs font-bold flex items-center justify-center shadow-lg border-2 border-white z-10">
+                              {idx + 1}
                             </div>
-                            <div>
-                              <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-3">Recommended Action</p>
-                              <p className="text-base text-slate-600 leading-relaxed">{customCrossRecommendations[idx] || p.recommendation}</p>
+                            <div className="ml-4 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                              <div className="px-6 py-3 border-b border-slate-100 bg-slate-50">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-bold text-slate-900 text-sm">{p.pattern}</h4>
+                                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-slate-800 text-white text-xs font-semibold">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    P{idx + 1}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 divide-x divide-slate-100">
+                                <div className="px-5 py-4">
+                                  <div className="flex items-center gap-1.5 mb-2">
+                                    <div className="w-5 h-5 rounded bg-slate-100 flex items-center justify-center">
+                                      <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                      </svg>
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Implication</span>
+                                  </div>
+                                  <p className="text-slate-600 text-xs leading-relaxed">{p.implication}</p>
+                                </div>
+                                <div className="px-5 py-4 bg-slate-50/50">
+                                  <div className="flex items-center gap-1.5 mb-2">
+                                    <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
+                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                      </svg>
+                                    </div>
+                                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">Action</span>
+                                  </div>
+                                  <p className="text-slate-700 text-xs leading-relaxed font-medium">{customCrossRecommendations[idx] || p.recommendation}</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 21: Impact-Ranked Priorities - exact match to report */}
-                {currentSlide === 21 && (
+                {/* Slide 23: Impact-Ranked Priorities - exact match to report */}
+                {currentSlide === 23 && (
                   <div className="overflow-hidden">
-                    <div className="px-10 py-6 bg-gradient-to-r from-cyan-600 via-cyan-700 to-cyan-800 relative overflow-hidden">
+                    <div className="px-10 py-6 bg-gradient-to-r from-teal-600 via-teal-700 to-teal-800 relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-10">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          <defs>
+                            <pattern id="impactGridPres" width="10" height="10" patternUnits="userSpaceOnUse">
+                              <circle cx="5" cy="5" r="1" fill="white"/>
+                            </pattern>
+                          </defs>
+                          <rect width="100%" height="100%" fill="url(#impactGridPres)" />
+                        </svg>
+                      </div>
                       <div className="relative flex items-center justify-between">
                         <div>
                           <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                          <p className="text-cyan-100 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
+                          <p className="text-teal-200 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg backdrop-blur">
@@ -8185,25 +9611,40 @@ export default function ExportReportPage() {
                             Learn More
                           </div>
                           <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
-                            <svg className="w-5 h-5 text-cyan-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <svg className="w-5 h-5 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                             <span className="text-white font-semibold">Top 5 Priorities</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="p-8">
+                      {/* Legend */}
+                      <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex flex-wrap items-start gap-6">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-teal-600 text-white">Quick Win</span>
+                            <span className="text-sm text-slate-600">Accelerate in-progress initiatives or activate existing resources</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-600 text-white">Foundation Build</span>
+                            <span className="text-sm text-slate-600">Requires new programs, policies, or vendor partnerships</span>
+                          </div>
+                        </div>
+                      </div>
                       <div className="space-y-4">
-                        {rankings.slice(0, 5).map((r, idx) => (
+                        {rankings.slice(0, 5).map((r, idx) => {
+                      const tag = getPriorityTag(r);
+                      return (
                           <div key={r.dimNum} className={`relative rounded-xl border-2 overflow-hidden ${
-                            idx === 0 ? 'border-cyan-300 bg-gradient-to-r from-cyan-50 to-white' : 
-                            idx === 1 ? 'border-cyan-200 bg-gradient-to-r from-cyan-50/50 to-white' : 
+                            idx === 0 ? 'border-teal-400 bg-white' : 
+                            idx === 1 ? 'border-teal-300 bg-white' : 
                             'border-slate-200 bg-white'
                           }`}>
                             <div className="flex items-stretch">
                               {/* Priority Number */}
                               <div className={`flex items-center justify-center w-20 text-3xl font-black ${
-                                idx === 0 ? 'bg-gradient-to-b from-cyan-500 to-cyan-600 text-white' : 
-                                idx === 1 ? 'bg-gradient-to-b from-cyan-400 to-cyan-500 text-white' : 
+                                idx === 0 ? 'bg-gradient-to-b from-teal-600 to-teal-700 text-white' : 
+                                idx === 1 ? 'bg-gradient-to-b from-teal-500 to-teal-600 text-white' : 
                                 'bg-slate-100 text-slate-400'
                               }`}>
                                 {idx + 1}
@@ -8217,7 +9658,7 @@ export default function ExportReportPage() {
                                     <div className="flex items-center gap-3 mb-2">
                                       <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
                                       <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
-                                        r.gapLevel === 'Few Gaps' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                        r.gapLevel === 'Few Gaps' ? 'bg-teal-100 text-teal-700 border border-teal-200' :
                                         r.gapLevel === 'Some Gaps' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
                                         'bg-slate-100 text-slate-700 border border-slate-200'
                                       }`}>
@@ -8225,16 +9666,19 @@ export default function ExportReportPage() {
                                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                                         ) : r.gapLevel === 'Some Gaps' ? (
                                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" /></svg>
-                                        ) : null}
+                                        ) : (
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                        )}
                                         {r.gapLevel}
                                       </span>
+                                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${tag.className}`}>{tag.label}</span>
                                     </div>
                                     
                                     {/* Recommendations */}
                                     <div className="text-sm text-slate-600 space-y-1">
                                       {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
                                         <p key={i} className="flex items-start gap-2">
-                                          <span className="text-cyan-500 mt-0.5">→</span>
+                                          <span className="text-teal-500 mt-0.5">→</span>
                                           <span>{rec}</span>
                                         </p>
                                       ))}
@@ -8271,23 +9715,31 @@ export default function ExportReportPage() {
                               </div>
                             </div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
-                      <p className="text-xs text-slate-400 mt-6 text-center italic">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
+                      <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
                     </div>
                   </div>
                 )}
 
-                {/* Slide 22: Areas of Excellence - exact match to report */}
-                {currentSlide === 22 && (
+                {/* Slide 24: Areas of Excellence - exact match to report */}
+                {currentSlide === 24 && (
                   <div className="overflow-hidden">
-                    <div className="px-12 py-5 bg-emerald-700">
+                    <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                          <p className="text-emerald-200 mt-1 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                            <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           Learn More
                         </div>
@@ -8297,7 +9749,7 @@ export default function ExportReportPage() {
                       {strengthDimensions.length > 0 ? (
                         <div className="grid grid-cols-2 gap-5">
                           {strengthDimensions.slice(0, 6).map((d) => (
-                            <div key={d.dim} className="border border-slate-200 rounded-xl p-4">
+                            <div key={d.dim} className="border border-slate-200 rounded-xl p-4 bg-white">
                               <div className="flex items-center justify-between mb-3">
                                 <p className="font-semibold text-slate-800 text-base">{d.name}</p>
                                 <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
@@ -8305,7 +9757,7 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 {d.strengths.slice(0, 3).map((e: any, i: number) => (
                                   <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                    <svg className="w-4 h-4 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    <svg className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                                     <span>{e.name}</span>
                                   </li>
                                 ))}
@@ -8322,16 +9774,23 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 23: Areas for Growth - exact match to report */}
-                {currentSlide === 23 && (
+                {/* Slide 25: Areas for Growth - exact match to report */}
+                {currentSlide === 25 && (
                   <div className="overflow-hidden">
-                    <div className="px-12 py-5 bg-amber-600">
+                    <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                          <p className="text-amber-200 mt-1 text-sm">Dimensions with improvement potential</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                            <p className="text-slate-300 mt-0.5 text-sm">Dimensions with improvement potential</p>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 px-4 py-2 bg-amber-500 text-white text-sm font-medium rounded-lg">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           Learn More
                         </div>
@@ -8340,7 +9799,7 @@ export default function ExportReportPage() {
                     <div className="px-12 py-6">
                       <div className="grid grid-cols-2 gap-5">
                         {allDimensionsByScore.slice(0, 6).map((d) => (
-                          <div key={d.dim} className="border border-slate-200 rounded-xl p-4">
+                          <div key={d.dim} className="border border-slate-200 rounded-xl p-4 bg-white">
                             <div className="flex items-center justify-between mb-3">
                               <p className="font-semibold text-slate-800 text-base">{d.name}</p>
                               <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
@@ -8349,13 +9808,13 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
                                   <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                    <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-red-400' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-400'}`}></span>
+                                    <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-500'}`}></span>
                                     <span>{e.name}</span>
                                   </li>
                                 ))}
                               </ul>
                             ) : (
-                              <p className="text-sm text-slate-400 italic">Focus on completing planned initiatives</p>
+                              <p className="text-sm text-slate-400">Focus on completing planned initiatives</p>
                             )}
                           </div>
                         ))}
@@ -8364,16 +9823,24 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 24: Initiatives in Progress - exact match to report */}
-                {currentSlide === 24 && (
+                {/* Slide 26: Initiatives in Progress - exact match to report */}
+                {currentSlide === 26 && (
                   <div className="overflow-hidden">
-                    <div className="px-12 py-6 bg-gradient-to-r from-blue-600 to-blue-700">
+                    <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                       <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                          <p className="text-blue-200 mt-1">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path d="M9 14l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                            <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                          </div>
                         </div>
-                        <div className="bg-white/20 rounded-lg px-5 py-2.5">
+                        <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
                           <p className="text-white font-semibold">Fastest path to improvement</p>
                         </div>
                       </div>
@@ -8381,17 +9848,17 @@ export default function ExportReportPage() {
                     <div className="px-12 py-8">
                       <div className="grid grid-cols-2 gap-5">
                         {quickWinOpportunities.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-start gap-4 p-5 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-blue-100' : 'bg-amber-100'}`}>
+                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-violet-600' : 'bg-slate-600'}`}>
                               {item.type === 'Planning' ? (
-                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                               ) : (
-                                <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>{item.type}</span>
+                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                                 <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
                               </div>
                               <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
@@ -8404,75 +9871,330 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 25: Strategic Recommendations Setup - exact match to report */}
-                {currentSlide === 25 && (
+                {/* Slide 27: Strategic Recommendations Setup - matches main report */}
+                {currentSlide === 27 && (
                   <div className="overflow-hidden">
-                    <div className="px-12 py-10 bg-slate-800">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white text-3xl">Strategic Recommendations</h3>
-                          <p className="text-slate-400 mt-2 text-lg">Detailed analysis and action plans for priority dimensions</p>
+                    {/* Header with gradient and dot pattern */}
+                    <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-5">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          <defs>
+                            <pattern id="stratGridPres" width="10" height="10" patternUnits="userSpaceOnUse">
+                              <circle cx="5" cy="5" r="1" fill="white"/>
+                            </pattern>
+                          </defs>
+                          <rect width="100%" height="100%" fill="url(#stratGridPres)" />
+                        </svg>
+                      </div>
+                      <div className="relative flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-4 mb-3">
+                            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center">
+                              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-white text-2xl tracking-tight">Strategic Recommendations</h3>
+                              <p className="text-slate-400 text-sm mt-0.5">From diagnosis to action in four priority dimensions</p>
+                            </div>
+                          </div>
+                          <p className="text-slate-300 text-base leading-relaxed max-w-3xl">
+                            Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
+                            This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-700 text-white text-sm font-medium rounded-lg">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg backdrop-blur border border-white/10">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           Learn More
                         </div>
                       </div>
                     </div>
-                    <div className="px-12 py-10">
-                      <p className="text-slate-600 leading-relaxed text-lg mb-8">
-                        The following pages provide detailed analysis for <strong className="text-slate-800">{allDimensionsByScore.slice(0, 4).length} priority dimensions</strong>, those 
-                        with the greatest opportunity for improvement. Each dimension page includes detailed breakdowns with:
-                      </p>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="flex items-start gap-4 p-5 bg-red-50 rounded-xl border border-red-200">
-                          <div className="w-12 h-12 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                    
+                    <div className="p-8">
+                      {/* Selection Methodology */}
+                      <div className="mb-5">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
                           </div>
                           <div>
-                            <p className="font-bold text-red-800 text-lg">Improvement Opportunities</p>
-                            <p className="text-base text-red-700 mt-1">Specific gaps where you're not currently offering, with participant benchmarks</p>
+                            <h4 className="font-bold text-slate-900 text-base">Balanced 2+2 Selection</h4>
+                            <p className="text-slate-500 text-xs">Two by greatest need, two by strategic opportunity</p>
                           </div>
                         </div>
-                        <div className="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-200">
-                          <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                          Rather than addressing all 13 dimensions at once, we prioritize <span className="font-semibold text-slate-800">four dimensions</span> using a balanced methodology. 
+                          This ensures you address both <span className="font-semibold text-slate-800">immediate support gaps</span> (where employees are most likely to fall through the cracks today) 
+                          and <span className="font-semibold text-slate-800">high-leverage opportunities</span> (where investment yields system-wide improvements). 
+                          Dimensions scoring above 85 are excluded from Strategic Leverage selection since they're already strong.
+                        </p>
+                      </div>
+
+                      {/* Foundation Focus & Strategic Leverage Cards */}
+                      <div className="grid grid-cols-2 gap-5 mb-5">
+                        {/* Foundation Focus Card */}
+                        <div className="bg-gradient-to-br from-amber-50 to-white rounded-xl border-2 border-amber-200 overflow-hidden">
+                          <div className="px-4 py-3 bg-amber-500 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M3 21h18" strokeLinecap="round" />
+                                  <path d="M5 21v-6l7-8 7 8v6" strokeLinecap="round" strokeLinejoin="round" />
+                                  <circle cx="12" cy="13" r="2" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h5 className="font-bold text-white text-sm">Foundation Focus</h5>
+                                <p className="text-amber-100 text-xs">Core support gaps to address</p>
+                              </div>
+                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold">2 dimensions</span>
                           </div>
-                          <div>
-                            <p className="font-bold text-blue-800 text-lg">In Development</p>
-                            <p className="text-base text-blue-700 mt-1">Initiatives in planning that can be accelerated for faster impact</p>
+                          <div className="p-4">
+                            <p className="text-slate-600 text-xs mb-3"><span className="font-semibold text-slate-800">Lowest-scoring dimensions</span>: where employees managing cancer are most likely to experience gaps in support today.</p>
+                            <div className="space-y-3">
+                              {strategicPriorityDims.filter(d => d.selectionReason === 'risk').map((d) => (
+                                <div key={d.dim} className="bg-white rounded-lg border border-amber-200 p-3 shadow-sm">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
+                                      {d.dim}
+                                    </div>
+                                    <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-amber-500 rounded-md p-2">
+                                      <div className="text-xs text-amber-100 font-medium">Score</div>
+                                      <div className="flex items-end gap-0.5">
+                                        <span className="text-lg font-bold text-white">{d.score}</span>
+                                        <span className="text-xs text-amber-200 mb-0.5">/100</span>
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-50 rounded-md p-2 border border-slate-200">
+                                      <div className="text-xs text-slate-500 font-medium">Weight</div>
+                                      <div className="flex items-end gap-0.5">
+                                        <span className="text-lg font-bold text-slate-700">{d.weight}</span>
+                                        <span className="text-xs text-slate-400 mb-0.5">%</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-start gap-4 p-5 bg-emerald-50 rounded-xl border border-emerald-200">
-                          <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+
+                        {/* Strategic Leverage Card */}
+                        <div className="bg-gradient-to-br from-slate-100 to-white rounded-xl border-2 border-slate-300 overflow-hidden">
+                          <div className="px-4 py-3 bg-slate-700 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M17 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
+                                </svg>
+                              </div>
+                              <div>
+                                <h5 className="font-bold text-white text-sm">Strategic Leverage</h5>
+                                <p className="text-slate-300 text-xs">High-impact improvement paths</p>
+                              </div>
+                            </div>
+                            <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold">2 dimensions</span>
                           </div>
-                          <div>
-                            <p className="font-bold text-emerald-800 text-lg">Current Strengths</p>
-                            <p className="text-base text-emerald-700 mt-1">Elements you're already offering that form your foundation</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start gap-4 p-5 bg-violet-50 rounded-xl border border-violet-200">
-                          <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                          </div>
-                          <div>
-                            <p className="font-bold text-violet-800 text-lg">Tailored Insights & CAC Support</p>
-                            <p className="text-base text-violet-700 mt-1">Key evidence, strategic insight, recommended roadmap, and CAC programs</p>
+                          <div className="p-4">
+                            <p className="text-slate-600 text-xs mb-3"><span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where strategic importance × headroom creates system-wide impact.</p>
+                            <div className="space-y-3">
+                              {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
+                                <div key={d.dim} className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-7 h-7 rounded-md flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: getScoreColor(d.score) }}>
+                                      {d.dim}
+                                    </div>
+                                    <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
+                                  </div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-slate-50 rounded-md p-2 border border-slate-200">
+                                      <div className="text-xs text-slate-500 font-medium">Score</div>
+                                      <div className="flex items-end gap-0.5">
+                                        <span className="text-lg font-bold text-slate-600">{d.score}</span>
+                                        <span className="text-xs text-slate-400 mb-0.5">/100</span>
+                                      </div>
+                                    </div>
+                                    <div className="bg-slate-700 rounded-md p-2">
+                                      <div className="text-xs text-slate-300 font-medium">Weight</div>
+                                      <div className="flex items-end gap-0.5">
+                                        <span className="text-lg font-bold text-white">{d.weight}</span>
+                                        <span className="text-xs text-slate-300 mb-0.5">%</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <p className="text-base text-slate-500 mt-8 italic">
-                        Priority dimensions: {allDimensionsByScore.slice(0, 4).map(d => d.name).join(' • ')}
-                      </p>
+
+                      {/* What You'll Find in Each Dimension Analysis */}
+                      <div className="border-t border-slate-200 pt-4">
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-5 h-5 rounded bg-slate-100 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                          <p className="text-slate-800 font-semibold text-sm">What You'll Find in Each Dimension Analysis</p>
+                        </div>
+                        <div className="grid grid-cols-4 gap-3">
+                          <div className="p-3 border border-slate-200 rounded-lg bg-white">
+                            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center mb-2">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <circle cx="12" cy="12" r="6" />
+                                <circle cx="12" cy="12" r="2" />
+                              </svg>
+                            </div>
+                            <p className="text-slate-800 font-semibold text-xs mb-1">Gaps to Address</p>
+                            <p className="text-slate-500 text-xs leading-relaxed">Support elements not currently offered. Your primary improvement targets.</p>
+                          </div>
+                          <div className="p-3 border border-slate-200 rounded-lg bg-white">
+                            <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center mb-2">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                            <p className="text-slate-800 font-semibold text-xs mb-1">In Development</p>
+                            <p className="text-slate-500 text-xs leading-relaxed">Initiatives already underway. Candidates to accelerate or prioritize.</p>
+                          </div>
+                          <div className="p-3 border border-slate-200 rounded-lg bg-white">
+                            <div className="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center mb-2">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                                <circle cx="12" cy="12" r="9" />
+                              </svg>
+                            </div>
+                            <p className="text-slate-800 font-semibold text-xs mb-1">Current Strengths</p>
+                            <p className="text-slate-500 text-xs leading-relaxed">What's working today. Your foundation to build upon.</p>
+                          </div>
+                          <div className="p-3 border border-slate-200 rounded-lg bg-white">
+                            <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center mb-2">
+                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </div>
+                            <p className="text-slate-800 font-semibold text-xs mb-1">Strategic Insight</p>
+                            <p className="text-slate-500 text-xs leading-relaxed">Tailored recommendations with CAC resource alignment.</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Slides 26-29: 4 Strategic Rec Cards - exact match to report */}
-                {currentSlide >= 26 && currentSlide <= 29 && (() => {
-                  const recIdx = currentSlide - 26;
-                  const d = allDimensionsByScore[recIdx];
+                {/* Slide 28: From Insight to Action */}
+                {currentSlide === 28 && (
+                  <div className="overflow-hidden">
+                    <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+                      <div className="absolute top-0 right-0 w-48 h-48 opacity-5">
+                        <svg viewBox="0 0 200 200" className="w-full h-full">
+                          <circle cx="100" cy="100" r="80" fill="none" stroke="white" strokeWidth="2"/>
+                          <circle cx="100" cy="100" r="60" fill="none" stroke="white" strokeWidth="2"/>
+                          <circle cx="100" cy="100" r="40" fill="none" stroke="white" strokeWidth="2"/>
+                        </svg>
+                      </div>
+                      <div className="relative flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M4 19h4v-7H4v7zM10 19h4V8h-4v11zM16 19h4V4h-4v15z" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-2xl tracking-tight">From Insight to Action</h3>
+                            <p className="text-slate-400 text-sm">A practical framework to move from diagnosis to ownership</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-8 bg-gradient-to-b from-slate-800 to-slate-900">
+                      <div className="grid grid-cols-3 gap-5 mb-6">
+                        {/* Step 1: Validate */}
+                        <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
+                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">1</div>
+                          <div className="flex items-center gap-3 mb-3 pt-2">
+                            <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </div>
+                            <h5 className="font-bold text-white text-base">Validate</h5>
+                          </div>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            Review the four priorities. Do they match your internal view? Flag any <span className="text-amber-300 font-medium">"Needs Confirmation"</span> items that require verification before committing resources.
+                          </p>
+                        </div>
+
+                        {/* Step 2: Assign Owners */}
+                        <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
+                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">2</div>
+                          <div className="flex items-center gap-3 mb-3 pt-2">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="9" cy="7" r="3" />
+                                <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" strokeLinecap="round" />
+                                <path d="M16 3.13a4 4 0 010 7.75" strokeLinecap="round" />
+                                <path d="M21 21v-2a4 4 0 00-3-3.87" strokeLinecap="round" />
+                              </svg>
+                            </div>
+                            <h5 className="font-bold text-white text-base">Assign Owners</h5>
+                          </div>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            For each dimension, select <span className="text-emerald-300 font-medium">2–3 specific actions</span>. Assign clear ownership: HR, Benefits, Communications, People Leaders, or cross-functional teams.
+                          </p>
+                        </div>
+
+                        {/* Step 3: Sequence & Track */}
+                        <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
+                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">3</div>
+                          <div className="flex items-center gap-3 mb-3 pt-2">
+                            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                              <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                            </div>
+                            <h5 className="font-bold text-white text-base">Sequence & Track</h5>
+                          </div>
+                          <p className="text-slate-300 text-sm leading-relaxed">
+                            Prioritize <span className="text-blue-300 font-medium">quick wins</span> over foundation work. Set quarterly checkpoints to measure progress.
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Analyze Another Dimension note */}
+                      <div className="pt-5 border-t border-white/10">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M12 8v8M8 12h8" strokeLinecap="round" />
+                            </svg>
+                          </div>
+                          <p className="text-slate-400 text-sm">
+                            <span className="text-violet-300 font-medium">Need deeper analysis on another dimension?</span> Use the "Analyze Another Dimension" button at the bottom of this section to add any dimension to this strategic review.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slides 29-32: 4 Strategic Rec Cards */}
+                {currentSlide >= 29 && currentSlide <= 32 && (() => {
+                  const recIdx = currentSlide - 29;
+                  const d = strategicPriorityDims[recIdx];
                   if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
                   
                   const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
@@ -8485,21 +10207,26 @@ export default function ExportReportPage() {
                     <div className="overflow-hidden border-l-4" style={{ borderLeftColor: tierColor }}>
                       {/* Dimension Header */}
                       <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
-                            {d.dim}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-xl font-bold text-white">{d.name}</h4>
-                            <div className="flex items-center gap-4 mt-1">
-                              <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
-                              <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
-                              <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
-                              {d.benchmark !== null && (
-                                <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
-                              )}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
+                              {d.dim}
+                            </div>
+                            <div>
+                              <h4 className="text-xl font-bold text-white">{d.name}</h4>
+                              <div className="flex items-center gap-4 mt-1">
+                                <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
+                                <span className="text-sm text-slate-300">Score: <strong className="text-white">{d.score}</strong></span>
+                                <span className="text-sm text-slate-300">Weight: <strong className="text-white">{d.weight}%</strong></span>
+                                {d.benchmark !== null && (
+                                  <span className="text-sm text-slate-300">Benchmark: <strong className="text-white">{d.benchmark}</strong></span>
+                                )}
+                              </div>
                             </div>
                           </div>
+                          <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${d.selectionReason === 'risk' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-600/30 text-slate-300 border border-slate-500/40'}`}>
+                            {d.selectionReason === 'risk' ? 'Foundation Focus' : 'Strategic Leverage'}
+                          </span>
                         </div>
                       </div>
                       
@@ -8514,61 +10241,80 @@ export default function ExportReportPage() {
                         {/* Current State - 3 columns */}
                         <div className="grid grid-cols-3 gap-5 mb-5">
                           {/* Improvement Opportunities */}
-                          <div className="border border-red-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-2 bg-red-50 border-b border-red-200">
-                              <h5 className="font-bold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                          <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-2 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="12" cy="12" r="10" />
+                                  <circle cx="12" cy="12" r="6" />
+                                  <circle cx="12" cy="12" r="2" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-sm">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                             </div>
-                            <div className="p-3 bg-white max-h-36 overflow-y-auto">
+                            <div className="p-3 max-h-36 overflow-y-auto">
                               {d.needsAttention?.length > 0 ? (
                                 <ul className="space-y-1">
                                   {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
+                                    <li key={i} className="text-xs text-slate-700 flex items-start gap-2">
                                       <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
-                                        item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'
+                                        item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'
                                       }`}></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400 italic">No gaps identified</p>}
+                              ) : <p className="text-xs text-slate-400">No gaps identified</p>}
                             </div>
                           </div>
                           
                           {/* In Development */}
-                          <div className="border border-blue-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-2 bg-blue-50 border-b border-blue-200">
-                              <h5 className="font-bold text-blue-800 text-sm">In Development ({d.planning?.length || 0})</h5>
+                          <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-2 bg-violet-600 border-b border-violet-500 flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-sm">In Development ({d.planning?.length || 0})</h5>
                             </div>
-                            <div className="p-3 bg-white max-h-36 overflow-y-auto">
+                            <div className="p-3 max-h-36 overflow-y-auto">
                               {d.planning?.length > 0 ? (
                                 <ul className="space-y-1">
                                   {d.planning.slice(0, 6).map((item: any, i: number) => (
-                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                                    <li key={i} className="text-xs text-slate-700 flex items-start gap-2">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1.5 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400 italic">No initiatives in planning</p>}
+                              ) : <p className="text-xs text-slate-400">No initiatives in planning</p>}
                             </div>
                           </div>
                           
                           {/* Strengths */}
-                          <div className="border border-emerald-200 rounded-xl overflow-hidden">
-                            <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-200">
-                              <h5 className="font-bold text-emerald-800 text-sm">Strengths ({d.strengths?.length || 0})</h5>
+                          <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-4 py-2 bg-teal-600 border-b border-teal-500 flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
+                                  <circle cx="12" cy="12" r="9" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-sm">Strengths ({d.strengths?.length || 0})</h5>
                             </div>
-                            <div className="p-3 bg-white max-h-36 overflow-y-auto">
+                            <div className="p-3 max-h-36 overflow-y-auto">
                               {d.strengths?.length > 0 ? (
                                 <ul className="space-y-1">
                                   {d.strengths.slice(0, 6).map((s: any, i: number) => (
-                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-2">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
+                                    <li key={i} className="text-xs text-slate-700 flex items-start gap-2">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 mt-1.5 flex-shrink-0"></span>
                                       <span>{s.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400 italic">Building toward strengths</p>}
+                              ) : <p className="text-xs text-slate-400">Building toward strengths</p>}
                             </div>
                           </div>
                         </div>
@@ -8594,11 +10340,11 @@ export default function ExportReportPage() {
                                   )}
                                   {evidence.biggestGap && (
                                     <div className="flex items-start gap-2">
-                                      <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-red-600 text-xs">✗</span>
+                                      <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-amber-600 text-xs">✗</span>
                                       </span>
                                       <p className="text-xs text-slate-700">
-                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-amber-700">{evidence.biggestGap.name}</span>
                                         <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
                                       </p>
                                     </div>
@@ -8608,7 +10354,14 @@ export default function ExportReportPage() {
                             )}
                             
                             <div className="border border-slate-200 rounded-xl p-3 bg-white">
-                              <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide">Strategic Insight</h5>
+                              <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide flex items-center gap-1.5">
+                                <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </div>
+                                Strategic Insight
+                              </h5>
                               <p className="text-xs text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
                             </div>
                           </div>
@@ -8655,8 +10408,8 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Additional Analyzed Dimensions in Presentation Mode */}
-                {additionalAnalyzedDims.length > 0 && currentSlide >= 30 && currentSlide < 30 + additionalAnalyzedDims.length && (() => {
-                  const addIdx = currentSlide - 30;
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 32 && currentSlide < 32 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 32;
                   const dimNum = additionalAnalyzedDims[addIdx];
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
@@ -8701,55 +10454,74 @@ export default function ExportReportPage() {
                       <div className="px-10 py-4">
                         {/* 3-column layout for content */}
                         <div className="grid grid-cols-3 gap-4 mb-4">
-                          <div className="border border-red-200 rounded-xl overflow-hidden">
-                            <div className="px-3 py-2 bg-red-50 border-b border-red-200">
-                              <h5 className="font-bold text-red-800 text-sm">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                          <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-3 py-2 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <circle cx="12" cy="12" r="10" />
+                                  <circle cx="12" cy="12" r="6" />
+                                  <circle cx="12" cy="12" r="2" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-sm">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
                             </div>
-                            <div className="p-3 bg-white max-h-32 overflow-y-auto">
+                            <div className="p-3 max-h-32 overflow-y-auto">
                               {d.needsAttention?.length > 0 ? (
                                 <ul className="space-y-1">
                                   {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
-                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                                      <span className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${item.isGap ? 'bg-red-500' : item.isAssessing ? 'bg-amber-400' : 'bg-slate-400'}`}></span>
+                                    <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
+                                      <span className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'}`}></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400 italic">No gaps identified</p>}
+                              ) : <p className="text-xs text-slate-400">No gaps identified</p>}
                             </div>
                           </div>
-                          <div className="border border-blue-200 rounded-xl overflow-hidden">
-                            <div className="px-3 py-2 bg-blue-50 border-b border-blue-200">
-                              <h5 className="font-bold text-blue-800 text-sm">In Development ({d.planning?.length || 0})</h5>
+                          <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-3 py-2 bg-violet-600 border-b border-violet-500 flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-sm">In Development ({d.planning?.length || 0})</h5>
                             </div>
-                            <div className="p-3 bg-white max-h-32 overflow-y-auto">
+                            <div className="p-3 max-h-32 overflow-y-auto">
                               {d.planning?.length > 0 ? (
                                 <ul className="space-y-1">
                                   {d.planning.slice(0, 5).map((item: any, i: number) => (
-                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 flex-shrink-0"></span>
+                                    <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400 italic">No initiatives in development</p>}
+                              ) : <p className="text-xs text-slate-400">No initiatives in development</p>}
                             </div>
                           </div>
-                          <div className="border border-emerald-200 rounded-xl overflow-hidden">
-                            <div className="px-3 py-2 bg-emerald-50 border-b border-emerald-200">
-                              <h5 className="font-bold text-emerald-800 text-sm">Current Strengths ({d.strengths?.length || 0})</h5>
+                          <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
+                            <div className="px-3 py-2 bg-teal-600 border-b border-teal-500 flex items-center gap-2">
+                              <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                                  <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
+                                  <circle cx="12" cy="12" r="9" />
+                                </svg>
+                              </div>
+                              <h5 className="font-bold text-white text-sm">Current Strengths ({d.strengths?.length || 0})</h5>
                             </div>
-                            <div className="p-3 bg-white max-h-32 overflow-y-auto">
+                            <div className="p-3 max-h-32 overflow-y-auto">
                               {d.strengths?.length > 0 ? (
                                 <ul className="space-y-1">
                                   {d.strengths.slice(0, 5).map((item: any, i: number) => (
-                                    <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1 flex-shrink-0"></span>
+                                    <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 mt-1 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400 italic">No strengths identified</p>}
+                              ) : <p className="text-xs text-slate-400">No strengths identified</p>}
                             </div>
                           </div>
                         </div>
@@ -8764,22 +10536,22 @@ export default function ExportReportPage() {
                                 <div className="space-y-2">
                                   {evidence.topStrength && (
                                     <div className="flex items-start gap-2">
-                                      <span className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-emerald-600 text-xs">✓</span>
+                                      <span className="w-4 h-4 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-teal-600 text-xs">✓</span>
                                       </span>
                                       <p className="text-xs text-slate-700">
-                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
+                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-teal-700">{evidence.topStrength.name}</span>
                                         <span className="text-slate-500"> ({evidence.topStrength.benchPct}% of participants)</span>
                                       </p>
                                     </div>
                                   )}
                                   {evidence.biggestGap && (
                                     <div className="flex items-start gap-2">
-                                      <span className="w-4 h-4 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-red-600 text-xs">✗</span>
+                                      <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-amber-600 text-xs">✗</span>
                                       </span>
                                       <p className="text-xs text-slate-700">
-                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-amber-700">{evidence.biggestGap.name}</span>
                                         <span className="text-slate-500"> ({evidence.biggestGap.benchPct}% of participants)</span>
                                       </p>
                                     </div>
@@ -8788,7 +10560,14 @@ export default function ExportReportPage() {
                               </div>
                             )}
                             <div className="border border-slate-200 rounded-xl p-3 bg-white">
-                              <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide">Strategic Insight</h5>
+                              <h5 className="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide flex items-center gap-1.5">
+                                <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                  <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
+                                  </svg>
+                                </div>
+                                Strategic Insight
+                              </h5>
                               <p className="text-xs text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                             </div>
                           </div>
@@ -8833,8 +10612,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 30: Implementation Roadmap - exact match to report */}
-                {currentSlide === 30 + additionalAnalyzedDims.length && (
+                {/* Slide 33: Implementation Roadmap - exact match to report */}
+                {currentSlide === 33 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
                       <div className="flex items-center justify-between">
@@ -8963,8 +10742,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 31: Working with Cancer Pledge */}
-                {currentSlide === 31 + additionalAnalyzedDims.length && (
+                {/* Slide 34: Working with Cancer Pledge */}
+                {currentSlide === 34 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header - Clean white/cream with logo */}
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
@@ -9127,8 +10906,8 @@ export default function ExportReportPage() {
                 )}
 
 
-                {/* Slide 32: How Cancer and Careers Can Help - exact match to report */}
-                {currentSlide === 32 + additionalAnalyzedDims.length && (
+                {/* Slide 35: How Cancer and Careers Can Help - exact match to report */}
+                {currentSlide === 35 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
@@ -9216,13 +10995,41 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 33: Methodology - exact match to report */}
-                {currentSlide === 33 + additionalAnalyzedDims.length && (
+                {/* Slide 36: Methodology - exact match to report */}
+                {currentSlide === 36 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
                     </div>
                     <div className="px-12 py-6">
+                      {/* Score Composition Visual */}
+                      <div className="mb-6 pb-6 border-b border-slate-200">
+                        <p className="font-bold text-slate-700 mb-4 text-center">Score Composition</p>
+                        <div className="flex items-center justify-center gap-4 flex-wrap">
+                          <div className="text-center px-5 py-3 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 min-w-[100px]">
+                            <p className="text-2xl font-bold text-white">{compositeScore ?? '—'}</p>
+                            <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-1">Composite</p>
+                          </div>
+                          <span className="text-xl text-slate-400 font-light">=</span>
+                          <div className="text-center px-4 py-2.5 bg-white rounded-xl border-2 border-slate-200 min-w-[90px]">
+                            <p className="text-xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
+                            <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
+                            <p className="text-xs text-slate-400">× 90%</p>
+                          </div>
+                          <span className="text-lg text-slate-400 font-light">+</span>
+                          <div className="text-center px-4 py-2.5 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[90px]">
+                            <p className="text-xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                            <p className="text-xs text-amber-600 mt-1">Maturity</p>
+                            <p className="text-xs text-amber-500">× 5%</p>
+                          </div>
+                          <span className="text-lg text-slate-400 font-light">+</span>
+                          <div className="text-center px-4 py-2.5 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[90px]">
+                            <p className="text-xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                            <p className="text-xs text-violet-600 mt-1">Breadth</p>
+                            <p className="text-xs text-violet-500">× 5%</p>
+                          </div>
+                        </div>
+                      </div>
                       <div className="grid grid-cols-4 gap-6 text-base text-slate-600">
                         <div>
                           <p className="font-bold text-slate-700 mb-2">Scoring Framework</p>
@@ -9289,8 +11096,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 34: Thank You - professional improved design */}
-                {currentSlide === 34 + additionalAnalyzedDims.length && (
+                {/* Slide 37: Thank You - professional improved design */}
+                {currentSlide === 37 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -9447,8 +11254,8 @@ export default function ExportReportPage() {
                   Previous
                 </button>
                 <button 
-                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 34))}
-                  disabled={currentSlide === 34 + additionalAnalyzedDims.length}
+                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 36 + additionalAnalyzedDims.length))}
+                  disabled={currentSlide === 37 + additionalAnalyzedDims.length}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
                 >
@@ -9514,7 +11321,7 @@ export default function ExportReportPage() {
             {/* Keyboard Shortcuts Modal */}
             {showKeyboardHelp && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
-                <div className="bg-white rounded-xl p-6 max-w-xl w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+                <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
                     <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
@@ -9523,7 +11330,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="text-sm">
                     {/* Single unified grid for both sections */}
-                    <div className="grid grid-cols-[1fr_minmax(140px,auto)_minmax(140px,auto)] gap-x-4 gap-y-1.5 items-center">
+                    <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 gap-y-1.5 items-center">
                       <div></div>
                       <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
                       <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
@@ -9639,6 +11446,92 @@ export default function ExportReportPage() {
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">?</kbd>
                       </div>
                     </div>
+                    
+                    {/* Toolbar Guide */}
+                    <div className="mt-5 pt-5 border-t border-slate-200">
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Toolbar Controls</p>
+                      <div className="bg-slate-800 rounded-xl p-4">
+                        <div className="space-y-3">
+                          {/* Slides */}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 rounded-lg w-28 justify-center">
+                              <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                              <span className="text-sm text-slate-300">Slides</span>
+                            </div>
+                            <span className="text-sm text-slate-400">Opens slide navigator to jump to any slide</span>
+                          </div>
+                          
+                          {/* Zoom */}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 bg-slate-700 rounded-lg px-3 py-1.5 w-28 justify-center">
+                              <span className="text-slate-400 text-sm">−</span>
+                              <span className="text-sm text-slate-200 px-1">100%</span>
+                              <span className="text-slate-400 text-sm">+</span>
+                            </div>
+                            <span className="text-sm text-slate-400">Adjust zoom level (use + / - keys)</span>
+                          </div>
+                          
+                          {/* Laser */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-28 flex justify-center">
+                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <span className="text-red-400 text-lg">✳</span>
+                              </div>
+                            </div>
+                            <span className="text-sm text-slate-400">Laser pointer for highlighting content (press L)</span>
+                          </div>
+                          
+                          {/* Navigation */}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1 w-28 justify-center">
+                              <span className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">Previous</span>
+                              <span className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">Next</span>
+                            </div>
+                            <span className="text-sm text-slate-400">Navigate between slides (arrow keys or buttons)</span>
+                          </div>
+                          
+                          {/* Presenter Notes */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-28 flex justify-center">
+                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <span className="text-sm text-slate-400">Opens presenter notes in a separate window</span>
+                          </div>
+                          
+                          {/* Help */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-28 flex justify-center">
+                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              </div>
+                            </div>
+                            <span className="text-sm text-slate-400">Shows this keyboard shortcuts help (press ?)</span>
+                          </div>
+                          
+                          {/* Fullscreen */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-28 flex justify-center">
+                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                              </div>
+                            </div>
+                            <span className="text-sm text-slate-400">Toggle fullscreen mode (press F)</span>
+                          </div>
+                          
+                          {/* Exit */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-28 flex justify-center">
+                              <span className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-semibold">Exit</span>
+                            </div>
+                            <span className="text-sm text-slate-400">Exit presentation mode (press Esc)</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -9673,13 +11566,43 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Framework context:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Emphasize CAC's 20+ years of frontline experience with cancer and the workplace</li>
+                        <li>Emphasize CAC&apos;s 20+ years of frontline experience with cancer and the workplace</li>
                         <li>Research-driven: shaped by HR leaders, employees, and general workforce input</li>
                         <li>Note this is the first comprehensive benchmark for cancer support at work</li>
                       </ul>
                     </div>
                   )}
+                  {currentSlide === 2 && (
+                    <div>
+                      <p className="mb-2"><strong>Composite score explanation:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Explain how the 90% weighted dimensions + 5% maturity + 5% breadth combine</li>
+                        <li>Point out the performance tier distribution - few organizations reach Leading/Exemplary</li>
+                        <li>Frame this as a baseline for their journey, not a final judgment</li>
+                      </ul>
+                    </div>
+                  )}
                   {currentSlide === 3 && (
+                    <div>
+                      <p className="mb-2"><strong>The 13 dimensions overview:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Walk through the dimension categories and what each measures</li>
+                        <li>Note that dimensions are weighted by strategic importance based on research</li>
+                        <li>Emphasize that all dimensions matter - improvements anywhere create lasting impact</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 4 && (
+                    <div>
+                      <p className="mb-2"><strong>How to use this report:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Walk through the four-step workflow: Confirm, Prioritize, Plan, Track</li>
+                        <li>Items marked &quot;Needs confirmation&quot; are scored as Not Planned until verified</li>
+                        <li>Focus attention on high-weight gaps first - small changes there move the score fastest</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 5 && (
                     <div>
                       <p className="mb-2"><strong>Executive summary focus:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -9689,9 +11612,9 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 4 && (
+                  {currentSlide === 6 && (
                     <div>
-                      <p className="mb-2"><strong>Dimension overview:</strong></p>
+                      <p className="mb-2"><strong>Dimension performance table:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Exemplary dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length}</li>
                         <li>Proficient dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Proficient').length}</li>
@@ -9700,31 +11623,132 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide >= 5 && currentSlide <= 17 && (
+                  {currentSlide >= 7 && currentSlide <= 19 && (
                     <div>
-                      <p className="mb-2"><strong>Dimension {currentSlide - 4} deep dive:</strong></p>
+                      <p className="mb-2"><strong>Dimension {currentSlide - 6} deep dive:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Review strengths (green) - acknowledge what's working well</li>
+                        <li>Review strengths (green) - acknowledge what&apos;s working well</li>
                         <li>Highlight planning items (blue) - show momentum</li>
                         <li>Address gaps constructively - frame as opportunities</li>
                         <li>Connect to real employee impact where possible</li>
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 30 && (
+                  {currentSlide === 20 && (
                     <div>
-                      <p className="mb-2"><strong>Roadmap discussion:</strong></p>
+                      <p className="mb-2"><strong>Strategic matrix (company view):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>This is a suggested phasing - can be customized to your priorities</li>
+                        <li>Top-left quadrant (Priority Gaps) = high weight, low score - focus here first</li>
+                        <li>Top-right (Core Strengths) = high weight, high score - protect these</li>
+                        <li>Help them identify the 2-3 highest-impact moves</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 21 && (
+                    <div>
+                      <p className="mb-2"><strong>Strategic matrix (with benchmarks):</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Compare company dots to benchmark triangles</li>
+                        <li>Dimensions where they trail benchmark = priority opportunities</li>
+                        <li>Set realistic targets based on where peers typically perform</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 22 && (
+                    <div>
+                      <p className="mb-2"><strong>Cross-dimensional insights:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>These patterns reveal systemic issues, not isolated gaps</li>
+                        <li>Highlight 1-2 root causes that can unlock multiple improvements</li>
+                        <li>Tie patterns back to actual employee experience friction points</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 23 && (
+                    <div>
+                      <p className="mb-2"><strong>Impact-ranked priorities:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>These are the moves that shift multiple dimensions at once</li>
+                        <li>Sequence: confirmation items first, then quick wins, then structural</li>
+                        <li>Define what success looks like at 90 days and 180 days</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 24 && (
+                    <div>
+                      <p className="mb-2"><strong>Areas of excellence:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Celebrate what&apos;s working - these are strengths to protect and communicate</li>
+                        <li>Ask: How can we leverage these as proof points internally?</li>
+                        <li>These demonstrate commitment to employees managing cancer</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 25 && (
+                    <div>
+                      <p className="mb-2"><strong>Areas for growth:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Frame gaps as opportunities, not failures</li>
+                        <li>Improving one tier in 2-3 high-weight dimensions = meaningful progress</li>
+                        <li>Pick ladder steps and commit to moving them this cycle</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 26 && (
+                    <div>
+                      <p className="mb-2"><strong>Initiatives in progress:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>These represent momentum - work already underway</li>
+                        <li>Confirm timelines and owners for each initiative</li>
+                        <li>Ask: What&apos;s blocking completion? How can we accelerate?</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 27 && (
+                    <div>
+                      <p className="mb-2"><strong>Strategic recommendations intro:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>These are tailored based on assessment findings</li>
+                        <li>Each recommendation ties to specific dimension gaps</li>
+                        <li>Next slides will detail the specific action items</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide >= 28 && currentSlide <= 31 && (
+                    <div>
+                      <p className="mb-2"><strong>Recommendation {currentSlide - 27}:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Review the specific action items in this recommendation</li>
+                        <li>Discuss feasibility and resource requirements</li>
+                        <li>Identify who owns implementation and timeline</li>
+                        <li>Connect to the tier progression guidance</li>
+                      </ul>
+                    </div>
+                  )}
+                  {additionalAnalyzedDims.length > 0 && currentSlide >= 32 && currentSlide < 32 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Additional dimension analysis:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Review the element breakdown for this dimension</li>
+                        <li>Green items are strengths, blue shows momentum, red are opportunities</li>
+                        <li>Connect findings to overall strategic priorities discussed earlier</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 33 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Implementation roadmap:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>This is a suggested phasing - can be customized to priorities</li>
                         <li>Phase 1 (Quick Wins): Low effort, high impact items to build momentum</li>
                         <li>Phase 2 (Strategic): Medium-term investments for sustainable change</li>
                         <li>Phase 3 (Optimize): Long-term culture and system enhancements</li>
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 31 + additionalAnalyzedDims.length && (
+                  {currentSlide === 34 + additionalAnalyzedDims.length && (
                     <div>
-                      <p className="mb-2"><strong>WWC Pledge context:</strong></p>
+                      <p className="mb-2"><strong>Working with Cancer Pledge:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>5,000+ companies globally have signed - creates accountability</li>
                         <li>The Pledge is about intent; this Index measures actual execution</li>
@@ -9733,9 +11757,9 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 32 + additionalAnalyzedDims.length && (
+                  {currentSlide === 35 + additionalAnalyzedDims.length && (
                     <div>
-                      <p className="mb-2"><strong>CAC partnership:</strong></p>
+                      <p className="mb-2"><strong>How CAC can help:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>20+ years of frontline experience with employees and HR teams</li>
                         <li>Can support implementation at any phase</li>
@@ -9743,8 +11767,26 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {(currentSlide === 2 || currentSlide >= 18 && currentSlide <= 29 || currentSlide >= 33) && (
-                    <p className="text-slate-400 italic">Review the slide content and connect it to the organization&apos;s specific context. Invite questions from the audience.</p>
+                  {currentSlide === 36 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Methodology overview:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Reassure the audience that scoring is consistent and benchmarked</li>
+                        <li>The key message: track change over time, not a one-and-done exercise</li>
+                        <li>Answer any questions about how scores were calculated</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 37 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Thank you &amp; next steps:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Close with a decision ask: confirm top priorities, assign owners, set next checkpoint</li>
+                        <li>Thank the audience for their engagement</li>
+                        <li>Provide contact information for follow-up questions</li>
+                        <li>Remind them of the CAC resources available</li>
+                      </ul>
+                    </div>
                   )}
                 </div>
               </div>
@@ -9769,26 +11811,31 @@ export default function ExportReportPage() {
                       >
                         <div className="text-xs font-bold text-slate-800 mb-1">Slide {i + 1}</div>
                         <div className="text-[10px] text-slate-500 leading-tight truncate">
-                          {i === 0 ? 'Title' : 
+                          {i === 0 ? 'Title & Overview' : 
                            i === 1 ? 'How Index Was Developed' :
-                           i === 2 ? 'How to Use This Report' :
-                           i === 3 ? 'Executive Summary' :
-                           i === 4 ? 'Dimension Performance' :
-                           i >= 5 && i <= 17 ? `D${i - 4} Deep Dive` :
-                           i === 18 || i === 19 ? 'Strategic Matrix' :
-                           i === 20 ? 'Cross-Dimensional' :
-                           i === 21 ? 'Impact Rankings' :
-                           i === 22 ? 'Areas of Excellence' :
-                           i === 23 ? 'Areas for Growth' :
-                           i === 24 ? 'In Progress' :
-                           i === 25 ? 'Strategic Recommendations' :
-                           i >= 26 && i <= 29 ? 'Recommendations' :
-                           i >= 30 && i < 30 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 30]}` :
-                           i === 30 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
-                           i === 31 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
-                           i === 32 + additionalAnalyzedDims.length ? 'Cancer and Careers' :
-                           i === 33 + additionalAnalyzedDims.length ? 'Methodology' :
-                           'Thank You'}
+                           i === 2 ? 'Understanding Composite Score' :
+                           i === 3 ? 'The 13 Dimensions' :
+                           i === 4 ? 'How to Use This Report' :
+                           i === 5 ? 'Executive Summary' :
+                           i === 6 ? 'Dimension Performance' :
+                           i >= 7 && i <= 19 ? `D${i - 6} Deep Dive` :
+                           i === 20 ? 'Strategic Matrix' :
+                           i === 21 ? 'Strategic Matrix (Benchmarks)' :
+                           i === 22 ? 'Cross-Dimensional Insights' :
+                           i === 23 ? 'Impact-Ranked Priorities' :
+                           i === 24 ? 'Areas of Excellence' :
+                           i === 25 ? 'Areas for Growth' :
+                           i === 26 ? 'Initiatives In Progress' :
+                           i === 27 ? 'Strategic Recommendations' :
+                           i === 28 ? 'From Insight to Action' :
+                           i >= 29 && i <= 32 ? `Recommendation ${i - 28}` :
+                           i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
+                           i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
+                           i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
+                           i === 35 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
+                           i === 36 + additionalAnalyzedDims.length ? 'Methodology' :
+                           i === 37 + additionalAnalyzedDims.length ? 'Thank You' :
+                           `Slide ${i + 1}`}
                         </div>
                       </button>
                     ))}
@@ -9799,6 +11846,7 @@ export default function ExportReportPage() {
           </div>
         )}
 
+      </div>
       </div>
     );
 }
