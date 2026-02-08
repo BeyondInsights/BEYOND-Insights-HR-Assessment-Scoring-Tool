@@ -1,9 +1,19 @@
+# ============================================
+# BEYOND Insights - Netlify Configuration
+# Last Updated: February 2025
+# ============================================
+
 [build]
-  command = "npm run build"
+  # Build command: compile Next.js then DELETE all source maps
+  command = "npm run build && find .next -name '*.map' -type f -delete && echo 'Source maps removed for security'"
   publish = ".next"
 
 [functions]
   directory = "netlify/functions"
+
+# ============================================
+# FUNCTION TIMEOUTS
+# ============================================
 
 # Pro plan = 26 second timeout
 [functions."export-pptx"]
@@ -12,6 +22,93 @@
 
 [functions."export-pdf"]
   timeout = 26
+
+[functions."admin-auth"]
+  timeout = 10
+
+[functions."calculate-scores"]
+  timeout = 15
+
+[functions."verify-admin-session"]
+  timeout = 5
+
+# ============================================
+# SECURITY HEADERS (Applied to all pages)
+# ============================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Prevent clickjacking - page cannot be embedded in iframes
+    X-Frame-Options = "DENY"
+    
+    # Prevent MIME type sniffing
+    X-Content-Type-Options = "nosniff"
+    
+    # Control referrer information
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # Enable XSS filter in browsers
+    X-XSS-Protection = "1; mode=block"
+    
+    # Restrict browser features
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+    
+    # Content Security Policy - adjust as needed
+    # This is a baseline; may need tweaking for specific features
+    # Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.netlify.app"
+
+# ============================================
+# BLOCK ACCESS TO SENSITIVE PATHS
+# ============================================
+
+# Block archive/backup folders from being served
+[[headers]]
+  for = "/_archive/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/old2app/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+[[headers]]
+  for = "/backup_*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"
+
+# Prevent caching of admin pages
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+# ============================================
+# REDIRECTS
+# ============================================
+
+# Redirect any attempts to access archive folders to 404
+[[redirects]]
+  from = "/_archive/*"
+  to = "/404"
+  status = 404
+
+[[redirects]]
+  from = "/old2app/*"
+  to = "/404"
+  status = 404
+
+[[redirects]]
+  from = "/backup_*"
+  to = "/404"
+  status = 404
+
+# ============================================
+# PLUGINS
+# ============================================
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
