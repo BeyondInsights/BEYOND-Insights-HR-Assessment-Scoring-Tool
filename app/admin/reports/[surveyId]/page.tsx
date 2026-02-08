@@ -2604,7 +2604,7 @@ export default function ExportReportPage() {
   const [customAdditionalDimInsights, setCustomAdditionalDimInsights] = useState<Record<number, { insight: string; roadmapQuickWin: string; roadmapStrategic: string; cacHelp: string }>>({});
   
   // Computed total slides - base 35 + any additional dimension deep dives
-  const totalSlides = 38 + additionalAnalyzedDims.length;
+  const totalSlides = 39 + additionalAnalyzedDims.length;
   
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
@@ -10971,8 +10971,8 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Additional Analyzed Dimensions in Presentation Mode */}
-                {additionalAnalyzedDims.length > 0 && currentSlide >= 32 && currentSlide < 32 + additionalAnalyzedDims.length && (() => {
-                  const addIdx = currentSlide - 32;
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 34 && currentSlide < 34 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 34;
                   const dimNum = additionalAnalyzedDims[addIdx];
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
@@ -11176,7 +11176,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 33: Implementation Roadmap - exact match to report */}
-                {currentSlide === 33 + additionalAnalyzedDims.length && (
+                {currentSlide === 34 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
                       <div className="flex items-center justify-between">
@@ -11306,7 +11306,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 34: Working with Cancer Pledge */}
-                {currentSlide === 34 + additionalAnalyzedDims.length && (
+                {currentSlide === 35 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header - Clean white/cream with logo */}
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
@@ -11470,7 +11470,7 @@ export default function ExportReportPage() {
 
 
                 {/* Slide 35: How Cancer and Careers Can Help - exact match to report */}
-                {currentSlide === 35 + additionalAnalyzedDims.length && (
+                {currentSlide === 36 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
@@ -11559,7 +11559,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 37: Methodology - appendix */}
-                {currentSlide === 37 + additionalAnalyzedDims.length && (
+                {currentSlide === 38 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
@@ -11660,7 +11660,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 36: Thank You */}
-                {currentSlide === 36 + additionalAnalyzedDims.length && (
+                {currentSlide === 38 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -11818,7 +11818,7 @@ export default function ExportReportPage() {
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 37 + additionalAnalyzedDims.length))}
-                  disabled={currentSlide === 37 + additionalAnalyzedDims.length}
+                  disabled={currentSlide === 38 + additionalAnalyzedDims.length}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
                 >
@@ -12311,7 +12311,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 33 + additionalAnalyzedDims.length && (
+                  {currentSlide === 34 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Implementation roadmap:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12322,7 +12322,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 34 + additionalAnalyzedDims.length && (
+                  {currentSlide === 35 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Working with Cancer Pledge:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12333,7 +12333,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 35 + additionalAnalyzedDims.length && (
+                  {currentSlide === 36 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>How CAC can help:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12343,7 +12343,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 36 + additionalAnalyzedDims.length && (
+                  {currentSlide === 38 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Thank you &amp; next steps:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12354,7 +12354,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 37 + additionalAnalyzedDims.length && (
+                  {currentSlide === 38 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Methodology overview:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
