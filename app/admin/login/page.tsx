@@ -1,20 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-
-// Admin email whitelist
-const ADMIN_EMAILS = [
-  'andy.borinstein@beyondinsights.com',
-  'john.bekier@beyondinsights.com',
-  'leslie.hutchings@gmail.com',
-  'barbara.deal@publicisgroupe.com',
-  'bklein@cew.org',
-]
-
-// Admin password
-const ADMIN_PASSWORD = '4EMCs!'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -22,35 +10,104 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [checkingSession, setCheckingSession] = useState(true)
+
+  // Check for existing valid session on mount
+  useEffect(() => {
+    checkExistingSession()
+  }, [])
+
+  const checkExistingSession = async () => {
+    try {
+      const sessionToken = sessionStorage.getItem('adminSessionToken')
+      if (!sessionToken) {
+        setCheckingSession(false)
+        return
+      }
+
+      const response = await fetch('/.netlify/functions/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'verify', sessionToken }),
+      })
+
+      const data = await response.json()
+      
+      if (data.valid) {
+        // Session is valid, redirect to admin
+        router.push('/admin')
+      } else {
+        // Clear invalid session
+        sessionStorage.removeItem('adminSessionToken')
+        sessionStorage.removeItem('adminAuth')
+        setCheckingSession(false)
+      }
+    } catch (error) {
+      console.error('Session check error:', error)
+      sessionStorage.removeItem('adminSessionToken')
+      sessionStorage.removeItem('adminAuth')
+      setCheckingSession(false)
+    }
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const normalizedEmail = email.toLowerCase().trim()
+    try {
+      const response = await fetch('/.netlify/functions/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'login',
+          email: email.trim(),
+          password,
+        }),
+      })
 
-    // Check if email is in admin whitelist
-    if (!ADMIN_EMAILS.includes(normalizedEmail)) {
-      setError('This email is not authorized for admin access.')
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Login failed. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      // Store session info
+      sessionStorage.setItem('adminSessionToken', data.sessionToken)
+      sessionStorage.setItem('adminAuth', JSON.stringify({
+        email: email.toLowerCase().trim(),
+        role: data.role,
+        name: data.name,
+        expiresAt: data.expiresAt,
+        warnAt: data.warnAt,
+        timestamp: Date.now(),
+      }))
+
+      // Redirect to admin dashboard
+      router.push('/admin')
+
+    } catch (error) {
+      console.error('Login error:', error)
+      setError('Unable to connect to server. Please try again.')
       setLoading(false)
-      return
     }
+  }
 
-    // Check password
-    if (password !== ADMIN_PASSWORD) {
-      setError('Incorrect password.')
-      setLoading(false)
-      return
-    }
-
-    // Success! Store admin session and redirect
-    sessionStorage.setItem('adminAuth', JSON.stringify({
-      email: normalizedEmail,
-      timestamp: Date.now()
-    }))
-    
-    router.push('/admin')
+  // Show loading while checking session
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 flex items-center justify-center p-4">
+        <div className="text-center">
+          <svg className="animate-spin h-12 w-12 text-purple-500 mx-auto mb-4" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          <p className="text-gray-400">Checking session...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -91,6 +148,7 @@ export default function AdminLoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@example.com"
               required
+              autoComplete="email"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
             />
           </div>
@@ -104,8 +162,9 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••"
+              placeholder="••••••••"
               required
+              autoComplete="current-password"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-colors"
             />
           </div>
@@ -145,6 +204,9 @@ export default function AdminLoginPage() {
         <div className="mt-8 pt-6 border-t border-gray-200 text-center">
           <p className="text-sm text-gray-500">
             Authorized administrators only
+          </p>
+          <p className="text-xs text-gray-400 mt-2">
+            Sessions expire after 8 hours of inactivity
           </p>
         </div>
       </div>
