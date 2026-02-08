@@ -6584,8 +6584,8 @@ export default function ExportReportPage() {
                       const totalDimElements = accelCount + buildCount;
                       const expanded = expandedPriorities[r.dimNum] || { accel: false, build: false };
                       
-                      // Contribution bar width (percentage of max)
-                      const barWidth = maxContribution > 0 ? (r.potentialGain12 / maxContribution) * 100 : 0;
+                      // Contribution bar width as percentage of total gain (e.g., +5.5 of +11.5 = 48%)
+                      const barWidth = totalGainY1 > 0 ? (r.potentialGain12 / totalGainY1) * 100 : 0;
                       
                       // Cap lists at 3 by default
                       const displayedAccel = expanded.accel ? accelerateItems : accelerateItems.slice(0, 3);
@@ -6611,14 +6611,16 @@ export default function ExportReportPage() {
                               <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
                             </div>
                           </div>
-                          {/* Contribution bar - feedback #1 */}
-                          <div className="px-5 pb-2">
-                            <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
+                          {/* Contribution bar - share of total gain */}
+                          <div className="px-5 pb-2 flex items-center gap-3">
+                            <span className="text-white/60 text-xs whitespace-nowrap">Share of Total Gain:</span>
+                            <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-white/60 rounded-full transition-all duration-500"
+                                className="h-full bg-white/70 rounded-full transition-all duration-500"
                                 style={{ width: `${barWidth}%` }}
                               />
                             </div>
+                            <span className="text-white/80 text-xs font-medium">{Math.round(barWidth)}%</span>
                           </div>
                         </div>
                         
@@ -6672,6 +6674,10 @@ export default function ExportReportPage() {
                                     >
                                       Show less
                                     </button>
+                                  )}
+                                  {/* Benchmark legend */}
+                                  {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">% = benchmark participants currently offering</p>
                                   )}
                                 </div>
                               ) : (
@@ -6727,6 +6733,10 @@ export default function ExportReportPage() {
                                       Show less
                                     </button>
                                   )}
+                                  {/* Benchmark legend */}
+                                  {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">% = benchmark participants currently offering</p>
+                                  )}
                                 </div>
                               ) : (
                                 <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
@@ -6778,10 +6788,12 @@ export default function ExportReportPage() {
                     </button>
                   )}
                   
-                  {/* Footer note - feedback consistency check */}
-                  <p className="text-xs text-slate-400 mt-5 text-center leading-relaxed">
-                    Contributions are across all 5 priority dimensions. Totals may vary slightly due to rounding. Projections assume sustained execution; actual results depend on feasibility and confirmation of any "Needs Confirmation" items.
-                  </p>
+                  {/* Footer notes - separate rows, larger font */}
+                  <div className="mt-6 pt-4 border-t border-slate-200 space-y-1 text-center">
+                    <p className="text-sm text-slate-500">Contributions shown are across all 5 priority dimensions.</p>
+                    <p className="text-sm text-slate-500">Totals may vary slightly due to rounding.</p>
+                    <p className="text-sm text-slate-500">Projections assume sustained execution; actual results depend on feasibility and confirmation of any "Needs Confirmation" items.</p>
+                  </div>
                 </div>
               </div>
             );
