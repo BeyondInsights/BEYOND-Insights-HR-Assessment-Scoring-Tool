@@ -1088,10 +1088,11 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
 }
 
 // Calculate impact-ranked improvement priorities
-function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; dimPotentialGain: number; effort: string; effortTag: 'quick-win' | 'foundation'; recommendation: string; recommendations: string[]; topGap: string; gapLevel: string; weight: number }[] {
+function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimName: string; dimNum: number; currentScore: number; tier: string; potentialGain: number; potentialGain12: number; dimPotentialGain: number; dimPotentialGain12: number; headroomPct: number; headroomPct12: number; effort: string; effortTag: 'quick-win' | 'foundation'; recommendation: string; recommendations: string[]; topGap: string; gapLevel: string; weight: number }[] {
   // HEADROOM-BASED METHODOLOGY
   // Calculate realistic improvement potential based on actual support element status counts
-  // Planning→Offering (+2 pts), Assessing→Planning (+1 pt), NotPlanned→Assessing (+2 pts, capped at 2)
+  // Near-term (90-day): Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), NotPlanned→Assessing (+2 pts, capped at 2)
+  // Annual (12-month): Same accelerations + more new initiatives can reach Planning stage
   
   return dimAnalysis
     .map(d => {
@@ -1099,8 +1100,11 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const planningCount = d.planning?.length || 0;
       const assessingCount = d.assessing?.length || 0;
       const notPlannedCount = d.gaps?.length || 0;
+      const maxPoints = elementCount * 5;
       
-      // Calculate points delta from realistic status transitions
+      // ========================================
+      // 90-DAY (NEAR-TERM) CALCULATION
+      // ========================================
       const planningToOffering = planningCount * 2;
       const assessingToPlanning = assessingCount * 1;
       const notPlannedToAssessing = Math.min(notPlannedCount, 2) * 2;
@@ -1108,7 +1112,6 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const totalPointsDelta = planningToOffering + assessingToPlanning + notPlannedToAssessing;
       
       // Convert to dimension score delta
-      const maxPoints = elementCount * 5;
       const rawDimGain = (totalPointsDelta / maxPoints) * 100;
       const dimPotentialGain = Math.round(Math.min(rawDimGain, 100 - d.score));
       
@@ -1116,6 +1119,36 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
       const potentialGain = Math.round(weightedImpact * 10) / 10;
       
+      // ========================================
+      // 12-MONTH (ANNUAL) CALCULATION
+      // ========================================
+      // More realistic for strategic planning - allows more new initiatives to progress
+      const startCap12 = Math.min(
+        notPlannedCount,
+        Math.max(4, Math.ceil(elementCount * 0.30)) // 30% of elements, min 4
+      );
+      
+      const toPlanning12 = Math.min(startCap12, 2);              // up to 2 can reach Planning in 12 months
+      const toAssessing12 = Math.max(0, startCap12 - toPlanning12);
+      
+      const notPlannedToPlanning12 = toPlanning12 * 3;           // 0 → Planning (3 points)
+      const notPlannedToAssessing12 = toAssessing12 * 2;         // 0 → Assessing (2 points)
+      
+      const totalPointsDelta12 =
+        planningToOffering +
+        assessingToPlanning +
+        notPlannedToPlanning12 +
+        notPlannedToAssessing12;
+      
+      const rawDimGain12 = (totalPointsDelta12 / maxPoints) * 100;
+      const dimPotentialGain12 = Math.round(Math.min(rawDimGain12, 100 - d.score));
+      
+      const weightedImpact12 = (dimPotentialGain12 * d.weight) / 100 * 0.9;
+      const potentialGain12 = Math.round(weightedImpact12 * 10) / 10;
+      
+      // ========================================
+      // READINESS & RECOMMENDATIONS
+      // ========================================
       // Readiness tag (display only, not for ranking)
       const hasQuickPath = planningCount > 0 || (notPlannedCount <= 2 && assessingCount >= 2);
       const effortTag: 'quick-win' | 'foundation' = hasQuickPath ? 'quick-win' : 'foundation';
@@ -1150,13 +1183,22 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): { dimNam
       
       const topGap = d.gaps?.[0]?.name || d.needsAttention?.[0]?.name || 'No specific gaps identified';
       
+      // Calculate % of remaining headroom
+      const remainingHeadroom = 100 - d.score;
+      const headroomPct = remainingHeadroom > 0 ? Math.round((dimPotentialGain / remainingHeadroom) * 100) : 0;
+      const headroomPct12 = remainingHeadroom > 0 ? Math.round((dimPotentialGain12 / remainingHeadroom) * 100) : 0;
+      
       return {
         dimName: d.name,
         dimNum: d.dim,
         currentScore: d.score,
         tier: d.tier.name,
         potentialGain,
+        potentialGain12,
         dimPotentialGain,
+        dimPotentialGain12,
+        headroomPct,
+        headroomPct12,
         gapLevel,
         effort: effortTag === 'quick-win' ? 'Quick Win' : 'Foundation Build',
         effortTag,
@@ -2873,10 +2915,10 @@ export default function ExportReportPage() {
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
-      what: 'Ranks dimensions by potential composite score impact, calculated from your actual support element status. Dimensions with more items ready to advance rank higher.',
-      how: 'Improvement potential derived from status transitions: Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), Not Planned→Assessing (+2 pts, capped at 2 elements). Formula: ΔComposite = 0.9 × (weight/100) × ΔDimScore. Readiness tags indicate implementation complexity but do not affect ranking.',
-      when: 'Use this for tactical prioritization, identifying where focused effort will most efficiently improve your composite score.',
-      questions: ['Where will effort most efficiently improve our score?', 'Which dimensions have actionable improvement paths?', 'What\'s the fastest route to meaningful progress?', 'Which initiatives should we accelerate first?']
+      what: 'Ranks dimensions by potential composite score impact, calculated from your actual support element status. Shows both near-term (90-day) and annual (Year 1) improvement potential to help with tactical and strategic planning.',
+      how: 'Near-term improvement derived from status transitions: Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), Not Planned→Assessing (+2 pts, capped at 2 elements). Year 1 estimates allow more new initiatives to progress (up to 30% of elements). Formula: ΔComposite = 0.9 × (weight/100) × ΔDimScore. The "distance to next tier" context shows how combined improvements close the gap to the next performance level.',
+      when: 'Use near-term estimates for quarterly planning and immediate wins. Use Year 1 estimates for annual roadmaps and strategic prioritization. The combined Top 5 impact helps frame what\'s achievable with focused effort.',
+      questions: ['Where will effort most efficiently improve our score?', 'How much of the gap to the next tier can we realistically close?', 'What\'s achievable in 90 days vs. 12 months?', 'Which initiatives should we accelerate first?']
     },
     excellence: {
       title: 'Areas of Excellence',
@@ -6417,6 +6459,31 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Context: Distance to Next Tier & Combined Impact */}
+                  {pointsToNextTier !== null && nextTierUp && (
+                    <div className="mb-5 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-sm text-emerald-900">
+                          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                          <span>You are <span className="font-bold text-emerald-700">{pointsToNextTier.toFixed(1)}</span> points from <span className="font-semibold" style={{ color: nextTierUp.color }}>{nextTierUp.name}</span> tier</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-emerald-900">
+                          <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                          {(() => {
+                            const total12 = rankings.reduce((s, x) => s + (x.potentialGain12 ?? x.potentialGain), 0);
+                            const pct = Math.min(100, (total12 / pointsToNextTier) * 100);
+                            return (
+                              <span>
+                                <span className="font-semibold">Top 5 combined (Year 1):</span> <span className="font-bold text-teal-700">+{total12.toFixed(1)}</span> pts <span className="text-emerald-600">({Math.round(pct)}% of gap)</span>
+                              </span>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
                       const tag = getPriorityTag(r);
@@ -6509,14 +6576,14 @@ export default function ExportReportPage() {
                                 <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
                                   <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
                                   <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
-                                  <p className="text-xs text-blue-500">pts</p>
+                                  <p className="text-[11px] text-blue-500 mt-0.5">{r.headroomPct}% of headroom</p>
                                 </div>
                                 
                                 {/* Composite Impact */}
                                 <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                                  <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Overall</p>
+                                  <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Composite</p>
                                   <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                  <p className="text-xs text-emerald-500">composite</p>
+                                  <p className="text-[11px] text-emerald-500 mt-0.5">Year 1: +{r.potentialGain12}</p>
                                 </div>
                               </div>
                             </div>
@@ -6526,7 +6593,7 @@ export default function ExportReportPage() {
                       );
                     })}
                   </div>
-                  <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
+                  <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement (% of remaining headroom shown). Composite = impact on overall score. Year 1 estimates assume sustained focus and additional initiatives progressing.</p>
                 </div>
               </div>
             );
@@ -9722,6 +9789,31 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Context: Distance to Next Tier & Combined Impact */}
+                      {pointsToNextTier !== null && nextTierUp && (
+                        <div className="mb-5 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+                          <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 text-sm text-emerald-900">
+                              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                              <span>You are <span className="font-bold text-emerald-700">{pointsToNextTier.toFixed(1)}</span> points from <span className="font-semibold" style={{ color: nextTierUp.color }}>{nextTierUp.name}</span> tier</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-emerald-900">
+                              <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                              {(() => {
+                                const total12 = rankings.reduce((s, x) => s + (x.potentialGain12 ?? x.potentialGain), 0);
+                                const pct = Math.min(100, (total12 / pointsToNextTier) * 100);
+                                return (
+                                  <span>
+                                    <span className="font-semibold">Top 5 combined (Year 1):</span> <span className="font-bold text-teal-700">+{total12.toFixed(1)}</span> pts <span className="text-emerald-600">({Math.round(pct)}% of gap)</span>
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="space-y-4">
                         {rankings.slice(0, 5).map((r, idx) => {
                       const tag = getPriorityTag(r);
@@ -9792,14 +9884,14 @@ export default function ExportReportPage() {
                                     <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
                                       <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
                                       <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
-                                      <p className="text-xs text-blue-500">pts</p>
+                                      <p className="text-[11px] text-blue-500 mt-0.5">{r.headroomPct}% of headroom</p>
                                     </div>
                                     
                                     {/* Composite Impact */}
                                     <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
-                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Overall</p>
+                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Composite</p>
                                       <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
-                                      <p className="text-xs text-emerald-500">composite</p>
+                                      <p className="text-[11px] text-emerald-500 mt-0.5">Year 1: +{r.potentialGain12}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -9809,7 +9901,7 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
-                      <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement. Overall = impact on composite score (weighted by dimension importance).</p>
+                      <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement (% of remaining headroom shown). Composite = impact on overall score. Year 1 estimates assume sustained focus.</p>
                     </div>
                   </div>
                 )}
