@@ -3028,10 +3028,10 @@ export default function ExportReportPage() {
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
-      what: 'Ranks your top 5 dimensions by Year 1 composite score impact using a two-track improvement model. Shows projected scores, elements progressed, and the breakdown between accelerating existing work vs. building new capabilities.',
-      how: 'The two-track model separates: (1) ACCELERATE — moving in-flight work forward (Planning→Offering, Assessing→Planning or Offering), and (2) BUILD — launching new capabilities (Not Planned→Assessing/Planning/Offering). Dimensions with "momentum" (2+ elements already in progress) can achieve more ambitious Year 1 goals. Composite impact = 0.9 × (weight/100) × ΔDimScore.',
-      when: 'Use projected scores and gap closure % to frame strategic conversations. The Accelerate/Build breakdown helps assign ownership: Accelerate work typically needs project management, while Build work needs program design and stakeholder alignment.',
-      questions: ['What\'s our realistic path to the next tier?', 'How much comes from accelerating vs. building new?', 'Which dimensions have the most momentum?', 'What projected score can we commit to for Year 1?']
+      what: 'Ranks your top 5 dimensions by Year 1 composite score impact using a two-track improvement model. Shows projected dimension and overall scores, support elements to be advanced, and the breakdown between accelerating existing work vs. building new capabilities.',
+      how: 'The two-track model separates: (1) ACCELERATE — advancing in-flight support elements forward (Planning→Offering via Complete Implementation, Assessing→Planning via Begin Development), and (2) BUILD — launching new support elements (Not Offered→Offering via Full Implementation, Not Offered→Planning via Begin Development). Dimensions are ranked by their projected impact on your overall composite score.',
+      when: 'Use the projected scores to frame strategic conversations with leadership. Cancer and Careers can assist with action plans for converting key support elements. The Accelerate/Build breakdown helps assign ownership: Accelerate work typically needs project management, while Build work needs program design and stakeholder alignment.',
+      questions: ['What\'s our realistic path to the next tier?', 'How much comes from accelerating vs. building new?', 'Which dimensions have the most impact potential?', 'What projected score can we commit to for Year 1?']
     },
     excellence: {
       title: 'Areas of Excellence',
@@ -6466,15 +6466,6 @@ export default function ExportReportPage() {
               { header: 'bg-zinc-700', accent: 'text-zinc-600', light: 'bg-zinc-50' },
             ];
             
-            // Helper to get action name
-            const getActionName = (from: string, to: string) => {
-              if (from === 'Planning' && to === 'Offering') return 'Complete Implementation';
-              if (from === 'Assessing' && to === 'Planning') return 'Begin Development';
-              if (from === 'Not Offered' && to === 'Offering') return 'Full Implementation';
-              if (from === 'Not Offered' && to === 'Planning') return 'Begin Development';
-              return `${from} → ${to}`;
-            };
-            
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
                 {/* Header - Compact, no wrap */}
@@ -6485,7 +6476,7 @@ export default function ExportReportPage() {
                       <p className="text-slate-300 mt-1 text-sm">
                         Year 1 roadmap: <span className="font-semibold text-white">Accelerate</span> in-flight work and <span className="font-semibold text-white">Build</span> new capabilities across your top 5 dimensions.
                       </p>
-                      <p className="text-slate-400 mt-1 text-xs">Cancer and Careers can assist with action plans for converting key support elements.</p>
+                      <p className="text-slate-300 mt-1 text-sm">Cancer and Careers can assist with action plans for converting key support elements.</p>
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
@@ -6567,20 +6558,20 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Year 1 Summary - with "support" before elements */}
+                  {/* Year 1 Summary - different fill for Total */}
                   <div className="mb-6 grid grid-cols-4 gap-4">
-                    <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-100">
-                      <div className="px-4 py-2 border-b border-slate-200">
-                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total Support Elements</p>
+                    <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-700">
+                      <div className="px-4 py-2 border-b border-slate-600">
+                        <p className="text-sm font-bold text-white uppercase tracking-wide">Total Support Elements</p>
                       </div>
                       <div className="p-4 text-center">
-                        <p className="text-4xl font-black text-slate-800">{totalElementsY1}</p>
-                        <p className="text-xs text-slate-500 mt-1">advanced in Year 1</p>
+                        <p className="text-4xl font-black text-white">{totalElementsY1}</p>
+                        <p className="text-xs text-slate-300 mt-1">advanced in Year 1</p>
                       </div>
                     </div>
                     
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                      <div className="px-4 py-2 border-b border-slate-200 bg-slate-700">
+                      <div className="px-4 py-2 border-b border-slate-200 bg-slate-600">
                         <p className="text-sm font-bold text-white uppercase tracking-wide">Accelerated</p>
                       </div>
                       <div className="p-4 text-center">
@@ -6609,7 +6600,7 @@ export default function ExportReportPage() {
                             <p className="text-[10px] text-slate-400 uppercase">Current</p>
                             <p className="text-xl font-bold text-slate-400">{compositeScore || '--'}</p>
                           </div>
-                          <span className="text-slate-500">→</span>
+                          <span className="text-slate-400 text-2xl font-light">→</span>
                           <div className="text-center">
                             <p className="text-[10px] text-slate-300 uppercase">Year 1</p>
                             <p className="text-xl font-bold text-white">{projectedCompositeY1}</p>
@@ -6632,22 +6623,13 @@ export default function ExportReportPage() {
                       
                       return (
                       <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${idx < 2 ? 'border-2 shadow-md' : 'border-slate-200'}`}>
-                        {/* Header */}
+                        {/* Header - No Quick Win badge, no score */}
                         <div className={`px-5 py-3 flex items-center justify-between ${colors.header}`}>
                           <div className="flex items-center gap-4">
                             <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
                               <span className="text-xl font-black text-white">{idx + 1}</span>
                             </div>
-                            <div>
-                              <h4 className="font-bold text-white text-lg">{r.dimName}</h4>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-white text-sm">Score: <strong>{r.currentScore}</strong></span>
-                                <span className="px-2 py-0.5 rounded bg-white/20 text-white text-xs font-medium">{r.tier}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className={`px-3 py-1.5 rounded-lg ${r.effortTag === 'quick-win' ? 'bg-amber-400/30 text-amber-100' : 'bg-white/15 text-white/80'} font-medium text-xs`}>
-                            {r.effortTag === 'quick-win' ? 'Quick Win' : 'Foundation Build'}
+                            <h4 className="font-bold text-white text-lg">{r.dimName}</h4>
                           </div>
                         </div>
                         
@@ -6663,8 +6645,8 @@ export default function ExportReportPage() {
                                 </div>
                                 <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{accelCount}</span>
                               </div>
-                              {/* Column Headers - just Element and Action */}
-                              <div className="px-3 py-1.5 bg-slate-100 border-b border-slate-200 grid grid-cols-5 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
+                              {/* Column Headers - Bold */}
+                              <div className="px-3 py-1.5 bg-slate-100 border-b border-slate-200 grid grid-cols-5 gap-1 text-[9px] font-bold text-slate-600 uppercase">
                                 <span className="col-span-3">Element</span>
                                 <span className="col-span-2 text-center">Action</span>
                               </div>
@@ -6675,7 +6657,7 @@ export default function ExportReportPage() {
                                       <span className="col-span-3 font-medium text-slate-700">{item.name}</span>
                                       <span className="col-span-2 text-center">
                                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-slate-700 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                          {item.to === 'Offering' ? 'Complete Impl.' : 'Begin Dev.'}
+                                          {item.to === 'Offering' ? 'Complete Implementation' : 'Begin Development'}
                                         </span>
                                       </span>
                                     </div>
@@ -6695,8 +6677,8 @@ export default function ExportReportPage() {
                                 </div>
                                 <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{buildCount}</span>
                               </div>
-                              {/* Column Headers */}
-                              <div className="px-3 py-1.5 bg-indigo-50 border-b border-indigo-100 grid grid-cols-5 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
+                              {/* Column Headers - Bold */}
+                              <div className="px-3 py-1.5 bg-indigo-50 border-b border-indigo-100 grid grid-cols-5 gap-1 text-[9px] font-bold text-slate-600 uppercase">
                                 <span className="col-span-3">Element</span>
                                 <span className="col-span-2 text-center">Action</span>
                               </div>
@@ -6707,7 +6689,7 @@ export default function ExportReportPage() {
                                       <span className="col-span-3 font-medium text-slate-700">{item.name}</span>
                                       <span className="col-span-2 text-center">
                                         <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-indigo-700 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                          {item.to === 'Offering' ? 'Full Impl.' : 'Begin Dev.'}
+                                          {item.to === 'Offering' ? 'Full Implementation' : 'Begin Development'}
                                         </span>
                                       </span>
                                     </div>
@@ -6760,26 +6742,13 @@ export default function ExportReportPage() {
                                     </div>
                                   </div>
                                 </div>
-                                <p className="text-xs text-slate-500 text-center font-medium pt-1">
-                                  {accelCount} accelerated + {buildCount} built
+                                <p className="text-xs text-slate-600 text-center font-bold pt-1">
+                                  {accelCount} support elements accelerated + {buildCount} built
                                 </p>
                               </div>
                             </div>
                           </div>
                         </div>
-                        
-                        {/* Edit mode */}
-                        {editMode && (
-                          <div className="px-4 py-3 bg-amber-50 border-t border-amber-200">
-                            <input
-                              type="text"
-                              value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
-                              onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                              className="w-full text-sm text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                              placeholder="Custom recommendations..."
-                            />
-                          </div>
-                        )}
                       </div>
                       );
                     })}
