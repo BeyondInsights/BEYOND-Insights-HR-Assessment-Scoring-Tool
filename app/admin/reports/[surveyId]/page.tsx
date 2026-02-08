@@ -1089,7 +1089,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     const byUnsure = [...dimAnalysis].sort((a, b) => ((b.unsure?.length || 0) - (a.unsure?.length || 0)));
     const topUnsure = byUnsure.filter(d => (d.unsure?.length || 0) > 0).slice(0, 2);
     const unsureText = topUnsure.length > 0
-      ? ` Prioritize confirming "Needs Confirmation" elements in ${topUnsure.map(d => `${d.name} (${d.unsure.length})`).join(' and ')}—those confirmations can materially change the story.`
+      ? ` Prioritize confirming "Needs Confirmation" items in ${topUnsure.map(d => `${d.name} (${d.unsure.length})`).join(' and ')}—those confirmations can materially change the story.`
       : '';
 
     return [{
@@ -6480,36 +6480,22 @@ export default function ExportReportPage() {
             
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                {/* Header */}
-                <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-white mt-2 text-base">
-                        Year 1 roadmap: advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions.
-                      </p>
-                      <p className="text-slate-300 mt-1 text-sm">
-                        <span className="font-medium">Accelerate</span> converts work already in motion; <span className="font-medium">Build</span> introduces net-new capabilities.
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2 flex-shrink-0 ml-4">
-                      <button 
-                        onClick={() => setInfoModal('impactRanked')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        How It Works
-                      </button>
-                      <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/20 text-amber-200 text-xs font-medium rounded-lg">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        CAC can assist with action plans
-                      </div>
-                    </div>
+                {/* Header - Simplified */}
+                <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                    <button 
+                      onClick={() => setInfoModal('impactRanked')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      How It Works
+                    </button>
                   </div>
                 </div>
                 
                 <div className="p-6">
-                  {/* Accelerate & Build Definitions - Larger fonts */}
+                  {/* Accelerate & Build Definitions - with inline descriptions */}
                   <div className="mb-5 grid grid-cols-2 gap-4">
                     {/* Accelerate Card */}
                     <div className="rounded-xl overflow-hidden border border-slate-200">
@@ -6517,16 +6503,17 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-2">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                           <span className="font-bold text-white text-base">ACCELERATE</span>
+                          <span className="text-slate-300 text-sm">(converts work already in motion)</span>
                         </div>
-                        <span className="bg-white/20 text-white text-sm font-bold px-2.5 py-1 rounded">{totalAccel} support elements</span>
+                        <span className="bg-white/20 text-white text-sm font-bold px-2.5 py-1 rounded">{totalAccel}</span>
                       </div>
-                      <div className="px-5 py-4 bg-slate-50 grid grid-cols-2 gap-4">
+                      <div className="px-5 py-3 bg-slate-50 grid grid-cols-2 gap-4">
                         <div className="text-center">
-                          <p className="text-sm font-bold text-slate-700 mb-1">Complete Implementation</p>
+                          <p className="text-sm font-bold text-slate-700">Complete Implementation</p>
                           <p className="text-xs text-slate-500">Planning → Offering</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm font-bold text-slate-700 mb-1">Move into Active Planning</p>
+                          <p className="text-sm font-bold text-slate-700">Move into Active Planning</p>
                           <p className="text-xs text-slate-500">Assessing → Planning</p>
                         </div>
                       </div>
@@ -6538,49 +6525,63 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-2">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                           <span className="font-bold text-white text-base">BUILD</span>
+                          <span className="text-indigo-200 text-sm">(introduces net-new capabilities)</span>
                         </div>
-                        <span className="bg-white/20 text-white text-sm font-bold px-2.5 py-1 rounded">{totalBuild} support elements</span>
+                        <span className="bg-white/20 text-white text-sm font-bold px-2.5 py-1 rounded">{totalBuild}</span>
                       </div>
-                      <div className="px-5 py-4 bg-indigo-50 grid grid-cols-2 gap-4">
+                      <div className="px-5 py-3 bg-indigo-50 grid grid-cols-2 gap-4">
                         <div className="text-center">
-                          <p className="text-sm font-bold text-slate-700 mb-1">Stand Up / Implement</p>
+                          <p className="text-sm font-bold text-slate-700">Stand Up / Implement</p>
                           <p className="text-xs text-slate-500">Not Offered → Offering</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-sm font-bold text-slate-700 mb-1">Design + Scope</p>
+                          <p className="text-sm font-bold text-slate-700">Design + Scope</p>
                           <p className="text-xs text-slate-500">Not Offered → Planning</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Year 1 Projected Impact - 3 cards */}
-                  <div className="mb-6 grid grid-cols-3 gap-4">
+                  {/* Year 1 Summary - 4 compact cards */}
+                  <div className="mb-6 grid grid-cols-4 gap-3">
+                    {/* Year 1 Roadmap Card */}
+                    <div className="rounded-xl overflow-hidden border border-slate-300 bg-gradient-to-br from-slate-800 to-slate-900">
+                      <div className="px-4 py-2 border-b border-slate-600">
+                        <p className="text-xs font-bold text-white uppercase tracking-wide">Year 1 Roadmap</p>
+                      </div>
+                      <div className="p-3 text-center">
+                        <p className="text-sm text-slate-300 leading-snug">Advance <span className="font-bold text-white">{totalElementsY1}</span> support elements across <span className="font-bold text-white">5</span> priority dimensions</p>
+                      </div>
+                    </div>
+                    
+                    {/* Current Score */}
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                      <div className="px-4 py-2 border-b border-slate-200 bg-slate-100">
-                        <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">Current Score</p>
+                      <div className="px-3 py-1.5 border-b border-slate-200 bg-slate-100">
+                        <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wide">Current Overall Composite Score</p>
                       </div>
-                      <div className="p-4 text-center">
-                        <p className="text-4xl font-black text-slate-600">{compositeScore || '--'}</p>
+                      <div className="p-3 text-center">
+                        <p className="text-3xl font-black text-slate-600">{compositeScore || '--'}</p>
                       </div>
                     </div>
                     
+                    {/* Projected Year 1 */}
                     <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-800">
-                      <div className="px-4 py-2 border-b border-slate-600">
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wide">Projected Year 1</p>
+                      <div className="px-3 py-1.5 border-b border-slate-600">
+                        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Projected Year 1 Score</p>
                       </div>
-                      <div className="p-4 text-center">
-                        <p className="text-4xl font-black text-white">{projectedCompositeY1}</p>
+                      <div className="p-3 text-center">
+                        <p className="text-3xl font-black text-white">{projectedCompositeY1}</p>
                       </div>
                     </div>
                     
+                    {/* Projected Gain */}
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-700">
-                      <div className="px-4 py-2 border-b border-slate-600">
-                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wide">Projected Gain</p>
+                      <div className="px-3 py-1.5 border-b border-slate-600">
+                        <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Projected Gain</p>
                       </div>
-                      <div className="p-4 text-center">
-                        <p className="text-4xl font-black text-white">+{totalGainY1.toFixed(1)}</p>
-                        <p className="text-xs text-slate-400 mt-1">{totalElementsY1} elements • {totalAccel} accelerated • {totalBuild} built</p>
+                      <div className="p-3 text-center">
+                        <p className="text-3xl font-black text-white">+{totalGainY1.toFixed(1)}</p>
+                        <p className="text-[10px] text-slate-400 mt-1">{totalAccel} accelerated • {totalBuild} built</p>
                       </div>
                     </div>
                   </div>
@@ -6616,7 +6617,7 @@ export default function ExportReportPage() {
                         {/* Content - adjusted column widths */}
                         <div className={`p-4 ${colors.light}`}>
                           <div className="grid grid-cols-12 gap-3">
-                            {/* ACCELERATE Card - narrower */}
+                            {/* ACCELERATE Card */}
                             <div className="col-span-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
                               <div className="px-3 py-2 bg-slate-700 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
@@ -6634,8 +6635,8 @@ export default function ExportReportPage() {
                                         <div key={i} className="px-3 py-2 text-xs">
                                           <div className="flex items-start justify-between gap-2">
                                             <span className="font-medium text-slate-700 flex-1">{item.name}</span>
-                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                              {item.to === 'Offering' ? 'Complete Impl.' : 'Active Planning'}
+                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                              {item.to === 'Offering' ? 'Complete Implementation' : 'Active Planning'}
                                             </span>
                                           </div>
                                           {bench !== null && (
@@ -6659,7 +6660,7 @@ export default function ExportReportPage() {
                               </div>
                             </div>
                             
-                            {/* BUILD Card - narrower */}
+                            {/* BUILD Card */}
                             <div className="col-span-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
                               <div className="px-3 py-2 bg-indigo-800 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
@@ -6677,8 +6678,8 @@ export default function ExportReportPage() {
                                         <div key={i} className="px-3 py-2 text-xs">
                                           <div className="flex items-start justify-between gap-2">
                                             <span className="font-medium text-slate-700 flex-1">{item.name}</span>
-                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                              {item.to === 'Offering' ? 'Implement' : 'Design + Scope'}
+                                            <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-medium whitespace-nowrap ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                              {item.to === 'Offering' ? 'Stand Up / Implement' : 'Design + Scope'}
                                             </span>
                                           </div>
                                           {bench !== null && (
@@ -6702,24 +6703,24 @@ export default function ExportReportPage() {
                               </div>
                             </div>
                             
-                            {/* DIMENSION IMPACT Card - wider */}
+                            {/* DIMENSION IMPACT Card */}
                             <div className="col-span-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
                               <div className={`px-3 py-2 ${colors.header}`}>
                                 <span className="font-bold text-white text-sm">DIMENSION IMPACT</span>
                               </div>
                               <div className="p-4">
-                                <div className="grid grid-cols-3 gap-3">
-                                  <div className="text-center p-3 bg-slate-100 rounded-lg">
-                                    <p className="text-[10px] text-slate-500 uppercase font-semibold mb-1">Current</p>
-                                    <p className="text-2xl font-bold text-slate-600">{r.currentScore}</p>
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div className="text-center p-2 bg-slate-100 rounded-lg">
+                                    <p className="text-[9px] text-slate-500 uppercase font-semibold mb-1">Current</p>
+                                    <p className="text-xl font-bold text-slate-600">{r.currentScore}</p>
                                   </div>
-                                  <div className="text-center p-3 bg-slate-200 rounded-lg">
-                                    <p className="text-[10px] text-slate-600 uppercase font-semibold mb-1">Year 1</p>
-                                    <p className="text-2xl font-bold text-slate-700">{r.projectedScore12}</p>
+                                  <div className="text-center p-2 bg-slate-200 rounded-lg">
+                                    <p className="text-[9px] text-slate-600 uppercase font-semibold mb-1">Year 1</p>
+                                    <p className="text-xl font-bold text-slate-700">{r.projectedScore12}</p>
                                   </div>
-                                  <div className="text-center p-3 bg-slate-700 rounded-lg">
-                                    <p className="text-[10px] text-slate-300 uppercase font-semibold mb-1">Gain</p>
-                                    <p className="text-2xl font-bold text-white">+{r.dimPotentialGain12}</p>
+                                  <div className="text-center p-2 bg-slate-700 rounded-lg">
+                                    <p className="text-[9px] text-slate-300 uppercase font-semibold mb-1">Gain</p>
+                                    <p className="text-xl font-bold text-white">+{r.dimPotentialGain12}</p>
                                   </div>
                                 </div>
                                 <p className="text-xs text-slate-500 text-center mt-3">
@@ -6755,7 +6756,7 @@ export default function ExportReportPage() {
                   )}
                   
                   <p className="text-xs text-slate-500 mt-5 text-center leading-relaxed">
-                    Projections assume sustained execution across the listed elements; actual results vary based on feasibility and confirmation of any "Needs Confirmation" items.
+                    Projections assume sustained execution across the listed elements; actual results vary based on feasibility and confirmation of any "Needs Confirmation" elements.
                   </p>
                 </div>
               </div>
