@@ -4389,7 +4389,7 @@ export default function ExportReportPage() {
                           <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <p className="text-sm text-slate-600">
-                          Each dimension is weighted based on its impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
                         </p>
                       </div>
                     </div>
@@ -8103,6 +8103,80 @@ export default function ExportReportPage() {
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* ============ THANK YOU SECTION ============ */}
+          <div id="thank-you-section" className="ppt-break bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-lg border border-slate-700 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto relative">
+            {/* Background decorative elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
+            </div>
+            
+            {/* Header with logos */}
+            <div className="relative bg-white px-12 py-6 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="p-2">
+                  <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
+                </div>
+                <h2 className="text-4xl font-bold text-slate-800">Thank You</h2>
+                <div className="p-2">
+                  <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={160} height={56} className="object-contain" />
+                </div>
+              </div>
+            </div>
+            
+            {/* Main content */}
+            <div className="relative px-12 py-10">
+              <p className="text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed text-center mb-10">
+                For your commitment to creating a workplace where employees managing cancer can thrive
+              </p>
+              
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
+                <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                  <p className="text-4xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
+                  <p className="text-slate-400 text-sm mt-2">Your Score</p>
+                </div>
+                <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                  <p className="text-4xl font-bold text-emerald-400">{strengthDimensions?.length || '--'}</p>
+                  <p className="text-slate-400 text-sm mt-2">Leading Dimensions</p>
+                </div>
+                <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
+                  <p className="text-4xl font-bold text-violet-400">{quickWinOpportunities?.length || '--'}</p>
+                  <p className="text-slate-400 text-sm mt-2">Quick Wins Identified</p>
+                </div>
+              </div>
+              
+              {/* CTA */}
+              <div className="bg-gradient-to-r from-[#F37021]/20 to-violet-500/20 rounded-2xl p-8 border border-white/10 backdrop-blur max-w-3xl mx-auto text-center">
+                <p className="text-white font-semibold text-xl mb-2">Ready for next steps?</p>
+                <p className="text-slate-300 mb-6">We're here to help you build on this foundation</p>
+                <div className="flex items-center justify-center gap-8">
+                  <div className="text-center">
+                    <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
+                    <p className="text-slate-400 text-sm">Email Us</p>
+                  </div>
+                  <div className="w-px h-12 bg-white/20"></div>
+                  <div className="text-center">
+                    <p className="text-white font-bold text-lg">cancerandcareers.org</p>
+                    <p className="text-slate-400 text-sm">Visit Our Site</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="relative bg-white px-12 py-4 border-t border-slate-200">
+              <div className="flex items-center justify-between">
+                <p className="text-slate-500 text-sm">© 2026 Cancer and Careers. All rights reserved.</p>
+                <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 text-xs">Powered by</span>
+                  <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={80} height={24} className="object-contain" />
                 </div>
               </div>
             </div>
