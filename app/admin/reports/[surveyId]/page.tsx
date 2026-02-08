@@ -2601,6 +2601,7 @@ export default function ExportReportPage() {
   const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
+  const [customAdditionalDimInsights, setCustomAdditionalDimInsights] = useState<Record<number, { insight: string; roadmapQuickWin: string; roadmapStrategic: string; cacHelp: string }>>({});
   
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 38 + additionalAnalyzedDims.length;
@@ -3837,7 +3838,8 @@ export default function ExportReportPage() {
   };
   
   const reportSections = [
-    { id: 'report-hero-section', label: 'Overview & Score', iconKey: 'overview' },
+    { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
+    { id: 'score-composition-section', label: 'Overall Score', iconKey: 'performance' },
     { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
     { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
@@ -3857,7 +3859,9 @@ export default function ExportReportPage() {
     setShowJumpTo(false);
     const el = document.getElementById(id);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const yOffset = -100; // Offset to account for sticky header
+      const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
   
@@ -4241,7 +4245,7 @@ export default function ExportReportPage() {
             
             
             {/* Understanding Your Composite Score — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
+            <div id="score-composition-section" className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all group"
@@ -6397,7 +6401,7 @@ export default function ExportReportPage() {
                                 <textarea
                                   value={customCrossRecommendations[idx] ?? p.recommendation}
                                   onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                                  className="w-full text-sm text-slate-700 leading-relaxed bg-white border border-slate-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 resize-y"
+                                  className="w-full text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-y"
                                   placeholder="Enter custom recommendation..."
                                 />
                                 {customCrossRecommendations[idx] && (
@@ -6462,17 +6466,26 @@ export default function ExportReportPage() {
               { header: 'bg-zinc-700', accent: 'text-zinc-600', light: 'bg-zinc-50' },
             ];
             
+            // Helper to get action name
+            const getActionName = (from: string, to: string) => {
+              if (from === 'Planning' && to === 'Offering') return 'Complete Implementation';
+              if (from === 'Assessing' && to === 'Planning') return 'Begin Development';
+              if (from === 'Not Offered' && to === 'Offering') return 'Full Implementation';
+              if (from === 'Not Offered' && to === 'Planning') return 'Begin Development';
+              return `${from} → ${to}`;
+            };
+            
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                {/* Header */}
-                <div className="px-8 py-6 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
-                  <div className="flex items-start justify-between">
+                {/* Header - Compact, no wrap */}
+                <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                  <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-slate-300 mt-2 text-base max-w-2xl leading-relaxed">
+                      <p className="text-slate-300 mt-1 text-sm">
                         Year 1 roadmap: <span className="font-semibold text-white">Accelerate</span> in-flight work and <span className="font-semibold text-white">Build</span> new capabilities across your top 5 dimensions.
                       </p>
-                      <p className="text-slate-400 mt-2 text-sm">Cancer and Careers can assist with action plans for converting key support elements.</p>
+                      <p className="text-slate-400 mt-1 text-xs">Cancer and Careers can assist with action plans for converting key support elements.</p>
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
@@ -6485,9 +6498,9 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="p-6">
-                  {/* Accelerate & Build Cards */}
+                  {/* Accelerate & Build Cards - Centered action titles */}
                   <div className="mb-6 grid grid-cols-2 gap-4">
-                    {/* Accelerate Card - Slate-700 */}
+                    {/* Accelerate Card */}
                     <div className="rounded-xl overflow-hidden border border-slate-200">
                       <div className="px-5 py-3 bg-slate-700">
                         <div className="flex items-center justify-between">
@@ -6508,19 +6521,19 @@ export default function ExportReportPage() {
                       </div>
                       <div className="px-5 py-4 bg-slate-50">
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white rounded-lg p-3 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-700 mb-2">Complete Implementation</p>
+                          <div className="bg-white rounded-lg p-3 border border-slate-200 text-center">
+                            <p className="text-xs font-bold text-slate-800 bg-slate-100 rounded px-2 py-1 mb-2">Complete Implementation</p>
                             <p className="text-xs text-slate-600">Converting <span className="font-semibold text-amber-700">Planning</span> to <span className="font-semibold text-slate-800">Offering</span></p>
                           </div>
-                          <div className="bg-white rounded-lg p-3 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-700 mb-2">Begin Development</p>
+                          <div className="bg-white rounded-lg p-3 border border-slate-200 text-center">
+                            <p className="text-xs font-bold text-slate-800 bg-slate-100 rounded px-2 py-1 mb-2">Begin Development</p>
                             <p className="text-xs text-slate-600">Converting <span className="font-semibold text-slate-600">Assessing</span> to <span className="font-semibold text-amber-700">Planning</span></p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Build Card - Indigo-800 */}
+                    {/* Build Card */}
                     <div className="rounded-xl overflow-hidden border border-slate-200">
                       <div className="px-5 py-3 bg-indigo-800">
                         <div className="flex items-center justify-between">
@@ -6541,12 +6554,12 @@ export default function ExportReportPage() {
                       </div>
                       <div className="px-5 py-4 bg-indigo-50">
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                            <p className="text-xs font-semibold text-slate-700 mb-2">Full Implementation</p>
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+                            <p className="text-xs font-bold text-slate-800 bg-indigo-100 rounded px-2 py-1 mb-2">Full Implementation</p>
                             <p className="text-xs text-slate-600">Converting <span className="font-semibold text-red-600">Not Offered</span> to <span className="font-semibold text-slate-800">Offering</span></p>
                           </div>
-                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                            <p className="text-xs font-semibold text-slate-700 mb-2">Begin Development</p>
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200 text-center">
+                            <p className="text-xs font-bold text-slate-800 bg-indigo-100 rounded px-2 py-1 mb-2">Begin Development</p>
                             <p className="text-xs text-slate-600">Converting <span className="font-semibold text-red-600">Not Offered</span> to <span className="font-semibold text-amber-700">Planning</span></p>
                           </div>
                         </div>
@@ -6554,9 +6567,8 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Year 1 Summary - 3 cards for elements + 1 for score */}
+                  {/* Year 1 Summary - with "support" before elements */}
                   <div className="mb-6 grid grid-cols-4 gap-4">
-                    {/* Total Elements */}
                     <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-100">
                       <div className="px-4 py-2 border-b border-slate-200">
                         <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total Support Elements</p>
@@ -6567,29 +6579,26 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Accelerated */}
                     <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                       <div className="px-4 py-2 border-b border-slate-200 bg-slate-700">
                         <p className="text-sm font-bold text-white uppercase tracking-wide">Accelerated</p>
                       </div>
                       <div className="p-4 text-center">
                         <p className="text-4xl font-black text-slate-700">{totalAccel}</p>
-                        <p className="text-xs text-slate-500 mt-1">in-flight elements</p>
+                        <p className="text-xs text-slate-500 mt-1">support elements</p>
                       </div>
                     </div>
                     
-                    {/* Built */}
                     <div className="rounded-xl overflow-hidden border border-indigo-200 bg-indigo-50">
                       <div className="px-4 py-2 border-b border-indigo-200 bg-indigo-800">
                         <p className="text-sm font-bold text-white uppercase tracking-wide">Built</p>
                       </div>
                       <div className="p-4 text-center">
                         <p className="text-4xl font-black text-indigo-800">{totalBuild}</p>
-                        <p className="text-xs text-indigo-600 mt-1">new elements</p>
+                        <p className="text-xs text-indigo-600 mt-1">support elements</p>
                       </div>
                     </div>
                     
-                    {/* Year 1 Score */}
                     <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-800">
                       <div className="px-4 py-2 border-b border-slate-600">
                         <p className="text-sm font-bold text-slate-200 uppercase tracking-wide">Year 1 Overall Score</p>
@@ -6622,31 +6631,31 @@ export default function ExportReportPage() {
                       const buildCount = r.buildToOffering12 + r.buildToPlanning12;
                       
                       return (
-                      <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${idx < 2 ? 'border-2 shadow-md' : 'border-slate-200'}`} style={{ borderColor: idx < 2 ? undefined : undefined }}>
-                        {/* Header - Different color per dimension */}
-                        <div className={`px-5 py-4 flex items-center justify-between ${colors.header}`}>
+                      <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${idx < 2 ? 'border-2 shadow-md' : 'border-slate-200'}`}>
+                        {/* Header */}
+                        <div className={`px-5 py-3 flex items-center justify-between ${colors.header}`}>
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center">
-                              <span className="text-2xl font-black text-white">{idx + 1}</span>
+                            <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                              <span className="text-xl font-black text-white">{idx + 1}</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-white text-xl">{r.dimName}</h4>
-                              <div className="flex items-center gap-3 mt-1">
-                                <span className="text-white/90 text-base font-semibold">Score: {r.currentScore}</span>
-                                <span className="px-2 py-0.5 rounded bg-white/20 text-white text-sm font-medium">{r.tier}</span>
+                              <h4 className="font-bold text-white text-lg">{r.dimName}</h4>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-white text-sm">Score: <strong>{r.currentScore}</strong></span>
+                                <span className="px-2 py-0.5 rounded bg-white/20 text-white text-xs font-medium">{r.tier}</span>
                               </div>
                             </div>
                           </div>
-                          <div className={`px-3 py-1.5 rounded-lg ${r.effortTag === 'quick-win' ? 'bg-amber-400/30 text-amber-100' : 'bg-white/15 text-white/80'} font-medium text-sm`}>
+                          <div className={`px-3 py-1.5 rounded-lg ${r.effortTag === 'quick-win' ? 'bg-amber-400/30 text-amber-100' : 'bg-white/15 text-white/80'} font-medium text-xs`}>
                             {r.effortTag === 'quick-win' ? 'Quick Win' : 'Foundation Build'}
                           </div>
                         </div>
                         
-                        {/* Content - 3 columns */}
+                        {/* Content - 3 columns with adjusted widths */}
                         <div className={`p-4 ${colors.light}`}>
-                          <div className="grid grid-cols-3 gap-3">
-                            {/* ACCELERATE Card */}
-                            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                          <div className="grid grid-cols-12 gap-3">
+                            {/* ACCELERATE Card - wider element column */}
+                            <div className="col-span-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
                               <div className="px-3 py-2 bg-slate-700 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -6654,22 +6663,20 @@ export default function ExportReportPage() {
                                 </div>
                                 <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{accelCount}</span>
                               </div>
-                              {/* Column Headers */}
-                              <div className="px-3 py-1.5 bg-slate-100 border-b border-slate-200 grid grid-cols-3 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
-                                <span className="col-span-1">Element</span>
-                                <span className="col-span-1 text-center">Current</span>
-                                <span className="col-span-1 text-center">Converting To</span>
+                              {/* Column Headers - just Element and Action */}
+                              <div className="px-3 py-1.5 bg-slate-100 border-b border-slate-200 grid grid-cols-5 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
+                                <span className="col-span-3">Element</span>
+                                <span className="col-span-2 text-center">Action</span>
                               </div>
                               <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
                                 {accelerateItems.length > 0 ? (
                                   accelerateItems.map((item, i) => (
-                                    <div key={i} className="px-3 py-2 grid grid-cols-3 gap-1 items-start text-xs">
-                                      <span className="col-span-1 font-medium text-slate-700">{item.name}</span>
-                                      <span className="col-span-1 text-center">
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.from === 'Planning' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>{item.from}</span>
-                                      </span>
-                                      <span className="col-span-1 text-center">
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-slate-700 text-white' : 'bg-amber-100 text-amber-700'}`}>{item.to}</span>
+                                    <div key={i} className="px-3 py-2 grid grid-cols-5 gap-1 items-center text-xs">
+                                      <span className="col-span-3 font-medium text-slate-700">{item.name}</span>
+                                      <span className="col-span-2 text-center">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-slate-700 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                          {item.to === 'Offering' ? 'Complete Impl.' : 'Begin Dev.'}
+                                        </span>
                                       </span>
                                     </div>
                                   ))
@@ -6680,7 +6687,7 @@ export default function ExportReportPage() {
                             </div>
                             
                             {/* BUILD Card */}
-                            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                            <div className="col-span-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
                               <div className="px-3 py-2 bg-indigo-800 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
@@ -6689,21 +6696,19 @@ export default function ExportReportPage() {
                                 <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{buildCount}</span>
                               </div>
                               {/* Column Headers */}
-                              <div className="px-3 py-1.5 bg-indigo-50 border-b border-indigo-100 grid grid-cols-3 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
-                                <span className="col-span-1">Element</span>
-                                <span className="col-span-1 text-center">Current</span>
-                                <span className="col-span-1 text-center">Converting To</span>
+                              <div className="px-3 py-1.5 bg-indigo-50 border-b border-indigo-100 grid grid-cols-5 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
+                                <span className="col-span-3">Element</span>
+                                <span className="col-span-2 text-center">Action</span>
                               </div>
                               <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
                                 {buildItems.length > 0 ? (
                                   buildItems.map((item, i) => (
-                                    <div key={i} className="px-3 py-2 grid grid-cols-3 gap-1 items-start text-xs">
-                                      <span className="col-span-1 font-medium text-slate-700">{item.name}</span>
-                                      <span className="col-span-1 text-center">
-                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-600">Not Offered</span>
-                                      </span>
-                                      <span className="col-span-1 text-center">
-                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-700 text-white">Implement</span>
+                                    <div key={i} className="px-3 py-2 grid grid-cols-5 gap-1 items-center text-xs">
+                                      <span className="col-span-3 font-medium text-slate-700">{item.name}</span>
+                                      <span className="col-span-2 text-center">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-indigo-700 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                          {item.to === 'Offering' ? 'Full Impl.' : 'Begin Dev.'}
+                                        </span>
                                       </span>
                                     </div>
                                   ))
@@ -6714,14 +6719,14 @@ export default function ExportReportPage() {
                             </div>
                             
                             {/* IMPACT Card */}
-                            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
+                            <div className="col-span-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
                               <div className={`px-3 py-2 ${colors.header}`}>
                                 <span className="font-bold text-white text-sm">IMPACT</span>
                               </div>
                               <div className="p-3 space-y-3">
                                 {/* Dimension Score */}
                                 <div>
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Dimension Score</p>
+                                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Dimension Score</p>
                                   <div className="flex items-stretch gap-2">
                                     <div className="flex-1 bg-slate-100 rounded px-2 py-2 text-center">
                                       <p className="text-[9px] text-slate-400 uppercase">Current</p>
@@ -6739,7 +6744,7 @@ export default function ExportReportPage() {
                                 </div>
                                 {/* Overall Score */}
                                 <div>
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Overall Score</p>
+                                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Overall Score</p>
                                   <div className="flex items-stretch gap-2">
                                     <div className="flex-1 bg-slate-100 rounded px-2 py-2 text-center">
                                       <p className="text-[9px] text-slate-400 uppercase">Current</p>
@@ -6755,7 +6760,7 @@ export default function ExportReportPage() {
                                     </div>
                                   </div>
                                 </div>
-                                <p className="text-[10px] text-slate-400 text-center pt-1">
+                                <p className="text-xs text-slate-500 text-center font-medium pt-1">
                                   {accelCount} accelerated + {buildCount} built
                                 </p>
                               </div>
@@ -6780,7 +6785,7 @@ export default function ExportReportPage() {
                     })}
                   </div>
                   
-                  <p className="text-xs text-slate-500 mt-5 text-center">
+                  <p className="text-sm text-slate-500 mt-6 text-center">
                     Projections based on systematic advancement of support elements. Year 1 estimates assume sustained organizational commitment.
                   </p>
                 </div>
@@ -7788,8 +7793,20 @@ export default function ExportReportPage() {
                                   </svg>
                                 </div>
                                 Strategic Insight
+                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
                               </h5>
-                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                              {editMode ? (
+                                <textarea
+                                  value={customAdditionalDimInsights[d.dim]?.insight ?? dynamicInsight.insight}
+                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
+                                    ...prev,
+                                    [d.dim]: { ...prev[d.dim], insight: e.target.value, roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
+                                  }))}
+                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                                />
+                              ) : (
+                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                              )}
                             </div>
                           </div>
                           
@@ -7824,8 +7841,22 @@ export default function ExportReportPage() {
                             )}
                             
                             <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
-                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">
+                                How Cancer and Careers Can Help
+                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
+                              </h5>
+                              {editMode ? (
+                                <textarea
+                                  value={customAdditionalDimInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
+                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
+                                    ...prev,
+                                    [d.dim]: { ...prev[d.dim], insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: e.target.value }
+                                  }))}
+                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                                />
+                              ) : (
+                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -11757,8 +11788,8 @@ export default function ExportReportPage() {
             
             {/* Keyboard Shortcuts Modal */}
             {showKeyboardHelp && (
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowKeyboardHelp(false)}>
-                <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]" onClick={() => setShowKeyboardHelp(false)}>
+                <div className="bg-white rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
                     <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
@@ -11769,8 +11800,8 @@ export default function ExportReportPage() {
                     {/* Single unified grid for both sections */}
                     <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 gap-y-1.5 items-center">
                       <div></div>
-                      <div className="text-[10px] font-semibold text-slate-400 text-center">WINDOWS</div>
-                      <div className="text-[10px] font-semibold text-slate-400 text-center">MAC</div>
+                      <div className="text-[10px] font-semibold text-slate-400 text-center pb-1">WINDOWS</div>
+                      <div className="text-[10px] font-semibold text-slate-400 text-center pb-1">MAC</div>
                       
                       {/* Navigation Section Header */}
                       <div className="col-span-3 text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Navigation</div>
