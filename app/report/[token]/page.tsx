@@ -4735,7 +4735,7 @@ export default function ExportReportPage() {
             
             {/* ============ CONFIRMATORY CHECKLIST ============ */}
             {unsureItems > 0 && (
-              <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
+              <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1280px] mx-auto">
                 <button 
                   onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
                   className="w-full flex items-center justify-between px-5 py-3 border-2 rounded-xl transition-all group"
@@ -5257,7 +5257,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div id="dimension-performance-table" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="dimension-performance-table" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Dark dramatic header */}
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
               <div className="absolute inset-0 opacity-10">
@@ -5366,7 +5366,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
@@ -6332,7 +6332,7 @@ export default function ExportReportPage() {
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               {/* Header with gradient and visual interest */}
               <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
@@ -6347,7 +6347,7 @@ export default function ExportReportPage() {
                 </div>
                 <div className="relative flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
@@ -6358,9 +6358,29 @@ export default function ExportReportPage() {
                         <p className="text-slate-400 text-sm">Connecting the dots across your assessment</p>
                       </div>
                     </div>
-                    <p className="text-slate-300 text-sm leading-relaxed max-w-2xl ml-[52px]">
-                      These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere. These are the hidden bottlenecks that often explain why good investments underperform.
-                    </p>
+                    <div className="ml-[52px]">
+                      <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                        These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere.<br/>
+                        These are the hidden bottlenecks that often explain why good investments underperform.
+                      </p>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="10" cy="10" r="6" />
+                            <path d="M14.5 14.5L20 20" strokeLinecap="round" />
+                          </svg>
+                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottlenecks identified</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="8" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                          </svg>
+                          <span className="text-slate-300 text-sm">Each with <span className="text-white font-semibold">actionable recommendation</span></span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     onClick={() => setInfoModal('crossDimensional')}
@@ -6369,36 +6389,6 @@ export default function ExportReportPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     Learn More
                   </button>
-                </div>
-                {/* Quick context bar */}
-                <div className="relative mt-4 pt-4 border-t border-white/10">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
-                        {/* Custom magnifying glass with nodes icon */}
-                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="10" cy="10" r="6" />
-                          <path d="M14.5 14.5L20 20" strokeLinecap="round" />
-                          <circle cx="8" cy="9" r="1.5" fill="currentColor" stroke="none" />
-                          <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none" />
-                          <path d="M8.5 9.5L11.5 10.5" strokeWidth="1" />
-                        </svg>
-                      </div>
-                      <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottleneck{patterns.length !== 1 ? 's' : ''} identified</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center">
-                        {/* Custom target/bullseye with arrow icon */}
-                        <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="8" />
-                          <circle cx="12" cy="12" r="4" />
-                          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-                          <path d="M12 2v4M22 12h-4" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                      <span className="text-slate-300 text-sm">Each with <span className="text-white font-semibold">actionable recommendation</span></span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -6513,24 +6503,29 @@ export default function ExportReportPage() {
           
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
-            // Calculate totals for context
-            const totalElements90 = rankings.reduce((s, r) => s + r.elementsProgressed, 0);
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
-            const totalGain90 = rankings.reduce((s, r) => s + r.potentialGain, 0);
             const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-            const projectedComposite90 = Math.round(((compositeScore || 0) + totalGain90) * 10) / 10;
             const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
-            const gapClosurePct = pointsToNextTier ? Math.min(100, Math.round((totalGainY1 / pointsToNextTier) * 100)) : 0;
-            const incrementalY1 = Math.round((totalGainY1 - totalGain90) * 10) / 10;
+            const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
+            const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
+            
+            // Distinct colors for each dimension
+            const dimColors = [
+              { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600' },
+              { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600' },
+              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600' },
+              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600' },
+              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600' },
+            ];
             
             return (
-              <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+              <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
                 {/* Header */}
-                <div className="px-10 py-6 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-slate-300 mt-1 text-base">Strategic roadmap for advancing your cancer support program</p>
+                      <p className="text-slate-300 mt-1 text-sm">A strategic roadmap for Year 1: which dimensions to focus on and which support elements to advance for maximum impact on your overall score.</p>
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
@@ -6542,231 +6537,178 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 
-                {/* Summary Stats - Muted Colors */}
-                <div className="px-8 py-5 bg-slate-50 border-b border-slate-200">
-                  <div className="grid grid-cols-4 gap-4">
-                    {/* Projected Score */}
-                    <div className="bg-white rounded-xl p-4 border border-slate-200">
-                      <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">Projected Score</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</span>
-                        <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                        <span className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</span>
+                <div className="px-8 py-6">
+                  {/* Accelerate & Build Definitions - Professional boxes */}
+                  <div className="mb-5 grid grid-cols-2 gap-4">
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-slate-700 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                          <span className="font-semibold text-white">ACCELERATE</span>
+                          <span className="text-slate-300 text-sm">(converts work already in motion)</span>
+                        </div>
+                        <span className="bg-white/20 text-white text-sm font-bold px-2 py-0.5 rounded">{totalAccel}</span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">Long-term projection</p>
-                    </div>
-                    
-                    {/* Gap Closure */}
-                    <div className="bg-slate-700 rounded-xl p-4">
-                      <p className="text-xs text-slate-300 font-semibold uppercase tracking-wide mb-2">Progress to {nextTierUp?.name || 'Next Tier'}</p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">{gapClosurePct}%</span>
-                        <span className="text-sm text-slate-300">of gap closed</span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1">{pointsToNextTier?.toFixed(1) || '--'} pts remaining</p>
-                    </div>
-                    
-                    {/* Elements Progressed */}
-                    <div className="bg-slate-600 rounded-xl p-4">
-                      <p className="text-xs text-slate-300 font-semibold uppercase tracking-wide mb-2">Support Elements Advanced</p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">{totalElementsY1}</span>
-                        <span className="text-sm text-slate-300">elements</span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1">across top 5 dimensions</p>
-                    </div>
-                    
-                    {/* Composite Impact */}
-                    <div className="bg-teal-700 rounded-xl p-4">
-                      <p className="text-xs text-teal-200 font-semibold uppercase tracking-wide mb-2">Total Score Impact</p>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">+{totalGainY1.toFixed(1)}</span>
-                        <span className="text-sm text-teal-200">pts</span>
-                      </div>
-                      <p className="text-xs text-teal-300 mt-1">+{incrementalY1.toFixed(1)} beyond near-term</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-8">
-                  {/* Two-Track Explanation - Visual Cards */}
-                  <div className="mb-6 grid grid-cols-2 gap-4">
-                    {/* Accelerate Card */}
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                      <div className="px-4 py-3 bg-slate-50 grid grid-cols-2 gap-3 text-center">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-700">Implement</p>
+                          <p className="text-xs text-slate-500">Planning → Offering</p>
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800 text-base">Accelerate</p>
-                          <p className="text-xs text-slate-500">Move in-flight work forward</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Planning</span>
-                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                          <span className="px-2 py-1 bg-teal-600 text-white rounded font-medium text-xs">Offering</span>
-                          <span className="text-slate-500 text-xs ml-2">Complete implementation</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Assessing</span>
-                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                          <span className="px-2 py-1 bg-slate-500 text-white rounded font-medium text-xs">Planning</span>
-                          <span className="text-slate-500 text-xs ml-2">Begin active development</span>
+                          <p className="text-sm font-semibold text-slate-700">Active Planning</p>
+                          <p className="text-xs text-slate-500">Assessing → Planning</p>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Build Card */}
-                    <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-teal-700 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-indigo-700 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                          <span className="font-semibold text-white">BUILD</span>
+                          <span className="text-indigo-200 text-sm">(introduces net-new capabilities)</span>
+                        </div>
+                        <span className="bg-white/20 text-white text-sm font-bold px-2 py-0.5 rounded">{totalBuild}</span>
+                      </div>
+                      <div className="px-4 py-3 bg-indigo-50 grid grid-cols-2 gap-3 text-center">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-700">Stand Up</p>
+                          <p className="text-xs text-slate-500">Not Offered → Offering</p>
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800 text-base">Build</p>
-                          <p className="text-xs text-slate-500">Introduce new support elements</p>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Not Offered</span>
-                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                          <span className="px-2 py-1 bg-teal-600 text-white rounded font-medium text-xs">Offering</span>
-                          <span className="text-slate-500 text-xs ml-2">Full implementation</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded font-medium text-xs">Not Offered</span>
-                          <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                          <span className="px-2 py-1 bg-slate-500 text-white rounded font-medium text-xs">Planning</span>
-                          <span className="text-slate-500 text-xs ml-2">Begin development</span>
+                          <p className="text-sm font-semibold text-slate-700">Design + Scope</p>
+                          <p className="text-xs text-slate-500">Not Offered → Planning</p>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Priority Cards */}
+                  {/* Year 1 Roadmap & Impact Summary - Header style boxes */}
+                  <div className="mb-6 grid grid-cols-2 gap-4">
+                    {/* Roadmap Card - Header style */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-slate-700 flex items-center gap-3">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        <span className="font-semibold text-white">YEAR 1 ROADMAP</span>
+                      </div>
+                      <div className="px-4 py-3 bg-slate-50">
+                        <p className="text-sm text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
+                        <p className="text-xs text-slate-500 mt-1">Prioritized by impact on overall composite score and implementation readiness</p>
+                      </div>
+                    </div>
+                    
+                    {/* Impact Card - Header style */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2.5 bg-amber-600 text-center">
+                        <span className="font-semibold text-white">IMPACT ON OVERALL COMPOSITE SCORE</span>
+                      </div>
+                      <div className="px-4 py-3 bg-white">
+                        <div className="flex items-center justify-center gap-8">
+                          <div className="text-center">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Current Score</p>
+                            <p className="text-2xl font-bold text-slate-500">{compositeScore || '--'}</p>
+                          </div>
+                          <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          <div className="text-center">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Projected Year 1</p>
+                            <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
+                          </div>
+                          <div className="pl-6 border-l border-slate-200 text-center">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Gain</p>
+                            <p className="text-2xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Priority Dimension Cards */}
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
-                      // Calculate totals for display
-                      const accelTotal = r.accelerateToOffering12 + r.accelerateToPlanning12;
-                      const buildTotal = r.buildToOffering12 + r.buildToPlanning12;
+                      const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
+                      const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
+                      const buildCount = r.buildToOffering12 + r.buildToPlanning12;
+                      const colors = dimColors[idx];
                       
                       return (
-                      <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${
-                        idx === 0 ? 'border-2 border-teal-500 shadow-md' : 
-                        idx === 1 ? 'border-2 border-teal-400' : 
-                        'border-slate-200'
-                      }`}>
-                        {/* Dimension Header */}
-                        <div className={`px-5 py-3 flex items-center justify-between ${
-                          idx === 0 ? 'bg-teal-600' : 
-                          idx === 1 ? 'bg-teal-500' : 
-                          'bg-slate-100'
-                        }`}>
+                      <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        {/* Header */}
+                        <div className={`px-5 py-3 flex items-center justify-between ${colors.bg}`}>
                           <div className="flex items-center gap-3">
-                            <span className={`text-2xl font-black ${idx < 2 ? 'text-white' : 'text-slate-400'}`}>
-                              {idx + 1}
-                            </span>
-                            <h4 className={`font-bold text-lg ${idx < 2 ? 'text-white' : 'text-slate-800'}`}>
-                              {r.dimName}
-                            </h4>
+                            <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
+                            <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
                           </div>
-                          
-                          {/* Score Progression */}
-                          <div className={`flex items-center gap-4 px-4 py-2 rounded-lg ${idx < 2 ? 'bg-white/20' : 'bg-white border border-slate-200'}`}>
-                            <div className="text-center">
-                              <p className={`text-[10px] font-medium uppercase ${idx < 2 ? 'text-white/70' : 'text-slate-500'}`}>Current</p>
-                              <p className={`text-xl font-bold ${idx < 2 ? 'text-white' : ''}`} style={idx >= 2 ? { color: getScoreColor(r.currentScore) } : {}}>{r.currentScore}</p>
-                            </div>
-                            <svg className={`w-4 h-4 ${idx < 2 ? 'text-white/50' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                            <div className="text-center">
-                              <p className={`text-[10px] font-medium uppercase ${idx < 2 ? 'text-white/70' : 'text-slate-500'}`}>Near-term</p>
-                              <p className={`text-xl font-bold ${idx < 2 ? 'text-white' : 'text-slate-600'}`}>{r.projectedScore}</p>
-                            </div>
-                            <svg className={`w-4 h-4 ${idx < 2 ? 'text-white/50' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                            <div className="text-center">
-                              <p className={`text-[10px] font-semibold uppercase ${idx < 2 ? 'text-teal-200' : 'text-teal-600'}`}>Long-term</p>
-                              <p className={`text-xl font-bold ${idx < 2 ? 'text-white' : 'text-teal-700'}`}>{r.projectedScore12}</p>
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-white/90 text-sm">Contribution to Projected Composite Score:</span>
+                            <span className="text-white text-lg font-bold">+{r.potentialGain12}</span>
                           </div>
                         </div>
                         
-                        {/* Content */}
-                        <div className="p-5 bg-white">
-                          <div className="grid grid-cols-2 gap-6">
-                            {/* Accelerate Column */}
-                            <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center">
-                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        {/* Content - 3 columns with better proportions */}
+                        <div className={`p-4 ${colors.light}`}>
+                          <div className="grid grid-cols-12 gap-4">
+                            {/* ACCELERATE - wider */}
+                            <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                 </div>
-                                <span className="font-bold text-slate-800 text-sm uppercase tracking-wide">Accelerate</span>
-                                <span className="text-xs text-slate-500">({accelTotal} in-flight elements)</span>
+                                <span className="font-semibold text-slate-700">Accelerate ({accelCount})</span>
                               </div>
-                              
-                              <div className="space-y-2 pl-8">
-                                {r.accelerateToOffering12 > 0 && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-700">Move <span className="font-semibold">{r.accelerateToOffering12}</span> from</span>
-                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium">Planning</span>
-                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                    <span className="px-1.5 py-0.5 bg-teal-600 text-white rounded text-xs font-medium">Offering</span>
-                                  </div>
-                                )}
-                                {r.accelerateToPlanning12 > 0 && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-700">Move <span className="font-semibold">{r.accelerateToPlanning12}</span> from</span>
-                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-xs font-medium">Assessing</span>
-                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                    <span className="px-1.5 py-0.5 bg-slate-500 text-white rounded text-xs font-medium">Planning</span>
-                                  </div>
-                                )}
-                                {accelTotal === 0 && (
-                                  <p className="text-sm text-slate-500 italic">No elements currently in progress</p>
-                                )}
-                              </div>
+                              {accelerateItems.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {accelerateItems.map((item, i) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-amber-500"></span>
+                                      <span>{item.name} <span className="font-semibold text-slate-500">({item.to === 'Offering' ? 'Implement' : 'Active Planning'})</span></span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-sm text-slate-400 italic">No in-flight elements</p>
+                              )}
                             </div>
                             
-                            {/* Build Column */}
-                            <div>
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded bg-teal-700 flex items-center justify-center">
-                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                            {/* BUILD - wider */}
+                            <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <div className="w-7 h-7 rounded-lg bg-indigo-700 flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                 </div>
-                                <span className="font-bold text-slate-800 text-sm uppercase tracking-wide">Build</span>
-                                <span className="text-xs text-slate-500">({buildTotal} new elements)</span>
+                                <span className="font-semibold text-slate-700">Build ({buildCount})</span>
                               </div>
-                              
-                              <div className="space-y-2 pl-8">
-                                {r.buildToOffering12 > 0 && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-700">Introduce <span className="font-semibold">{r.buildToOffering12}</span> new to</span>
-                                    <span className="px-1.5 py-0.5 bg-teal-600 text-white rounded text-xs font-medium">Offering</span>
-                                  </div>
-                                )}
-                                {r.buildToPlanning12 > 0 && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-slate-700">Introduce <span className="font-semibold">{r.buildToPlanning12}</span> new to</span>
-                                    <span className="px-1.5 py-0.5 bg-slate-500 text-white rounded text-xs font-medium">Planning</span>
-                                  </div>
-                                )}
-                                {buildTotal === 0 && (
-                                  <p className="text-sm text-slate-500 italic">Focus on accelerating existing work</p>
-                                )}
+                              {buildItems.length > 0 ? (
+                                <ul className="space-y-2">
+                                  {buildItems.map((item, i) => (
+                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                      <span className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0 bg-indigo-500"></span>
+                                      <span>{item.name} <span className="font-semibold text-slate-500">({item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'})</span></span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
+                              )}
+                            </div>
+                            
+                            {/* DIMENSION SCORE - polished with consistent spacing */}
+                            <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-4">Dimension Score</p>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-slate-500">Current Score:</span>
+                                  <span className="text-xl font-bold text-slate-400">{r.currentScore}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm text-slate-500">Projected Year 1:</span>
+                                  <span className="text-xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                </div>
+                                <div className={`flex items-center justify-between px-3 py-2 rounded-lg bg-slate-100`}>
+                                  <span className="text-sm font-medium text-slate-600">Year 1 Gain:</span>
+                                  <span className={`text-xl font-bold ${colors.accent}`}>+{r.dimPotentialGain12}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          
-                          {/* Impact Summary */}
-                          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                            <p className="text-sm text-slate-600">
-                              <span className="font-medium">Dimension impact:</span> +{r.dimPotentialGain12} pts ({r.headroomPct12}% of remaining headroom)
-                              <span className="mx-3 text-slate-300">|</span>
-                              <span className="font-medium">Overall impact:</span> +{r.potentialGain12} composite pts
-                            </p>
-                            <p className="text-xs text-slate-500 italic">Work with Cancer and Careers to prioritize specific elements</p>
                           </div>
                         </div>
                       </div>
@@ -6774,20 +6716,16 @@ export default function ExportReportPage() {
                     })}
                   </div>
                   
-                  {/* Footer */}
-                  <div className="mt-6 pt-4 border-t border-slate-200">
-                    <p className="text-sm text-slate-600 text-center">
-                      Projections based on systematic advancement of support elements through the maturity stages. 
-                      Near-term estimates reflect quick wins; long-term estimates assume sustained organizational commitment.
-                    </p>
-                  </div>
+                  <p className="text-xs text-slate-400 mt-5 text-center">
+                    Projections assume sustained execution; actual results vary based on feasibility.
+                  </p>
                 </div>
               </div>
             );
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -6841,7 +6779,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -6892,7 +6830,7 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -6939,7 +6877,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" data-export="appendix-start">
+          <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
             {/* Header with visual interest */}
             <div className="px-10 py-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
               <div className="absolute inset-0 opacity-5">
@@ -7275,7 +7213,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {strategicPriorityDims.map((d, idx) => {
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
@@ -7603,7 +7541,7 @@ export default function ExportReportPage() {
           
           {/* Additional Analyzed Dimensions */}
           {additionalAnalyzedDims.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
               <div className="px-10 py-4 bg-slate-600 border-b border-slate-500">
                 <h3 className="font-bold text-white text-lg">Additional Dimension Analysis</h3>
               </div>
@@ -7836,7 +7774,7 @@ export default function ExportReportPage() {
           )}
           
           {/* Analyze Another Dimension Button */}
-          <div className="max-w-[1200px] mx-auto mb-8">
+          <div className="max-w-[1280px] mx-auto mb-8">
             <div className="relative">
               <button
                 onClick={() => setShowDimSelector(!showDimSelector)}
@@ -7904,7 +7842,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -8085,7 +8023,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
-          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Header - Clean white/cream with full logo */}
             <div className="px-10 py-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
               <div className="absolute inset-0 opacity-5">
@@ -8262,7 +8200,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
