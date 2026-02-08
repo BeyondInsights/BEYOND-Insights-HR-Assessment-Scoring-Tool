@@ -664,97 +664,41 @@ function getTwoStepRoadmap(
   return { quickWin, strategicLift };
 }
 
-// Generate smart action bullets for Impact-Ranked Priorities
-// Uses peer adoption data to prioritize highest-value actions
-function generateSmartActionBullets(
+function getActionItemsByAdoption(
   dimNum: number,
   dimensionAnalysis: any[],
-  elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>
-): { label: string; text: string; type: 'accelerate' | 'build' }[] {
+  elementBenchmarks: Record<number, Record<string, { currently: number; total: number }>>
+): {
+  accelerateItems: { name: string; adoptionPct: number; fromStatus: string }[];
+  buildItems: { name: string; adoptionPct: number }[];
+} {
   const dim = dimensionAnalysis.find(d => d.dim === dimNum);
-  if (!dim) return [];
-  
+  if (!dim) return { accelerateItems: [], buildItems: [] };
   const benchmarks = elementBenchmarks[dimNum] || {};
-  const bullets: { label: string; text: string; type: 'accelerate' | 'build' }[] = [];
-  
-  // Get elements with peer adoption rates, sorted by highest adoption
-  const getWithAdoption = (elements: any[]) => {
-    if (!elements || !Array.isArray(elements)) return [];
-    return elements.map(el => {
-      const bench = benchmarks[el.name] || { currently: 0, total: 1 };
-      const adoptionPct = Math.round((bench.currently / Math.max(bench.total, 1)) * 100);
-      return { ...el, adoptionPct };
-    }).sort((a, b) => b.adoptionPct - a.adoptionPct);
+  const getAdoptionPct = (name: string) => {
+    const bench = benchmarks[name] || { currently: 0, total: 1 };
+    return Math.round((bench.currently / Math.max(bench.total, 1)) * 100);
   };
-  
-  const planningWithAdoption = getWithAdoption(dim.planning || []);
-  const assessingWithAdoption = getWithAdoption(dim.assessing || []);
-  const gapsWithAdoption = getWithAdoption(dim.gaps || []);
-  
-  const usedNames: string[] = [];
-  
-  // Bullet 1: ACCELERATE (90-day) - from planning or assessing
-  if (planningWithAdoption.length > 0) {
-    const item = planningWithAdoption[0];
-    usedNames.push(item.name);
-    bullets.push({
-      label: '90-day',
-      text: `Launch ${item.name}`,
-      type: 'accelerate'
-    });
-  } else if (assessingWithAdoption.length > 0) {
-    const item = assessingWithAdoption[0];
-    usedNames.push(item.name);
-    bullets.push({
-      label: '90-day',
-      text: `Move ${item.name} into active planning`,
-      type: 'accelerate'
-    });
-  } else if (gapsWithAdoption.length > 0) {
-    const item = gapsWithAdoption[0];
-    usedNames.push(item.name);
-    bullets.push({
-      label: '90-day',
-      text: `Start scoping ${item.name}`,
-      type: 'accelerate'
+  const accelerateItems: { name: string; adoptionPct: number; fromStatus: string }[] = [];
+  if (dim.planning && Array.isArray(dim.planning)) {
+    dim.planning.forEach((el: any) => {
+      accelerateItems.push({ name: el.name, adoptionPct: getAdoptionPct(el.name), fromStatus: 'Planning' });
     });
   }
-  
-  // Bullet 2: BUILD (Year-1) - from gaps, preferring high peer adoption
-  const availableGaps = gapsWithAdoption.filter(g => !usedNames.includes(g.name));
-  
-  if (availableGaps.length > 0) {
-    const item = availableGaps[0];
-    usedNames.push(item.name);
-    const adoptionNote = item.adoptionPct >= 50 ? ` (${item.adoptionPct}% of peers offer)` : '';
-    bullets.push({
-      label: 'Year-1',
-      text: `Implement ${item.name}${adoptionNote}`,
-      type: 'build'
-    });
-  } else if (assessingWithAdoption.length > 1) {
-    const item = assessingWithAdoption.find(a => !usedNames.includes(a.name));
-    if (item) {
-      usedNames.push(item.name);
-      bullets.push({
-        label: 'Year-1',
-        text: `Advance ${item.name} to offering`,
-        type: 'build'
-      });
-    }
-  }
-  
-  // Bullet 3: Additional BUILD if we have room and high-value gaps
-  const remainingGaps = gapsWithAdoption.filter(g => !usedNames.includes(g.name));
-  if (bullets.length < 3 && remainingGaps.length > 0 && remainingGaps[0].adoptionPct >= 40) {
-    bullets.push({
-      label: 'Year-1',
-      text: `Add ${remainingGaps[0].name}`,
-      type: 'build'
+  if (dim.assessing && Array.isArray(dim.assessing)) {
+    dim.assessing.forEach((el: any) => {
+      accelerateItems.push({ name: el.name, adoptionPct: getAdoptionPct(el.name), fromStatus: 'Assessing' });
     });
   }
-  
-  return bullets.slice(0, 3);
+  accelerateItems.sort((a, b) => b.adoptionPct - a.adoptionPct);
+  const buildItems: { name: string; adoptionPct: number }[] = [];
+  if (dim.gaps && Array.isArray(dim.gaps)) {
+    dim.gaps.forEach((el: any) => {
+      buildItems.push({ name: el.name, adoptionPct: getAdoptionPct(el.name) });
+    });
+  }
+  buildItems.sort((a, b) => b.adoptionPct - a.adoptionPct);
+  return { accelerateItems, buildItems };
 }
 
 function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
@@ -2720,6 +2664,7 @@ export default function ExportReportPage() {
   const presenterNotesWindowRef = useRef<Window | null>(null);
   const [presenterNotesOpen, setPresenterNotesOpen] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [expandedPriorityActions, setExpandedPriorityActions] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -6522,289 +6467,321 @@ export default function ExportReportPage() {
             </div>
           )}
           
-          {/* ============ IMPACT-RANKED IMPROVEMENT PRIORITIES ============ */}
+          {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
-            // Calculate totals for hero banner
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
             const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
             const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
             
-            // Calculate gap to next tier
-            const nextTierThreshold = (compositeScore || 0) >= 90 ? 100 : 
-                                      (compositeScore || 0) >= 75 ? 90 : 
-                                      (compositeScore || 0) >= 60 ? 75 : 
-                                      (compositeScore || 0) >= 40 ? 60 : 40;
-            const nextTierName = (compositeScore || 0) >= 90 ? 'Perfect' : 
-                                 (compositeScore || 0) >= 75 ? 'Exemplary' : 
-                                 (compositeScore || 0) >= 60 ? 'Leading' : 
-                                 (compositeScore || 0) >= 40 ? 'Progressing' : 'Emerging';
-            const gapToNextTier = Math.round((nextTierThreshold - (compositeScore || 0)) * 10) / 10;
-            const gapClosurePct = gapToNextTier > 0 ? Math.round((totalGainY1 / gapToNextTier) * 100) : 100;
-            
-            // Count quick wins vs foundation builds
-            const quickWinCount = rankings.slice(0, 5).filter(r => r.effortTag === 'quick-win').length;
-            const foundationCount = 5 - quickWinCount;
-            
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                
-                {/* ========== LAYER 1: HERO BANNER ========== */}
-                <div className="relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800" />
-                  <div className="absolute inset-0 opacity-[0.03]" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                  }} />
-                  
-                  <div className="relative px-8 py-8">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                      </div>
-                      <span className="text-amber-400 text-sm font-semibold uppercase tracking-wider">Strategic Roadmap</span>
+                {/* Header */}
+                <div className="px-8 py-6 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                      <p className="text-slate-300 mt-2 text-base max-w-2xl leading-relaxed">
+                        Strategic roadmap for Year 1. Focus on these top dimensions and identify specific support elements to advance—either <span className="font-semibold text-white">accelerating</span> in-flight work or <span className="font-semibold text-white">building</span> new capabilities.
+                      </p>
+                      <p className="text-slate-400 mt-2 text-sm">Work with Cancer and Careers to prioritize specific elements within each dimension.</p>
                     </div>
-                    
-                    <h3 className="text-white text-3xl font-bold tracking-tight mb-3 max-w-3xl leading-tight">
-                      Year-1 Focus: Close <span className="text-amber-400">~{gapClosurePct}%</span> of the gap to {nextTierName} with 5 strategic priorities
-                    </h3>
-                    
-                    <p className="text-slate-300 text-base max-w-2xl mb-6 leading-relaxed">
-                      These dimensions offer the highest return on investment based on your current position, impact weights, and implementation readiness. Each priority includes specific elements to advance—prioritized by what peer organizations are already offering.
-                    </p>
-                    
-                    <div className="flex flex-wrap gap-3">
-                      <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                        <span className="text-slate-400 text-sm">Gap to {nextTierName}:</span>
-                        <span className="text-white font-bold text-lg">{gapToNextTier} pts</span>
-                      </div>
-                      <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                        <span className="text-slate-400 text-sm">Top 5 Year-1 Impact:</span>
-                        <span className="text-amber-400 font-bold text-lg">+{totalGainY1.toFixed(1)} pts</span>
-                      </div>
-                      <div className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20">
-                        <span className="text-slate-400 text-sm">Projected Score:</span>
-                        <span className="text-emerald-400 font-bold text-lg">{compositeScore || '--'} → {projectedCompositeY1}</span>
-                      </div>
-                    </div>
-                    
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
-                      className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors border border-white/20"
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       How It Works
                     </button>
                   </div>
                 </div>
                 
-                {/* ========== LAYER 2: PRIORITY CARDS ========== */}
-                <div className="p-6 bg-slate-50">
-                  <div className="space-y-4">
-                    {rankings.slice(0, 5).map((r, idx) => {
-                      const smartBullets = generateSmartActionBullets(r.dimNum, dimensionAnalysis, elementBenchmarks);
-                      const isQuickWin = r.effortTag === 'quick-win';
-                      const incrementalY1 = Math.round((r.potentialGain12 - r.potentialGain) * 10) / 10;
-                      
-                      return (
-                        <div 
-                          key={r.dimNum} 
-                          className={`bg-white rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg ${
-                            idx === 0 ? 'border-amber-400 shadow-md' : 
-                            idx === 1 ? 'border-slate-300' : 
-                            'border-slate-200'
-                          }`}
-                        >
-                          <div className={`px-6 py-4 flex items-center justify-between ${
-                            idx === 0 ? 'bg-gradient-to-r from-amber-500 to-orange-500' : 
-                            idx === 1 ? 'bg-slate-700' : 
-                            'bg-slate-100'
-                          }`}>
-                            <div className="flex items-center gap-4">
-                              <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl font-black shadow-sm ${
-                                idx === 0 ? 'bg-white text-amber-600' : 
-                                idx === 1 ? 'bg-white/20 text-white' : 
-                                'bg-white text-slate-600 border border-slate-200'
-                              }`}>
-                                {idx + 1}
-                              </div>
-                              <div>
-                                <h4 className={`font-bold text-lg ${idx < 2 ? 'text-white' : 'text-slate-800'}`}>
-                                  {r.dimName}
-                                </h4>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className={`text-sm ${idx < 2 ? 'text-white/80' : 'text-slate-500'}`}>
-                                    Current: <span className="font-semibold">{r.currentScore}</span> ({r.tier})
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                            <div className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide flex items-center gap-1.5 ${
-                              isQuickWin 
-                                ? idx < 2 ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-700 border border-emerald-200'
-                                : idx < 2 ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600 border border-slate-300'
-                            }`}>
-                              {isQuickWin ? (
-                                <>
-                                  <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                                  </svg>
-                                  Quick Win
-                                </>
-                              ) : (
-                                <>
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                  </svg>
-                                  Foundation Build
-                                </>
-                              )}
-                            </div>
+                <div className="p-6">
+                  {/* Accelerate & Build Explanation Cards */}
+                  <div className="mb-6 grid grid-cols-2 gap-4">
+                    {/* Accelerate Card */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-5 py-3 bg-slate-700">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                           </div>
-                          
-                          <div className="grid grid-cols-5 divide-x divide-slate-200">
-                            <div className="col-span-3 p-6">
-                              <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                                </svg>
-                                Priority Actions
-                              </h5>
-                              <div className="space-y-3">
-                                {smartBullets.length > 0 ? smartBullets.map((bullet, bIdx) => (
-                                  <div key={bIdx} className="flex items-start gap-3">
-                                    <span className={`flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${
-                                      bullet.type === 'accelerate' 
-                                        ? 'bg-amber-100 text-amber-700 border border-amber-200' 
-                                        : 'bg-slate-100 text-slate-600 border border-slate-200'
-                                    }`}>
-                                      {bullet.label}
-                                    </span>
-                                    <span className="text-sm text-slate-700 leading-relaxed">{bullet.text}</span>
-                                  </div>
-                                )) : (
-                                  <p className="text-sm text-slate-500 italic">Strengthen documentation and communication of existing programs</p>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="col-span-2 p-6 bg-slate-50/50">
-                              <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                                </svg>
-                                Impact
-                              </h5>
-                              <div className="mb-4 p-3 bg-white rounded-lg border border-slate-200">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs text-slate-500 font-medium">Dimension Score</span>
-                                  <span className="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{r.headroomPct12}% headroom captured</span>
-                                </div>
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-xl font-bold text-slate-400">{r.currentScore}</span>
-                                  <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                  </svg>
-                                  <span className="text-xl font-bold text-slate-800">{r.projectedScore12}</span>
-                                  <span className="text-sm font-bold text-emerald-600 ml-auto">+{r.dimPotentialGain12}</span>
-                                </div>
-                              </div>
-                              <div className="p-3 bg-slate-800 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs text-slate-400 font-medium">Composite Impact</span>
-                                </div>
-                                <div className="space-y-1.5">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-slate-400">90-day</span>
-                                    <span className="text-sm font-bold text-white">+{r.potentialGain}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-slate-300 font-medium">Year-1</span>
-                                    <span className="text-sm font-bold text-amber-400">+{r.potentialGain12}</span>
-                                  </div>
-                                  {incrementalY1 > 0 && (
-                                    <div className="flex items-center justify-between pt-1.5 border-t border-slate-700">
-                                      <span className="text-[10px] text-slate-500">Additional beyond 90-day</span>
-                                      <span className="text-xs text-slate-400">+{incrementalY1}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                          <div>
+                            <p className="font-bold text-white text-sm">ACCELERATE</p>
+                            <p className="text-slate-300 text-xs">Advance in-flight support elements</p>
                           </div>
-                          
-                          {editMode && (
-                            <div className="px-6 py-3 bg-amber-50 border-t border-amber-200">
-                              <input
-                                type="text"
-                                value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
-                                onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                className="w-full text-sm text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                placeholder="Custom recommendations..."
-                              />
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                
-                {/* ========== LAYER 3: IMPLEMENTATION MIX RIBBON ========== */}
-                <div className="px-6 pb-6 bg-slate-50">
-                  <div className="bg-white rounded-xl border border-slate-200 p-5">
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-slate-800">Implementation Mix</h4>
-                          <p className="text-sm text-slate-500">Balance of effort types across your top 5 priorities</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3">
+                      <div className="px-5 py-4 bg-slate-50 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Complete Implementation</p>
                           <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                              <svg className="w-5 h-5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                              </svg>
-                            </div>
-                            <div>
-                              <p className="text-2xl font-bold text-slate-800">{quickWinCount}</p>
-                              <p className="text-xs text-slate-500 font-medium">Quick Wins</p>
-                            </div>
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-slate-700 text-white rounded text-xs font-semibold">Offering</span>
                           </div>
-                          <p className="text-xs text-slate-400 max-w-[120px] leading-tight hidden lg:block">0-90 days: accelerate in-flight work</p>
                         </div>
-                        <div className="w-px h-12 bg-slate-200" />
-                        <div className="flex items-center gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Begin Development</p>
                           <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center">
-                              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                              </svg>
-                            </div>
-                            <div>
-                              <p className="text-2xl font-bold text-slate-800">{foundationCount}</p>
-                              <p className="text-xs text-slate-500 font-medium">Foundation Builds</p>
-                            </div>
+                            <span className="px-2.5 py-1 bg-slate-200 text-slate-700 rounded text-xs font-semibold border border-slate-300">Assessing</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
                           </div>
-                          <p className="text-xs text-slate-400 max-w-[120px] leading-tight hidden lg:block">3-12 months: new capabilities</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Build Card */}
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-5 py-3 bg-slate-600">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                          </div>
+                          <div>
+                            <p className="font-bold text-white text-sm">BUILD</p>
+                            <p className="text-slate-300 text-xs">Introduce new support elements</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-5 py-4 bg-slate-50 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Full Implementation</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold border border-red-200">Not Offered</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-slate-700 text-white rounded text-xs font-semibold">Offering</span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Begin Development</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold border border-red-200">Not Offered</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="px-6 pb-6 bg-slate-50">
-                  <p className="text-xs text-slate-400 text-center">
-                    Projections based on systematic advancement of support elements. Action items prioritized by peer adoption rates. Work with Cancer and Careers to refine element-level priorities.
+                  
+                  {/* Year 1 Overall Impact Summary */}
+                  <div className="mb-6 p-5 bg-slate-800 rounded-xl">
+                    <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Year 1 Overall Impact</h4>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-2">Support Elements Advanced</p>
+                        <p className="text-white text-3xl font-black">{totalElementsY1} <span className="text-slate-400 text-base font-normal">elements</span></p>
+                        <p className="text-slate-500 text-xs mt-1">across top 5 dimensions</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-2">Year 1 Overall Score</p>
+                        <div className="flex items-baseline gap-3">
+                          <div>
+                            <p className="text-slate-500 text-[10px] uppercase">Current</p>
+                            <p className="text-slate-400 text-2xl font-bold">{compositeScore || '--'}</p>
+                          </div>
+                          <div>
+                            <p className="text-slate-500 text-[10px] uppercase">Year 1</p>
+                            <p className="text-white text-2xl font-bold">{projectedCompositeY1}</p>
+                          </div>
+                          <div className="ml-2 px-3 py-1 bg-white/10 rounded-lg">
+                            <p className="text-white text-lg font-bold">+{totalGainY1.toFixed(1)} <span className="text-sm font-normal">pts</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Priority Dimension Cards */}
+                  <div className="space-y-4">
+                    {rankings.slice(0, 5).map((r, idx) => {
+                      const accelTotal = r.accelerateToOffering12 + r.accelerateToPlanning12;
+                      const buildTotal = r.buildToOffering12 + r.buildToPlanning12;
+                      const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
+                      const expanded = expandedPriorityActions[r.dimNum] || { accel: false, build: false };
+                      
+                      return (
+                      <div key={r.dimNum} className={`rounded-xl border overflow-hidden ${
+                        idx === 0 ? 'border-2 border-slate-400 shadow-md' : 
+                        idx === 1 ? 'border-2 border-slate-300' : 
+                        'border-slate-200'
+                      }`}>
+                        {/* Dimension Header */}
+                        <div className={`px-5 py-3 flex items-center justify-between ${
+                          idx === 0 ? 'bg-slate-700' : 
+                          idx === 1 ? 'bg-slate-600' : 
+                          'bg-slate-100'
+                        }`}>
+                          <div className="flex items-center gap-3">
+                            <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg font-black ${
+                              idx < 2 ? 'bg-white/20 text-white' : 'bg-slate-300 text-slate-600'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                            <h4 className={`font-bold text-base ${idx < 2 ? 'text-white' : 'text-slate-800'}`}>{r.dimName}</h4>
+                          </div>
+                          {/* Quick Win / Foundation Build tag */}
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${
+                            r.effortTag === 'quick-win' 
+                              ? idx < 2 ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-700 border border-teal-200'
+                              : idx < 2 ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                          }`}>
+                            {r.effortTag === 'quick-win' ? (
+                              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>Quick Win</>
+                            ) : (
+                              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>Foundation Build</>
+                            )}
+                          </span>
+                        </div>
+                        
+                        {/* Content - Two Columns */}
+                        <div className="grid grid-cols-2 divide-x divide-slate-200">
+                          {/* Left: Dimension Action Plan */}
+                          <div className="p-5 bg-white">
+                            <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4">Dimension Action Plan</h5>
+                            
+                            {/* Accelerate Section */}
+                            <div className="mb-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <span className="text-sm font-bold text-slate-700">ACCELERATE</span>
+                                <span className="text-xs text-slate-500">({accelTotal} in-flight)</span>
+                              </div>
+                              
+                              <div className="pl-7 space-y-1.5">
+                                {accelerateItems.length > 0 ? (
+                                  <>
+                                    {accelerateItems.slice(0, expanded.accel ? accelerateItems.length : 2).map((item, i) => (
+                                      <p key={i} className="text-sm text-slate-700">
+                                        <span className="text-slate-400 mr-1">•</span>
+                                        {item.fromStatus === 'Planning' ? 'Complete: ' : 'Advance: '}
+                                        <span className="font-medium">{item.name}</span>
+                                        {item.adoptionPct >= 50 && <span className="text-slate-400 text-xs ml-1">({item.adoptionPct}% of peers)</span>}
+                                      </p>
+                                    ))}
+                                    {accelerateItems.length > 2 && !expanded.accel && (
+                                      <button 
+                                        onClick={() => setExpandedPriorityActions(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: true } }))} 
+                                        className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+                                      >
+                                        +{accelerateItems.length - 2} more
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-slate-500 italic">No elements currently in progress</p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Build Section */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded bg-slate-600 flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                </div>
+                                <span className="text-sm font-bold text-slate-700">BUILD</span>
+                                <span className="text-xs text-slate-500">({buildTotal} new)</span>
+                              </div>
+                              
+                              <div className="pl-7 space-y-1.5">
+                                {buildItems.length > 0 ? (
+                                  <>
+                                    {buildItems.slice(0, expanded.build ? buildItems.length : 2).map((item, i) => (
+                                      <p key={i} className="text-sm text-slate-700">
+                                        <span className="text-slate-400 mr-1">•</span>
+                                        Implement: <span className="font-medium">{item.name}</span>
+                                        {item.adoptionPct >= 50 && <span className="text-slate-400 text-xs ml-1">({item.adoptionPct}% of peers)</span>}
+                                      </p>
+                                    ))}
+                                    {buildItems.length > 2 && !expanded.build && (
+                                      <button 
+                                        onClick={() => setExpandedPriorityActions(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: true } }))} 
+                                        className="text-xs text-teal-600 hover:text-teal-700 font-medium"
+                                      >
+                                        +{buildItems.length - 2} more
+                                      </button>
+                                    )}
+                                  </>
+                                ) : (
+                                  <p className="text-sm text-slate-500 italic">Focus on accelerating existing work</p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Right: Impact */}
+                          <div className="p-5 bg-slate-50">
+                            <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4">Impact</h5>
+                            
+                            {/* Dimension Score Impact */}
+                            <div className="mb-4 p-3 bg-white rounded-lg border border-slate-200">
+                              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Dimension Score</p>
+                              <div className="flex items-baseline gap-3">
+                                <div>
+                                  <p className="text-[9px] text-slate-400 uppercase">Current</p>
+                                  <p className="text-xl font-bold text-slate-500">{r.currentScore}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[9px] text-slate-600 uppercase font-medium">Year 1</p>
+                                  <p className="text-xl font-bold text-slate-800">{r.projectedScore12}</p>
+                                </div>
+                                <div className="ml-auto text-right">
+                                  <p className="text-lg font-black text-slate-700">+{r.dimPotentialGain12}</p>
+                                  <p className="text-[10px] text-slate-500">{r.headroomPct12}% headroom</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Overall Score Impact */}
+                            <div className="p-3 bg-slate-700 rounded-lg">
+                              <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-wide mb-2">Overall Score Contribution</p>
+                              <div className="flex items-baseline gap-3">
+                                <div>
+                                  <p className="text-[9px] text-slate-400 uppercase">Current</p>
+                                  <p className="text-xl font-bold text-slate-400">{compositeScore || '--'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[9px] text-slate-300 uppercase font-medium">Year 1</p>
+                                  <p className="text-xl font-bold text-white">{(Math.round(((compositeScore || 0) + r.potentialGain12) * 10) / 10)}</p>
+                                </div>
+                                <div className="ml-auto text-right">
+                                  <p className="text-lg font-black text-white">+{r.potentialGain12}</p>
+                                  <p className="text-[10px] text-slate-400">composite pts</p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Assumption micro-copy */}
+                            <p className="text-[10px] text-slate-400 mt-3 text-center">
+                              Assumes {accelTotal} accelerated + {buildTotal} built
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Edit mode recommendations */}
+                        {editMode && (
+                          <div className="px-5 py-3 bg-amber-50 border-t border-amber-200">
+                            <input
+                              type="text"
+                              value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
+                              onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                              className="w-full text-sm text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                              placeholder="Custom recommendations..."
+                            />
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Footer */}
+                  <p className="text-xs text-slate-500 mt-5 text-center">
+                    Projections based on systematic advancement of support elements. Year 1 estimates assume sustained organizational commitment.
                   </p>
                 </div>
               </div>
@@ -10021,139 +9998,154 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 23: Impact-Ranked Priorities - matching polished report design */}
-                {currentSlide === 23 && (() => {
-                  const totalGainY1Pres = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-                  const projectedCompositePres = Math.round(((compositeScore || 0) + totalGainY1Pres) * 10) / 10;
-                  const nextTierThresholdPres = (compositeScore || 0) >= 90 ? 100 : 
-                                                (compositeScore || 0) >= 75 ? 90 : 
-                                                (compositeScore || 0) >= 60 ? 75 : 
-                                                (compositeScore || 0) >= 40 ? 60 : 40;
-                  const nextTierNamePres = (compositeScore || 0) >= 90 ? 'Perfect' : 
-                                           (compositeScore || 0) >= 75 ? 'Exemplary' : 
-                                           (compositeScore || 0) >= 60 ? 'Leading' : 
-                                           (compositeScore || 0) >= 40 ? 'Progressing' : 'Emerging';
-                  const gapToNextTierPres = Math.round((nextTierThresholdPres - (compositeScore || 0)) * 10) / 10;
-                  const gapClosurePctPres = gapToNextTierPres > 0 ? Math.round((totalGainY1Pres / gapToNextTierPres) * 100) : 100;
-                  const quickWinCountPres = rankings.slice(0, 5).filter(r => r.effortTag === 'quick-win').length;
-                  const foundationCountPres = 5 - quickWinCountPres;
-                  
-                  return (
+                {/* Slide 23: Impact-Ranked Priorities - exact match to report */}
+                {currentSlide === 23 && (
                   <div className="overflow-hidden">
-                    {/* Hero Header */}
-                    <div className="relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800" />
-                      <div className="absolute inset-0 opacity-[0.03]" style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                      }} />
-                      <div className="relative px-10 py-6">
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                          </div>
-                          <span className="text-amber-400 text-xs font-semibold uppercase tracking-wider">Strategic Roadmap</span>
+                    <div className="px-10 py-6 bg-gradient-to-r from-teal-600 via-teal-700 to-teal-800 relative overflow-hidden">
+                      <div className="absolute inset-0 opacity-10">
+                        <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                          <defs>
+                            <pattern id="impactGridPres" width="10" height="10" patternUnits="userSpaceOnUse">
+                              <circle cx="5" cy="5" r="1" fill="white"/>
+                            </pattern>
+                          </defs>
+                          <rect width="100%" height="100%" fill="url(#impactGridPres)" />
+                        </svg>
+                      </div>
+                      <div className="relative flex items-center justify-between">
+                        <div>
+                          <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                          <p className="text-teal-200 mt-1 text-base">Top opportunities ranked by potential score impact and readiness to improve</p>
                         </div>
-                        <h3 className="text-white text-2xl font-bold tracking-tight mb-2">
-                          Year-1 Focus: Close <span className="text-amber-400">~{gapClosurePctPres}%</span> of the gap to {nextTierNamePres}
-                        </h3>
-                        <div className="flex flex-wrap gap-3 mt-4">
-                          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg border border-white/20">
-                            <span className="text-slate-400 text-xs">Gap:</span>
-                            <span className="text-white font-bold">{gapToNextTierPres} pts</span>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg backdrop-blur">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Learn More
                           </div>
-                          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg border border-white/20">
-                            <span className="text-slate-400 text-xs">Top 5 Impact:</span>
-                            <span className="text-amber-400 font-bold">+{totalGainY1Pres.toFixed(1)} pts</span>
-                          </div>
-                          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-lg border border-white/20">
-                            <span className="text-slate-400 text-xs">Projected:</span>
-                            <span className="text-emerald-400 font-bold">{compositeScore || '--'} → {projectedCompositePres}</span>
+                          <div className="flex items-center gap-2 bg-white/10 backdrop-blur rounded-xl px-4 py-2">
+                            <svg className="w-5 h-5 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <span className="text-white font-semibold">Top 5 Priorities</span>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="p-6 bg-slate-50">
-                      {/* Implementation Mix Summary */}
-                      <div className="mb-4 flex items-center justify-between bg-white rounded-lg border border-slate-200 p-3">
-                        <span className="text-sm font-medium text-slate-700">Implementation Mix:</span>
-                        <div className="flex items-center gap-4">
+                    <div className="p-8">
+                      {/* Legend */}
+                      <div className="mb-5 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div className="flex flex-wrap items-start gap-6">
                           <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-sm"><span className="font-bold">{quickWinCountPres}</span> Quick Wins</span>
+                            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-teal-600 text-white">Quick Win</span>
+                            <span className="text-sm text-slate-600">Accelerate in-progress initiatives or activate existing resources</span>
                           </div>
-                          <div className="w-px h-4 bg-slate-200" />
                           <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span className="text-sm"><span className="font-bold">{foundationCountPres}</span> Foundation Builds</span>
+                            <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-600 text-white">Foundation Build</span>
+                            <span className="text-sm text-slate-600">Requires new programs, policies, or vendor partnerships</span>
                           </div>
                         </div>
                       </div>
                       
-                      {/* Priority Cards */}
-                      <div className="space-y-3">
+                      {/* Context: Distance to Next Tier & Combined Impact */}
+                      {pointsToNextTier !== null && nextTierUp && (
+                        <div className="mb-5 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl">
+                          <div className="flex flex-wrap items-center justify-between gap-4">
+                            <div className="flex items-center gap-2 text-sm text-emerald-900">
+                              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                              <span>You are <span className="font-bold text-emerald-700">{pointsToNextTier.toFixed(1)}</span> points from <span className="font-semibold" style={{ color: nextTierUp.color }}>{nextTierUp.name}</span> tier</span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm text-emerald-900">
+                              <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                              {(() => {
+                                const total12 = rankings.reduce((s, x) => s + (x.potentialGain12 ?? x.potentialGain), 0);
+                                const pct = Math.min(100, (total12 / pointsToNextTier) * 100);
+                                return (
+                                  <span>
+                                    <span className="font-semibold">Top 5 combined (Year 1):</span> <span className="font-bold text-teal-700">+{total12.toFixed(1)}</span> pts <span className="text-emerald-600">({Math.round(pct)}% of gap)</span>
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="space-y-4">
                         {rankings.slice(0, 5).map((r, idx) => {
-                          const smartBullets = generateSmartActionBullets(r.dimNum, dimensionAnalysis, elementBenchmarks);
-                          const isQuickWin = r.effortTag === 'quick-win';
-                          
-                          return (
-                          <div key={r.dimNum} className={`bg-white rounded-xl border-2 overflow-hidden ${
-                            idx === 0 ? 'border-amber-400' : 
-                            idx === 1 ? 'border-slate-300' : 
-                            'border-slate-200'
+                      const tag = getPriorityTag(r);
+                      return (
+                          <div key={r.dimNum} className={`relative rounded-xl border-2 overflow-hidden ${
+                            idx === 0 ? 'border-teal-400 bg-white' : 
+                            idx === 1 ? 'border-teal-300 bg-white' : 
+                            'border-slate-200 bg-white'
                           }`}>
                             <div className="flex items-stretch">
-                              {/* Rank */}
-                              <div className={`flex items-center justify-center w-14 text-2xl font-black ${
-                                idx === 0 ? 'bg-gradient-to-b from-amber-500 to-orange-500 text-white' : 
-                                idx === 1 ? 'bg-slate-700 text-white' : 
+                              {/* Priority Number */}
+                              <div className={`flex items-center justify-center w-20 text-3xl font-black ${
+                                idx === 0 ? 'bg-gradient-to-b from-teal-600 to-teal-700 text-white' : 
+                                idx === 1 ? 'bg-gradient-to-b from-teal-500 to-teal-600 text-white' : 
                                 'bg-slate-100 text-slate-400'
                               }`}>
                                 {idx + 1}
                               </div>
                               
                               {/* Content */}
-                              <div className="flex-1 p-4">
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <h4 className="font-bold text-slate-800">{r.dimName}</h4>
-                                      <span className="text-xs text-slate-500">({r.currentScore} → {r.projectedScore12})</span>
-                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                        isQuickWin ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'
+                              <div className="flex-1 p-5">
+                                <div className="flex items-start justify-between gap-6">
+                                  {/* Dimension Info */}
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-3 mb-2">
+                                      <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
+                                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1.5 ${
+                                        r.gapLevel === 'Few Gaps' ? 'bg-teal-100 text-teal-700 border border-teal-200' :
+                                        r.gapLevel === 'Some Gaps' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                        'bg-slate-100 text-slate-700 border border-slate-200'
                                       }`}>
-                                        {isQuickWin ? '⚡ Quick Win' : '🏗️ Foundation'}
+                                        {r.gapLevel === 'Few Gaps' ? (
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                        ) : r.gapLevel === 'Some Gaps' ? (
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01" /></svg>
+                                        ) : (
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                        )}
+                                        {r.gapLevel}
                                       </span>
+                                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${tag.className}`}>{tag.label}</span>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
-                                      {smartBullets.slice(0, 2).map((bullet, bIdx) => (
-                                        <span key={bIdx} className="inline-flex items-center gap-1.5 text-xs text-slate-600">
-                                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                                            bullet.type === 'accelerate' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
-                                          }`}>
-                                            {bullet.label}
-                                          </span>
-                                          <span className="truncate max-w-[200px]">{bullet.text}</span>
-                                        </span>
+                                    
+                                    {/* Recommendations */}
+                                    <div className="text-sm text-slate-600 space-y-1">
+                                      {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps and accelerating initiatives']).map((rec: string, i: number) => (
+                                        <p key={i} className="flex items-start gap-2">
+                                          <span className="text-teal-500 mt-0.5">→</span>
+                                          <span>{rec}</span>
+                                        </p>
                                       ))}
                                     </div>
                                   </div>
                                   
-                                  {/* Impact Metrics */}
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <div className="text-center px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200">
-                                      <p className="text-[10px] text-slate-400 uppercase">Dim</p>
-                                      <p className="text-lg font-bold text-emerald-600">+{r.dimPotentialGain12}</p>
+                                  {/* Metrics */}
+                                  <div className="flex items-center gap-3 flex-shrink-0">
+                                    {/* Current Score */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
+                                      <p className="text-xs text-slate-400 font-medium uppercase tracking-wide mb-1">Current</p>
+                                      <p className="text-2xl font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
+                                      <p className="text-xs text-slate-400">{r.tier}</p>
                                     </div>
-                                    <div className="text-center px-3 py-1.5 rounded-lg bg-slate-800">
-                                      <p className="text-[10px] text-slate-400 uppercase">Comp</p>
-                                      <p className="text-lg font-bold text-amber-400">+{r.potentialGain12}</p>
+                                    
+                                    {/* Arrow */}
+                                    <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    
+                                    {/* Dimension Impact */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
+                                      <p className="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Dim Impact</p>
+                                      <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain}</p>
+                                      <p className="text-[11px] text-blue-500 mt-0.5">{r.headroomPct}% of headroom</p>
+                                    </div>
+                                    
+                                    {/* Composite Impact */}
+                                    <div className="text-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-200">
+                                      <p className="text-xs text-emerald-600 font-medium uppercase tracking-wide mb-1">Composite</p>
+                                      <p className="text-xl font-bold text-emerald-600">+{r.potentialGain}</p>
+                                      <p className="text-[11px] text-emerald-500 mt-0.5">Year 1: +{r.potentialGain12}</p>
                                     </div>
                                   </div>
                                 </div>
@@ -10163,14 +10155,10 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
-                      
-                      <p className="text-xs text-slate-400 mt-4 text-center">
-                        Actions prioritized by peer adoption rates. Work with Cancer and Careers to refine element-level priorities.
-                      </p>
+                      <p className="text-xs text-slate-400 mt-6 text-center">Dim Impact = potential dimension score improvement (% of remaining headroom shown). Composite = impact on overall score. Year 1 estimates assume sustained focus.</p>
                     </div>
                   </div>
-                  );
-                })()}
+                )}
 
                 {/* Slide 24: Areas of Excellence - exact match to report */}
                 {currentSlide === 24 && (
