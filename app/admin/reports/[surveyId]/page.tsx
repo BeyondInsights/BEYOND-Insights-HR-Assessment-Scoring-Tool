@@ -4674,7 +4674,7 @@ export default function ExportReportPage() {
             
             {/* ============ CONFIRMATORY CHECKLIST ============ */}
             {unsureItems > 0 && (
-              <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1200px] mx-auto">
+              <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1280px] mx-auto">
                 <button 
                   onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
                   className="w-full flex items-center justify-between px-5 py-3 border-2 rounded-xl transition-all group"
@@ -5196,7 +5196,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ DIMENSION PERFORMANCE TABLE ============ */}
-          <div id="dimension-performance-table" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="dimension-performance-table" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Dark dramatic header */}
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
               <div className="absolute inset-0 opacity-10">
@@ -5305,7 +5305,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
@@ -6271,7 +6271,7 @@ export default function ExportReportPage() {
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
-            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               {/* Header with gradient and visual interest */}
               <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
@@ -6457,7 +6457,7 @@ export default function ExportReportPage() {
             ];
             
             return (
-              <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+              <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
                 {/* Header */}
                 <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-center justify-between">
@@ -6524,33 +6524,33 @@ export default function ExportReportPage() {
                   {/* Year 1 Roadmap Summary - Two separate cards */}
                   <div className="mb-6 grid grid-cols-2 gap-4">
                     {/* Roadmap Card */}
-                    <div className="p-5 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                    <div className="p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Year 1 Roadmap</p>
-                          <p className="text-lg text-slate-800">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Year 1 Roadmap</p>
+                          <p className="text-sm text-slate-700">Advance <span className="font-bold">{totalElementsY1}</span> support elements across <span className="font-bold">5</span> priority dimensions</p>
                         </div>
                       </div>
                     </div>
                     
                     {/* Impact Card */}
-                    <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
-                      <p className="text-xs text-slate-500 uppercase font-semibold mb-3 text-center">Impact on Overall Composite Score</p>
-                      <div className="flex items-center justify-center gap-6">
+                    <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                      <p className="text-xs text-slate-500 uppercase font-semibold mb-4 text-center">Impact on Overall Composite Score</p>
+                      <div className="flex items-center justify-center gap-8">
                         <div className="text-center">
-                          <p className="text-xs text-slate-400 uppercase mb-1">Current</p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Current Score</p>
                           <p className="text-2xl font-bold text-slate-500">{compositeScore || '--'}</p>
                         </div>
-                        <svg className="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         <div className="text-center">
-                          <p className="text-xs text-slate-400 uppercase mb-1">Year 1</p>
+                          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Projected Year 1 Score</p>
                           <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
                         </div>
-                        <div className="pl-4 border-l border-slate-200 text-center">
-                          <p className="text-xs text-slate-400 uppercase mb-1">Gain</p>
+                        <div className="pl-6 border-l border-slate-200 text-center">
+                          <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Gain</p>
                           <p className="text-2xl font-bold text-amber-600">+{totalGainY1.toFixed(1)}</p>
                         </div>
                       </div>
@@ -6626,22 +6626,20 @@ export default function ExportReportPage() {
                               )}
                             </div>
                             
-                            {/* DIMENSION SCORE - better styled */}
+                            {/* DIMENSION SCORE - 3 vertical rows */}
                             <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
-                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-4">Dimension Score</p>
-                              <div className="text-center">
-                                <div className="flex items-baseline justify-center gap-3 mb-2">
-                                  <div>
-                                    <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
-                                    <p className="text-[10px] text-slate-400 uppercase mt-0.5">Current</p>
-                                  </div>
-                                  <span className="text-slate-300 text-lg">→</span>
-                                  <div>
-                                    <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
-                                    <p className="text-[10px] text-slate-400 uppercase mt-0.5">Year 1</p>
-                                  </div>
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between px-2">
+                                  <span className="text-xs text-slate-500">Current Score:</span>
+                                  <span className="text-lg font-bold text-slate-400">{r.currentScore}</span>
                                 </div>
-                                <div className={`inline-block px-3 py-1 rounded-lg ${colors.light} border ${colors.bg.replace('bg-', 'border-').replace('700', '200')}`}>
+                                <div className="flex items-center justify-between px-2">
+                                  <span className="text-xs text-slate-500">Projected Year 1 Score:</span>
+                                  <span className="text-lg font-bold text-slate-800">{r.projectedScore12}</span>
+                                </div>
+                                <div className={`flex items-center justify-between px-3 py-1.5 rounded-lg ${colors.light}`}>
+                                  <span className="text-xs font-medium text-slate-600">Year 1 Gain:</span>
                                   <span className={`text-lg font-bold ${colors.accent}`}>+{r.dimPotentialGain12}</span>
                                 </div>
                               </div>
@@ -6662,7 +6660,7 @@ export default function ExportReportPage() {
           })()}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -6716,7 +6714,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -6767,7 +6765,7 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -6814,7 +6812,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
-          <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1200px] mx-auto" data-export="appendix-start">
+          <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
             {/* Header with visual interest */}
             <div className="px-10 py-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
               <div className="absolute inset-0 opacity-5">
@@ -7150,7 +7148,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {strategicPriorityDims.map((d, idx) => {
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
@@ -7478,7 +7476,7 @@ export default function ExportReportPage() {
           
           {/* Additional Analyzed Dimensions */}
           {additionalAnalyzedDims.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1200px] mx-auto">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
               <div className="px-10 py-4 bg-slate-600 border-b border-slate-500">
                 <h3 className="font-bold text-white text-lg">Additional Dimension Analysis</h3>
               </div>
@@ -7737,7 +7735,7 @@ export default function ExportReportPage() {
           )}
           
           {/* Analyze Another Dimension Button */}
-          <div className="max-w-[1200px] mx-auto mb-8">
+          <div className="max-w-[1280px] mx-auto mb-8">
             <div className="relative">
               <button
                 onClick={() => setShowDimSelector(!showDimSelector)}
@@ -7805,7 +7803,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1200px] mx-auto">
+          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -7986,7 +7984,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
-          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Header - Clean white/cream with full logo */}
             <div className="px-10 py-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
               <div className="absolute inset-0 opacity-5">
@@ -8163,7 +8161,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
+          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
