@@ -11737,7 +11737,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 37: Methodology - appendix */}
+                {/* Slide 38: Methodology - appendix */}
                 {currentSlide === 38 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
@@ -11838,8 +11838,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 36: Thank You */}
-                {currentSlide === 38 + additionalAnalyzedDims.length && (
+                {/* Slide 37: Thank You */}
+                {currentSlide === 37 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -12522,7 +12522,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 38 + additionalAnalyzedDims.length && (
+                  {currentSlide === 37 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Thank you &amp; next steps:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
