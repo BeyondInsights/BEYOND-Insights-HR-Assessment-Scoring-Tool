@@ -6453,9 +6453,18 @@ export default function ExportReportPage() {
             const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
             const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
             
+            // Muted dimension colors - not bright
+            const dimColors = [
+              { header: 'bg-indigo-800', accent: 'text-indigo-600', light: 'bg-indigo-50' },
+              { header: 'bg-slate-700', accent: 'text-slate-600', light: 'bg-slate-50' },
+              { header: 'bg-cyan-800', accent: 'text-cyan-600', light: 'bg-cyan-50' },
+              { header: 'bg-stone-700', accent: 'text-stone-600', light: 'bg-stone-50' },
+              { header: 'bg-zinc-700', accent: 'text-zinc-600', light: 'bg-zinc-50' },
+            ];
+            
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
-                {/* Header - Slate gradient */}
+                {/* Header */}
                 <div className="px-8 py-6 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-start justify-between">
                     <div>
@@ -6463,10 +6472,11 @@ export default function ExportReportPage() {
                       <p className="text-slate-300 mt-2 text-base max-w-2xl leading-relaxed">
                         Year 1 roadmap: <span className="font-semibold text-white">Accelerate</span> in-flight work and <span className="font-semibold text-white">Build</span> new capabilities across your top 5 dimensions.
                       </p>
+                      <p className="text-slate-400 mt-2 text-sm">Cancer and Careers can assist with action plans for converting key support elements.</p>
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       How It Works
@@ -6475,9 +6485,9 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="p-6">
-                  {/* Accelerate & Build Cards - Muted colors */}
+                  {/* Accelerate & Build Cards */}
                   <div className="mb-6 grid grid-cols-2 gap-4">
-                    {/* Accelerate Card */}
+                    {/* Accelerate Card - Slate-700 */}
                     <div className="rounded-xl overflow-hidden border border-slate-200">
                       <div className="px-5 py-3 bg-slate-700">
                         <div className="flex items-center justify-between">
@@ -6487,7 +6497,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="font-bold text-white">ACCELERATE</p>
-                              <p className="text-slate-300 text-xs">Advance in-flight elements</p>
+                              <p className="text-slate-300 text-xs">Advance in-flight support elements</p>
                             </div>
                           </div>
                           <div className="text-right">
@@ -6500,27 +6510,19 @@ export default function ExportReportPage() {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="bg-white rounded-lg p-3 border border-slate-200">
                             <p className="text-xs font-semibold text-slate-700 mb-2">Complete Implementation</p>
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">Planning</span>
-                              <span className="text-slate-400">to</span>
-                              <span className="px-2 py-0.5 bg-slate-700 text-white rounded font-medium">Offering</span>
-                            </div>
+                            <p className="text-xs text-slate-600">Converting <span className="font-semibold text-amber-700">Planning</span> to <span className="font-semibold text-slate-800">Offering</span></p>
                           </div>
                           <div className="bg-white rounded-lg p-3 border border-slate-200">
                             <p className="text-xs font-semibold text-slate-700 mb-2">Begin Development</p>
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <span className="px-2 py-0.5 bg-slate-200 text-slate-600 rounded font-medium">Assessing</span>
-                              <span className="text-slate-400">to</span>
-                              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">Planning</span>
-                            </div>
+                            <p className="text-xs text-slate-600">Converting <span className="font-semibold text-slate-600">Assessing</span> to <span className="font-semibold text-amber-700">Planning</span></p>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Build Card */}
+                    {/* Build Card - Indigo-800 */}
                     <div className="rounded-xl overflow-hidden border border-slate-200">
-                      <div className="px-5 py-3 bg-slate-600">
+                      <div className="px-5 py-3 bg-indigo-800">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
@@ -6528,80 +6530,83 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="font-bold text-white">BUILD</p>
-                              <p className="text-slate-300 text-xs">Introduce new elements</p>
+                              <p className="text-indigo-200 text-xs">Introduce new support elements</p>
                             </div>
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-black text-white">{totalBuild}</p>
-                            <p className="text-slate-400 text-xs">elements</p>
+                            <p className="text-indigo-300 text-xs">elements</p>
                           </div>
                         </div>
                       </div>
-                      <div className="px-5 py-4 bg-slate-50">
+                      <div className="px-5 py-4 bg-indigo-50">
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white rounded-lg p-3 border border-slate-200">
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
                             <p className="text-xs font-semibold text-slate-700 mb-2">Full Implementation</p>
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded font-medium">Not Offered</span>
-                              <span className="text-slate-400">to</span>
-                              <span className="px-2 py-0.5 bg-slate-700 text-white rounded font-medium">Offering</span>
-                            </div>
+                            <p className="text-xs text-slate-600">Converting <span className="font-semibold text-red-600">Not Offered</span> to <span className="font-semibold text-slate-800">Offering</span></p>
                           </div>
-                          <div className="bg-white rounded-lg p-3 border border-slate-200">
+                          <div className="bg-white rounded-lg p-3 border border-indigo-200">
                             <p className="text-xs font-semibold text-slate-700 mb-2">Begin Development</p>
-                            <div className="flex items-center gap-1.5 text-xs">
-                              <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded font-medium">Not Offered</span>
-                              <span className="text-slate-400">to</span>
-                              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded font-medium">Planning</span>
-                            </div>
+                            <p className="text-xs text-slate-600">Converting <span className="font-semibold text-red-600">Not Offered</span> to <span className="font-semibold text-amber-700">Planning</span></p>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Year 1 Overall Impact Summary */}
-                  <div className="mb-6 grid grid-cols-2 gap-4">
-                    {/* Support Elements Panel */}
-                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                      <div className="px-5 py-3 border-b border-slate-200">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Support Elements Advanced</p>
+                  {/* Year 1 Summary - 3 cards for elements + 1 for score */}
+                  <div className="mb-6 grid grid-cols-4 gap-4">
+                    {/* Total Elements */}
+                    <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-100">
+                      <div className="px-4 py-2 border-b border-slate-200">
+                        <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Total Support Elements</p>
                       </div>
-                      <div className="p-5">
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <p className="text-4xl font-black text-slate-800">{totalElementsY1}</p>
-                            <p className="text-slate-500 text-sm mt-1">total elements</p>
-                          </div>
-                          <div className="text-right space-y-1">
-                            <p className="text-sm"><span className="font-bold text-slate-700">{totalAccel}</span> <span className="text-slate-500">accelerated</span></p>
-                            <p className="text-sm"><span className="font-bold text-slate-600">{totalBuild}</span> <span className="text-slate-500">built</span></p>
-                          </div>
-                        </div>
+                      <div className="p-4 text-center">
+                        <p className="text-4xl font-black text-slate-800">{totalElementsY1}</p>
+                        <p className="text-xs text-slate-500 mt-1">advanced in Year 1</p>
                       </div>
                     </div>
                     
-                    {/* Year 1 Score Panel */}
-                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-800">
-                      <div className="px-5 py-3 border-b border-slate-700">
-                        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Year 1 Overall Score</p>
+                    {/* Accelerated */}
+                    <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                      <div className="px-4 py-2 border-b border-slate-200 bg-slate-700">
+                        <p className="text-sm font-bold text-white uppercase tracking-wide">Accelerated</p>
                       </div>
-                      <div className="p-5">
+                      <div className="p-4 text-center">
+                        <p className="text-4xl font-black text-slate-700">{totalAccel}</p>
+                        <p className="text-xs text-slate-500 mt-1">in-flight elements</p>
+                      </div>
+                    </div>
+                    
+                    {/* Built */}
+                    <div className="rounded-xl overflow-hidden border border-indigo-200 bg-indigo-50">
+                      <div className="px-4 py-2 border-b border-indigo-200 bg-indigo-800">
+                        <p className="text-sm font-bold text-white uppercase tracking-wide">Built</p>
+                      </div>
+                      <div className="p-4 text-center">
+                        <p className="text-4xl font-black text-indigo-800">{totalBuild}</p>
+                        <p className="text-xs text-indigo-600 mt-1">new elements</p>
+                      </div>
+                    </div>
+                    
+                    {/* Year 1 Score */}
+                    <div className="rounded-xl overflow-hidden border border-slate-300 bg-slate-800">
+                      <div className="px-4 py-2 border-b border-slate-600">
+                        <p className="text-sm font-bold text-slate-200 uppercase tracking-wide">Year 1 Overall Score</p>
+                      </div>
+                      <div className="p-4">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="text-center">
-                              <p className="text-[10px] text-slate-400 uppercase">Current</p>
-                              <p className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</p>
-                            </div>
-                            <span className="text-slate-500 text-lg">→</span>
-                            <div className="text-center">
-                              <p className="text-[10px] text-slate-300 uppercase">Year 1</p>
-                              <p className="text-2xl font-bold text-white">{projectedCompositeY1}</p>
-                            </div>
+                          <div className="text-center">
+                            <p className="text-[10px] text-slate-400 uppercase">Current</p>
+                            <p className="text-xl font-bold text-slate-400">{compositeScore || '--'}</p>
                           </div>
-                          <div className="bg-slate-700 px-4 py-2 rounded-lg text-center">
-                            <p className="text-xl font-black text-white">+{totalGainY1.toFixed(1)}</p>
-                            <p className="text-slate-400 text-xs">points</p>
+                          <span className="text-slate-500">→</span>
+                          <div className="text-center">
+                            <p className="text-[10px] text-slate-300 uppercase">Year 1</p>
+                            <p className="text-xl font-bold text-white">{projectedCompositeY1}</p>
+                          </div>
+                          <div className="bg-slate-700 px-3 py-1.5 rounded-lg text-center">
+                            <p className="text-lg font-black text-white">+{totalGainY1.toFixed(1)}</p>
                           </div>
                         </div>
                       </div>
@@ -6611,35 +6616,34 @@ export default function ExportReportPage() {
                   {/* Priority Dimension Cards */}
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
+                      const colors = dimColors[idx];
                       const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
                       const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
                       const buildCount = r.buildToOffering12 + r.buildToPlanning12;
-                      const expanded = expandedPriorities[r.dimNum] || { accel: false, build: false };
                       
                       return (
-                      <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${idx < 2 ? 'border-2 border-slate-400 shadow-md' : 'border-slate-200'}`}>
-                        {/* Header - Slate gradient, darker for top priorities */}
-                        <div className={`px-5 py-3 flex items-center justify-between ${
-                          idx === 0 ? 'bg-slate-800' : 
-                          idx === 1 ? 'bg-slate-700' : 
-                          'bg-slate-600'
-                        }`}>
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-                              <span className="text-xl font-black text-white">{idx + 1}</span>
+                      <div key={r.dimNum} className={`rounded-xl overflow-hidden border ${idx < 2 ? 'border-2 shadow-md' : 'border-slate-200'}`} style={{ borderColor: idx < 2 ? undefined : undefined }}>
+                        {/* Header - Different color per dimension */}
+                        <div className={`px-5 py-4 flex items-center justify-between ${colors.header}`}>
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center">
+                              <span className="text-2xl font-black text-white">{idx + 1}</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-white text-lg">{r.dimName}</h4>
-                              <p className="text-slate-300 text-xs">Current Score: {r.currentScore} ({r.tier})</p>
+                              <h4 className="font-bold text-white text-xl">{r.dimName}</h4>
+                              <div className="flex items-center gap-3 mt-1">
+                                <span className="text-white/90 text-base font-semibold">Score: {r.currentScore}</span>
+                                <span className="px-2 py-0.5 rounded bg-white/20 text-white text-sm font-medium">{r.tier}</span>
+                              </div>
                             </div>
                           </div>
-                          <div className={`px-3 py-1.5 rounded-lg ${r.effortTag === 'quick-win' ? 'bg-amber-500/20 text-amber-200' : 'bg-white/10 text-slate-300'} font-medium text-xs`}>
+                          <div className={`px-3 py-1.5 rounded-lg ${r.effortTag === 'quick-win' ? 'bg-amber-400/30 text-amber-100' : 'bg-white/15 text-white/80'} font-medium text-sm`}>
                             {r.effortTag === 'quick-win' ? 'Quick Win' : 'Foundation Build'}
                           </div>
                         </div>
                         
                         {/* Content - 3 columns */}
-                        <div className="p-4 bg-slate-50">
+                        <div className={`p-4 ${colors.light}`}>
                           <div className="grid grid-cols-3 gap-3">
                             {/* ACCELERATE Card */}
                             <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
@@ -6650,115 +6654,108 @@ export default function ExportReportPage() {
                                 </div>
                                 <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{accelCount}</span>
                               </div>
-                              <div className="p-3 space-y-2 max-h-40 overflow-y-auto">
+                              {/* Column Headers */}
+                              <div className="px-3 py-1.5 bg-slate-100 border-b border-slate-200 grid grid-cols-3 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
+                                <span className="col-span-1">Element</span>
+                                <span className="col-span-1 text-center">Current</span>
+                                <span className="col-span-1 text-center">Converting To</span>
+                              </div>
+                              <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
                                 {accelerateItems.length > 0 ? (
-                                  <>
-                                    {accelerateItems.slice(0, expanded.accel ? accelerateItems.length : 3).map((item, i) => (
-                                      <div key={i} className="text-xs border-b border-slate-100 pb-2 last:border-0 last:pb-0">
-                                        <p className="font-medium text-slate-700 mb-1">{item.name}</p>
-                                        <div className="flex items-center gap-1">
-                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.from === 'Planning' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>{item.from}</span>
-                                          <span className="text-slate-400 text-[10px]">to</span>
-                                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-slate-700 text-white' : 'bg-amber-100 text-amber-700'}`}>{item.to}</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                    {accelerateItems.length > 3 && !expanded.accel && (
-                                      <button 
-                                        onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: true } }))}
-                                        className="text-xs font-semibold text-slate-500 hover:text-slate-700"
-                                      >
-                                        +{accelerateItems.length - 3} more
-                                      </button>
-                                    )}
-                                  </>
+                                  accelerateItems.map((item, i) => (
+                                    <div key={i} className="px-3 py-2 grid grid-cols-3 gap-1 items-start text-xs">
+                                      <span className="col-span-1 font-medium text-slate-700">{item.name}</span>
+                                      <span className="col-span-1 text-center">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.from === 'Planning' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>{item.from}</span>
+                                      </span>
+                                      <span className="col-span-1 text-center">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${item.to === 'Offering' ? 'bg-slate-700 text-white' : 'bg-amber-100 text-amber-700'}`}>{item.to}</span>
+                                      </span>
+                                    </div>
+                                  ))
                                 ) : (
-                                  <p className="text-xs text-slate-400 italic">No in-flight elements</p>
+                                  <div className="px-3 py-3 text-xs text-slate-400 italic">No in-flight elements</div>
                                 )}
                               </div>
                             </div>
                             
                             {/* BUILD Card */}
                             <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-                              <div className="px-3 py-2 bg-slate-600 flex items-center justify-between">
+                              <div className="px-3 py-2 bg-indigo-800 flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
                                   <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                   <span className="font-bold text-white text-sm">BUILD</span>
                                 </div>
                                 <span className="bg-white/20 text-white text-xs font-bold px-1.5 py-0.5 rounded">{buildCount}</span>
                               </div>
-                              <div className="p-3 space-y-2 max-h-40 overflow-y-auto">
+                              {/* Column Headers */}
+                              <div className="px-3 py-1.5 bg-indigo-50 border-b border-indigo-100 grid grid-cols-3 gap-1 text-[9px] font-semibold text-slate-500 uppercase">
+                                <span className="col-span-1">Element</span>
+                                <span className="col-span-1 text-center">Current</span>
+                                <span className="col-span-1 text-center">Converting To</span>
+                              </div>
+                              <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto">
                                 {buildItems.length > 0 ? (
-                                  <>
-                                    {buildItems.slice(0, expanded.build ? buildItems.length : 3).map((item, i) => (
-                                      <div key={i} className="text-xs border-b border-slate-100 pb-2 last:border-0 last:pb-0">
-                                        <p className="font-medium text-slate-700 mb-1">{item.name}</p>
-                                        <div className="flex items-center gap-1">
-                                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-600">Not Offered</span>
-                                          <span className="text-slate-400 text-[10px]">to</span>
-                                          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-600 text-white">Implement</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                    {buildItems.length > 3 && !expanded.build && (
-                                      <button 
-                                        onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: true } }))}
-                                        className="text-xs font-semibold text-slate-500 hover:text-slate-700"
-                                      >
-                                        +{buildItems.length - 3} more
-                                      </button>
-                                    )}
-                                  </>
+                                  buildItems.map((item, i) => (
+                                    <div key={i} className="px-3 py-2 grid grid-cols-3 gap-1 items-start text-xs">
+                                      <span className="col-span-1 font-medium text-slate-700">{item.name}</span>
+                                      <span className="col-span-1 text-center">
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-600">Not Offered</span>
+                                      </span>
+                                      <span className="col-span-1 text-center">
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-700 text-white">Implement</span>
+                                      </span>
+                                    </div>
+                                  ))
                                 ) : (
-                                  <p className="text-xs text-slate-400 italic">Focus on accelerating</p>
+                                  <div className="px-3 py-3 text-xs text-slate-400 italic">Focus on accelerating</div>
                                 )}
                               </div>
                             </div>
                             
                             {/* IMPACT Card */}
                             <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
-                              <div className="px-3 py-2 bg-slate-500">
+                              <div className={`px-3 py-2 ${colors.header}`}>
                                 <span className="font-bold text-white text-sm">IMPACT</span>
                               </div>
                               <div className="p-3 space-y-3">
                                 {/* Dimension Score */}
                                 <div>
                                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Dimension Score</p>
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-slate-100 rounded px-2 py-1 text-center">
-                                      <p className="text-[9px] text-slate-400">Current</p>
+                                  <div className="flex items-stretch gap-2">
+                                    <div className="flex-1 bg-slate-100 rounded px-2 py-2 text-center">
+                                      <p className="text-[9px] text-slate-400 uppercase">Current</p>
                                       <p className="text-lg font-bold text-slate-600">{r.currentScore}</p>
                                     </div>
-                                    <div className="flex-1 bg-slate-200 rounded px-2 py-1 text-center">
-                                      <p className="text-[9px] text-slate-500">Year 1</p>
+                                    <div className="flex-1 bg-slate-200 rounded px-2 py-2 text-center">
+                                      <p className="text-[9px] text-slate-500 uppercase">Year 1</p>
                                       <p className="text-lg font-bold text-slate-700">{r.projectedScore12}</p>
                                     </div>
-                                    <div className="flex-1 bg-slate-700 rounded px-2 py-1 text-center">
-                                      <p className="text-[9px] text-slate-300">Gain</p>
+                                    <div className="flex-1 bg-slate-700 rounded px-2 py-2 text-center">
+                                      <p className="text-[9px] text-slate-300 uppercase">Gain</p>
                                       <p className="text-lg font-bold text-white">+{r.dimPotentialGain12}</p>
-                                      <p className="text-[9px] text-slate-400">{r.headroomPct12}%</p>
                                     </div>
                                   </div>
                                 </div>
                                 {/* Overall Score */}
                                 <div>
                                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Overall Score</p>
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex-1 bg-slate-100 rounded px-2 py-1 text-center">
-                                      <p className="text-[9px] text-slate-400">Current</p>
+                                  <div className="flex items-stretch gap-2">
+                                    <div className="flex-1 bg-slate-100 rounded px-2 py-2 text-center">
+                                      <p className="text-[9px] text-slate-400 uppercase">Current</p>
                                       <p className="text-base font-bold text-slate-500">{compositeScore || '--'}</p>
                                     </div>
-                                    <div className="flex-1 bg-slate-700 rounded px-2 py-1 text-center">
-                                      <p className="text-[9px] text-slate-300">Year 1</p>
-                                      <p className="text-base font-bold text-white">{Math.round(((compositeScore || 0) + r.potentialGain12) * 10) / 10}</p>
+                                    <div className="flex-1 bg-slate-200 rounded px-2 py-2 text-center">
+                                      <p className="text-[9px] text-slate-500 uppercase">Year 1</p>
+                                      <p className="text-base font-bold text-slate-700">{Math.round(((compositeScore || 0) + r.potentialGain12) * 10) / 10}</p>
                                     </div>
-                                    <div className="flex-1 bg-slate-800 rounded px-2 py-1 text-center">
-                                      <p className="text-[9px] text-slate-400">Gain</p>
+                                    <div className="flex-1 bg-slate-700 rounded px-2 py-2 text-center">
+                                      <p className="text-[9px] text-slate-300 uppercase">Gain</p>
                                       <p className="text-base font-bold text-white">+{r.potentialGain12}</p>
                                     </div>
                                   </div>
                                 </div>
-                                <p className="text-[10px] text-slate-400 text-center">
+                                <p className="text-[10px] text-slate-400 text-center pt-1">
                                   {accelCount} accelerated + {buildCount} built
                                 </p>
                               </div>
