@@ -1173,8 +1173,10 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       // Track 1: Accelerate (more aggressive)
       const accel12_planningToOffering = planningCount;    // All Planning → Offering (+2 pts each)
       
-      // Assessing: 40% go to Offering, 60% go to Planning
-      const assessingToOffering12 = Math.floor(assessingCount * 0.4);
+      // Assessing: Momentum-dependent share goes to Offering
+      // Low momentum: 25% to Offering, High momentum: 45% to Offering
+      const assessingToOfferingRate = hasMomentum ? 0.45 : 0.25;
+      const assessingToOffering12 = Math.floor(assessingCount * assessingToOfferingRate);
       const assessingToPlanning12 = assessingCount - assessingToOffering12;
       
       // Track 2: Build (scaled by momentum and element count)
@@ -1187,8 +1189,13 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       const build12_toOffering = hasMomentum ? Math.min(buildCap, 2) : Math.min(buildCap, 1);
       const remainingBuildCap = Math.max(0, buildCap - build12_toOffering);
       
-      // Remaining new initiatives: split between Planning and Assessing
-      const build12_toPlanning = Math.min(remainingBuildCap, 2);
+      // Remaining new initiatives to Planning: momentum-scaled (not hard-capped at 2)
+      // Low momentum: up to 40% of remaining, High momentum: up to 60% of remaining
+      const planningRate = hasMomentum ? 0.6 : 0.4;
+      const build12_toPlanning = Math.min(
+        remainingBuildCap,
+        Math.max(2, Math.ceil(remainingBuildCap * planningRate))  // At least 2, or scaled %
+      );
       const build12_toAssessing = Math.max(0, remainingBuildCap - build12_toPlanning);
       
       const acceleratePoints12 = 
@@ -6514,6 +6521,7 @@ export default function ExportReportPage() {
             const projectedComposite90 = Math.round(((compositeScore || 0) + totalGain90) * 10) / 10;
             const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
             const gapClosurePct = pointsToNextTier ? Math.min(100, Math.round((totalGainY1 / pointsToNextTier) * 100)) : 0;
+            const incrementalY1 = Math.round((totalGainY1 - totalGain90) * 10) / 10;
             
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
@@ -6532,84 +6540,88 @@ export default function ExportReportPage() {
                   <div className="relative flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-teal-200 mt-1 text-base">Year 1 impact from accelerating in-flight work and building new capabilities</p>
+                      <p className="text-teal-100 mt-1 text-base font-medium">Year 1 projections based on committed execution of in-flight work + new capabilities</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <button 
-                        onClick={() => setInfoModal('impactRanked')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        Learn More
-                      </button>
-                    </div>
+                    <button 
+                      onClick={() => setInfoModal('impactRanked')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      How It Works
+                    </button>
                   </div>
                 </div>
                 
-                {/* Summary Stats Banner */}
-                <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-emerald-50 border-b border-slate-200">
-                  <div className="grid grid-cols-4 gap-6">
-                    {/* Projected Composite */}
-                    <div className="text-center">
-                      <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Projected Score (Year 1)</p>
-                      <div className="flex items-center justify-center gap-2">
+                {/* Summary Stats - Separate Cards */}
+                <div className="px-8 py-6 bg-slate-50 border-b border-slate-200">
+                  <div className="grid grid-cols-4 gap-4">
+                    {/* Projected Score Card */}
+                    <div className="bg-white rounded-xl p-4 border border-slate-200 shadow-sm">
+                      <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">Projected Score</p>
+                      <div className="flex items-center gap-2">
                         <span className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</span>
-                        <svg className="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        <div className="flex flex-col items-center">
+                          <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                        </div>
                         <span className="text-2xl font-bold text-emerald-600">{projectedCompositeY1}</span>
                       </div>
+                      <p className="text-xs text-slate-500 mt-1">Year 1 projection</p>
                     </div>
                     
-                    {/* Gap Closure */}
-                    {nextTierUp && pointsToNextTier && (
-                      <div className="text-center">
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Gap to {nextTierUp.name}</p>
-                        <div className="flex items-center justify-center gap-2">
-                          <span className="text-2xl font-bold" style={{ color: nextTierUp.color }}>{gapClosurePct}%</span>
-                          <span className="text-sm text-slate-500">closed</span>
-                        </div>
+                    {/* Gap Closure Card */}
+                    <div className="bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl p-4 shadow-sm">
+                      <p className="text-xs text-teal-100 font-semibold uppercase tracking-wide mb-2">Gap to {nextTierUp?.name || 'Next Tier'}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-white">{gapClosurePct}%</span>
+                        <span className="text-sm text-teal-100 font-medium">closed</span>
                       </div>
-                    )}
-                    
-                    {/* Elements Progressed */}
-                    <div className="text-center">
-                      <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Elements Progressed</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-2xl font-bold text-blue-600">{totalElementsY1}</span>
-                        <span className="text-sm text-slate-500">across Top 5</span>
-                      </div>
+                      <p className="text-xs text-teal-100 mt-1">{pointsToNextTier?.toFixed(1) || '--'} pts remaining</p>
                     </div>
                     
-                    {/* Composite Gain */}
-                    <div className="text-center">
-                      <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-1">Composite Impact</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <span className="text-2xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</span>
-                        <span className="text-sm text-slate-500">points</span>
+                    {/* Elements Progressed Card */}
+                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 shadow-sm">
+                      <p className="text-xs text-blue-100 font-semibold uppercase tracking-wide mb-2">Elements Progressed</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-white">{totalElementsY1}</span>
+                        <span className="text-sm text-blue-100 font-medium">total</span>
                       </div>
+                      <p className="text-xs text-blue-100 mt-1">across Top 5 dimensions</p>
+                    </div>
+                    
+                    {/* Composite Impact Card */}
+                    <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 shadow-sm">
+                      <p className="text-xs text-emerald-100 font-semibold uppercase tracking-wide mb-2">Composite Impact</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-white">+{totalGainY1.toFixed(1)}</span>
+                        <span className="text-sm text-emerald-100 font-medium">pts</span>
+                      </div>
+                      <p className="text-xs text-emerald-100 mt-1">+{incrementalY1.toFixed(1)} beyond 90-day</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="p-8">
-                  {/* Two-Track Legend */}
-                  <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                  {/* Two-Track Legend - Filled Cards */}
+                  <div className="mb-6 grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-sm">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800 text-sm">Accelerate</p>
-                          <p className="text-xs text-slate-500 mt-0.5">Move in-flight work forward: Planning→Offering, Assessing→Planning/Offering</p>
+                          <p className="font-bold text-blue-900 text-sm">Accelerate</p>
+                          <p className="text-xs text-blue-700 mt-0.5">Move in-flight work forward: Planning→Offering, Assessing→Offering/Planning</p>
                         </div>
                       </div>
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+                    </div>
+                    <div className="bg-gradient-to-r from-violet-50 to-violet-100 rounded-xl p-4 border border-violet-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800 text-sm">Build</p>
-                          <p className="text-xs text-slate-500 mt-0.5">Launch new capabilities: Not Planned→Assessing/Planning/Offering</p>
+                          <p className="font-bold text-violet-900 text-sm">Build</p>
+                          <p className="text-xs text-violet-700 mt-0.5">Launch new capabilities: Not Planned→Offering/Planning/Assessing</p>
                         </div>
                       </div>
                     </div>
@@ -6619,16 +6631,17 @@ export default function ExportReportPage() {
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
                       const tag = getPriorityTag(r);
+                      const incrementalDim = r.potentialGain12 - r.potentialGain;
                       return (
-                      <div key={r.dimNum} className={`relative rounded-xl border-2 overflow-hidden transition-all hover:shadow-lg ${
-                        idx === 0 ? 'border-teal-400 bg-white' : 
-                        idx === 1 ? 'border-teal-300 bg-white' : 
-                        'border-slate-200 bg-white hover:border-slate-300'
+                      <div key={r.dimNum} className={`relative rounded-xl overflow-hidden transition-all hover:shadow-lg ${
+                        idx === 0 ? 'border-2 border-teal-400 bg-white shadow-md' : 
+                        idx === 1 ? 'border-2 border-teal-300 bg-white' : 
+                        'border border-slate-200 bg-white hover:border-slate-300'
                       }`}>
                         
-                        <div className="flex items-stretch">
+                        <div className="flex">
                           {/* Priority Number */}
-                          <div className={`flex items-center justify-center w-16 text-2xl font-black ${
+                          <div className={`flex items-center justify-center w-14 text-2xl font-black ${
                             idx === 0 ? 'bg-gradient-to-b from-teal-600 to-teal-700 text-white' : 
                             idx === 1 ? 'bg-gradient-to-b from-teal-500 to-teal-600 text-white' : 
                             'bg-slate-100 text-slate-400'
@@ -6640,89 +6653,102 @@ export default function ExportReportPage() {
                           <div className="flex-1 p-4">
                             {/* Header Row */}
                             <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-3">
-                                <h4 className="font-bold text-slate-800 text-lg">{r.dimName}</h4>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-bold text-slate-900 text-base">{r.dimName}</h4>
                                 {r.hasMomentum && (
-                                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 flex items-center gap-1">
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M5 2a2 2 0 00-2 2v14l3.5-2 3.5 2 3.5-2 3.5 2V4a2 2 0 00-2-2H5zm4.707 5.707a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L8.414 11H14a1 1 0 100-2H8.414l1.293-1.293z" /></svg>
+                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wide">
                                     Momentum
                                   </span>
                                 )}
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${tag.className}`}>{tag.label}</span>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${
+                                  tag.label === 'Quick Win' ? 'bg-teal-100 text-teal-800 border border-teal-300' : 'bg-slate-100 text-slate-700 border border-slate-300'
+                                }`}>{tag.label}</span>
                               </div>
                               
-                              {/* Score Projection - Compact */}
-                              <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-200">
-                                <span className="text-lg font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</span>
-                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                <span className="text-lg font-bold text-emerald-600">{r.projectedScore12}</span>
-                                <span className="text-xs text-slate-400 ml-1">Year 1</span>
+                              {/* Score Journey */}
+                              <div className="flex items-center gap-3 bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
+                                <div className="text-center">
+                                  <p className="text-[10px] text-slate-500 font-medium uppercase">Current</p>
+                                  <p className="text-lg font-bold" style={{ color: getScoreColor(r.currentScore) }}>{r.currentScore}</p>
+                                </div>
+                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                <div className="text-center">
+                                  <p className="text-[10px] text-slate-500 font-medium uppercase">90-day</p>
+                                  <p className="text-lg font-bold text-blue-600">{r.projectedScore}</p>
+                                </div>
+                                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                                <div className="text-center">
+                                  <p className="text-[10px] text-emerald-600 font-semibold uppercase">Year 1</p>
+                                  <p className="text-lg font-bold text-emerald-600">{r.projectedScore12}</p>
+                                </div>
                               </div>
                             </div>
                             
-                            {/* Two-Track Progress Bars */}
-                            <div className="grid grid-cols-2 gap-4 mb-3">
+                            {/* Two-Track Breakdown - Cleaner Layout */}
+                            <div className="grid grid-cols-2 gap-3 mb-3">
                               {/* Accelerate Track */}
-                              <div className="bg-blue-50/50 rounded-lg p-3 border border-blue-100">
+                              <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide flex items-center gap-1">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                    Accelerate
-                                  </span>
-                                  <span className="text-xs text-blue-600">{r.accelerateToOffering12 + r.accelerateToPlanning12} elements</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="w-5 h-5 rounded bg-blue-500 flex items-center justify-center">
+                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                    </div>
+                                    <span className="text-xs font-bold text-blue-900 uppercase">Accelerate</span>
+                                  </div>
+                                  <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">{r.accelerateToOffering12 + r.accelerateToPlanning12} elements</span>
                                 </div>
-                                <div className="flex gap-2 text-xs">
+                                <div className="flex flex-wrap gap-1.5">
                                   {r.accelerateToOffering12 > 0 && (
-                                    <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded">{r.accelerateToOffering12} → Offering</span>
+                                    <span className="text-xs font-medium px-2 py-1 bg-blue-500 text-white rounded">{r.accelerateToOffering12} → Offering</span>
                                   )}
                                   {r.accelerateToPlanning12 > 0 && (
-                                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-200">{r.accelerateToPlanning12} → Planning</span>
+                                    <span className="text-xs font-medium px-2 py-1 bg-blue-200 text-blue-800 rounded">{r.accelerateToPlanning12} → Planning</span>
                                   )}
                                   {r.accelerateToOffering12 === 0 && r.accelerateToPlanning12 === 0 && (
-                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded">No in-flight work</span>
+                                    <span className="text-xs text-blue-600 italic">No in-flight work</span>
                                   )}
                                 </div>
                               </div>
                               
                               {/* Build Track */}
-                              <div className="bg-violet-50/50 rounded-lg p-3 border border-violet-100">
+                              <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
                                 <div className="flex items-center justify-between mb-2">
-                                  <span className="text-xs font-semibold text-violet-700 uppercase tracking-wide flex items-center gap-1">
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                    Build
-                                  </span>
-                                  <span className="text-xs text-violet-600">{r.buildToOffering12 + r.buildToPlanning12} new</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="w-5 h-5 rounded bg-violet-500 flex items-center justify-center">
+                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                    </div>
+                                    <span className="text-xs font-bold text-violet-900 uppercase">Build</span>
+                                  </div>
+                                  <span className="text-xs font-semibold text-violet-700 bg-violet-100 px-2 py-0.5 rounded">{r.buildToOffering12 + r.buildToPlanning12} new</span>
                                 </div>
-                                <div className="flex gap-2 text-xs">
+                                <div className="flex flex-wrap gap-1.5">
                                   {r.buildToOffering12 > 0 && (
-                                    <span className="px-2 py-0.5 bg-violet-100 text-violet-700 rounded">{r.buildToOffering12} → Offering</span>
+                                    <span className="text-xs font-medium px-2 py-1 bg-violet-500 text-white rounded">{r.buildToOffering12} → Offering</span>
                                   )}
                                   {r.buildToPlanning12 > 0 && (
-                                    <span className="px-2 py-0.5 bg-violet-50 text-violet-600 rounded border border-violet-200">{r.buildToPlanning12} → Planning</span>
+                                    <span className="text-xs font-medium px-2 py-1 bg-violet-200 text-violet-800 rounded">{r.buildToPlanning12} → Planning</span>
                                   )}
                                   {r.buildToOffering12 === 0 && r.buildToPlanning12 === 0 && (
-                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded">Limited new capacity</span>
+                                    <span className="text-xs text-violet-600 italic">Focus on acceleration</span>
                                   )}
                                 </div>
                               </div>
                             </div>
                             
-                            {/* Recommendations (editable) */}
+                            {/* Recommendations */}
                             {editMode ? (
-                              <div className="flex flex-col gap-2">
-                                <input
-                                  type="text"
-                                  value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? 'Focus on closing gaps and accelerating in-progress initiatives.'}
-                                  onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                  className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                  placeholder="Enter custom recommendations..."
-                                />
-                              </div>
+                              <input
+                                type="text"
+                                value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
+                                onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                                className="w-full text-sm text-slate-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                placeholder="Enter custom recommendations..."
+                              />
                             ) : (
-                              <div className="text-sm text-slate-600 flex flex-wrap gap-x-4 gap-y-1">
-                                {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || ['Focus on closing gaps']).map((rec: string, i: number) => (
+                              <div className="text-sm text-slate-700 flex flex-wrap gap-x-4 gap-y-1">
+                                {(customRecommendations[r.dimNum] ? customRecommendations[r.dimNum].split(' • ') : r.recommendations || []).map((rec: string, i: number) => (
                                   <span key={i} className="flex items-center gap-1.5">
-                                    <span className="text-teal-500">→</span>
+                                    <span className="text-teal-500 font-bold">→</span>
                                     <span>{rec}</span>
                                   </span>
                                 ))}
@@ -6730,18 +6756,18 @@ export default function ExportReportPage() {
                             )}
                           </div>
                           
-                          {/* Impact Metrics - Vertical Stack */}
-                          <div className="flex flex-col justify-center gap-2 px-4 py-3 bg-slate-50 border-l border-slate-200 min-w-[140px]">
+                          {/* Impact Metrics Panel */}
+                          <div className="flex flex-col justify-center gap-3 px-4 py-3 bg-slate-50 border-l border-slate-200 min-w-[130px]">
                             <div className="text-center">
-                              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Dim Impact</p>
-                              <p className="text-xl font-bold text-blue-600">+{r.dimPotentialGain12}</p>
-                              <p className="text-[10px] text-blue-500">{r.headroomPct12}% headroom</p>
+                              <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wide">Dim Impact</p>
+                              <p className="text-xl font-black text-blue-600">+{r.dimPotentialGain12}</p>
+                              <p className="text-[10px] text-slate-500 font-medium">{r.headroomPct12}% headroom</p>
                             </div>
                             <div className="w-full h-px bg-slate-200"></div>
                             <div className="text-center">
-                              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">Composite</p>
-                              <p className="text-xl font-bold text-emerald-600">+{r.potentialGain12}</p>
-                              <p className="text-[10px] text-emerald-500">{r.elementsProgressed12} elements</p>
+                              <p className="text-[10px] text-slate-600 font-semibold uppercase tracking-wide">Composite</p>
+                              <p className="text-xl font-black text-emerald-600">+{r.potentialGain12}</p>
+                              <p className="text-[10px] text-emerald-600 font-medium">+{incrementalDim.toFixed(1)} vs 90-day</p>
                             </div>
                           </div>
                         </div>
@@ -6750,11 +6776,11 @@ export default function ExportReportPage() {
                     })}
                   </div>
                   
-                  {/* Footer */}
+                  {/* Footer - Cleaner */}
                   <div className="mt-6 pt-4 border-t border-slate-200">
-                    <p className="text-xs text-slate-400 text-center">
-                      Year 1 projections use a two-track model: <span className="text-blue-500 font-medium">Accelerate</span> existing work-in-progress + <span className="text-violet-500 font-medium">Build</span> new capabilities. 
-                      Dimensions with momentum (2+ in-flight elements) can achieve more ambitious Year 1 goals.
+                    <p className="text-xs text-slate-600 text-center">
+                      Year 1 projections assume <span className="font-semibold text-blue-600">committed execution</span>. 
+                      Dimensions with <span className="font-semibold text-amber-600">momentum</span> (2+ in-flight elements) achieve more aggressive goals through higher Assessing→Offering conversion and scaled Build capacity.
                     </p>
                   </div>
                 </div>
