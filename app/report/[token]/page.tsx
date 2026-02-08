@@ -6676,7 +6676,7 @@ export default function ExportReportPage() {
                           </div>
                           {/* Contribution bar - share of total gain */}
                           <div className="px-5 pb-2 flex items-center gap-3">
-                            <span className="text-white/60 text-xs whitespace-nowrap">Share of Total Gain:</span>
+                            <span className="text-white/60 text-xs whitespace-nowrap">Share of Projected Lift:</span>
                             <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
                               <div 
                                 className="h-full bg-white/70 rounded-full transition-all duration-500"
@@ -6727,7 +6727,7 @@ export default function ExportReportPage() {
                                       onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: true } }))}
                                       className="text-xs text-slate-500 hover:text-slate-700 font-medium mt-1"
                                     >
-                                      +{accelerateItems.length - 3} more accelerated elements
+                                      Show {accelerateItems.length - 3} more accelerated elements
                                     </button>
                                   )}
                                   {expanded.accel && accelerateItems.length > 3 && (
@@ -6740,7 +6740,7 @@ export default function ExportReportPage() {
                                   )}
                                   {/* Benchmark legend */}
                                   {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">% = benchmark participants currently offering</p>
+                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                   )}
                                 </div>
                               ) : (
@@ -6785,7 +6785,7 @@ export default function ExportReportPage() {
                                       onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: true } }))}
                                       className="text-xs text-slate-500 hover:text-slate-700 font-medium mt-1"
                                     >
-                                      +{buildItems.length - 3} more build elements
+                                      Show {buildItems.length - 3} more build elements
                                     </button>
                                   )}
                                   {expanded.build && buildItems.length > 3 && (
@@ -6798,7 +6798,7 @@ export default function ExportReportPage() {
                                   )}
                                   {/* Benchmark legend */}
                                   {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">% = benchmark participants currently offering</p>
+                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                   )}
                                 </div>
                               ) : (
@@ -6812,15 +6812,14 @@ export default function ExportReportPage() {
                               <div className="space-y-2">
                                 {/* Primary: Current → Projected */}
                                 <div className="flex items-center justify-center gap-2">
-                                  <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
-                                  <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                  <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                  <span className="text-3xl font-bold text-slate-400">{r.currentScore}</span>
+                                  <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                  <span className="text-3xl font-bold text-slate-800">{r.projectedScore12}</span>
                                 </div>
                                 <p className="text-[10px] text-slate-400 text-center">Current → Projected</p>
-                                {/* Secondary: Gain (smaller) */}
+                                {/* Secondary: Gain (smaller, use Δ) */}
                                 <div className={`text-center pt-2 mt-2 border-t border-slate-100`}>
-                                  <span className="text-xs text-slate-500">Gain: </span>
-                                  <span className={`text-sm font-semibold ${colors.accent}`}>+{r.dimPotentialGain12}</span>
+                                  <span className={`text-xs text-slate-400`}>Δ +{r.dimPotentialGain12}</span>
                                 </div>
                               </div>
                             </div>
