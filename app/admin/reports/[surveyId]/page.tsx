@@ -6431,7 +6431,6 @@ export default function ExportReportPage() {
           
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
-            // Calculate totals
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
             const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
             const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -6439,15 +6438,18 @@ export default function ExportReportPage() {
             return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1200px] mx-auto">
                 {/* Header */}
-                <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
-                  <div className="flex items-center justify-between">
+                <div className="px-8 py-6 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                  <div className="flex items-start justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-slate-300 mt-1 text-sm">Strategic roadmap for Year 1 • Work with Cancer and Careers to prioritize specific elements</p>
+                      <p className="text-slate-300 mt-2 text-base max-w-2xl leading-relaxed">
+                        Strategic roadmap for Year 1. Focus on these top dimensions and identify specific support elements to advance—either <span className="font-semibold text-white">accelerating</span> in-flight work or <span className="font-semibold text-white">building</span> new capabilities.
+                      </p>
+                      <p className="text-slate-400 mt-2 text-sm">Work with Cancer and Careers to prioritize specific elements within each dimension.</p>
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       How It Works
@@ -6456,114 +6458,104 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="p-6">
-                  {/* Two-Track Explanation - FIRST */}
-                  <div className="mb-5 grid grid-cols-2 gap-4">
+                  {/* Accelerate & Build Explanation Cards */}
+                  <div className="mb-6 grid grid-cols-2 gap-4">
                     {/* Accelerate Card */}
-                    <div className="rounded-xl border-2 border-slate-200 overflow-hidden">
-                      <div className="px-4 py-3 bg-slate-100 border-b border-slate-200">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-5 py-3 bg-slate-700">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                           </div>
                           <div>
-                            <p className="font-bold text-slate-800 text-sm">ACCELERATE</p>
-                            <p className="text-xs text-slate-500">Advance in-flight work</p>
+                            <p className="font-bold text-white text-sm">ACCELERATE</p>
+                            <p className="text-slate-300 text-xs">Advance in-flight support elements</p>
                           </div>
                         </div>
                       </div>
-                      <div className="px-4 py-3 bg-white space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1.5 flex-1">
-                            <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                            <span className="px-2 py-1 bg-teal-700 text-white rounded text-xs font-semibold">Offering</span>
+                      <div className="px-5 py-4 bg-slate-50 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Complete Implementation</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-slate-700 text-white rounded text-xs font-semibold">Offering</span>
                           </div>
-                          <span className="text-xs text-slate-500">Complete implementation</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1.5 flex-1">
-                            <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded text-xs font-semibold border border-slate-300">Assessing</span>
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                            <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Begin Development</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-slate-200 text-slate-700 rounded text-xs font-semibold border border-slate-300">Assessing</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
                           </div>
-                          <span className="text-xs text-slate-500">Begin development</span>
                         </div>
                       </div>
                     </div>
                     
                     {/* Build Card */}
-                    <div className="rounded-xl border-2 border-slate-200 overflow-hidden">
-                      <div className="px-4 py-3 bg-slate-100 border-b border-slate-200">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-lg bg-teal-700 flex items-center justify-center">
+                    <div className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-5 py-3 bg-slate-600">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                           </div>
                           <div>
-                            <p className="font-bold text-slate-800 text-sm">BUILD</p>
-                            <p className="text-xs text-slate-500">Introduce new elements</p>
+                            <p className="font-bold text-white text-sm">BUILD</p>
+                            <p className="text-slate-300 text-xs">Introduce new support elements</p>
                           </div>
                         </div>
                       </div>
-                      <div className="px-4 py-3 bg-white space-y-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1.5 flex-1">
-                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold border border-red-200">Not Offered</span>
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                            <span className="px-2 py-1 bg-teal-700 text-white rounded text-xs font-semibold">Offering</span>
-                          </div>
-                          <span className="text-xs text-slate-500">Full implementation</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1.5 flex-1">
-                            <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs font-semibold border border-red-200">Not Offered</span>
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                            <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
-                          </div>
-                          <span className="text-xs text-slate-500">Begin development</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Summary Stats - Simplified */}
-                  <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">{totalElementsY1}</span>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-800">Support Elements Advanced</p>
-                            <p className="text-xs text-slate-500">across top 5 dimensions</p>
+                      <div className="px-5 py-4 bg-slate-50 space-y-3">
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Full Implementation</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold border border-red-200">Not Offered</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-slate-700 text-white rounded text-xs font-semibold">Offering</span>
                           </div>
                         </div>
-                        
-                        <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                        
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-teal-700 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">+{totalGainY1.toFixed(0)}</span>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-800 mb-1">Begin Development</p>
+                          <div className="flex items-center gap-2">
+                            <span className="px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold border border-red-200">Not Offered</span>
+                            <span className="text-slate-400 text-xs">to</span>
+                            <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded text-xs font-semibold border border-amber-200">Planning</span>
                           </div>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-800">Year 1 Score Impact</p>
-                            <p className="text-xs text-slate-500">composite points</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right pl-6 border-l border-slate-200">
-                        <p className="text-xs text-slate-500 uppercase tracking-wide font-medium">Year 1 Projected Score</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</span>
-                          <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                          <span className="text-2xl font-bold text-teal-700">{projectedCompositeY1}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Priority Cards */}
+                  {/* Year 1 Overall Impact Summary */}
+                  <div className="mb-6 p-5 bg-slate-800 rounded-xl">
+                    <h4 className="text-white font-bold text-sm uppercase tracking-wide mb-4">Year 1 Overall Impact</h4>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-2">Support Elements Advanced</p>
+                        <p className="text-white text-3xl font-black">{totalElementsY1} <span className="text-slate-400 text-base font-normal">elements</span></p>
+                        <p className="text-slate-500 text-xs mt-1">across top 5 dimensions</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-400 text-xs uppercase tracking-wide mb-2">Year 1 Overall Score</p>
+                        <div className="flex items-baseline gap-3">
+                          <div>
+                            <p className="text-slate-500 text-[10px] uppercase">Current</p>
+                            <p className="text-slate-400 text-2xl font-bold">{compositeScore || '--'}</p>
+                          </div>
+                          <div>
+                            <p className="text-slate-500 text-[10px] uppercase">Year 1</p>
+                            <p className="text-white text-2xl font-bold">{projectedCompositeY1}</p>
+                          </div>
+                          <div className="ml-2 px-3 py-1 bg-white/10 rounded-lg">
+                            <p className="text-white text-lg font-bold">+{totalGainY1.toFixed(1)} <span className="text-sm font-normal">pts</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Priority Dimension Cards */}
                   <div className="space-y-4">
                     {rankings.slice(0, 5).map((r, idx) => {
                       const accelTotal = r.accelerateToOffering12 + r.accelerateToPlanning12;
@@ -6571,137 +6563,155 @@ export default function ExportReportPage() {
                       
                       return (
                       <div key={r.dimNum} className={`rounded-xl border overflow-hidden ${
-                        idx === 0 ? 'border-2 border-teal-500 shadow-md' : 
-                        idx === 1 ? 'border-2 border-teal-400' : 
+                        idx === 0 ? 'border-2 border-slate-400 shadow-md' : 
+                        idx === 1 ? 'border-2 border-slate-300' : 
                         'border-slate-200'
                       }`}>
-                        {/* Dimension Header - White/Light, not green */}
+                        {/* Dimension Header */}
                         <div className={`px-5 py-3 flex items-center justify-between ${
-                          idx < 2 ? 'bg-teal-50 border-b border-teal-100' : 'bg-slate-50 border-b border-slate-100'
+                          idx === 0 ? 'bg-slate-700' : 
+                          idx === 1 ? 'bg-slate-600' : 
+                          'bg-slate-100'
                         }`}>
                           <div className="flex items-center gap-3">
                             <span className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg font-black ${
-                              idx === 0 ? 'bg-teal-600 text-white' : 
-                              idx === 1 ? 'bg-teal-500 text-white' : 
-                              'bg-slate-300 text-slate-600'
+                              idx < 2 ? 'bg-white/20 text-white' : 'bg-slate-300 text-slate-600'
                             }`}>
                               {idx + 1}
                             </span>
-                            <h4 className="font-bold text-slate-800 text-base">{r.dimName}</h4>
+                            <h4 className={`font-bold text-base ${idx < 2 ? 'text-white' : 'text-slate-800'}`}>{r.dimName}</h4>
+                          </div>
+                        </div>
+                        
+                        {/* Content - Two Columns */}
+                        <div className="grid grid-cols-2 divide-x divide-slate-200">
+                          {/* Left: Dimension Action Plan */}
+                          <div className="p-5 bg-white">
+                            <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4">Dimension Action Plan</h5>
+                            
+                            {/* Accelerate Section */}
+                            <div className="mb-4">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <span className="text-sm font-bold text-slate-700">ACCELERATE</span>
+                                <span className="text-xs text-slate-500">({accelTotal} in-flight)</span>
+                              </div>
+                              
+                              <div className="pl-7 space-y-1.5">
+                                {r.accelerateToOffering12 > 0 && (
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-semibold">{r.accelerateToOffering12} element{r.accelerateToOffering12 > 1 ? 's' : ''}</span>: 
+                                    <span className="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-medium">Planning</span>
+                                    <span className="mx-1 text-slate-400">to</span>
+                                    <span className="px-1.5 py-0.5 bg-slate-700 text-white rounded text-[10px] font-medium">Offering</span>
+                                  </p>
+                                )}
+                                {r.accelerateToPlanning12 > 0 && (
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-semibold">{r.accelerateToPlanning12} element{r.accelerateToPlanning12 > 1 ? 's' : ''}</span>: 
+                                    <span className="ml-1 px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-medium">Assessing</span>
+                                    <span className="mx-1 text-slate-400">to</span>
+                                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-medium">Planning</span>
+                                  </p>
+                                )}
+                                {accelTotal === 0 && (
+                                  <p className="text-sm text-slate-500 italic">No elements currently in progress</p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Build Section */}
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded bg-slate-600 flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                </div>
+                                <span className="text-sm font-bold text-slate-700">BUILD</span>
+                                <span className="text-xs text-slate-500">({buildTotal} new)</span>
+                              </div>
+                              
+                              <div className="pl-7 space-y-1.5">
+                                {r.buildToOffering12 > 0 && (
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-semibold">{r.buildToOffering12} element{r.buildToOffering12 > 1 ? 's' : ''}</span>: 
+                                    <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium">New</span>
+                                    <span className="mx-1 text-slate-400">to</span>
+                                    <span className="px-1.5 py-0.5 bg-slate-700 text-white rounded text-[10px] font-medium">Offering</span>
+                                  </p>
+                                )}
+                                {r.buildToPlanning12 > 0 && (
+                                  <p className="text-sm text-slate-700">
+                                    <span className="font-semibold">{r.buildToPlanning12} element{r.buildToPlanning12 > 1 ? 's' : ''}</span>: 
+                                    <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-medium">New</span>
+                                    <span className="mx-1 text-slate-400">to</span>
+                                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-medium">Planning</span>
+                                  </p>
+                                )}
+                                {buildTotal === 0 && (
+                                  <p className="text-sm text-slate-500 italic">Focus on accelerating existing work</p>
+                                )}
+                              </div>
+                            </div>
                           </div>
                           
-                          {/* Score: Current → Year 1 */}
-                          <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 border border-slate-200">
-                            <div className="text-center">
-                              <p className="text-[9px] text-slate-500 uppercase font-medium">Current</p>
-                              <p className="text-lg font-bold text-slate-600">{r.currentScore}</p>
+                          {/* Right: Impact */}
+                          <div className="p-5 bg-slate-50">
+                            <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-4">Impact</h5>
+                            
+                            {/* Dimension Score Impact */}
+                            <div className="mb-4 p-3 bg-white rounded-lg border border-slate-200">
+                              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-2">Dimension Score</p>
+                              <div className="flex items-baseline gap-3">
+                                <div>
+                                  <p className="text-[9px] text-slate-400 uppercase">Current</p>
+                                  <p className="text-xl font-bold text-slate-500">{r.currentScore}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[9px] text-slate-600 uppercase font-medium">Year 1</p>
+                                  <p className="text-xl font-bold text-slate-800">{r.projectedScore12}</p>
+                                </div>
+                                <div className="ml-auto text-right">
+                                  <p className="text-lg font-black text-slate-700">+{r.dimPotentialGain12}</p>
+                                  <p className="text-[10px] text-slate-500">{r.headroomPct12}% headroom</p>
+                                </div>
+                              </div>
                             </div>
-                            <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                            <div className="text-center">
-                              <p className="text-[9px] text-teal-600 uppercase font-semibold">Year 1</p>
-                              <p className="text-lg font-bold text-teal-700">{r.projectedScore12}</p>
+                            
+                            {/* Overall Score Impact */}
+                            <div className="p-3 bg-slate-700 rounded-lg">
+                              <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-wide mb-2">Overall Score Contribution</p>
+                              <div className="flex items-baseline gap-3">
+                                <div>
+                                  <p className="text-[9px] text-slate-400 uppercase">Current</p>
+                                  <p className="text-xl font-bold text-slate-400">{compositeScore || '--'}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[9px] text-slate-300 uppercase font-medium">Year 1</p>
+                                  <p className="text-xl font-bold text-white">{(Math.round(((compositeScore || 0) + r.potentialGain12) * 10) / 10)}</p>
+                                </div>
+                                <div className="ml-auto text-right">
+                                  <p className="text-lg font-black text-white">+{r.potentialGain12}</p>
+                                  <p className="text-[10px] text-slate-400">composite pts</p>
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                         
-                        {/* Content */}
-                        <div className="p-5 bg-white">
-                          <div className="grid grid-cols-12 gap-4">
-                            {/* Accelerate Column */}
-                            <div className="col-span-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded bg-slate-700 flex items-center justify-center">
-                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                </div>
-                                <span className="text-xs font-bold text-slate-700 uppercase">Focus on {accelTotal} in-flight</span>
-                              </div>
-                              
-                              <div className="space-y-1.5 pl-8">
-                                {r.accelerateToOffering12 > 0 && (
-                                  <div className="flex items-center gap-1.5 text-sm">
-                                    <span className="text-slate-600">{r.accelerateToOffering12}×</span>
-                                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">Planning</span>
-                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                    <span className="px-1.5 py-0.5 bg-teal-700 text-white rounded text-[10px] font-semibold">Offering</span>
-                                  </div>
-                                )}
-                                {r.accelerateToPlanning12 > 0 && (
-                                  <div className="flex items-center gap-1.5 text-sm">
-                                    <span className="text-slate-600">{r.accelerateToPlanning12}×</span>
-                                    <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded text-[10px] font-semibold">Assessing</span>
-                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">Planning</span>
-                                  </div>
-                                )}
-                                {accelTotal === 0 && (
-                                  <p className="text-xs text-slate-500 italic">No elements in progress</p>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Build Column */}
-                            <div className="col-span-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <div className="w-6 h-6 rounded bg-teal-700 flex items-center justify-center">
-                                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                </div>
-                                <span className="text-xs font-bold text-slate-700 uppercase">Focus on {buildTotal} new</span>
-                              </div>
-                              
-                              <div className="space-y-1.5 pl-8">
-                                {r.buildToOffering12 > 0 && (
-                                  <div className="flex items-center gap-1.5 text-sm">
-                                    <span className="text-slate-600">{r.buildToOffering12}×</span>
-                                    <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-semibold">New</span>
-                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                    <span className="px-1.5 py-0.5 bg-teal-700 text-white rounded text-[10px] font-semibold">Offering</span>
-                                  </div>
-                                )}
-                                {r.buildToPlanning12 > 0 && (
-                                  <div className="flex items-center gap-1.5 text-sm">
-                                    <span className="text-slate-600">{r.buildToPlanning12}×</span>
-                                    <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-semibold">New</span>
-                                    <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                                    <span className="px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-semibold">Planning</span>
-                                  </div>
-                                )}
-                                {buildTotal === 0 && (
-                                  <p className="text-xs text-slate-500 italic">Focus on acceleration</p>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Impact Boxes */}
-                            <div className="col-span-4 flex gap-3">
-                              {/* Year 1 Dimension Impact */}
-                              <div className="flex-1 bg-slate-50 rounded-lg p-3 border border-slate-200 text-center">
-                                <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wide">Year 1 Dimension</p>
-                                <p className="text-2xl font-black text-slate-700 mt-1">+{r.dimPotentialGain12}</p>
-                                <p className="text-[10px] text-slate-500">{r.headroomPct12}% headroom</p>
-                              </div>
-                              
-                              {/* Year 1 Overall Impact */}
-                              <div className="flex-1 bg-teal-50 rounded-lg p-3 border border-teal-200 text-center">
-                                <p className="text-[9px] text-teal-600 uppercase font-semibold tracking-wide">Year 1 Overall</p>
-                                <p className="text-2xl font-black text-teal-700 mt-1">+{r.potentialGain12}</p>
-                                <p className="text-[10px] text-teal-600">composite pts</p>
-                              </div>
-                            </div>
+                        {/* Edit mode recommendations */}
+                        {editMode && (
+                          <div className="px-5 py-3 bg-amber-50 border-t border-amber-200">
+                            <input
+                              type="text"
+                              value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
+                              onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
+                              className="w-full text-sm text-slate-700 bg-white border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                              placeholder="Custom recommendations..."
+                            />
                           </div>
-                          
-                          {/* Editable Recommendations - only show in edit mode */}
-                          {editMode && (
-                            <div className="mt-4 pt-4 border-t border-slate-100">
-                              <input
-                                type="text"
-                                value={customRecommendations[r.dimNum] ?? r.recommendations?.join(' • ') ?? ''}
-                                onChange={(e) => updateCustomRecommendation(r.dimNum, e.target.value)}
-                                className="w-full text-sm text-slate-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                placeholder="Custom recommendations..."
-                              />
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
                       );
                     })}
