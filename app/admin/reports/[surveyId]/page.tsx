@@ -2863,7 +2863,7 @@ export default function ExportReportPage() {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
       what: 'Connects the dots across your scores to highlight bottlenecks, places where one weaker area may be limiting the impact of stronger programs elsewhere.',
-      how: 'The system checks for a set of common cross-score patterns (for example, Culture is strong but Manager Preparedness is low). When your scores match a pattern, it surfaces a plain-English explanation and a recommended action you can assign to an owner. Patterns are ranked by severity so you see the most impactful issues first.',
+      how: 'The system checks for a set of common cross-score patterns (for example, Culture is strong but Manager Preparedness is low). When your scores match a pattern, it surfaces an explanation and a recommended action you can assign to an owner. Patterns are ranked by severity so you see the most impactful issues first.',
       when: 'Use this section to align HR and leaders on root causes, prioritize a small number of moves that unlock multiple areas, and clarify what to confirm first before finalizing scores.',
       questions: ['Where are we investing, but employees may still struggle to access support?', 'What is the "weak link" that could be limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?']
     },
@@ -2871,12 +2871,12 @@ export default function ExportReportPage() {
       title: 'Impact-Ranked Improvement Priorities',
       what: 'Ranks dimensions by potential composite score impact, calculated from your actual support element status. Dimensions with more items ready to advance rank higher.',
       how: 'Improvement potential derived from status transitions: Planning→Offering (+2 pts/element), Assessing→Planning (+1 pt), Not Planned→Assessing (+2 pts, capped at 2 elements). Formula: ΔComposite = 0.9 × (weight/100) × ΔDimScore. Readiness tags indicate implementation complexity but do not affect ranking.',
-      when: 'Use this for tactical prioritization—identifying where focused effort will most efficiently improve your composite score.',
+      when: 'Use this for tactical prioritization, identifying where focused effort will most efficiently improve your composite score.',
       questions: ['Where will effort most efficiently improve our score?', 'Which dimensions have actionable improvement paths?', 'What\'s the fastest route to meaningful progress?', 'Which initiatives should we accelerate first?']
     },
     excellence: {
       title: 'Areas of Excellence',
-      what: 'Highlights your top-performing dimensions—those where you\'re delivering strong support and can leverage as competitive advantages.',
+      what: 'Highlights your top-performing dimensions where you\'re delivering strong support and can leverage as competitive advantages.',
       how: 'Identifies dimensions with the highest scores, representing your strongest capabilities in supporting employees managing cancer.',
       when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
       questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
