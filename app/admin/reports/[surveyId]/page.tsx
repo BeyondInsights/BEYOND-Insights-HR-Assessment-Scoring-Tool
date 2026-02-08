@@ -32,7 +32,7 @@ const ChevronUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 function PolishedScoreComposition({ compositeScore, weightedDimScore, maturityScore, breadthScore, benchmarks, getScoreColor }: any) {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const components = [
-    { id: 'weighted', label: 'Weighted Dimensions', score: weightedDimScore, weight: 90, benchmark: benchmarks?.weightedDimScore, description: 'Combined performance across all 13 support dimensions, weighted by strategic importance.' },
+    { id: 'weighted', label: 'Weighted Dimensions', score: weightedDimScore, weight: 90, benchmark: benchmarks?.weightedDimScore, description: 'Combined performance across all 13 support dimensions, weighted by impact importance.' },
     { id: 'maturity', label: 'Program Maturity', score: maturityScore, weight: 5, benchmark: benchmarks?.maturityScore, description: 'Organizational maturity in supporting employees managing cancer.' },
     { id: 'breadth', label: 'Support Breadth', score: breadthScore, weight: 5, benchmark: benchmarks?.breadthScore, description: 'Extent of benefits beyond legal minimums.' },
   ];
@@ -927,7 +927,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
   const isWeak = (d: any) => (d?.score ?? 0) < 60;           // Emerging/Developing
   const headroom = (d: any) => 100 - (d?.score ?? 0);
 
-  // Opportunity proxy: headroom weighted by strategic importance (dampened so it informs but doesn't dominate)
+  // Opportunity proxy: headroom weighted by impact importance (dampened so it informs but doesn't dominate)
   const avgWeight = dimAnalysis.reduce((s, d) => s + (d.weight || 0), 0) / Math.max(dimAnalysis.length, 1);
   const weightFactor = (w: number) => {
     const ratio = (w || 0) / Math.max(avgWeight, 1);
@@ -1347,7 +1347,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ STRATEGIC IMPORTANCE
+              ↑ IMPACT WEIGHT
             </text>
             
             {/* Data points - at true positions, no nudging */}
@@ -2592,7 +2592,7 @@ export default function ExportReportPage() {
       0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
       2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
-      3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by strategic importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
+      3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
       4: 'Walk through the four-step workflow: Confirm, then Prioritize, then Plan, then Track. Explain that items marked "Needs confirmation" are the first unlock because they are scored as Not Planned until verified. Focus attention on high-weight gaps first since small changes there move the overall score fastest.',
       5: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
       6: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
@@ -4789,7 +4789,7 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     <div className="px-8 py-6">
-                      <p className="text-slate-600 mb-6">Combined performance across all 13 support dimensions, weighted by their strategic importance to cancer support programs.</p>
+                      <p className="text-slate-600 mb-6">Combined performance across all 13 support dimensions, weighted by their impact importance to cancer support programs.</p>
                       <div className="bg-slate-50 rounded-xl p-4 mb-4">
                         <p className="text-sm font-semibold text-slate-700 mb-3">How It's Calculated</p>
                         <p className="text-sm text-slate-600">Each dimension score is multiplied by its weight, then summed and normalized to 100. Higher-weighted dimensions (like Manager Training at 14%) have more influence than lower-weighted ones.</p>
@@ -5304,7 +5304,7 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">↑ STRATEGIC IMPORTANCE</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">↑ IMPACT IMPORTANCE</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {showBenchmarkRings && (() => {
@@ -6742,7 +6742,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="p-6">
                       <p className="text-slate-600 text-sm mb-4">
-                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where strategic importance × headroom creates system-wide impact.
+                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.
                       </p>
                       <div className="space-y-3">
                         {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
@@ -9218,7 +9218,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ IMPACT IMPORTANCE</text>
                               
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
@@ -9373,7 +9373,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ STRATEGIC IMPORTANCE</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ IMPACT IMPORTANCE</text>
                               
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
@@ -10004,7 +10004,7 @@ export default function ExportReportPage() {
                             <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold">2 dimensions</span>
                           </div>
                           <div className="p-4">
-                            <p className="text-slate-600 text-xs mb-3"><span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where strategic importance × headroom creates system-wide impact.</p>
+                            <p className="text-slate-600 text-xs mb-3"><span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.</p>
                             <div className="space-y-3">
                               {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
                                 <div key={d.dim} className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
@@ -11587,7 +11587,7 @@ export default function ExportReportPage() {
                       <p className="mb-2"><strong>The 13 dimensions overview:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Walk through the dimension categories and what each measures</li>
-                        <li>Note that dimensions are weighted by strategic importance based on research</li>
+                        <li>Note that dimensions are weighted by impact importance based on research</li>
                         <li>Emphasize that all dimensions matter - improvements anywhere create lasting impact</li>
                       </ul>
                     </div>
