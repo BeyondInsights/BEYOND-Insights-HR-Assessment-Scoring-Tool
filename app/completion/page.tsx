@@ -419,10 +419,7 @@ export default function CompletionPage() {
       {/* Page footer */}
       <div className="max-w-4xl mx-auto px-6 py-8 text-center">
         <p className="text-xs text-gray-500">
-          © {new Date().getFullYear()} Cancer and Careers & CEW Foundation
-        </p>
-        <p className="text-xs text-gray-500 mt-1">
-          All responses collected and analyzed by BEYOND Insights, LLC
+          {new Date().getFullYear()} Best Companies for Working with Cancer Index™
         </p>
       </div>
     </div>
