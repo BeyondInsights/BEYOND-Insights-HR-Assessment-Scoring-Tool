@@ -4571,7 +4571,7 @@ export default function ExportReportPage() {
                               <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              We&apos;re grateful that {companyName} is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but helping define what excellence looks like for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the Leading or Exemplary tiers yet, and that's expected at this stage.
+                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> or <strong>Exemplary</strong> tiers yet, and that&apos;s expected at this stage.
                             </p>
                             <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                               <p className="text-sm text-slate-700 leading-relaxed">
@@ -9221,11 +9221,11 @@ export default function ExportReportPage() {
                                 <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                               </div>
                               <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                                Workplace cancer support is still evolving. Few organizations reach the top tiers today, and participating puts you among employers actively building stronger, more consistent support.
+                                We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> or <strong>Exemplary</strong> tiers yet, and that&apos;s expected at this stage.
                               </p>
                               <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                                 <p className="text-sm text-slate-700 leading-relaxed">
-                                  <strong className="text-violet-700">The goal is progress:</strong> confirm what&apos;s in place, prioritize high-leverage moves, and revisit over time.
+                                  <strong className="text-violet-700">The goal is progress, not perfection.</strong> This isn&apos;t about achieving a perfect score. It&apos;s about continuous improvement, taking meaningful steps forward each year, and building support systems that grow alongside your workforce.
                                 </p>
                               </div>
                             </div>
