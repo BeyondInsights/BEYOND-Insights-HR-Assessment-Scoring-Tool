@@ -1142,10 +1142,16 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
   return dimAnalysis
     .map(d => {
       const elementCount = d.elements?.length || 10;
+      const strengthCount = d.strengths?.length || 0;
       const planningCount = d.planning?.length || 0;
       const assessingCount = d.assessing?.length || 0;
       const notPlannedCount = d.gaps?.length || 0;
+      const unsureCount = d.unsure?.length || 0;
       const maxPoints = elementCount * 5;
+      
+      // Calculate CURRENT raw points from elements
+      const currentRawPoints = (strengthCount * 5) + (planningCount * 3) + (assessingCount * 2);
+      // Note: gaps and unsure = 0 points
       
       // Momentum indicator: does this dimension have work in flight?
       const momentum = planningCount + assessingCount;
@@ -1215,15 +1221,19 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
         build12_toOffering + build12_toPlanning + build12_toAssessing;
       
       // ========================================
-      // SCORE CALCULATIONS
+      // SCORE CALCULATIONS (using raw points like What-If)
       // ========================================
-      const rawDimGain = (totalPointsDelta / maxPoints) * 100;
-      const dimPotentialGain = Math.round(Math.min(rawDimGain, 100 - d.score));
-      const projectedScore = Math.min(100, d.score + dimPotentialGain);
+      // 90-day projected raw points
+      const projectedRawPoints = currentRawPoints + totalPointsDelta;
+      const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
+      const dimPotentialGain = Math.max(0, projectedRawScore - d.score);
+      const projectedScore = Math.min(100, projectedRawScore);
       
-      const rawDimGain12 = (totalPointsDelta12 / maxPoints) * 100;
-      const dimPotentialGain12 = Math.round(Math.min(rawDimGain12, 100 - d.score));
-      const projectedScore12 = Math.min(100, d.score + dimPotentialGain12);
+      // Year-1 projected raw points
+      const projectedRawPoints12 = currentRawPoints + totalPointsDelta12;
+      const projectedRawScore12 = maxPoints > 0 ? Math.round((projectedRawPoints12 / maxPoints) * 100) : 0;
+      const dimPotentialGain12 = Math.max(0, projectedRawScore12 - d.score);
+      const projectedScore12 = Math.min(100, projectedRawScore12);
       
       // Composite impact
       const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
