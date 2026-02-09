@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { FP_COMPANY_MAP, isFoundingPartner } from '@/lib/founding-partners'
+import { startHydration, endHydration, setStoredVersion, clearDirty } from '@/lib/supabase/auto-data-sync'
 import Footer from '@/components/Footer'
 
 function FPRegisterContent() {
@@ -122,6 +123,11 @@ function FPRegisterContent() {
           const firmData = existing.firmographics_data as any
           
           // ============================================
+          // START HYDRATION - Prevents auto-sync from triggering during DB→localStorage writes
+          // ============================================
+          startHydration()
+          
+          // ============================================
           // LOAD AUTH/LOGIN INFO
           // ============================================
           localStorage.setItem('login_email', existing.email)
@@ -205,6 +211,18 @@ function FPRegisterContent() {
           if (existing.payment_method) {
             localStorage.setItem('payment_method', existing.payment_method)
           }
+          
+          // ============================================
+          // END HYDRATION + SET VERSION + CLEAR DIRTY
+          // ============================================
+          // Set local version to match server (prevents false conflict)
+          if (existing.version) {
+            setStoredVersion(existing.version)
+          }
+          // Clear any dirty flag (we just loaded fresh from server)
+          clearDirty()
+          // End hydration mode
+          endHydration()
           
           console.log('[FP-REGISTER] ✅ All survey data loaded successfully!')
           
