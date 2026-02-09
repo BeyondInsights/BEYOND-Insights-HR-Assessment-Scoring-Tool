@@ -4803,18 +4803,24 @@ export default function ExportReportPage() {
                         <div className="flex justify-end mb-3">
                           <button
                             onClick={() => {
-                              const rows = [['Dimension', 'Tier', 'Weight', 'Item Name', 'Most likely owner to confirm', 'Fastest evidence to validate']];
+                              const rows = [['Dimension', 'Response', 'Element', 'Resources to help confirm']];
                               dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
                                 dim.unsure.forEach((item: any) => {
                                   const guidance = getConfirmationGuidance(item.name);
-                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name, guidance.owner, guidance.evidence]);
+                                  const responseLabel = dim.tier?.label || 'Unsure';
+                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, responseLabel === 'undefined' ? 'Unsure' : responseLabel, item.name, guidance.evidence]);
                                 });
                               });
                               const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-                              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                              const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
                               const link = document.createElement('a');
                               link.href = URL.createObjectURL(blob);
-                              link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmatory_items.csv`;
+                              // Normalize company name: remove accents and special chars
+                              const safeName = (companyName || 'company')
+                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+                                .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special chars except spaces
+                                .replace(/\s+/g, '_'); // Replace spaces with underscores
+                              link.download = `${safeName}_confirmatory_items.csv`;
                               link.click();
                             }}
                             className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm"
