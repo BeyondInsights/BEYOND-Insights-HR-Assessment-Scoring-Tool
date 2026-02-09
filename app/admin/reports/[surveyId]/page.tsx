@@ -4437,7 +4437,7 @@ export default function ExportReportPage() {
                           {/* Company's Current Score */}
                           <div className="mt-4 pt-4 border-t border-slate-200 text-center">
                             <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-800">{assessment?.company_name || 'Your'}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
+                              <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
                             </p>
                           </div>
                         </div>
