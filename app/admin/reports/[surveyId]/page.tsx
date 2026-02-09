@@ -10205,7 +10205,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                      {/* Dimensions 1-3 */}
+                      {/* Dimensions 1-3 - matching main report structure */}
                       <div className="space-y-3">
                         {rankings.slice(0, 3).map((r, idx) => {
                           const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
@@ -10216,93 +10216,126 @@ export default function ExportReportPage() {
                           const barWidth = totalGainY1 > 0 ? (r.potentialGain12 / totalGainY1) * 100 : 0;
                           return (
                           <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            {/* Header matching main report */}
                             <div className={`${colors.bg}`}>
-                              <div className="px-5 py-2.5 flex items-center justify-between">
+                              <div className="px-5 py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <span className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-base font-bold text-white">{idx + 1}</span>
+                                  <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
                                   <div>
-                                    <h4 className="font-semibold text-white">{r.dimName}</h4>
-                                    <p className="text-white/70 text-xs">{accelCount} accelerated + {buildCount} built ({totalDimElements} total)</p>
+                                    <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
+                                    <p className="text-white/70 text-xs mt-0.5">Year 1 plan: {accelCount} accelerated + {buildCount} built ({totalDimElements} total)</p>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <span className="text-white/80 text-xs">Contribution:</span>
-                                  <span className="text-white font-bold ml-1">+{r.potentialGain12}</span>
+                                  <div className="mb-1">
+                                    <span className="text-white/80 text-xs">Contribution to Projected Composite:</span>
+                                    <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 justify-end">
+                                    <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
+                                    <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                      <div className="h-full bg-white/70 rounded-full" style={{ width: `${barWidth}%` }} />
+                                    </div>
+                                    <span className="text-white/80 text-[10px] font-medium w-8">{Math.round(barWidth)}%</span>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="px-5 pb-2 flex items-center gap-2">
-                                <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
-                                <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
-                                  <div className="h-full bg-white/70 rounded-full" style={{ width: `${barWidth}%` }} />
-                                </div>
-                                <span className="text-white/80 text-[10px] font-medium">{Math.round(barWidth)}%</span>
                               </div>
                             </div>
-                            <div className={`p-3 ${colors.light}`}>
-                              <div className="grid grid-cols-12 gap-3">
-                                {/* Accelerate */}
-                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-2.5">
-                                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-100">
-                                    <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            
+                            {/* Content - matching main report */}
+                            <div className={`p-4 ${colors.light}`}>
+                              <div className="grid grid-cols-12 gap-4">
+                                {/* ACCELERATE */}
+                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                    <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                     </div>
-                                    <span className="font-semibold text-slate-700 text-xs">Accelerate ({accelCount})</span>
+                                    <span className="font-semibold text-slate-700">Accelerate ({accelCount})</span>
                                   </div>
-                                  <div className="space-y-1">
-                                    {accelerateItems.slice(0, 3).map((item, i) => (
-                                      <div key={i} className="flex items-start justify-between gap-1">
-                                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 bg-amber-500"></span>
-                                          <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
-                                        </div>
-                                        <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
-                                          item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
-                                        }`}>{item.to === 'Offering' ? 'Impl' : 'Plan'}</span>
-                                      </div>
-                                    ))}
-                                    {accelerateItems.length > 3 && (
-                                      <p className="text-[10px] text-slate-400">+{accelerateItems.length - 3} more</p>
-                                    )}
-                                    {accelerateItems.length === 0 && <p className="text-xs text-slate-400 italic">None</p>}
-                                  </div>
-                                </div>
-                                {/* Build */}
-                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-2.5">
-                                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-100">
-                                    <div className="w-5 h-5 rounded bg-indigo-700 flex items-center justify-center">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                  {accelerateItems.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {accelerateItems.slice(0, 3).map((item, i) => {
+                                        const bench = getElementBenchmark(r.dimNum, item.name);
+                                        return (
+                                          <div key={i} className="flex items-start justify-between gap-2">
+                                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
+                                              <span className="text-sm text-slate-600">{item.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                                {item.to === 'Offering' ? 'Implement' : 'Active Planning'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      {accelerateItems.length > 3 && (
+                                        <p className="text-xs text-slate-500 font-medium mt-1">Show {accelerateItems.length - 3} more accelerated elements</p>
+                                      )}
+                                      {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                      )}
                                     </div>
-                                    <span className="font-semibold text-slate-700 text-xs">Build ({buildCount})</span>
-                                  </div>
-                                  <div className="space-y-1">
-                                    {buildItems.slice(0, 3).map((item, i) => (
-                                      <div key={i} className="flex items-start justify-between gap-1">
-                                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 bg-indigo-500"></span>
-                                          <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
-                                        </div>
-                                        <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
-                                          item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
-                                        }`}>{item.to === 'Offering' ? 'Stand' : 'Scope'}</span>
-                                      </div>
-                                    ))}
-                                    {buildItems.length > 3 && (
-                                      <p className="text-[10px] text-slate-400">+{buildItems.length - 3} more</p>
-                                    )}
-                                    {buildItems.length === 0 && <p className="text-xs text-slate-400 italic">None</p>}
-                                  </div>
+                                  ) : (
+                                    <p className="text-sm text-slate-400 italic">No in-flight elements</p>
+                                  )}
                                 </div>
-                                {/* Dimension Score - matching main report */}
-                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-3">
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide text-center mb-2">Dimension Score</p>
-                                  <div className="flex items-center justify-center gap-2 mb-1">
-                                    <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
-                                    <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                    <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                
+                                {/* BUILD */}
+                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                    <div className="w-7 h-7 rounded-lg bg-indigo-700 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                    </div>
+                                    <span className="font-semibold text-slate-700">Build ({buildCount})</span>
                                   </div>
-                                  <p className="text-[9px] text-slate-400 text-center mb-1">Current → Projected</p>
-                                  <div className="text-center pt-1 border-t border-slate-100">
-                                    <span className="text-xs font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
+                                  {buildItems.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {buildItems.slice(0, 3).map((item, i) => {
+                                        const bench = getElementBenchmark(r.dimNum, item.name);
+                                        return (
+                                          <div key={i} className="flex items-start justify-between gap-2">
+                                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-indigo-500"></span>
+                                              <span className="text-sm text-slate-600">{item.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
+                                                {item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      {buildItems.length > 3 && (
+                                        <p className="text-xs text-slate-500 font-medium mt-1">Show {buildItems.length - 3} more build elements</p>
+                                      )}
+                                      {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
+                                  )}
+                                </div>
+                                
+                                {/* DIMENSION SCORE */}
+                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
+                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-center gap-3">
+                                      <span className="text-4xl font-bold text-slate-400">{r.currentScore}</span>
+                                      <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                      <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 text-center">Current → Projected</p>
+                                    <div className="text-center pt-2 mt-2 border-t border-slate-100">
+                                      <span className="text-sm font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -10429,7 +10462,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                      {/* Dimensions 4-5 */}
+                      {/* Dimensions 4-5 - matching main report structure */}
                       <div className="space-y-3">
                         {rankings.slice(3, 5).map((r, idx) => {
                           const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
@@ -10440,93 +10473,126 @@ export default function ExportReportPage() {
                           const barWidth = totalGainY1 > 0 ? (r.potentialGain12 / totalGainY1) * 100 : 0;
                           return (
                           <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            {/* Header matching main report */}
                             <div className={`${colors.bg}`}>
-                              <div className="px-5 py-2.5 flex items-center justify-between">
+                              <div className="px-5 py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <span className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center text-base font-bold text-white">{idx + 4}</span>
+                                  <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 4}</span>
                                   <div>
-                                    <h4 className="font-semibold text-white">{r.dimName}</h4>
-                                    <p className="text-white/70 text-xs">{accelCount} accelerated + {buildCount} built ({totalDimElements} total)</p>
+                                    <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
+                                    <p className="text-white/70 text-xs mt-0.5">Year 1 plan: {accelCount} accelerated + {buildCount} built ({totalDimElements} total)</p>
                                   </div>
                                 </div>
                                 <div className="text-right">
-                                  <span className="text-white/80 text-xs">Contribution:</span>
-                                  <span className="text-white font-bold ml-1">+{r.potentialGain12}</span>
+                                  <div className="mb-1">
+                                    <span className="text-white/80 text-xs">Contribution to Projected Composite:</span>
+                                    <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 justify-end">
+                                    <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
+                                    <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                      <div className="h-full bg-white/70 rounded-full" style={{ width: `${barWidth}%` }} />
+                                    </div>
+                                    <span className="text-white/80 text-[10px] font-medium w-8">{Math.round(barWidth)}%</span>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="px-5 pb-2 flex items-center gap-2">
-                                <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
-                                <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
-                                  <div className="h-full bg-white/70 rounded-full" style={{ width: `${barWidth}%` }} />
-                                </div>
-                                <span className="text-white/80 text-[10px] font-medium">{Math.round(barWidth)}%</span>
                               </div>
                             </div>
-                            <div className={`p-3 ${colors.light}`}>
-                              <div className="grid grid-cols-12 gap-3">
-                                {/* Accelerate */}
-                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-2.5">
-                                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-100">
-                                    <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            
+                            {/* Content - matching main report */}
+                            <div className={`p-4 ${colors.light}`}>
+                              <div className="grid grid-cols-12 gap-4">
+                                {/* ACCELERATE */}
+                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                    <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                     </div>
-                                    <span className="font-semibold text-slate-700 text-xs">Accelerate ({accelCount})</span>
+                                    <span className="font-semibold text-slate-700">Accelerate ({accelCount})</span>
                                   </div>
-                                  <div className="space-y-1">
-                                    {accelerateItems.slice(0, 3).map((item, i) => (
-                                      <div key={i} className="flex items-start justify-between gap-1">
-                                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 bg-amber-500"></span>
-                                          <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
-                                        </div>
-                                        <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
-                                          item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
-                                        }`}>{item.to === 'Offering' ? 'Impl' : 'Plan'}</span>
-                                      </div>
-                                    ))}
-                                    {accelerateItems.length > 3 && (
-                                      <p className="text-[10px] text-slate-400">+{accelerateItems.length - 3} more</p>
-                                    )}
-                                    {accelerateItems.length === 0 && <p className="text-xs text-slate-400 italic">None</p>}
-                                  </div>
-                                </div>
-                                {/* Build */}
-                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-2.5">
-                                  <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-100">
-                                    <div className="w-5 h-5 rounded bg-indigo-700 flex items-center justify-center">
-                                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                  {accelerateItems.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {accelerateItems.slice(0, 3).map((item, i) => {
+                                        const bench = getElementBenchmark(r.dimNum, item.name);
+                                        return (
+                                          <div key={i} className="flex items-start justify-between gap-2">
+                                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
+                                              <span className="text-sm text-slate-600">{item.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                                {item.to === 'Offering' ? 'Implement' : 'Active Planning'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      {accelerateItems.length > 3 && (
+                                        <p className="text-xs text-slate-500 font-medium mt-1">Show {accelerateItems.length - 3} more accelerated elements</p>
+                                      )}
+                                      {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                      )}
                                     </div>
-                                    <span className="font-semibold text-slate-700 text-xs">Build ({buildCount})</span>
-                                  </div>
-                                  <div className="space-y-1">
-                                    {buildItems.slice(0, 3).map((item, i) => (
-                                      <div key={i} className="flex items-start justify-between gap-1">
-                                        <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 bg-indigo-500"></span>
-                                          <span className="text-xs text-slate-600 leading-tight">{item.name}</span>
-                                        </div>
-                                        <span className={`px-1 py-0.5 text-[9px] font-medium rounded flex-shrink-0 ${
-                                          item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
-                                        }`}>{item.to === 'Offering' ? 'Stand' : 'Scope'}</span>
-                                      </div>
-                                    ))}
-                                    {buildItems.length > 3 && (
-                                      <p className="text-[10px] text-slate-400">+{buildItems.length - 3} more</p>
-                                    )}
-                                    {buildItems.length === 0 && <p className="text-xs text-slate-400 italic">None</p>}
-                                  </div>
+                                  ) : (
+                                    <p className="text-sm text-slate-400 italic">No in-flight elements</p>
+                                  )}
                                 </div>
-                                {/* Dimension Score - matching main report */}
-                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-3">
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide text-center mb-2">Dimension Score</p>
-                                  <div className="flex items-center justify-center gap-2 mb-1">
-                                    <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
-                                    <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                    <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                
+                                {/* BUILD */}
+                                <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                    <div className="w-7 h-7 rounded-lg bg-indigo-700 flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                    </div>
+                                    <span className="font-semibold text-slate-700">Build ({buildCount})</span>
                                   </div>
-                                  <p className="text-[9px] text-slate-400 text-center mb-1">Current → Projected</p>
-                                  <div className="text-center pt-1 border-t border-slate-100">
-                                    <span className="text-xs font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
+                                  {buildItems.length > 0 ? (
+                                    <div className="space-y-2">
+                                      {buildItems.slice(0, 3).map((item, i) => {
+                                        const bench = getElementBenchmark(r.dimNum, item.name);
+                                        return (
+                                          <div key={i} className="flex items-start justify-between gap-2">
+                                            <div className="flex items-start gap-2 flex-1 min-w-0">
+                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-indigo-500"></span>
+                                              <span className="text-sm text-slate-600">{item.name}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
+                                                {item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      {buildItems.length > 3 && (
+                                        <p className="text-xs text-slate-500 font-medium mt-1">Show {buildItems.length - 3} more build elements</p>
+                                      )}
+                                      {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
+                                  )}
+                                </div>
+                                
+                                {/* DIMENSION SCORE */}
+                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
+                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-center gap-3">
+                                      <span className="text-4xl font-bold text-slate-400">{r.currentScore}</span>
+                                      <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                      <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 text-center">Current → Projected</p>
+                                    <div className="text-center pt-2 mt-2 border-t border-slate-100">
+                                      <span className="text-sm font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
