@@ -59,20 +59,20 @@ export default function Header() {
               <button
                 onClick={() => router.push('/company-profile')}
                 className="flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm w-full"
-                title="View your company profile"
+                title="View your saved survey responses"
               >
                 <FileText className="w-4 h-4" />
-                Review Your Company Profile
+                Review / Download My Responses
               </button>
               
               {!onPrintPage && (
                 <button
                   onClick={goPrintView}
                   className="flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm w-full"
-                  title="Open printable full survey"
+                  title="View blank survey questions for reference"
                 >
                   <Download className="w-4 h-4" />
-                  Review / Download Survey
+                  Review / Download Survey Questions
                 </button>
               )}
               
