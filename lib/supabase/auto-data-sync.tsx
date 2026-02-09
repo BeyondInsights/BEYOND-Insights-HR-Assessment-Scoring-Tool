@@ -80,7 +80,7 @@ function getStoredVersion(): number {
   return stored ? Number(stored) : 0;
 }
 
-function setStoredVersion(version: number): void {
+export function setStoredVersion(version: number): void {
   const idKey = getIdKey();
   localStorage.setItem(`assessment_version_${idKey}`, String(version));
   // Also set legacy for backwards compatibility during transition
@@ -1055,7 +1055,7 @@ export default function AutoDataSync() {
     }
   }, [pathname, doSync])
   
-  // Intercept localStorage writes - with hydration guard and patch-once protection
+  // Intercept localStorage writes - with hydration guard, no-op guard, and patch-once protection
   useEffect(() => {
     // Prevent double-patching
     if ((window as any).__LS_PATCHED) {
@@ -1068,6 +1068,16 @@ export default function AutoDataSync() {
     let syncTimeout: ReturnType<typeof setTimeout> | null = null
     
     localStorage.setItem = (key: string, value: string) => {
+      // ============================================
+      // NO-OP GUARD: Don't do anything if value hasn't changed
+      // This prevents "false dirty" from page renders that write same value
+      // ============================================
+      const prev = localStorage.getItem(key)
+      if (prev === value) {
+        // Value unchanged - don't write, don't mark dirty, don't sync
+        return
+      }
+      
       originalSetItem(key, value)
       
       // Skip dirty tracking and sync during hydration (DB→localStorage writes)
