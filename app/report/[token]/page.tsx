@@ -2668,6 +2668,7 @@ export default function ExportReportPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
+  const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   
   // Monitor presenter notes window - check if it's been closed externally
   useEffect(() => {
