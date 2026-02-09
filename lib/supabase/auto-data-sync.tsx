@@ -1,5 +1,5 @@
 /**
- * AUTO DATA SYNC v6 - With Recovery Mode + Safety Fixes
+ * AUTO DATA SYNC v7 - With Recovery Mode + Safety Fixes + TS Fixes
  * 
  * FIXES APPLIED:
  * 1. Namespaced assessment_version by idKey (prevents cross-survey conflicts)
@@ -10,6 +10,9 @@
  * 6. forceSyncNow: gated by isDirty() and hasConflict()
  * 7. beforeunload: gated by isDirty() and hasConflict()
  * 8. Recovery mode for specific surveys (captures localStorage before sync)
+ * 9. Normalized getIdKey() to prevent namespace drift (FP-421967 vs FP421967)
+ * 10. Removed dead retryCount/MAX_RETRIES code
+ * 11. Completion flags accept '1' as well as 'true' (legacy compatibility)
  */
 
 'use client'
@@ -41,11 +44,16 @@ function isCompdUser(surveyId: string): boolean {
 // ID KEY HELPER (used for all namespacing)
 // ============================================
 
+// Normalize IDs to prevent namespace drift (FP-421967 vs FP421967 vs fp-421967)
+function normalizeId(id: string): string {
+  return (id || '').replace(/-/g, '').trim().toUpperCase();
+}
+
 function getIdKey(): string {
-  const surveyId = localStorage.getItem('survey_id') || '';
-  const appId = localStorage.getItem('app_id') || '';
-  // Fallback chain: survey_id → app_id → 'unknown'
-  return surveyId || appId || 'unknown';
+  const surveyId = normalizeId(localStorage.getItem('survey_id') || '');
+  const appId = normalizeId(localStorage.getItem('app_id') || '');
+  // Fallback chain: survey_id → app_id → 'UNKNOWN'
+  return surveyId || appId || 'UNKNOWN';
 }
 
 // ============================================
@@ -306,7 +314,8 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
   
   Object.entries(completeKeyMap).forEach(([localKey, dbKey]) => {
     const value = localStorage.getItem(localKey)
-    if (value === 'true') {
+    // Accept both 'true' and '1' as complete (legacy compatibility)
+    if (value === 'true' || value === '1') {
       updateData[dbKey] = true
       itemCount++
     }
@@ -445,12 +454,8 @@ async function syncViaNetlifyFunction(
   data: Record<string, any>,
   accessToken: string,
   userType: 'regular' | 'fp' | 'compd' = 'regular',
-  surveyId?: string,
-  retryCount: number = 0
+  surveyId?: string
 ): Promise<SyncResponse> {
-  // Prevent infinite retry loops
-  const MAX_RETRIES = 2;
-  
   try {
     const clientId = getOrCreateTabId('sync_client_id')
     let expectedVersion = getStoredVersion()
@@ -521,8 +526,8 @@ async function syncViaNetlifyFunction(
     // Just capture the actual version, set conflict flag, and STOP
     if (response.status === 409) {
       console.error('❌ AUTO-SYNC: VERSION CONFLICT!')
-      console.error('   Expected:', result.expectedVersion)
-      console.error('   Actual:', result.actualVersion)
+      console.error('   Expected (local):', expectedVersion)
+      console.error('   Actual (server):', result.actualVersion)
       
       // Store the actual DB version for reference (but don't retry!)
       if (result.actualVersion) {
