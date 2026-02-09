@@ -2684,6 +2684,7 @@ export default function ExportReportPage() {
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
+  const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   
   // Monitor presenter notes window - check if it's been closed externally
   useEffect(() => {
