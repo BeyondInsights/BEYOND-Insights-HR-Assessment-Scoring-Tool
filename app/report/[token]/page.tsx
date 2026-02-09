@@ -7817,7 +7817,7 @@ export default function ExportReportPage() {
                                   <div className="bg-white rounded-lg p-3 border border-indigo-100">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
-                                      <span className="text-sm text-slate-500">0-60 days</span>
+                                      <span className="text-sm text-slate-500">Short-term</span>
                                     </div>
                                     {editMode ? (
                                       <>
@@ -7859,7 +7859,7 @@ export default function ExportReportPage() {
                                   <div className="bg-white rounded-lg p-3 border border-indigo-100">
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
-                                      <span className="text-sm text-slate-500">60-180 days</span>
+                                      <span className="text-sm text-slate-500">long-term</span>
                                     </div>
                                     {editMode ? (
                                       <>
@@ -8137,7 +8137,7 @@ export default function ExportReportPage() {
                                     <div className="bg-white rounded-lg p-3 border border-indigo-100">
                                       <div className="flex items-center gap-2 mb-1">
                                         <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
-                                        <span className="text-sm text-slate-500">0-60 days</span>
+                                        <span className="text-sm text-slate-500">Short-term</span>
                                       </div>
                                       <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
                                       <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
@@ -8147,7 +8147,7 @@ export default function ExportReportPage() {
                                     <div className="bg-white rounded-lg p-3 border border-indigo-100">
                                       <div className="flex items-center gap-2 mb-1">
                                         <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
-                                        <span className="text-sm text-slate-500">60-180 days</span>
+                                        <span className="text-sm text-slate-500">long-term</span>
                                       </div>
                                       <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
                                       <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
@@ -11394,7 +11394,7 @@ export default function ExportReportPage() {
                                     <div className="bg-white rounded-lg p-2 border border-indigo-100">
                                       <div className="flex items-center gap-2 mb-1">
                                         <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded">STRATEGIC</span>
-                                        <span className="text-[10px] text-slate-500">60-180 days</span>
+                                        <span className="text-[10px] text-slate-500">long-term</span>
                                       </div>
                                       <p className="text-xs font-medium text-slate-800">{customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name}</p>
                                       <p className="text-[10px] text-slate-500 mt-0.5">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
@@ -11600,7 +11600,7 @@ export default function ExportReportPage() {
                                     <div className="bg-white rounded-lg p-2 border border-indigo-100">
                                       <div className="flex items-center gap-2 mb-1">
                                         <span className="px-1.5 py-0.5 bg-violet-100 text-violet-700 text-[10px] font-bold rounded">STRATEGIC</span>
-                                        <span className="text-[10px] text-slate-500">60-180 days</span>
+                                        <span className="text-[10px] text-slate-500">long-term</span>
                                       </div>
                                       <p className="text-xs font-medium text-slate-800">{roadmap.strategicLift.name}</p>
                                       <p className="text-[10px] text-slate-500 mt-0.5">{roadmap.strategicLift.reason}</p>
