@@ -149,10 +149,7 @@ function setConflictFlag(): void {
     id: getIdKey()
   });
   sessionStorage.setItem(key, conflictData);
-  // Dispatch event for UI to react
-  window.dispatchEvent(new CustomEvent('sync-conflict', { 
-    detail: { message: 'A newer version exists on the server' }
-  }))
+  // NOTE: Don't dispatch event here - let syncToSupabase() dispatch with syncId for proper ordering
 }
 
 function clearConflictFlag(): void {
@@ -699,6 +696,14 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
 // MAIN SYNC
 // ============================================
 
+// Global sync lock - prevents overlapping sync calls
+function isGlobalSyncing(): boolean {
+  return (window as any).__SYNC_IN_PROGRESS === true
+}
+function setGlobalSyncing(v: boolean): void {
+  (window as any).__SYNC_IN_PROGRESS = v
+}
+
 async function syncToSupabase(): Promise<boolean> {
   const surveyId = localStorage.getItem('survey_id') || ''
   
@@ -706,6 +711,12 @@ async function syncToSupabase(): Promise<boolean> {
   if (hasConflict()) {
     console.log('⏸️ AUTO-SYNC: BLOCKED - Unresolved version conflict')
     return false
+  }
+  
+  // Don't sync if another sync is already in progress
+  if (isGlobalSyncing()) {
+    console.log('⏸️ AUTO-SYNC: BLOCKED - Another sync in progress')
+    return true
   }
   
   // RESCUE GATE CHECK
@@ -719,6 +730,9 @@ async function syncToSupabase(): Promise<boolean> {
       return true
     }
   }
+  
+  // Set global lock
+  setGlobalSyncing(true)
   
   // Generate unique syncId for this sync attempt
   const syncId = Date.now()
@@ -781,6 +795,9 @@ async function syncToSupabase(): Promise<boolean> {
       }))
     }
     return false
+  } finally {
+    // Always clear the global sync lock
+    setGlobalSyncing(false)
   }
 }
 
