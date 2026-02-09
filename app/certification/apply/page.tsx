@@ -144,7 +144,7 @@ export default function CertificationApplyPage() {
       <div className="mt-16 bg-white border-t">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center text-sm text-gray-500">
-            <p>© 2025 Cancer and Careers. All rights reserved.</p>
+            <p>2026 Best Companies for Working with Cancer Index™</p>
             <p className="mt-2">
               Questions? Contact us at{' '}
               <a href="mailto:certification@cancerandcareers.org" className="text-indigo-600 hover:text-indigo-700">
