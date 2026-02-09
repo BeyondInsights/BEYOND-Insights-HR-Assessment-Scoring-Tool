@@ -1164,9 +1164,26 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       const unsureCount = d.unsure?.length || 0;
       const maxPoints = elementCount * 5;
       
-      // Calculate CURRENT raw points from elements
-      const currentRawPoints = (strengthCount * 5) + (planningCount * 3) + (assessingCount * 2);
-      // Note: gaps and unsure = 0 points
+      // Calculate CURRENT raw points by reversing from the actual score
+      // This ensures our projections are consistent with what's displayed
+      // For dimensions with geo multiplier: score = rawScore * geoMult
+      // For dimensions with follow-ups: score = adjustedScore * 0.85 + followUp * 0.15
+      const geoMult = d.geoMultiplier ?? 1.0;
+      const hasFollowUps = [1, 3, 12, 13].includes(d.dim);
+      
+      let currentRawScore: number;
+      if (hasFollowUps && d.followUpScore !== null && d.followUpScore !== undefined) {
+        // Reverse the blending: score = adjusted * 0.85 + followUp * 0.15
+        // adjusted = (score - followUp * 0.15) / 0.85
+        const adjustedScore = (d.score - d.followUpScore * 0.15) / 0.85;
+        currentRawScore = geoMult > 0 ? adjustedScore / geoMult : adjustedScore;
+      } else {
+        // Simple: score = rawScore * geoMult
+        currentRawScore = geoMult > 0 ? d.score / geoMult : d.score;
+      }
+      
+      // Convert to points
+      const currentRawPoints = Math.round((currentRawScore / 100) * maxPoints);
       
       // Momentum indicator: does this dimension have work in flight?
       const momentum = planningCount + assessingCount;
@@ -1201,14 +1218,9 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       const assessingToPlanning12 = assessingCount;  // All go to Planning
       
       // Track 2: Build (gaps → Planning, shown as "Design + Scope" in UI)
-      // UI shows ALL build items go to Planning, not Offering
-      const buildCap = Math.min(
-        notPlannedCount,
-        Math.max(4, Math.ceil(elementCount * 0.30))  // 30% of elements, min 4
-      );
-      
+      // UI shows ALL gaps go to Planning - use actual gap count, not a calculated cap
       const build12_toOffering = 0;  // None go directly to Offering
-      const build12_toPlanning = buildCap;  // All go to Planning
+      const build12_toPlanning = notPlannedCount;  // All gaps go to Planning
       const build12_toAssessing = 0;
       
       const acceleratePoints12 = 
@@ -1228,19 +1240,38 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
         build12_toOffering + build12_toPlanning + build12_toAssessing;
       
       // ========================================
-      // SCORE CALCULATIONS (matching What-If methodology)
+      // SCORE CALCULATIONS (with geo multiplier & follow-ups)
       // ========================================
-      // Calculate the RAW score change based on point deltas
-      // This represents the change in score from progressing elements
-      const rawScoreChange = maxPoints > 0 ? Math.round((totalPointsDelta / maxPoints) * 100) : 0;
-      const rawScoreChange12 = maxPoints > 0 ? Math.round((totalPointsDelta12 / maxPoints) * 100) : 0;
+      // geoMult and hasFollowUps already defined above when calculating currentRawPoints
       
-      // Use actual dimension score as baseline (accounts for follow-ups, geo factors, etc.)
-      // Then add the raw score change - this matches What-If Scenario Builder methodology
-      const projectedScore = Math.min(100, d.score + rawScoreChange);
+      // 90-day projected
+      const projectedRawPoints = currentRawPoints + totalPointsDelta;
+      const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
+      const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
+      
+      // For follow-up dimensions, blend with existing follow-up score (which doesn't change)
+      // Follow-up weighting: 85% grid score + 15% follow-up score
+      let projectedScore: number;
+      if (hasFollowUps && d.followUpScore !== null && d.followUpScore !== undefined) {
+        projectedScore = Math.round(projectedAdjustedScore * 0.85 + d.followUpScore * 0.15);
+      } else {
+        projectedScore = projectedAdjustedScore;
+      }
+      projectedScore = Math.min(100, projectedScore);
       const dimPotentialGain = Math.max(0, projectedScore - d.score);
       
-      const projectedScore12 = Math.min(100, d.score + rawScoreChange12);
+      // Year-1 projected
+      const projectedRawPoints12 = currentRawPoints + totalPointsDelta12;
+      const projectedRawScore12 = maxPoints > 0 ? Math.round((projectedRawPoints12 / maxPoints) * 100) : 0;
+      const projectedAdjustedScore12 = Math.round(projectedRawScore12 * geoMult);
+      
+      let projectedScore12: number;
+      if (hasFollowUps && d.followUpScore !== null && d.followUpScore !== undefined) {
+        projectedScore12 = Math.round(projectedAdjustedScore12 * 0.85 + d.followUpScore * 0.15);
+      } else {
+        projectedScore12 = projectedAdjustedScore12;
+      }
+      projectedScore12 = Math.min(100, projectedScore12);
       const dimPotentialGain12 = Math.max(0, projectedScore12 - d.score);
       
       // Composite impact
@@ -6066,19 +6097,24 @@ export default function ExportReportPage() {
                   
                   const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
                   
-                  // Calculate projected dimension score directly from raw points
-                  // This gives accurate results: if all elements are Offering, score = 100
+                  // Calculate projected dimension score with geo multiplier and follow-up blending
                   const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
                   const currentRawScore = maxPoints > 0 ? Math.round((currentRawPoints / maxPoints) * 100) : 0;
-                  const rawScoreChange = projectedRawScore - currentRawScore;
                   
-                  // For dimensions without follow-ups, projected = raw score
-                  // For dimensions with follow-ups (D1, D3, D12, D13), the actual score may differ from raw
-                  // In that case, we show the change relative to current actual score
+                  // Apply dimension-specific geo multiplier
+                  const geoMult = dimInfo?.geoMultiplier ?? 1.0;
+                  const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
+                  
+                  // For follow-up dimensions, blend with existing follow-up score
+                  // Follow-up weighting: 85% grid score + 15% follow-up score
                   const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
-                  const projectedDimScore = hasFollowUps 
-                    ? Math.min(100, Math.max(0, actualDimScore + rawScoreChange))
-                    : projectedRawScore;
+                  let projectedDimScore: number;
+                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                    projectedDimScore = Math.round(projectedAdjustedScore * 0.85 + dimInfo.followUpScore * 0.15);
+                  } else {
+                    projectedDimScore = projectedAdjustedScore;
+                  }
+                  projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
                   
                   // Composite impact based on score change
                   const actualScoreChange = projectedDimScore - actualDimScore;
