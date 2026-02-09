@@ -6806,15 +6806,15 @@ export default function ExportReportPage() {
                               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
                               <div className="space-y-2">
                                 {/* Primary: Current → Projected */}
-                                <div className="flex items-center justify-center gap-2">
-                                  <span className="text-3xl font-bold text-slate-400">{r.currentScore}</span>
-                                  <svg className="w-5 h-5 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                  <span className="text-3xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                <div className="flex items-center justify-center gap-3">
+                                  <span className="text-4xl font-bold text-slate-400">{r.currentScore}</span>
+                                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                  <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
                                 </div>
-                                <p className="text-[10px] text-slate-400 text-center">Current → Projected</p>
+                                <p className="text-xs text-slate-400 text-center">Current → Projected</p>
                                 {/* Secondary: Gain (smaller, use Δ) */}
                                 <div className={`text-center pt-2 mt-2 border-t border-slate-100`}>
-                                  <span className={`text-xs text-slate-400`}>Δ +{r.dimPotentialGain12}</span>
+                                  <span className={`text-sm font-semibold text-slate-500`}>Δ +{r.dimPotentialGain12}</span>
                                 </div>
                               </div>
                             </div>
@@ -10292,15 +10292,18 @@ export default function ExportReportPage() {
                                     {buildItems.length === 0 && <p className="text-xs text-slate-400 italic">None</p>}
                                   </div>
                                 </div>
-                                {/* Dimension Score - tighter */}
-                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-2.5">
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide text-center mb-2">Score</p>
-                                  <div className="flex items-center justify-center gap-1 mb-1">
-                                    <span className="text-xl font-bold text-slate-400">{r.currentScore}</span>
-                                    <span className="text-slate-300">→</span>
-                                    <span className="text-xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                {/* Dimension Score - matching main report */}
+                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-3">
+                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide text-center mb-2">Dimension Score</p>
+                                  <div className="flex items-center justify-center gap-2 mb-1">
+                                    <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
+                                    <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
                                   </div>
-                                  <p className="text-[9px] text-slate-400 text-center">Δ +{r.dimPotentialGain12}</p>
+                                  <p className="text-[9px] text-slate-400 text-center mb-1">Current → Projected</p>
+                                  <div className="text-center pt-1 border-t border-slate-100">
+                                    <span className="text-xs font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -10513,15 +10516,18 @@ export default function ExportReportPage() {
                                     {buildItems.length === 0 && <p className="text-xs text-slate-400 italic">None</p>}
                                   </div>
                                 </div>
-                                {/* Dimension Score - tighter */}
-                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-2.5">
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide text-center mb-2">Score</p>
-                                  <div className="flex items-center justify-center gap-1 mb-1">
-                                    <span className="text-xl font-bold text-slate-400">{r.currentScore}</span>
-                                    <span className="text-slate-300">→</span>
-                                    <span className="text-xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                {/* Dimension Score - matching main report */}
+                                <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-3">
+                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide text-center mb-2">Dimension Score</p>
+                                  <div className="flex items-center justify-center gap-2 mb-1">
+                                    <span className="text-2xl font-bold text-slate-400">{r.currentScore}</span>
+                                    <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                    <span className="text-2xl font-bold text-slate-800">{r.projectedScore12}</span>
                                   </div>
-                                  <p className="text-[9px] text-slate-400 text-center">Δ +{r.dimPotentialGain12}</p>
+                                  <p className="text-[9px] text-slate-400 text-center mb-1">Current → Projected</p>
+                                  <div className="text-center pt-1 border-t border-slate-100">
+                                    <span className="text-xs font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
