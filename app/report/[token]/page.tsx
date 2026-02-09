@@ -1586,7 +1586,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ IMPACT IMPORTANCE
+              IMPACT WEIGHT ↑
             </text>
             
             {/* Data points - at true positions, no nudging */}
@@ -5651,7 +5651,7 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">↑ IMPACT IMPORTANCE</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">IMPACT WEIGHT ↑</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {showBenchmarkRings && (() => {
@@ -9784,7 +9784,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ IMPACT IMPORTANCE</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
                               
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
@@ -9939,7 +9939,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">↑ IMPACT IMPORTANCE</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
                               
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
