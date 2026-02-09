@@ -753,9 +753,15 @@ async function syncToSupabase(): Promise<boolean> {
       }
     }
     
-    // Dispatch success or error event with syncId
+    // Dispatch appropriate event with syncId
+    // CRITICAL: Check hasConflict() first - 409 sets conflict flag but returns success=false
     if (success) {
       window.dispatchEvent(new CustomEvent('sync-success', { detail: { syncId } }))
+    } else if (hasConflict()) {
+      // Conflict was set during sync - dispatch conflict event (not error)
+      window.dispatchEvent(new CustomEvent('sync-conflict', { 
+        detail: { syncId, message: 'A newer version exists on the server' } 
+      }))
     } else {
       window.dispatchEvent(new CustomEvent('sync-error', { 
         detail: { syncId, message: 'Sync failed' } 
@@ -764,9 +770,16 @@ async function syncToSupabase(): Promise<boolean> {
     
     return success
   } catch (error) {
-    window.dispatchEvent(new CustomEvent('sync-error', { 
-      detail: { syncId, message: String(error) } 
-    }))
+    // Check if error resulted in conflict flag being set
+    if (hasConflict()) {
+      window.dispatchEvent(new CustomEvent('sync-conflict', { 
+        detail: { syncId, message: 'A newer version exists on the server' } 
+      }))
+    } else {
+      window.dispatchEvent(new CustomEvent('sync-error', { 
+        detail: { syncId, message: String(error) } 
+      }))
+    }
     return false
   }
 }
