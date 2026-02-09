@@ -664,6 +664,21 @@ function getTwoStepRoadmap(
   return { quickWin, strategicLift };
 }
 
+function getActionItemsByAdoption(dimNum: number, dimensionAnalysis: any[], elementBenchmarks: Record<number, Record<string, { currently: number; total: number }>>): { accelerateItems: { name: string; pct: number; from: string; to: string }[]; buildItems: { name: string; pct: number }[] } {
+  const dim = dimensionAnalysis.find(d => d.dim === dimNum);
+  if (!dim) return { accelerateItems: [], buildItems: [] };
+  const benchmarks = elementBenchmarks[dimNum] || {};
+  const getPct = (n: string) => { const b = benchmarks[n] || { currently: 0, total: 1 }; return Math.round((b.currently / Math.max(b.total, 1)) * 100); };
+  const accel: { name: string; pct: number; from: string; to: string }[] = [];
+  (dim.planning || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Planning', to: 'Offering' }));
+  (dim.assessing || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Assessing', to: 'Planning' }));
+  accel.sort((a, b) => b.pct - a.pct);
+  const build: { name: string; pct: number }[] = [];
+  (dim.gaps || []).forEach((el: any) => build.push({ name: el.name, pct: getPct(el.name) }));
+  build.sort((a, b) => b.pct - a.pct);
+  return { accelerateItems: accel, buildItems: build };
+}
+
 function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
   const benchDiff = benchmark !== null ? score - benchmark : 0;
   const isAboveBenchmark = benchDiff > 0;
