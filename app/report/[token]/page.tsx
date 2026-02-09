@@ -8762,7 +8762,7 @@ export default function ExportReportPage() {
             {/* Footer */}
             <div className="relative bg-white px-12 py-4 border-t border-slate-200">
               <div className="flex items-center justify-between">
-                <p className="text-slate-500 text-sm">© 2026 Cancer and Careers. All rights reserved.</p>
+                <p className="text-slate-500 text-sm">© 2026 Best Companies for Working with Cancer Index™</p>
                 <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 text-xs">Powered by</span>
@@ -8890,7 +8890,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm text-slate-400 text-center">© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
+                <p className="text-sm text-slate-400 text-center">© 2026 Best Companies for Working with Cancer Index™</p>
               </div>
             </div>
           </div>
@@ -12103,7 +12103,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-slate-400 text-xs">© 2026 Cancer and Careers. All rights reserved. | Best Companies for Working with Cancer Index</p>
+                        <p className="text-slate-400 text-xs">© 2026 Best Companies for Working with Cancer Index™</p>
                       </div>
                     </div>
                   </div>
@@ -12176,7 +12176,7 @@ export default function ExportReportPage() {
                     {/* White footer */}
                     <div className="bg-white px-12 py-3 border-t border-slate-200">
                       <div className="flex items-center justify-between">
-                        <p className="text-slate-500 text-sm">© 2026 Cancer and Careers. All rights reserved.</p>
+                        <p className="text-slate-500 text-sm">© 2026 Best Companies for Working with Cancer Index™</p>
                         <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
                         <div className="flex items-center gap-2">
                           <span className="text-slate-400 text-xs">Powered by</span>
