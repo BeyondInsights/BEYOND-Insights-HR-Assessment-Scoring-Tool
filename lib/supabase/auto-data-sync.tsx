@@ -245,6 +245,9 @@ export async function resolveConflictFromServer(): Promise<boolean> {
       const value = serverData[db];
       if (value && typeof value === 'object' && Object.keys(value).length > 0) {
         localStorage.setItem(local, JSON.stringify(value));
+      } else {
+        // Server has null/empty - remove local to ensure server truly wins
+        localStorage.removeItem(local);
       }
     });
     
@@ -262,6 +265,7 @@ export async function resolveConflictFromServer(): Promise<boolean> {
       if (serverData[db] === true) {
         localStorage.setItem(local, 'true');
       } else {
+        // Server has false/null - remove local
         localStorage.removeItem(local);
       }
     });
