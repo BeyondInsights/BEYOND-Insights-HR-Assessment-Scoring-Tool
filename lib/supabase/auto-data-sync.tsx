@@ -173,8 +173,10 @@ export async function resolveConflictFromServer(): Promise<boolean> {
     return false;
   }
   
+  let dbVersion: number | null = null;
+  
+  // Try 1: Direct Supabase query (works for regular users with session)
   try {
-    // Fetch current DB version
     const matchField = surveyId ? 'survey_id' : 'app_id';
     const matchValue = surveyId || appId;
     
@@ -184,32 +186,60 @@ export async function resolveConflictFromServer(): Promise<boolean> {
       .eq(matchField, matchValue)
       .single();
     
-    if (error || !data) {
-      console.error('[resolveConflict] Failed to fetch DB version:', error);
-      return false;
+    if (!error && data?.version) {
+      dbVersion = data.version;
+      console.log('[resolveConflict] Got version via direct query:', dbVersion);
     }
-    
-    const dbVersion = data.version || 1;
-    
-    // Update local version to match DB
-    setStoredVersion(dbVersion);
-    
-    // Clear dirty flag (discarding local changes)
-    clearDirty();
-    
-    // Clear conflict flag
-    clearConflictFlag();
-    
-    console.log(`✅ [resolveConflict] Resolved - local version set to ${dbVersion}, dirty cleared`);
-    
-    // Dispatch event for UI to react
-    window.dispatchEvent(new CustomEvent('sync-conflict-resolved'));
-    
-    return true;
   } catch (e) {
-    console.error('[resolveConflict] Error:', e);
+    console.log('[resolveConflict] Direct query failed, trying Netlify fallback');
+  }
+  
+  // Try 2: Netlify function fallback (works for FP/compd users without session)
+  if (!dbVersion) {
+    try {
+      const response = await fetch('/.netlify/functions/sync-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'get-version',
+          survey_id: surveyId || appId,
+          fallbackSurveyId: surveyId,
+          fallbackAppId: appId
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.version) {
+          dbVersion = result.version;
+          console.log('[resolveConflict] Got version via Netlify function:', dbVersion);
+        }
+      }
+    } catch (e) {
+      console.error('[resolveConflict] Netlify fallback failed:', e);
+    }
+  }
+  
+  if (!dbVersion) {
+    console.error('[resolveConflict] Could not fetch DB version');
     return false;
   }
+  
+  // Update local version to match DB
+  setStoredVersion(dbVersion);
+  
+  // Clear dirty flag (discarding local changes)
+  clearDirty();
+  
+  // Clear conflict flag
+  clearConflictFlag();
+  
+  console.log(`✅ [resolveConflict] Resolved - local version set to ${dbVersion}, dirty cleared`);
+  
+  // Dispatch event for UI to react
+  window.dispatchEvent(new CustomEvent('sync-conflict-resolved'));
+  
+  return true;
 }
 
 export function hasConflict(): boolean {
@@ -690,10 +720,13 @@ async function syncToSupabase(): Promise<boolean> {
     }
   }
   
-  // Dispatch sync-start event for UI indicator
-  window.dispatchEvent(new CustomEvent('sync-start'))
+  // Generate unique syncId for this sync attempt
+  const syncId = Date.now()
   
-  console.log('🔄 AUTO-SYNC: Starting... Survey ID:', surveyId || 'none')
+  // Dispatch sync-start event for UI indicator
+  window.dispatchEvent(new CustomEvent('sync-start', { detail: { syncId } }))
+  
+  console.log('🔄 AUTO-SYNC: Starting... Survey ID:', surveyId || 'none', 'syncId:', syncId)
   
   let success = false
   
@@ -720,19 +753,19 @@ async function syncToSupabase(): Promise<boolean> {
       }
     }
     
-    // Dispatch success or error event
+    // Dispatch success or error event with syncId
     if (success) {
-      window.dispatchEvent(new CustomEvent('sync-success'))
+      window.dispatchEvent(new CustomEvent('sync-success', { detail: { syncId } }))
     } else {
       window.dispatchEvent(new CustomEvent('sync-error', { 
-        detail: { message: 'Sync failed' } 
+        detail: { syncId, message: 'Sync failed' } 
       }))
     }
     
     return success
   } catch (error) {
     window.dispatchEvent(new CustomEvent('sync-error', { 
-      detail: { message: String(error) } 
+      detail: { syncId, message: String(error) } 
     }))
     return false
   }
