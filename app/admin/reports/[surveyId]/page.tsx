@@ -6078,15 +6078,36 @@ export default function ExportReportPage() {
                     return 'not_able';
                   };
                   
-                  // Calculate current raw points from elements
-                  const currentRawPoints = dimElements.reduce((sum: number, el: any) => {
-                    const status = getStatusFromElement(el);
-                    // Unsure items are scored as 0 (like not_able) for calculation purposes
-                    return sum + (STATUS_POINTS[status] ?? 0);
-                  }, 0);
                   const maxPoints = dimElements.length * 5;
                   
-                  // Calculate projected points with changes - only count elements where user made a selection
+                  // Derive current raw points from actual score (same as Impact-Ranked)
+                  // This ensures consistency between What-If and Impact-Ranked projections
+                  const geoMult = dimInfo?.geoMultiplier ?? 1.0;
+                  const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
+                  
+                  let currentRawScore: number;
+                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                    const adjustedScore = (actualDimScore - dimInfo.followUpScore * 0.15) / 0.85;
+                    currentRawScore = geoMult > 0 ? adjustedScore / geoMult : adjustedScore;
+                  } else {
+                    currentRawScore = geoMult > 0 ? actualDimScore / geoMult : actualDimScore;
+                  }
+                  const currentRawPoints = Math.round((currentRawScore / 100) * maxPoints);
+                  
+                  // Calculate the DELTA in points from user's changes
+                  const getPointDelta = (el: any) => {
+                    const newStatus = whatIfChanges[el.name];
+                    if (!newStatus) return 0; // No change
+                    const currentStatus = getStatusFromElement(el);
+                    const currentPts = STATUS_POINTS[currentStatus] ?? 0;
+                    const newPts = STATUS_POINTS[newStatus] ?? 0;
+                    return newPts - currentPts;
+                  };
+                  
+                  const totalPointsDelta = dimElements.reduce((sum: number, el: any) => sum + getPointDelta(el), 0);
+                  const projectedRawPoints = currentRawPoints + totalPointsDelta;
+                  
+                  // Calculate projected points with changes (for display purposes)
                   const getNewPoints = (el: any) => {
                     const newStatus = whatIfChanges[el.name];
                     if (newStatus) return STATUS_POINTS[newStatus];
@@ -6095,19 +6116,13 @@ export default function ExportReportPage() {
                     return STATUS_POINTS[currentStatus] ?? 0;
                   };
                   
-                  const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
-                  
                   // Calculate projected dimension score with geo multiplier and follow-up blending
+                  // projectedRawPoints already calculated above using delta approach
                   const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
-                  const currentRawScore = maxPoints > 0 ? Math.round((currentRawPoints / maxPoints) * 100) : 0;
-                  
-                  // Apply dimension-specific geo multiplier
-                  const geoMult = dimInfo?.geoMultiplier ?? 1.0;
                   const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
                   
                   // For follow-up dimensions, blend with existing follow-up score
                   // Follow-up weighting: 85% grid score + 15% follow-up score
-                  const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
                   let projectedDimScore: number;
                   if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
                     projectedDimScore = Math.round(projectedAdjustedScore * 0.85 + dimInfo.followUpScore * 0.15);
