@@ -6566,7 +6566,7 @@ export default function ExportReportPage() {
                             <circle cx="10" cy="10" r="6" />
                             <path d="M14.5 14.5L20 20" strokeLinecap="round" />
                           </svg>
-                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> {patterns.length === 1 ? 'bottleneck' : 'bottlenecks'} flagged</span>
+                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' || patterns.length !== 1 ? 'bottlenecks' : 'bottleneck'} flagged</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -10209,7 +10209,7 @@ export default function ExportReportPage() {
                             <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-                            <span className="text-white text-sm font-semibold">{patterns.length} bottleneck{patterns.length !== 1 ? 's' : ''}</span>
+                            <span className="text-white text-sm font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' ? 0 : patterns.length} bottleneck{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' || patterns.length !== 1 ? 's' : ''}</span>
                           </div>
                         </div>
                       </div>
