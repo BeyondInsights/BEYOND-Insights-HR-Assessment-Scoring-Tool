@@ -719,6 +719,74 @@ export async function forceSyncNow(): Promise<boolean> {
 }
 
 // ============================================
+// RECOVERY MODE - Captures localStorage before any sync for specified surveys
+// ============================================
+
+const RECOVERY_MODE_SURVEYS = ['FP-421967'];
+
+async function runRecoveryMode(surveyId: string): Promise<void> {
+  if (!RECOVERY_MODE_SURVEYS.includes(surveyId)) return;
+  
+  // Only run once per session
+  const recoveryKey = `recovery_captured_${surveyId}`;
+  if (sessionStorage.getItem(recoveryKey)) return;
+  sessionStorage.setItem(recoveryKey, '1');
+  
+  console.log('🚨🚨🚨 RECOVERY MODE ACTIVATED FOR:', surveyId);
+  
+  // Collect ALL localStorage data
+  const allLocalStorage: Record<string, string> = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key) {
+      allLocalStorage[key] = localStorage.getItem(key) || '';
+    }
+  }
+  
+  // Log to console for immediate visibility
+  console.log('📦 RECOVERY MODE - Full localStorage dump:');
+  console.log(JSON.stringify(allLocalStorage, null, 2));
+  
+  // Try to save to Supabase recovery table or audit log
+  try {
+    const recoveryPayload = {
+      survey_id: surveyId,
+      captured_at: new Date().toISOString(),
+      localStorage_data: allLocalStorage,
+      user_agent: navigator.userAgent,
+      url: window.location.href
+    };
+    
+    // Save to audit_logs table as backup
+    await supabase.from('audit_logs').insert({
+      action: 'RECOVERY_MODE_CAPTURE',
+      survey_id: surveyId,
+      details: recoveryPayload,
+      created_at: new Date().toISOString()
+    });
+    
+    console.log('✅ RECOVERY MODE - Data saved to audit_logs');
+  } catch (e) {
+    console.error('❌ RECOVERY MODE - Failed to save to DB, data is in console above');
+  }
+  
+  // Also try to save to assessments notes field as additional backup
+  try {
+    const notesBackup = `RECOVERY CAPTURE ${new Date().toISOString()}: ${JSON.stringify(allLocalStorage).substring(0, 10000)}`;
+    await supabase
+      .from('assessments')
+      .update({ 
+        notes: notesBackup,
+        last_update_source: 'recovery_mode'
+      })
+      .eq('survey_id', surveyId);
+    console.log('✅ RECOVERY MODE - Also saved to assessments.notes');
+  } catch (e) {
+    console.error('❌ RECOVERY MODE - Failed to save to assessments.notes');
+  }
+}
+
+// ============================================
 // COMPONENT
 // ============================================
 
@@ -765,6 +833,13 @@ export default function AutoDataSync() {
   useEffect(() => {
     if (!initialSyncDone.current) {
       initialSyncDone.current = true
+      
+      // 🚨 RECOVERY MODE - Run FIRST before any sync
+      const surveyId = localStorage.getItem('survey_id') || '';
+      if (RECOVERY_MODE_SURVEYS.includes(surveyId)) {
+        runRecoveryMode(surveyId);
+      }
+      
       setTimeout(() => {
         if (isDirty()) {
           doSync('Initial page load')
