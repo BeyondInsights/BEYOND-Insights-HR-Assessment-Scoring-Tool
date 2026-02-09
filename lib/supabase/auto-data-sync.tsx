@@ -731,8 +731,11 @@ function isRecoveryWhitelisted(key: string): boolean {
   // Dimension data and completion flags (1-13)
   if (/^dimension(1[0-3]|[1-9])_(data|complete)$/.test(key)) return true;
   
-  // Other survey sections
-  if (/^(firmographics|general_benefits|current_support|cross_dimensional|employee-impact-assessment)_(data|complete)$/.test(key)) return true;
+  // Other survey sections - handle both hyphen and underscore variants
+  if (/^(firmographics|general_benefits|current_support|cross_dimensional)_(data|complete)$/.test(key)) return true;
+  if (/^employee[-_]impact[-_]assessment_(data|complete)$/.test(key)) return true;
+  // Also catch the DB-style key name
+  if (/^employee_impact_(data|complete)$/.test(key)) return true;
   
   // Versioning and sync state
   if (key.startsWith('assessment_version')) return true;
@@ -745,7 +748,42 @@ function isRecoveryWhitelisted(key: string): boolean {
   // Auth completion flag (not the token)
   if (key === 'auth_completed') return true;
   
-  // Explicitly exclude Supabase auth storage
+  // ============================================
+  // INSURANCE KEYS - Maturity/Status/Override/Timestamps
+  // ============================================
+  
+  // Maturity / status / eligibility
+  if (key.startsWith('maturity_')) return true;
+  if (key.startsWith('status_')) return true;
+  if (key.startsWith('eligibility_')) return true;
+  if (key.startsWith('opt_in')) return true;
+  if (key.startsWith('company_status')) return true;
+  if (key.startsWith('confirm_')) return true;
+  if (key.startsWith('provisional_')) return true;
+  
+  // Notes / comments / rationales
+  if (key.includes('_notes')) return true;
+  if (key.includes('_comment')) return true;
+  if (key.includes('_rationale')) return true;
+  
+  // Override / lock keys
+  if (key.startsWith('override_')) return true;
+  if (key.startsWith('lock_')) return true;
+  if (key.startsWith('score_override')) return true;
+  
+  // Timestamps / provenance
+  if (key.startsWith('last_saved_')) return true;
+  if (key.startsWith('last_synced_')) return true;
+  if (key === 'updated_at_local') return true;
+  
+  // Progress tracking
+  if (key.includes('_progress')) return true;
+  if (key === 'overall_progress') return true;
+  if (key === 'last_section_visited') return true;
+  
+  // ============================================
+  // EXPLICIT EXCLUSIONS - Auth tokens, Supabase internals
+  // ============================================
   if (key.startsWith('sb-')) return false;
   if (key.includes('access_token') || key.includes('refresh_token')) return false;
   if (key.includes('supabase')) return false;
