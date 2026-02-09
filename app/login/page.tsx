@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
-import { startHydration, endHydration } from '@/lib/supabase/auto-data-sync'
+import { startHydration, endHydration, setStoredVersion, clearDirty } from '@/lib/supabase/auto-data-sync'
 import Footer from '@/components/Footer'
 
 // ============================================
@@ -126,6 +126,12 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
     } finally {
       // END HYDRATION - re-enable dirty tracking
       endHydration()
+      // Set version to match server (prevents false conflict)
+      if (data.version) {
+        setStoredVersion(data.version)
+      }
+      // Clear any dirty flag (we just loaded fresh from server)
+      clearDirty()
     }
     
     console.log('✅ User data loaded successfully from Supabase')
