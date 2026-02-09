@@ -10104,6 +10104,13 @@ export default function ExportReportPage() {
                     { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600' },
                     { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600' },
                   ];
+                  const getElementBenchmark = (dimNum: number, elementName: string) => {
+                    const key = `D${dimNum}`;
+                    const dimBenchmarks = elementBenchmarks[key];
+                    if (!dimBenchmarks) return null;
+                    const found = dimBenchmarks.find((b: { element: string; benchmark: number }) => b.element === elementName);
+                    return found ? found.benchmark : null;
+                  };
                   return (
                   <div className="overflow-hidden h-full flex flex-col">
                     <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
@@ -10361,6 +10368,13 @@ export default function ExportReportPage() {
                     { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600' },
                     { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600' },
                   ];
+                  const getElementBenchmark = (dimNum: number, elementName: string) => {
+                    const key = `D${dimNum}`;
+                    const dimBenchmarks = elementBenchmarks[key];
+                    if (!dimBenchmarks) return null;
+                    const found = dimBenchmarks.find((b: { element: string; benchmark: number }) => b.element === elementName);
+                    return found ? found.benchmark : null;
+                  };
                   return (
                   <div className="overflow-hidden h-full flex flex-col">
                     <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
