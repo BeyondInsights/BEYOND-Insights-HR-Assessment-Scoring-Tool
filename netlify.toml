@@ -1,6 +1,7 @@
 # ============================================
 # BEYOND Insights - Netlify Configuration
 # Last Updated: February 2025
+# PHASE 2 SECURITY: Added rate limiting
 # ============================================
 
 [build]
@@ -31,6 +32,29 @@
 
 [functions."verify-admin-session"]
   timeout = 5
+
+[functions."generate-interactive-link"]
+  timeout = 10
+
+[functions."get-public-report"]
+  timeout = 15
+
+# ============================================
+# RATE LIMITING (Prevents scraping/brute force)
+# ============================================
+
+# Rate limit password verification - prevents brute force
+[[edge_functions]]
+  function = "rate-limit"
+  path = "/.netlify/functions/verify-report-password"
+
+[[edge_functions]]
+  function = "rate-limit"
+  path = "/.netlify/functions/admin-auth"
+
+# Note: Netlify's built-in rate limiting requires Enterprise plan
+# For now, we implement soft rate limiting via the edge function
+# The functions themselves also have built-in protections
 
 # ============================================
 # SECURITY HEADERS (Applied to all pages)
@@ -86,6 +110,13 @@
     Pragma = "no-cache"
     Expires = "0"
 
+# Prevent caching of report pages
+[[headers]]
+  for = "/report/*"
+  [headers.values]
+    Cache-Control = "no-store, no-cache, must-revalidate"
+    Pragma = "no-cache"
+
 # ============================================
 # REDIRECTS
 # ============================================
@@ -103,6 +134,17 @@
 
 [[redirects]]
   from = "/backup_*"
+  to = "/404"
+  status = 404
+
+# Block direct access to source files
+[[redirects]]
+  from = "/*.tsx"
+  to = "/404"
+  status = 404
+
+[[redirects]]
+  from = "/*.ts"
   to = "/404"
   status = 404
 
