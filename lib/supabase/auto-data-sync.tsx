@@ -720,9 +720,38 @@ export async function forceSyncNow(): Promise<boolean> {
 
 // ============================================
 // RECOVERY MODE - Captures localStorage before any sync for specified surveys
+// Uses pattern-based whitelist to avoid capturing auth tokens
+// Sends to Netlify function (service role) to bypass RLS
 // ============================================
 
 const RECOVERY_MODE_SURVEYS = ['FP-421967'];
+
+// Pattern-based whitelist for localStorage keys
+function isRecoveryWhitelisted(key: string): boolean {
+  // Dimension data and completion flags (1-13)
+  if (/^dimension(1[0-3]|[1-9])_(data|complete)$/.test(key)) return true;
+  
+  // Other survey sections
+  if (/^(firmographics|general_benefits|current_support|cross_dimensional|employee-impact-assessment)_(data|complete)$/.test(key)) return true;
+  
+  // Versioning and sync state
+  if (key.startsWith('assessment_version')) return true;
+  if (key.startsWith('dirty_')) return true;
+  if (key.startsWith('version_conflict')) return true;
+  
+  // Identity keys needed for matching (but NOT auth tokens)
+  if (['survey_id', 'app_id', 'company_name', 'login_company_name'].includes(key)) return true;
+  
+  // Auth completion flag (not the token)
+  if (key === 'auth_completed') return true;
+  
+  // Explicitly exclude Supabase auth storage
+  if (key.startsWith('sb-')) return false;
+  if (key.includes('access_token') || key.includes('refresh_token')) return false;
+  if (key.includes('supabase')) return false;
+  
+  return false;
+}
 
 async function runRecoveryMode(surveyId: string): Promise<void> {
   if (!RECOVERY_MODE_SURVEYS.includes(surveyId)) return;
@@ -734,55 +763,65 @@ async function runRecoveryMode(surveyId: string): Promise<void> {
   
   console.log('🚨🚨🚨 RECOVERY MODE ACTIVATED FOR:', surveyId);
   
-  // Collect ALL localStorage data
-  const allLocalStorage: Record<string, string> = {};
+  // Collect ONLY whitelisted localStorage keys
+  const recoveryData: Record<string, string> = {};
+  const skippedKeys: string[] = [];
+  
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key) {
-      allLocalStorage[key] = localStorage.getItem(key) || '';
+      if (isRecoveryWhitelisted(key)) {
+        recoveryData[key] = localStorage.getItem(key) || '';
+      } else {
+        skippedKeys.push(key);
+      }
     }
   }
   
   // Log to console for immediate visibility
-  console.log('📦 RECOVERY MODE - Full localStorage dump:');
-  console.log(JSON.stringify(allLocalStorage, null, 2));
+  console.log('📦 RECOVERY MODE - Whitelisted localStorage data:');
+  console.log(JSON.stringify(recoveryData, null, 2));
+  console.log('📦 RECOVERY MODE - Skipped keys (not whitelisted):', skippedKeys);
   
-  // Try to save to Supabase recovery table or audit log
+  // Log what dimension data we found
+  const dimensionKeys = Object.keys(recoveryData).filter(k => k.startsWith('dimension'));
+  console.log('📦 RECOVERY MODE - Dimension keys found:', dimensionKeys);
+  
+  // Send to Netlify function (bypasses RLS via service role)
   try {
-    const recoveryPayload = {
-      survey_id: surveyId,
-      captured_at: new Date().toISOString(),
-      localStorage_data: allLocalStorage,
-      user_agent: navigator.userAgent,
-      url: window.location.href
+    // Get current auth token if available (for JWT verification)
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json'
     };
     
-    // Save to audit_logs table as backup
-    await supabase.from('audit_logs').insert({
-      action: 'RECOVERY_MODE_CAPTURE',
-      survey_id: surveyId,
-      details: recoveryPayload,
-      created_at: new Date().toISOString()
+    // Include auth token if available for extra verification
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    
+    const response = await fetch('/.netlify/functions/recovery-capture', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        survey_id: surveyId,
+        captured_at: new Date().toISOString(),
+        localStorage_data: recoveryData,
+        user_agent: navigator.userAgent
+      })
     });
     
-    console.log('✅ RECOVERY MODE - Data saved to audit_logs');
+    if (response.ok) {
+      const result = await response.json();
+      console.log('✅ RECOVERY MODE - Data captured to server:', result);
+    } else {
+      const errorText = await response.text();
+      console.error('❌ RECOVERY MODE - Server returned:', response.status, errorText);
+    }
   } catch (e) {
-    console.error('❌ RECOVERY MODE - Failed to save to DB, data is in console above');
-  }
-  
-  // Also try to save to assessments notes field as additional backup
-  try {
-    const notesBackup = `RECOVERY CAPTURE ${new Date().toISOString()}: ${JSON.stringify(allLocalStorage).substring(0, 10000)}`;
-    await supabase
-      .from('assessments')
-      .update({ 
-        notes: notesBackup,
-        last_update_source: 'recovery_mode'
-      })
-      .eq('survey_id', surveyId);
-    console.log('✅ RECOVERY MODE - Also saved to assessments.notes');
-  } catch (e) {
-    console.error('❌ RECOVERY MODE - Failed to save to assessments.notes');
+    console.error('❌ RECOVERY MODE - Network error, data is in console above:', e);
   }
 }
 
@@ -834,17 +873,31 @@ export default function AutoDataSync() {
     if (!initialSyncDone.current) {
       initialSyncDone.current = true
       
-      // 🚨 RECOVERY MODE - Run FIRST before any sync
       const surveyId = localStorage.getItem('survey_id') || '';
-      if (RECOVERY_MODE_SURVEYS.includes(surveyId)) {
-        runRecoveryMode(surveyId);
-      }
       
-      setTimeout(() => {
-        if (isDirty()) {
-          doSync('Initial page load')
-        }
-      }, 3000)
+      // 🚨 RECOVERY MODE - Await capture, then force sync
+      if (RECOVERY_MODE_SURVEYS.includes(surveyId)) {
+        (async () => {
+          // Step 1: Capture localStorage FIRST
+          await runRecoveryMode(surveyId);
+          
+          // Step 2: Force sync even if not dirty (but respect conflict flag)
+          if (!hasConflict()) {
+            console.log('🚨 RECOVERY MODE - Forcing sync regardless of dirty flag');
+            await syncToSupabase();
+            console.log('🚨 RECOVERY MODE - Forced sync complete');
+          } else {
+            console.log('🚨 RECOVERY MODE - Conflict exists, skipping forced sync (will use recovery-apply)');
+          }
+        })();
+      } else {
+        // Normal flow - only sync if dirty
+        setTimeout(() => {
+          if (isDirty()) {
+            doSync('Initial page load')
+          }
+        }, 3000)
+      }
     }
   }, [doSync])
   
