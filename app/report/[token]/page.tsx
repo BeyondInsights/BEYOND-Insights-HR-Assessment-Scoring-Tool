@@ -12172,18 +12172,6 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* White footer */}
-                    <div className="bg-white px-12 py-3 border-t border-slate-200">
-                      <div className="flex items-center justify-between">
-                        <p className="text-slate-500 text-sm">© 2026 Best Companies for Working with Cancer Index™</p>
-                        <p className="text-slate-500 text-sm">Best Companies for Working with Cancer Index</p>
-                        <div className="flex items-center gap-2">
-                          <span className="text-slate-400 text-xs">Powered by</span>
-                          <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={80} height={24} className="object-contain" />
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
