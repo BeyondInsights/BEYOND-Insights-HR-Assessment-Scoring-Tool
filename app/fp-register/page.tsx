@@ -127,102 +127,104 @@ function FPRegisterContent() {
           // ============================================
           startHydration()
           
-          // ============================================
-          // LOAD AUTH/LOGIN INFO
-          // ============================================
-          localStorage.setItem('login_email', existing.email)
-          localStorage.setItem('auth_email', existing.email)
-          localStorage.setItem('survey_id', code)
-          localStorage.setItem('login_Survey_id', code)
-          localStorage.setItem('user_authenticated', 'true')
-          localStorage.setItem('last_user_email', existing.email)
-          localStorage.setItem('login_company_name', existing.company_name || companyName || 'Founding Partner')
-          localStorage.setItem('login_first_name', firmData.firstName || '')
-          localStorage.setItem('login_last_name', firmData.lastName || '')
-          localStorage.setItem('login_title', firmData.title || '')
-          localStorage.setItem('auth_completed', 'true')
-          localStorage.setItem('payment_completed', 'true')
-          
-          // ============================================
-          // LOAD ALL SURVEY DATA FROM SUPABASE
-          // ============================================
-          console.log('[FP-REGISTER] Loading all survey data into localStorage...')
-          
-          // Load survey data fields
-          const dataFields = [
-            { db: 'firmographics_data', local: 'firmographics_data' },
-            { db: 'general_benefits_data', local: 'general_benefits_data' },
-            { db: 'current_support_data', local: 'current_support_data' },
-            { db: 'cross_dimensional_data', local: 'cross_dimensional_data' },
-            { db: 'employee_impact_data', local: 'employee-impact-assessment_data' },  // Different names!
-            { db: 'dimension1_data', local: 'dimension1_data' },
-            { db: 'dimension2_data', local: 'dimension2_data' },
-            { db: 'dimension3_data', local: 'dimension3_data' },
-            { db: 'dimension4_data', local: 'dimension4_data' },
-            { db: 'dimension5_data', local: 'dimension5_data' },
-            { db: 'dimension6_data', local: 'dimension6_data' },
-            { db: 'dimension7_data', local: 'dimension7_data' },
-            { db: 'dimension8_data', local: 'dimension8_data' },
-            { db: 'dimension9_data', local: 'dimension9_data' },
-            { db: 'dimension10_data', local: 'dimension10_data' },
-            { db: 'dimension11_data', local: 'dimension11_data' },
-            { db: 'dimension12_data', local: 'dimension12_data' },
-            { db: 'dimension13_data', local: 'dimension13_data' },
-          ]
-          
-          dataFields.forEach(({ db, local }) => {
-            const value = existing[db]
-            if (value && typeof value === 'object' && Object.keys(value).length > 0) {
-              localStorage.setItem(local, JSON.stringify(value))
-              console.log(`  ✓ Loaded ${db} → ${local}`)
+          try {
+            // ============================================
+            // LOAD AUTH/LOGIN INFO
+            // ============================================
+            localStorage.setItem('login_email', existing.email)
+            localStorage.setItem('auth_email', existing.email)
+            localStorage.setItem('survey_id', code)
+            localStorage.setItem('login_Survey_id', code)
+            localStorage.setItem('user_authenticated', 'true')
+            localStorage.setItem('last_user_email', existing.email)
+            localStorage.setItem('login_company_name', existing.company_name || companyName || 'Founding Partner')
+            localStorage.setItem('login_first_name', firmData.firstName || '')
+            localStorage.setItem('login_last_name', firmData.lastName || '')
+            localStorage.setItem('login_title', firmData.title || '')
+            localStorage.setItem('auth_completed', 'true')
+            localStorage.setItem('payment_completed', 'true')
+            
+            // ============================================
+            // LOAD ALL SURVEY DATA FROM SUPABASE
+            // ============================================
+            console.log('[FP-REGISTER] Loading all survey data into localStorage...')
+            
+            // Load survey data fields
+            const dataFields = [
+              { db: 'firmographics_data', local: 'firmographics_data' },
+              { db: 'general_benefits_data', local: 'general_benefits_data' },
+              { db: 'current_support_data', local: 'current_support_data' },
+              { db: 'cross_dimensional_data', local: 'cross_dimensional_data' },
+              { db: 'employee_impact_data', local: 'employee-impact-assessment_data' },  // Different names!
+              { db: 'dimension1_data', local: 'dimension1_data' },
+              { db: 'dimension2_data', local: 'dimension2_data' },
+              { db: 'dimension3_data', local: 'dimension3_data' },
+              { db: 'dimension4_data', local: 'dimension4_data' },
+              { db: 'dimension5_data', local: 'dimension5_data' },
+              { db: 'dimension6_data', local: 'dimension6_data' },
+              { db: 'dimension7_data', local: 'dimension7_data' },
+              { db: 'dimension8_data', local: 'dimension8_data' },
+              { db: 'dimension9_data', local: 'dimension9_data' },
+              { db: 'dimension10_data', local: 'dimension10_data' },
+              { db: 'dimension11_data', local: 'dimension11_data' },
+              { db: 'dimension12_data', local: 'dimension12_data' },
+              { db: 'dimension13_data', local: 'dimension13_data' },
+            ]
+            
+            dataFields.forEach(({ db, local }) => {
+              const value = existing[db]
+              if (value && typeof value === 'object' && Object.keys(value).length > 0) {
+                localStorage.setItem(local, JSON.stringify(value))
+                console.log(`  ✓ Loaded ${db} → ${local}`)
+              }
+            })
+            
+            // Load completion flags
+            const completeFields = [
+              { db: 'firmographics_complete', local: 'firmographics_complete' },
+              { db: 'general_benefits_complete', local: 'general_benefits_complete' },
+              { db: 'current_support_complete', local: 'current_support_complete' },
+              { db: 'cross_dimensional_complete', local: 'cross_dimensional_complete' },
+              { db: 'employee_impact_complete', local: 'employee-impact-assessment_complete' },  // Different names!
+              { db: 'dimension1_complete', local: 'dimension1_complete' },
+              { db: 'dimension2_complete', local: 'dimension2_complete' },
+              { db: 'dimension3_complete', local: 'dimension3_complete' },
+              { db: 'dimension4_complete', local: 'dimension4_complete' },
+              { db: 'dimension5_complete', local: 'dimension5_complete' },
+              { db: 'dimension6_complete', local: 'dimension6_complete' },
+              { db: 'dimension7_complete', local: 'dimension7_complete' },
+              { db: 'dimension8_complete', local: 'dimension8_complete' },
+              { db: 'dimension9_complete', local: 'dimension9_complete' },
+              { db: 'dimension10_complete', local: 'dimension10_complete' },
+              { db: 'dimension11_complete', local: 'dimension11_complete' },
+              { db: 'dimension12_complete', local: 'dimension12_complete' },
+              { db: 'dimension13_complete', local: 'dimension13_complete' },
+            ]
+            
+            completeFields.forEach(({ db, local }) => {
+              if (existing[db] === true) {
+                localStorage.setItem(local, 'true')
+                console.log(`  ✓ Loaded ${db} → ${local}: true`)
+              }
+            })
+            
+            // Load payment info
+            if (existing.payment_method) {
+              localStorage.setItem('payment_method', existing.payment_method)
             }
-          })
-          
-          // Load completion flags
-          const completeFields = [
-            { db: 'firmographics_complete', local: 'firmographics_complete' },
-            { db: 'general_benefits_complete', local: 'general_benefits_complete' },
-            { db: 'current_support_complete', local: 'current_support_complete' },
-            { db: 'cross_dimensional_complete', local: 'cross_dimensional_complete' },
-            { db: 'employee_impact_complete', local: 'employee-impact-assessment_complete' },  // Different names!
-            { db: 'dimension1_complete', local: 'dimension1_complete' },
-            { db: 'dimension2_complete', local: 'dimension2_complete' },
-            { db: 'dimension3_complete', local: 'dimension3_complete' },
-            { db: 'dimension4_complete', local: 'dimension4_complete' },
-            { db: 'dimension5_complete', local: 'dimension5_complete' },
-            { db: 'dimension6_complete', local: 'dimension6_complete' },
-            { db: 'dimension7_complete', local: 'dimension7_complete' },
-            { db: 'dimension8_complete', local: 'dimension8_complete' },
-            { db: 'dimension9_complete', local: 'dimension9_complete' },
-            { db: 'dimension10_complete', local: 'dimension10_complete' },
-            { db: 'dimension11_complete', local: 'dimension11_complete' },
-            { db: 'dimension12_complete', local: 'dimension12_complete' },
-            { db: 'dimension13_complete', local: 'dimension13_complete' },
-          ]
-          
-          completeFields.forEach(({ db, local }) => {
-            if (existing[db] === true) {
-              localStorage.setItem(local, 'true')
-              console.log(`  ✓ Loaded ${db} → ${local}: true`)
+          } finally {
+            // ============================================
+            // END HYDRATION + SET VERSION + CLEAR DIRTY (always runs)
+            // ============================================
+            // Set local version to match server (prevents false conflict)
+            if (existing.version) {
+              setStoredVersion(existing.version)
             }
-          })
-          
-          // Load payment info
-          if (existing.payment_method) {
-            localStorage.setItem('payment_method', existing.payment_method)
+            // Clear any dirty flag (we just loaded fresh from server)
+            clearDirty()
+            // End hydration mode
+            endHydration()
           }
-          
-          // ============================================
-          // END HYDRATION + SET VERSION + CLEAR DIRTY
-          // ============================================
-          // Set local version to match server (prevents false conflict)
-          if (existing.version) {
-            setStoredVersion(existing.version)
-          }
-          // Clear any dirty flag (we just loaded fresh from server)
-          clearDirty()
-          // End hydration mode
-          endHydration()
           
           console.log('[FP-REGISTER] ✅ All survey data loaded successfully!')
           
