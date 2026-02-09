@@ -78,6 +78,7 @@ exports.handler = async (event) => {
   try {
     const payload = JSON.parse(event.body)
     const {
+      action,  // NEW: Support action-based requests
       survey_id,
       user_id,
       data,
@@ -89,6 +90,112 @@ exports.handler = async (event) => {
       fallbackSurveyId,
       fallbackAppId
     } = payload
+
+    // ============================================
+    // ACTION: get-version (just return version number)
+    // ============================================
+    if (action === 'get-version') {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+      const matchId = survey_id || fallbackSurveyId || fallbackAppId
+      
+      if (!matchId) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'No survey_id provided' })
+        }
+      }
+      
+      // Try survey_id first, then app_id
+      let record = null
+      const { data: bySurveyId } = await supabase
+        .from('assessments')
+        .select('version')
+        .eq('survey_id', matchId)
+        .maybeSingle()
+      
+      if (bySurveyId) {
+        record = bySurveyId
+      } else {
+        const normalizedAppId = matchId.replace(/-/g, '').toUpperCase()
+        const { data: byAppId } = await supabase
+          .from('assessments')
+          .select('version')
+          .eq('app_id', normalizedAppId)
+          .maybeSingle()
+        record = byAppId
+      }
+      
+      if (!record) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Record not found' })
+        }
+      }
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ version: record.version })
+      }
+    }
+
+    // ============================================
+    // ACTION: get-full-record (return entire assessment for conflict resolution)
+    // ============================================
+    if (action === 'get-full-record') {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+      const matchId = survey_id || fallbackSurveyId || fallbackAppId
+      
+      if (!matchId) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'No survey_id provided' })
+        }
+      }
+      
+      // Try survey_id first, then app_id
+      let record = null
+      const { data: bySurveyId } = await supabase
+        .from('assessments')
+        .select('*')
+        .eq('survey_id', matchId)
+        .maybeSingle()
+      
+      if (bySurveyId) {
+        record = bySurveyId
+      } else {
+        const normalizedAppId = matchId.replace(/-/g, '').toUpperCase()
+        const { data: byAppId } = await supabase
+          .from('assessments')
+          .select('*')
+          .eq('app_id', normalizedAppId)
+          .maybeSingle()
+        record = byAppId
+      }
+      
+      if (!record) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Record not found' })
+        }
+      }
+      
+      console.log('[sync-assessment] get-full-record for:', matchId, 'version:', record.version)
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ data: record })
+      }
+    }
+
+    // ============================================
+    // DEFAULT: Sync data (existing logic)
+    // ============================================
 
     // FIX 3a: Normalize user_id - treat 'none' and '' as null
     const normalizedUserId = (user_id === 'none' || user_id === '' || !user_id) ? null : user_id
