@@ -170,7 +170,7 @@ export async function resolveConflictFromServer(): Promise<boolean> {
     return false;
   }
   
-  let dbVersion: number | null = null;
+  let serverData: any = null;
   
   // Try 1: Direct Supabase query (works for regular users with session)
   try {
@@ -179,26 +179,26 @@ export async function resolveConflictFromServer(): Promise<boolean> {
     
     const { data, error } = await supabase
       .from('assessments')
-      .select('version')
+      .select('*')  // Get FULL row, not just version
       .eq(matchField, matchValue)
       .single();
     
-    if (!error && data?.version) {
-      dbVersion = data.version;
-      console.log('[resolveConflict] Got version via direct query:', dbVersion);
+    if (!error && data) {
+      serverData = data;
+      console.log('[resolveConflict] Got full row via direct query, version:', data.version);
     }
   } catch (e) {
     console.log('[resolveConflict] Direct query failed, trying Netlify fallback');
   }
   
   // Try 2: Netlify function fallback (works for FP/compd users without session)
-  if (!dbVersion) {
+  if (!serverData) {
     try {
       const response = await fetch('/.netlify/functions/sync-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          action: 'get-version',
+          action: 'get-full-record',  // New action to get full record
           survey_id: surveyId || appId,
           fallbackSurveyId: surveyId,
           fallbackAppId: appId
@@ -207,9 +207,9 @@ export async function resolveConflictFromServer(): Promise<boolean> {
       
       if (response.ok) {
         const result = await response.json();
-        if (result.version) {
-          dbVersion = result.version;
-          console.log('[resolveConflict] Got version via Netlify function:', dbVersion);
+        if (result.data) {
+          serverData = result.data;
+          console.log('[resolveConflict] Got full row via Netlify function, version:', result.data.version);
         }
       }
     } catch (e) {
@@ -217,21 +217,75 @@ export async function resolveConflictFromServer(): Promise<boolean> {
     }
   }
   
-  if (!dbVersion) {
-    console.error('[resolveConflict] Could not fetch DB version');
+  if (!serverData || !serverData.version) {
+    console.error('[resolveConflict] Could not fetch server data');
     return false;
   }
   
-  // Update local version to match DB
-  setStoredVersion(dbVersion);
+  // ============================================
+  // HYDRATE LOCALSTORAGE WITH SERVER DATA
+  // This is the critical fix - actually reload the data, not just bump version
+  // ============================================
+  console.log('[resolveConflict] Hydrating localStorage with server data...');
   
-  // Clear dirty flag (discarding local changes)
+  startHydration();
+  
+  try {
+    // Data fields mapping (DB column → localStorage key)
+    const dataFields = [
+      { db: 'firmographics_data', local: 'firmographics_data' },
+      { db: 'general_benefits_data', local: 'general_benefits_data' },
+      { db: 'current_support_data', local: 'current_support_data' },
+      { db: 'cross_dimensional_data', local: 'cross_dimensional_data' },
+      { db: 'employee_impact_data', local: 'employee-impact-assessment_data' },
+      ...Array.from({length: 13}, (_, i) => ({ db: `dimension${i+1}_data`, local: `dimension${i+1}_data` }))
+    ];
+    
+    dataFields.forEach(({ db, local }) => {
+      const value = serverData[db];
+      if (value && typeof value === 'object' && Object.keys(value).length > 0) {
+        localStorage.setItem(local, JSON.stringify(value));
+      }
+    });
+    
+    // Completion flags
+    const completeFields = [
+      { db: 'firmographics_complete', local: 'firmographics_complete' },
+      { db: 'general_benefits_complete', local: 'general_benefits_complete' },
+      { db: 'current_support_complete', local: 'current_support_complete' },
+      { db: 'cross_dimensional_complete', local: 'cross_dimensional_complete' },
+      { db: 'employee_impact_complete', local: 'employee-impact-assessment_complete' },
+      ...Array.from({length: 13}, (_, i) => ({ db: `dimension${i+1}_complete`, local: `dimension${i+1}_complete` }))
+    ];
+    
+    completeFields.forEach(({ db, local }) => {
+      if (serverData[db] === true) {
+        localStorage.setItem(local, 'true');
+      } else {
+        localStorage.removeItem(local);
+      }
+    });
+    
+    // Other fields
+    if (serverData.company_name) localStorage.setItem('login_company_name', serverData.company_name);
+    if (serverData.payment_completed) localStorage.setItem('payment_completed', 'true');
+    if (serverData.payment_method) localStorage.setItem('payment_method', serverData.payment_method);
+    if (serverData.auth_completed) localStorage.setItem('auth_completed', 'true');
+    
+  } finally {
+    endHydration();
+  }
+  
+  // Update local version to match DB
+  setStoredVersion(serverData.version);
+  
+  // Clear dirty flag (we just loaded fresh from server)
   clearDirty();
   
   // Clear conflict flag
   clearConflictFlag();
   
-  console.log(`✅ [resolveConflict] Resolved - local version set to ${dbVersion}, dirty cleared`);
+  console.log(`✅ [resolveConflict] Resolved - localStorage hydrated, version set to ${serverData.version}`);
   
   // Dispatch event for UI to react
   window.dispatchEvent(new CustomEvent('sync-conflict-resolved'));
