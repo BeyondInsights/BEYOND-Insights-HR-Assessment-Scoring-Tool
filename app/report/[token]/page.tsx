@@ -919,8 +919,11 @@ function getBenchmarkNarrative(score: number, benchmark: number | null, dimName:
 // Identify meaningful cross-dimension patterns (ranked by severity, tier-consistent)
 // Methodology: Evaluates cross-dimensional bottleneck rules and surfaces the top 3 
 // based on the size of the mismatch and the opportunity in the weaker dimension.
-function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; implication: string; recommendation: string }[] {
-  type Cand = { pattern: string; implication: string; recommendation: string; score: number };
+function getCrossDimensionPatterns(dimAnalysis: any[]): { 
+  bottlenecks: { pattern: string; implication: string; recommendation: string }[];
+  positiveInsights: { pattern: string; implication: string; recommendation: string }[];
+} {
+  type Cand = { pattern: string; implication: string; recommendation: string; score: number; family: 'enablement' | 'program' | 'leadership' | 'positive' };
   const cands: Cand[] = [];
 
   const findDim = (num: number) => dimAnalysis.find(d => d.dim === num);
@@ -962,12 +965,14 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     }
   };
 
+  // ========== ENABLEMENT FAMILY ==========
   // 1) Strong culture but weak manager training
   if (culture && manager && isLeadingPlus(culture) && isWeak(manager)) {
     add({
       pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})${unsureNote(manager)}`,
       implication: 'Employees likely feel safe disclosing health challenges, but managers may lack confidence and tools to respond effectively—creating inconsistent support experiences.',
-      recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to help—give them the skills to do so effectively.'
+      recommendation: 'Prioritize manager training with conversation guides and scenario practice. Your positive culture means managers want to help—give them the skills to do so effectively.',
+      family: 'enablement'
     }, (culture.score - manager.score) + 0.25 * opp(manager));
   }
 
@@ -976,17 +981,18 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     add({
       pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})${unsureNote(navigation)}`,
       implication: 'You have invested in comprehensive benefits, but employees may struggle to find and access them when needed—reducing utilization and ROI.',
-      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub—to maximize return on existing benefits.'
+      recommendation: 'Implement a navigation solution—single entry point, benefits concierge, or resource hub—to maximize return on existing benefits.',
+      family: 'enablement'
     }, (insurance.score - navigation.score) + 0.25 * opp(navigation));
   }
 
   // 3) Enablement bottleneck (front door is unclear + managers not equipped)
-  // Common root cause of low confidence/utilization even when programs exist
   if (manager && navigation && communication && manager.score < 55 && navigation.score < 55 && communication.score < 55) {
     add({
       pattern: `Enablement bottleneck: Navigation (${navigation.score}), Communication (${communication.score}), and Manager Preparedness (${manager.score}) are all underdeveloped`,
       implication: 'Even if you have solid benefits or policies, employees may not know where to start—and managers may not have clear tools to guide them. The result is low confidence, inconsistent experiences, and underutilization of support.',
-      recommendation: 'Create a clear "front door" for support (single contact/path), equip managers with a short playbook (what to do/say, referral steps, boundaries), and run a simple awareness cadence (3-touch communications + intranet hub). This combination tends to unlock multiple dimensions at once.'
+      recommendation: 'Create a clear "front door" for support (single contact/path), equip managers with a short playbook (what to do/say, referral steps, boundaries), and run a simple awareness cadence (3-touch communications + intranet hub). This combination tends to unlock multiple dimensions at once.',
+      family: 'enablement'
     }, (55 - Math.min(manager.score, navigation.score, communication.score)) + 0.3 * (opp(manager) + opp(navigation) + opp(communication)) / 3);
   }
 
@@ -997,17 +1003,20 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
       add({
         pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}${unsureNote(communication)}`,
         implication: `You have strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness may be limiting utilization—employees may not know resources exist when they need them.`,
-        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, now build visibility.'
+        recommendation: 'Launch targeted awareness campaigns highlighting your strongest offerings. This is a quick win—you already have the programs, now build visibility.',
+        family: 'enablement'
       }, (75 - communication.score) + 0.15 * strongDims.length * 10);
     }
   }
 
+  // ========== PROGRAM DESIGN FAMILY ==========
   // 5) Strong leave but weak return-to-work
   if (leave && returnToWork && isLeadingPlus(leave) && isWeak(returnToWork)) {
     add({
       pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})${unsureNote(returnToWork)}`,
       implication: 'Employees get time for treatment, but may struggle with the transition back—risking avoidable attrition or prolonged productivity loss.',
-      recommendation: 'Implement structured return-to-work protocols: phased re-entry schedules, regular check-ins, and temporary accommodation plans to protect your leave investment.'
+      recommendation: 'Implement structured return-to-work protocols: phased re-entry schedules, regular check-ins, and temporary accommodation plans to protect your leave investment.',
+      family: 'program'
     }, (leave.score - returnToWork.score) + 0.25 * opp(returnToWork));
   }
 
@@ -1016,10 +1025,12 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     add({
       pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})${unsureNote(career)}`,
       implication: 'Employees can adjust work during treatment, but may fear long-term career impact—leading to hidden diagnoses or premature departures despite day-to-day support.',
-      recommendation: 'Add explicit career protection norms—clarity on promotion eligibility during leave, expectations transparency, and visible success stories of career progression post-diagnosis.'
+      recommendation: 'Add explicit career protection norms—clarity on promotion eligibility during leave, expectations transparency, and visible success stories of career progression post-diagnosis.',
+      family: 'program'
     }, (accommodations.score - career.score) + 0.25 * opp(career));
   }
 
+  // ========== LEADERSHIP FAMILY ==========
   // 7) Low executive commitment correlating with broader gaps
   if (executive && isWeak(executive)) {
     const avgOther = dimAnalysis.filter(d => d.dim !== 9).reduce((s, d) => s + d.score, 0) / 12;
@@ -1027,7 +1038,8 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
       add({
         pattern: `Low Executive Commitment (${executive.score}) correlating with program gaps${unsureNote(executive)}`,
         implication: 'Without visible leadership engagement, cancer support tends to operate as an isolated HR initiative rather than an organizational priority—limiting resources and cross-functional coordination.',
-        recommendation: 'Build the executive business case linking cancer support to retention, productivity, and employer brand. Identify an executive sponsor to champion the program.'
+        recommendation: 'Build the executive business case linking cancer support to retention, productivity, and employer brand. Identify an executive sponsor to champion the program.',
+        family: 'leadership'
       }, (65 - avgOther) + 0.35 * opp(executive));
     }
   }
@@ -1041,11 +1053,13 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
       add({
         pattern: `${totalGaps} gaps + ${totalConfirming} items needing confirmation with limited Continuous Improvement infrastructure (${continuous.score})`,
         implication: 'Significant improvement opportunities exist, but without systematic review processes, progress may be slow and lessons from individual cases can be lost.',
-        recommendation: 'Establish quarterly program reviews, employee feedback mechanisms, and case documentation practices to create infrastructure that drives and sustains improvements.'
+        recommendation: 'Establish quarterly program reviews, employee feedback mechanisms, and case documentation practices to create infrastructure that drives and sustains improvements.',
+        family: 'leadership'
       }, (totalItems - 25) + 0.25 * opp(continuous));
     }
   }
 
+  // ========== POSITIVE FAMILY ==========
   // 9) Improvement momentum - dimension with active work underway
   const dimsWithMomentum = dimAnalysis.filter(d => {
     const planningCount = d.planning?.length || 0;
@@ -1060,26 +1074,54 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
     add({
       pattern: `Active improvement momentum in ${topMomentum.name} (${topMomentum.score}) with ${inProgress} items in planning/assessment`,
       implication: `This dimension shows current score of ${topMomentum.score}, but you have ${inProgress} support elements actively being developed or assessed. Completing these could meaningfully shift the score.`,
-      recommendation: `Prioritize converting "Planning" items to "Offering" status in ${topMomentum.name}. Track progress quarterly to demonstrate ROI on current improvement investments.`
-    }, 15 + inProgress * 2); // Moderate priority - good news worth surfacing
+      recommendation: `Prioritize converting "Planning" items to "Offering" status in ${topMomentum.name}. Track progress quarterly to demonstrate ROI on current improvement investments.`,
+      family: 'positive'
+    }, 15 + inProgress * 2);
   }
 
-  // 10) Consistently strong performance (positive strategic signal) - boosted scoring
+  // 10) Consistently strong performance (positive strategic signal)
   const avgScore = dimAnalysis.reduce((sum, d) => sum + d.score, 0) / dimAnalysis.length;
   const lowestDim = [...dimAnalysis].sort((a, b) => a.score - b.score)[0];
   if (avgScore >= 72 && lowestDim?.score >= 50) {
     add({
       pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average, ${lowestDim.score} floor)`,
       implication: 'Your balanced approach to cancer support is a genuine differentiator, positioning you well for employer brand recognition and talent attraction.',
-      recommendation: `Leverage this foundation for thought leadership. Refine ${lowestDim.name} (${lowestDim.score}) to move from strong performance to full excellence.`
-    }, 30 + (avgScore - 72) * 2); // Boosted so truly strong companies see this
+      recommendation: `Leverage this foundation for thought leadership. Refine ${lowestDim.name} (${lowestDim.score}) to move from strong performance to full excellence.`,
+      family: 'positive'
+    }, 30 + (avgScore - 72) * 2);
   }
 
-  // Rank by severity and return top 3
-  const ranked = cands.sort((a, b) => b.score - a.score).slice(0, 3).map(({ score, ...rest }) => rest);
+  // Separate positive insights from bottlenecks
+  const positiveCands = cands.filter(c => c.family === 'positive');
+  const bottleneckCands = cands.filter(c => c.family !== 'positive');
 
-  // Fallback: ensure section always provides value
-  if (ranked.length === 0) {
+  // Anti-redundancy: pick max 1 per family for bottlenecks
+  const familyWinners: Cand[] = [];
+  const families: Array<'enablement' | 'program' | 'leadership'> = ['enablement', 'program', 'leadership'];
+  
+  for (const family of families) {
+    const familyCands = bottleneckCands.filter(c => c.family === family);
+    if (familyCands.length > 0) {
+      // Sort by score descending, pick the top one
+      const winner = familyCands.sort((a, b) => b.score - a.score)[0];
+      familyWinners.push(winner);
+    }
+  }
+
+  // Rank family winners by severity and take top 3
+  const rankedBottlenecks = familyWinners
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+    .map(({ score, family, ...rest }) => rest);
+
+  // Take top positive insight (if any)
+  const rankedPositive = positiveCands
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 1)
+    .map(({ score, family, ...rest }) => rest);
+
+  // Fallback if no bottlenecks found
+  if (rankedBottlenecks.length === 0) {
     const byScoreAsc = [...dimAnalysis].sort((a, b) => (a.score ?? 0) - (b.score ?? 0));
     const byScoreDesc = [...dimAnalysis].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     const lowest = byScoreAsc[0];
@@ -1092,14 +1134,20 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): { pattern: string; impli
       ? ` Prioritize confirming "Needs Confirmation" items in ${topUnsure.map(d => `${d.name} (${d.unsure.length})`).join(' and ')}—those confirmations can materially change the story.`
       : '';
 
-    return [{
-      pattern: 'No major cross-dimensional bottlenecks detected',
-      implication: `Your scores do not match any of the common "weak link" patterns we look for. That is a good sign—your program appears relatively balanced, with strengths that can support improvements in weaker areas.${unsureText}`,
-      recommendation: `Use your strongest area (${strongest?.name}, ${strongest?.score}) as a repeatable playbook. Focus next on the lowest-scoring dimension (${lowest?.name}, ${lowest?.score}) by selecting 1–2 specific improvements that are feasible in the next 60–90 days, then reassess to confirm progress.`
-    }];
+    return {
+      bottlenecks: [{
+        pattern: 'No major cross-dimensional bottlenecks detected',
+        implication: `Your scores do not match any of the common "weak link" patterns we look for. That is a good sign—your program appears relatively balanced, with strengths that can support improvements in weaker areas.${unsureText}`,
+        recommendation: `Use your strongest area (${strongest?.name}, ${strongest?.score}) as a repeatable playbook. Focus next on the lowest-scoring dimension (${lowest?.name}, ${lowest?.score}) by selecting 1–2 specific improvements that are feasible in the next 60–90 days, then reassess to confirm progress.`
+      }],
+      positiveInsights: rankedPositive
+    };
   }
 
-  return ranked;
+  return {
+    bottlenecks: rankedBottlenecks,
+    positiveInsights: rankedPositive
+  };
 }
 
 // Calculate impact-ranked improvement priorities
@@ -4150,7 +4198,7 @@ export default function ExportReportPage() {
   // POLISHED DESIGN RENDER v2
   // Full feature parity with original, polished styling
   // ============================================
-  const patterns = getCrossDimensionPatterns(dimensionAnalysis);
+  const { bottlenecks: patterns, positiveInsights } = getCrossDimensionPatterns(dimensionAnalysis);
   const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
   
   return (
@@ -4835,18 +4883,24 @@ export default function ExportReportPage() {
                         <div className="flex justify-end mb-3">
                           <button
                             onClick={() => {
-                              const rows = [['Dimension', 'Tier', 'Weight', 'Item Name', 'Most likely owner to confirm', 'Fastest evidence to validate']];
+                              const rows = [['Dimension', 'Response', 'Element', 'Resources to help confirm']];
                               dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
                                 dim.unsure.forEach((item: any) => {
                                   const guidance = getConfirmationGuidance(item.name);
-                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, dim.tier.label, dim.weight + '%', item.name, guidance.owner, guidance.evidence]);
+                                  const responseLabel = dim.tier?.label || 'Unsure';
+                                  rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, responseLabel === 'undefined' ? 'Unsure' : responseLabel, item.name, guidance.evidence]);
                                 });
                               });
                               const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-                              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                              const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
                               const link = document.createElement('a');
                               link.href = URL.createObjectURL(blob);
-                              link.download = `${companyName?.replace(/[^a-zA-Z0-9]/g, '_') || 'company'}_confirmatory_items.csv`;
+                              // Normalize company name: remove accents and special chars
+                              const safeName = (companyName || 'company')
+                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+                                .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special chars except spaces
+                                .replace(/\s+/g, '_'); // Replace spaces with underscores
+                              link.download = `${safeName}_confirmatory_items.csv`;
                               link.click();
                             }}
                             className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm"
@@ -6530,6 +6584,27 @@ export default function ExportReportPage() {
                     </div>
                   ))}
                 </div>
+
+                {/* Also Worth Noting - Positive Insights */}
+                {positiveInsights.length > 0 && (
+                  <div className="mt-5 pt-5 border-t border-slate-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h4 className="text-sm font-semibold text-slate-700">Also Worth Noting</h4>
+                    </div>
+                    {positiveInsights.map((p, idx) => (
+                      <div key={idx} className="bg-gradient-to-r from-emerald-50 to-white rounded-xl border border-emerald-200 p-4">
+                        <h5 className="font-semibold text-emerald-800 text-sm mb-2">{p.pattern}</h5>
+                        <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
+                        <p className="text-emerald-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Bottom guidance */}
                 <div className="mt-6 pt-4 border-t border-slate-200">
