@@ -4534,11 +4534,11 @@ export default function ExportReportPage() {
                               <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              Welcome to the <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies for Working with Cancer Index. Workplace cancer support is still evolving, and few organizations reach the top tiers today. By participating in this first cohort, you&apos;re among employers actively building stronger, more consistent support.
+                              We&apos;re grateful that {companyName} is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but helping define what excellence looks like for employers everywhere. The field is still maturing, which is why few reach the top tiers today.
                             </p>
                             <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                               <p className="text-sm text-slate-700 leading-relaxed">
-                                <strong className="text-violet-700">The goal is progress:</strong> confirm what&apos;s in place, prioritize high-leverage moves, and revisit over time.
+                                <strong className="text-violet-700">The goal is progress, not perfection.</strong> This isn&apos;t about achieving a perfect score. It&apos;s about continuous improvement, taking meaningful steps forward each year, and building support systems that grow alongside your workforce.
                               </p>
                             </div>
                           </div>
@@ -5409,7 +5409,7 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Dimension Performance</h3>
-                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {company?.company_name || 'your'}&apos;s score</p>
+                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -7194,18 +7194,35 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Two-card layout for context */}
-                  <div className="grid grid-cols-2 gap-4 mt-6 max-w-4xl">
+                  {/* Two-card layout for context with visual connector */}
+                  <div className="flex items-stretch gap-0 mt-6">
                     {/* Card 1: Assessment insights */}
-                    <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/10">
+                    <div className="flex-1 bg-white/10 backdrop-blur rounded-l-xl p-5 border border-white/10 border-r-0">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">1</span>
+                        </div>
+                        <span className="text-white/70 text-xs font-medium uppercase tracking-wide">What we found</span>
+                      </div>
                       <p className="text-slate-200 text-sm leading-relaxed">
                         Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
                         This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
                       </p>
                     </div>
                     
+                    {/* Visual connector - subtle gradient bridge */}
+                    <div className="w-8 flex items-center justify-center bg-gradient-to-r from-white/10 to-white/10 relative">
+                      <div className="w-px h-16 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+                    </div>
+                    
                     {/* Card 2: Context + CAC connection */}
-                    <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/10">
+                    <div className="flex-1 bg-white/10 backdrop-blur rounded-r-xl p-5 border border-white/10 border-l-0">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">2</span>
+                        </div>
+                        <span className="text-white/70 text-xs font-medium uppercase tracking-wide">How to use it</span>
+                      </div>
                       <p className="text-slate-200 text-sm leading-relaxed">
                         Every organization is different. Some recommendations will align with your priorities; others may not be feasible yet. 
                         <span className="text-white font-semibold"> Use these insights as a starting point</span> for conversations with Cancer and Careers about what&apos;s realistic and impactful for your workforce.
