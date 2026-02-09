@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { isDirty, hasConflict, forceSyncNow, resolveConflictFromServer } from '@/lib/supabase/auto-data-sync'
 
 /**
@@ -19,6 +19,9 @@ export default function SyncStatusIndicator() {
   const [state, setState] = useState<SyncState>('saved')
   const [errorCount, setErrorCount] = useState(0)
   const [showTooltip, setShowTooltip] = useState(false)
+  
+  // Track latest syncId to handle out-of-order events
+  const latestSyncId = useRef<number>(0)
 
   // Check current state from sync module
   const checkState = useCallback(() => {
@@ -33,32 +36,44 @@ export default function SyncStatusIndicator() {
 
   // Listen for sync events
   useEffect(() => {
-    const handleSyncStart = () => {
+    const handleSyncStart = (e: CustomEvent) => {
+      const syncId = e.detail?.syncId || Date.now()
+      latestSyncId.current = syncId
       setState('saving')
     }
 
-    const handleSyncSuccess = () => {
-      setState('saved')
-      setErrorCount(0)
+    const handleSyncSuccess = (e: CustomEvent) => {
+      const syncId = e.detail?.syncId || 0
+      // Only update if this is the latest sync
+      if (syncId >= latestSyncId.current) {
+        setState('saved')
+        setErrorCount(0)
+      }
     }
 
-    const handleSyncError = () => {
-      setState('needs-save')
-      setErrorCount(prev => prev + 1)
+    const handleSyncError = (e: CustomEvent) => {
+      const syncId = e.detail?.syncId || 0
+      // Only update if this is the latest sync
+      if (syncId >= latestSyncId.current) {
+        setState('needs-save')
+        setErrorCount(prev => prev + 1)
+      }
     }
 
     const handleSyncConflict = () => {
       setState('conflict')
     }
-
-    window.addEventListener('sync-start', handleSyncStart)
-    window.addEventListener('sync-success', handleSyncSuccess)
-    window.addEventListener('sync-error', handleSyncError)
-    window.addEventListener('sync-conflict', handleSyncConflict)
-    window.addEventListener('sync-conflict-resolved', () => {
+    
+    const handleConflictResolved = () => {
       setState('saved')
       setErrorCount(0)
-    })
+    }
+
+    window.addEventListener('sync-start', handleSyncStart as EventListener)
+    window.addEventListener('sync-success', handleSyncSuccess as EventListener)
+    window.addEventListener('sync-error', handleSyncError as EventListener)
+    window.addEventListener('sync-conflict', handleSyncConflict)
+    window.addEventListener('sync-conflict-resolved', handleConflictResolved)
 
     // Check initial state
     checkState()
@@ -67,10 +82,11 @@ export default function SyncStatusIndicator() {
     const interval = setInterval(checkState, 5000)
 
     return () => {
-      window.removeEventListener('sync-start', handleSyncStart)
-      window.removeEventListener('sync-success', handleSyncSuccess)
-      window.removeEventListener('sync-error', handleSyncError)
+      window.removeEventListener('sync-start', handleSyncStart as EventListener)
+      window.removeEventListener('sync-success', handleSyncSuccess as EventListener)
+      window.removeEventListener('sync-error', handleSyncError as EventListener)
       window.removeEventListener('sync-conflict', handleSyncConflict)
+      window.removeEventListener('sync-conflict-resolved', handleConflictResolved)
       clearInterval(interval)
     }
   }, [checkState])
