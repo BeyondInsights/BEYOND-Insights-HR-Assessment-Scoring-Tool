@@ -6543,56 +6543,94 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="px-8 py-6 pb-10">
-                  {/* Four cards in a row - light style like dimension navigator */}
-                  <div className="mb-6 grid grid-cols-4 gap-4">
+                  {/* 2x2 grid - Top: Accelerate/Build, Bottom: Roadmap/Impact */}
+                  <div className="mb-6 grid grid-cols-2 gap-4">
                     {/* Accelerate Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
-                      <div className="w-11 h-11 rounded-xl bg-slate-700 flex items-center justify-center mb-3">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                      </div>
-                      <h4 className="font-bold text-slate-900 mb-1">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
-                      <p className="text-sm text-slate-500 mb-3">Work already in motion. Candidates to complete or advance.</p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-2 py-0.5 bg-slate-600 text-white text-[10px] font-medium rounded">Implement</span>
-                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-medium rounded">Active Planning</span>
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-1">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
+                          <p className="text-sm text-slate-500 mb-3">Work already in motion. Candidates to complete or advance.</p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 bg-slate-600 text-white text-xs font-medium rounded">Implement</span>
+                              <span className="text-xs text-slate-500">Planning → Offering</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">Active Planning</span>
+                              <span className="text-xs text-slate-500">Assessing → Planning</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
                     {/* Build Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
-                      <div className="w-11 h-11 rounded-xl bg-indigo-600 flex items-center justify-center mb-3">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                      </div>
-                      <h4 className="font-bold text-slate-900 mb-1">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
-                      <p className="text-sm text-slate-500 mb-3">Net-new capabilities. Your primary improvement targets.</p>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-medium rounded">Stand Up</span>
-                        <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-[10px] font-medium rounded">Design + Scope</span>
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-1">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
+                          <p className="text-sm text-slate-500 mb-3">Net-new capabilities. Your primary improvement targets.</p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 bg-indigo-600 text-white text-xs font-medium rounded">Stand Up</span>
+                              <span className="text-xs text-slate-500">Not Offered → Offering</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 bg-violet-100 text-violet-700 text-xs font-medium rounded">Design + Scope</span>
+                              <span className="text-xs text-slate-500">Not Offered → Planning</span>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
                     {/* Year 1 Roadmap Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
-                      <div className="w-11 h-11 rounded-xl bg-emerald-600 flex items-center justify-center mb-3">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-1">Year 1 Roadmap</h4>
+                          <p className="text-sm text-slate-500">Advance <span className="font-semibold text-slate-700">{totalElementsY1}</span> support elements across <span className="font-semibold text-slate-700">5</span> priority dimensions.</p>
+                          <p className="text-xs text-slate-400 mt-2">Prioritized by impact on overall composite score and implementation readiness</p>
+                        </div>
                       </div>
-                      <h4 className="font-bold text-slate-900 mb-1">Year 1 Roadmap</h4>
-                      <p className="text-sm text-slate-500">Advance <span className="font-semibold text-slate-700">{totalElementsY1}</span> support elements across <span className="font-semibold text-slate-700">5</span> priority dimensions.</p>
                     </div>
                     
                     {/* Projected Impact Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
-                      <div className="w-11 h-11 rounded-xl bg-amber-500 flex items-center justify-center mb-3">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-3">Projected Impact</h4>
+                          <div className="flex items-center gap-4">
+                            <div className="text-center">
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Current</p>
+                              <p className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</p>
+                            </div>
+                            <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                            <div className="text-center">
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Projected</p>
+                              <p className="text-2xl font-bold text-slate-800">{projectedCompositeY1}</p>
+                            </div>
+                            <div className="text-center border-l border-slate-200 pl-4">
+                              <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1">Gain</p>
+                              <p className="text-xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</p>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-400 mt-2">If roadmap delivered</p>
+                        </div>
                       </div>
-                      <h4 className="font-bold text-slate-900 mb-1">Projected Impact</h4>
-                      <p className="text-sm text-slate-500">
-                        <span className="text-slate-400">{compositeScore || '--'}</span>
-                        <span className="mx-1.5">→</span>
-                        <span className="font-semibold text-slate-700">{projectedCompositeY1}</span>
-                        <span className="text-emerald-600 font-semibold ml-1.5">+{totalGainY1}</span>
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1">If roadmap delivered</p>
                     </div>
                   </div>
                   
