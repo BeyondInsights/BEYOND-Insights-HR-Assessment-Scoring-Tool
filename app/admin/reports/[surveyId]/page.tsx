@@ -111,7 +111,7 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
             <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score →</text></g>
             <g transform={`translate(${PADDING}, 0)`}>{[0, 5, 10, 15].map((val) => (<g key={val} transform={`translate(0, ${PADDING + PLOT_HEIGHT - (val / MAX_WEIGHT) * PLOT_HEIGHT})`}><line x1="-5" x2="0" stroke="#94A3B8" strokeWidth="1" /><text x="-10" textAnchor="end" dominantBaseline="middle" fill="#64748B" fontSize="11">{val}%</text></g>))}</g>
-            <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">IMPACT WEIGHT →</text>
+            <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Impact Weight ↑</text>
           </g>
         </svg>
       </div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
@@ -4433,6 +4433,13 @@ export default function ExportReportPage() {
                             })}
                           </div>
                           <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                          
+                          {/* Company's Current Score */}
+                          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-800">{assessment?.company_name || 'Your'}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
+                            </p>
+                          </div>
                         </div>
                         
                         {/* Right: Journey message - Better balanced layout */}
@@ -4447,7 +4454,7 @@ export default function ExportReportPage() {
                               <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              Workplace cancer support is still evolving. Few organizations reach the top tiers today, and participating puts you among employers actively building stronger, more consistent support.
+                              Welcome to the <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies for Working with Cancer Index. Workplace cancer support is still evolving, and few organizations reach the top tiers today. By participating in this first cohort, you&apos;re among employers actively building stronger, more consistent support.
                             </p>
                             <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                               <p className="text-sm text-slate-700 leading-relaxed">
@@ -5571,7 +5578,7 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">IMPACT WEIGHT →</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">IMPACT WEIGHT ↑</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {showBenchmarkRings && (() => {
@@ -7126,10 +7133,25 @@ export default function ExportReportPage() {
                       <p className="text-slate-400 text-base mt-1">From diagnosis to action in four priority dimensions</p>
                     </div>
                   </div>
-                  <p className="text-slate-300 text-lg leading-relaxed max-w-3xl">
-                    Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
-                    This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
-                  </p>
+                  
+                  {/* Two-card layout for context */}
+                  <div className="grid grid-cols-2 gap-4 mt-6 max-w-4xl">
+                    {/* Card 1: Assessment insights */}
+                    <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/10">
+                      <p className="text-slate-200 text-sm leading-relaxed">
+                        Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
+                        This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
+                      </p>
+                    </div>
+                    
+                    {/* Card 2: Context + CAC connection */}
+                    <div className="bg-white/10 backdrop-blur rounded-xl p-4 border border-white/10">
+                      <p className="text-slate-200 text-sm leading-relaxed">
+                        Every organization is different. Some recommendations will align with your priorities; others may not be feasible yet. 
+                        <span className="text-white font-semibold"> Use these insights as a starting point</span> for conversations with Cancer and Careers about what&apos;s realistic and impactful for your workforce.
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <button 
                   onClick={() => setInfoModal('strategicRecos')}
@@ -9815,7 +9837,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT →</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
                               
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
@@ -9970,7 +9992,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT →</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
                               
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
