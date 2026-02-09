@@ -1191,43 +1191,35 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       // ========================================
       // YEAR-1 (SUSTAINED EXECUTION)
       // ========================================
-      // Track 1: Accelerate (more aggressive)
+      // Track 1: Accelerate
+      // Planning items → Offering (shown as "Implement" in UI)
       const accel12_planningToOffering = planningCount;    // All Planning → Offering (+2 pts each)
       
-      // Assessing: Momentum-dependent share goes to Offering
-      // Low momentum: 25% to Offering, High momentum: 45% to Offering
-      const assessingToOfferingRate = hasMomentum ? 0.45 : 0.25;
-      const assessingToOffering12 = Math.floor(assessingCount * assessingToOfferingRate);
-      const assessingToPlanning12 = assessingCount - assessingToOffering12;
+      // Assessing items → Planning (shown as "Active Planning" in UI)
+      // UI shows ALL assessing items go to Planning, not Offering
+      const assessingToOffering12 = 0;  // None go directly to Offering
+      const assessingToPlanning12 = assessingCount;  // All go to Planning
       
-      // Track 2: Build (scaled by momentum and element count)
+      // Track 2: Build (gaps → Planning, shown as "Design + Scope" in UI)
+      // UI shows ALL build items go to Planning, not Offering
       const buildCap = Math.min(
         notPlannedCount,
         Math.max(4, Math.ceil(elementCount * 0.30))  // 30% of elements, min 4
       );
       
-      // Net-new to Offering: 1 default, 2 if strong momentum
-      const build12_toOffering = hasMomentum ? Math.min(buildCap, 2) : Math.min(buildCap, 1);
-      const remainingBuildCap = Math.max(0, buildCap - build12_toOffering);
-      
-      // Remaining new initiatives to Planning: momentum-scaled (not hard-capped at 2)
-      // Low momentum: up to 40% of remaining, High momentum: up to 60% of remaining
-      const planningRate = hasMomentum ? 0.6 : 0.4;
-      const build12_toPlanning = Math.min(
-        remainingBuildCap,
-        Math.max(2, Math.ceil(remainingBuildCap * planningRate))  // At least 2, or scaled %
-      );
-      const build12_toAssessing = Math.max(0, remainingBuildCap - build12_toPlanning);
+      const build12_toOffering = 0;  // None go directly to Offering
+      const build12_toPlanning = buildCap;  // All go to Planning
+      const build12_toAssessing = 0;
       
       const acceleratePoints12 = 
-        (accel12_planningToOffering * 2) +           // Planning → Offering
-        (assessingToOffering12 * 3) +                 // Assessing → Offering (+3 pts: 2→5)
-        (assessingToPlanning12 * 1);                  // Assessing → Planning (+1 pt: 2→3)
+        (accel12_planningToOffering * 2) +           // Planning → Offering (+2 pts)
+        (assessingToOffering12 * 3) +                 // Assessing → Offering (+3 pts) - will be 0
+        (assessingToPlanning12 * 1);                  // Assessing → Planning (+1 pt)
       
       const buildPoints12 = 
-        (build12_toOffering * 5) +                    // 0 → Offering (5 pts)
+        (build12_toOffering * 5) +                    // 0 → Offering (5 pts) - will be 0
         (build12_toPlanning * 3) +                    // 0 → Planning (3 pts)
-        (build12_toAssessing * 2);                    // 0 → Assessing (2 pts)
+        (build12_toAssessing * 2);                    // 0 → Assessing (2 pts) - will be 0
       
       const totalPointsDelta12 = acceleratePoints12 + buildPoints12;
       const elementsProgressed12 = 
