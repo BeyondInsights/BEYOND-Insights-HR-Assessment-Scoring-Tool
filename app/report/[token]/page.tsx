@@ -1213,19 +1213,20 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
         build12_toOffering + build12_toPlanning + build12_toAssessing;
       
       // ========================================
-      // SCORE CALCULATIONS (using raw points like What-If)
+      // SCORE CALCULATIONS (matching What-If methodology)
       // ========================================
-      // 90-day projected raw points
-      const projectedRawPoints = currentRawPoints + totalPointsDelta;
-      const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
-      const dimPotentialGain = Math.max(0, projectedRawScore - d.score);
-      const projectedScore = Math.min(100, projectedRawScore);
+      // Calculate the RAW score change based on point deltas
+      // This represents the change in score from progressing elements
+      const rawScoreChange = maxPoints > 0 ? Math.round((totalPointsDelta / maxPoints) * 100) : 0;
+      const rawScoreChange12 = maxPoints > 0 ? Math.round((totalPointsDelta12 / maxPoints) * 100) : 0;
       
-      // Year-1 projected raw points
-      const projectedRawPoints12 = currentRawPoints + totalPointsDelta12;
-      const projectedRawScore12 = maxPoints > 0 ? Math.round((projectedRawPoints12 / maxPoints) * 100) : 0;
-      const dimPotentialGain12 = Math.max(0, projectedRawScore12 - d.score);
-      const projectedScore12 = Math.min(100, projectedRawScore12);
+      // Use actual dimension score as baseline (accounts for follow-ups, geo factors, etc.)
+      // Then add the raw score change - this matches What-If Scenario Builder methodology
+      const projectedScore = Math.min(100, d.score + rawScoreChange);
+      const dimPotentialGain = Math.max(0, projectedScore - d.score);
+      
+      const projectedScore12 = Math.min(100, d.score + rawScoreChange12);
+      const dimPotentialGain12 = Math.max(0, projectedScore12 - d.score);
       
       // Composite impact
       const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
@@ -6671,21 +6672,24 @@ export default function ExportReportPage() {
                                 </p>
                               </div>
                             </div>
+                            {/* Right side: Contribution + Share bar */}
                             <div className="text-right">
-                              <span className="text-white/80 text-xs">Contribution to Projected Composite:</span>
-                              <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
+                              <div className="mb-1">
+                                <span className="text-white/80 text-xs">Contribution to Projected Composite:</span>
+                                <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
+                              </div>
+                              {/* Share bar aligned right */}
+                              <div className="flex items-center gap-2 justify-end">
+                                <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
+                                <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-white/70 rounded-full transition-all duration-500"
+                                    style={{ width: `${barWidth}%` }}
+                                  />
+                                </div>
+                                <span className="text-white/80 text-[10px] font-medium w-8">{Math.round(barWidth)}%</span>
+                              </div>
                             </div>
-                          </div>
-                          {/* Contribution bar - share of total gain */}
-                          <div className="px-5 pb-2 flex items-center gap-3">
-                            <span className="text-white/60 text-xs whitespace-nowrap">Share of Projected Lift:</span>
-                            <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                              <div 
-                                className="h-full bg-white/70 rounded-full transition-all duration-500"
-                                style={{ width: `${barWidth}%` }}
-                              />
-                            </div>
-                            <span className="text-white/80 text-xs font-medium">{Math.round(barWidth)}%</span>
                           </div>
                         </div>
                         
@@ -11465,7 +11469,7 @@ export default function ExportReportPage() {
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
                       <div className="relative flex items-center justify-between">
                         <div className="flex items-center gap-6">
-                          {/* WWC Logo */}
+                          {/* WWC Logo - Full WORKINGWITHCANCER */}
                           <div className="h-12 flex-shrink-0" style={{ width: '240px' }}>
                             <svg viewBox="0 0 1450 300" className="h-full w-full">
                               <path fill="#ff353c" fillRule="evenodd" d="m972.3,70s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V70Z"/>
@@ -11476,6 +11480,11 @@ export default function ExportReportPage() {
                               <path fill="#434345" d="m436.06,71.85h31.71v156.46h-31.71V71.85Z"/>
                               <path fill="#434345" d="m518.73,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
                               <path fill="#434345" d="m597.16,175.03h-2.96v-26.85h32.98v80.34c-9.72,0-16.28-1.9-19.24-9.52-2.75,6.34-10.78,10.99-19.66,10.99-18.39,0-29.6-12.9-29.6-36.15v-88.16c0-23.26,12.9-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.44v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.53c0,3.81.85,6.55,3.81,6.55,2.11,0,3.17-1.9,3.17-4.44v-26.43Z"/>
+                              <path fill="#434345" d="m1038.88,71.85l18.39,156.46h-32.35l-1.69-29.18h-8.03l-1.48,29.18h-31.5l18.18-156.46h38.48Zm-22.41,102.12h5.5l-1.27-22.62-1.06-32.98h-.63l-1.27,32.98-1.27,22.62Z"/>
+                              <path fill="#434345" d="m1105.9,133.59h.42v-61.74h28.97v156.46h-28.33l-11.84-68.93h-.42v68.93h-28.97V71.85h31.08l9.09,61.74Z"/>
+                              <path fill="#434345" d="m1214.36,194.48c0,23.26-11.42,35.52-33.62,35.52s-34.89-12.26-34.89-35.52v-88.8c0-23.26,13.11-35.52,34.89-35.52s33.62,12.26,33.62,35.52v29.39h-30.45v-34.25c0-4.02-.85-6.56-3.17-6.56-2.54,0-3.38,2.54-3.38,6.56v98.74c0,3.81.85,6.34,3.38,6.34,2.32,0,3.17-2.54,3.17-6.34v-37h30.45v31.93Z"/>
+                              <path fill="#434345" d="m1224.5,71.85h54.97v25.16h-23.47v39.54h20.93v25.37h-20.93v41.23h23.47v25.16h-54.97V71.85Z"/>
+                              <path fill="#434345" d="m1327.25,169.95c0-5.28-1.06-7.4-3.6-7.4h-2.96v65.75h-31.71V71.85h41.02c17.97,0,28.96,10.57,28.96,29.6v28.12c0,8.88-2.32,16.07-12.26,20.93,9.94,5.07,12.26,12.26,12.26,21.35v39.11c0,5.71.42,11.63,1.9,17.34h-31.72c-1.69-5.07-1.9-11.84-1.9-17.34v-41.02Zm0-67.45c0-5.29-1.06-7.4-3.6-7.4h-2.96v44.19h2.96c2.54,0,3.6-2.11,3.6-7.4v-29.39Z"/>
                               <path fill="#434345" d="m678.4,100.18h-.42l-10.78,128.12h-12.69l-14.17-156.46h11.63l10.36,127.49h.42l10.57-127.49h10.36l10.78,127.49h.42l10.36-127.49h10.99l-14.38,156.46h-12.69l-10.78-128.12Z"/>
                               <path fill="#434345" d="m731.47,71.85h11.84v156.46h-11.84V71.85Z"/>
                               <path fill="#434345" d="m790.03,81.79v146.52h-11.84V81.79h-19.88v-9.94h51.59v9.94h-19.88Z"/>
