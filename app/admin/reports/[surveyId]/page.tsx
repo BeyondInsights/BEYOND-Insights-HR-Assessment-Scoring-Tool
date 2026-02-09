@@ -2706,7 +2706,7 @@ export default function ExportReportPage() {
   const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
   const [confirmModal, setConfirmModal] = useState<{ show: boolean; message: string; onConfirm: () => void }>({ show: false, message: '', onConfirm: () => {} });
-  const [infoModal, setInfoModal] = useState<'crossDimensional' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
+  const [infoModal, setInfoModal] = useState<'crossDimensional' | 'patternLibrary' | 'impactRanked' | 'excellence' | 'growth' | 'strategicRecos' | null>(null);
   const [whatIfModal, setWhatIfModal] = useState<boolean>(false);
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
@@ -3104,10 +3104,47 @@ export default function ExportReportPage() {
   const infoContent = {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
-      what: 'Connects the dots across your dimension scores to surface likely bottlenecks—places where a lower-scoring capability may be limiting the impact of stronger programs elsewhere.',
-      how: 'Cross-Dimensional Insights are derived from aggregated results across participating organizations. We look for recurring combinations in dimension score profiles—where strength in one area is frequently paired with a gap in another.\n\nTo make this actionable, we organize the most frequent combinations into four broader themes. Within those themes, we maintain a working library of patterns (currently 10) that reflect the most commonly observed bottlenecks to date.\n\n<strong>Theme 1: Enablement & Access</strong>\n• Strong culture, managers unprepared (employees feel safe disclosing; managers lack tools to respond)\n• Good benefits, weak navigation (offerings exist; hard to find or use)\n• Enablement bottleneck (navigation + communication + manager readiness all underdeveloped)\n• Strong programs, low awareness (resources exist; employees don\'t know what\'s available)\n\n<strong>Theme 2: Program Design</strong>\n• Good leave, weak return-to-work (time off for treatment; struggle with transition back)\n• Strong accommodations, limited career protection (day-to-day flexibility; long-term career fears)\n\n<strong>Theme 3: Leadership & Infrastructure</strong>\n• Low executive commitment correlating with program gaps (isolated HR initiative vs. organizational priority)\n• Many opportunities, limited continuous improvement (gaps identified; no systematic process to address)\n\n<strong>Theme 4: Positive Momentum</strong>\n• Active improvement underway (planning/assessing items in motion)\n• Strong performance to leverage (leading areas that could inform others)\n\n<em>Important context:</em> These are directional, not definitive—organizations may align with multiple patterns or none. As more organizations participate, patterns may be refined, added, merged, or retired. Recommendations are practical starting points to validate and prioritize—best used alongside your internal context.',
-      when: 'Treat themes as a practical lens for prioritization—identifying likely dependencies and sequencing improvements—rather than a label you must "fit." Use this section to align HR and leaders on root causes, prioritize two or three moves that unlock multiple areas, and clarify what to confirm internally before finalizing scores.',
-      questions: ['Where are we investing, yet employees may still struggle to access support?', 'What is the "weak link" limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?']
+      what: 'Surfaces likely bottlenecks where a lower-scoring capability may be limiting the impact of stronger programs elsewhere. These are the hidden friction points that often explain why good investments underperform.',
+      how: 'We analyze dimension score profiles across participating organizations to identify recurring combinations where strength in one area is frequently paired with a gap in another. The ten most common patterns are organized into four themes: Enablement and Access, Program Design, Leadership and Infrastructure, and Positive Momentum. When your profile aligns with a known pattern, the system surfaces an explanation and a recommended starting action.',
+      when: 'Use this section to align HR and leaders on root causes, prioritize two or three moves that unlock multiple areas, and clarify what needs confirmation before finalizing scores. Treat themes as a lens for prioritization rather than a rigid classification.',
+      questions: ['Where are we investing, yet employees may still struggle to access support?', 'What is the weak link limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?'],
+      note: 'Organizations may align with multiple patterns or none. As participation grows, patterns are refined, added, or retired based on what we observe.'
+    },
+    patternLibrary: {
+      title: 'Pattern Library',
+      isPatternLibrary: true,
+      themes: [
+        {
+          name: 'Enablement & Access',
+          patterns: [
+            { pattern: 'Strong culture, managers unprepared', desc: 'Employees feel safe disclosing but managers lack tools to respond effectively' },
+            { pattern: 'Good benefits, weak navigation', desc: 'Offerings exist but are hard to find or use when needed' },
+            { pattern: 'Enablement bottleneck', desc: 'Navigation, communication, and manager readiness all underdeveloped' },
+            { pattern: 'Strong programs, low awareness', desc: 'Resources exist but employees do not know what is available' }
+          ]
+        },
+        {
+          name: 'Program Design',
+          patterns: [
+            { pattern: 'Good leave, weak return-to-work', desc: 'Time off for treatment supported but employees struggle with transition back' },
+            { pattern: 'Strong accommodations, limited career protection', desc: 'Day-to-day flexibility exists but long-term career fears remain' }
+          ]
+        },
+        {
+          name: 'Leadership & Infrastructure',
+          patterns: [
+            { pattern: 'Low executive commitment with program gaps', desc: 'Cancer support operates as isolated HR initiative rather than organizational priority' },
+            { pattern: 'Many opportunities, limited continuous improvement', desc: 'Gaps identified but no systematic process to address them' }
+          ]
+        },
+        {
+          name: 'Positive Momentum',
+          patterns: [
+            { pattern: 'Active improvement underway', desc: 'Planning and assessing items already in motion' },
+            { pattern: 'Strong performance to leverage', desc: 'Leading areas that could inform other dimensions' }
+          ]
+        }
+      ]
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
@@ -6005,49 +6042,79 @@ export default function ExportReportPage() {
                   </button>
                 </div>
                 <div className="px-8 py-6 overflow-y-auto max-h-[calc(85vh-80px)] space-y-6">
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
-                      <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </span>
-                      What It Shows
-                    </h4>
-                    <p className="text-slate-600 leading-relaxed">{infoContent[infoModal].what}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
-                      <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                      </span>
-                      How It Works
-                    </h4>
-                    <p className="text-slate-600 leading-relaxed">{infoContent[infoModal].how}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
-                      <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      </span>
-                      When to Use
-                    </h4>
-                    <p className="text-slate-600 leading-relaxed">{infoContent[infoModal].when}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-3">
-                      <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                      </span>
-                      Questions This Helps Answer
-                    </h4>
-                    <ul className="space-y-2">
-                      {infoContent[infoModal].questions.map((q, i) => (
-                        <li key={i} className="flex items-start gap-2 text-slate-600">
-                          <span className="text-violet-500 mt-1">•</span>
-                          <span>{q}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {(infoContent[infoModal] as any).isPatternLibrary ? (
+                    <>
+                      <p className="text-slate-600 leading-relaxed">
+                        The ten most common cross-dimensional patterns observed across participating organizations, organized into four themes. As participation grows, patterns are refined, added, or retired based on what we observe.
+                      </p>
+                      <div className="space-y-4">
+                        {(infoContent[infoModal] as any).themes.map((theme: any, idx: number) => (
+                          <div key={idx} className="border border-slate-200 rounded-xl overflow-hidden">
+                            <div className="px-4 py-3 bg-slate-100 border-b border-slate-200">
+                              <h4 className="font-bold text-slate-800 text-sm">{theme.name}</h4>
+                            </div>
+                            <div className="divide-y divide-slate-100">
+                              {theme.patterns.map((p: any, pIdx: number) => (
+                                <div key={pIdx} className="px-4 py-3">
+                                  <p className="font-medium text-slate-800 text-sm">{p.pattern}</p>
+                                  <p className="text-slate-500 text-sm mt-0.5">{p.desc}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="text-sm text-slate-500 italic">
+                        Organizations may align with multiple patterns or none. These are directional, not definitive.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
+                          <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </span>
+                          What It Shows
+                        </h4>
+                        <p className="text-slate-600 leading-relaxed">{(infoContent[infoModal] as any).what}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
+                          <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          </span>
+                          How It Works
+                        </h4>
+                        <p className="text-slate-600 leading-relaxed">{(infoContent[infoModal] as any).how}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
+                          <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </span>
+                          When to Use
+                        </h4>
+                        <p className="text-slate-600 leading-relaxed">{(infoContent[infoModal] as any).when}</p>
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-3">
+                          <span className="w-6 h-6 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                          </span>
+                          Questions This Helps Answer
+                        </h4>
+                        <ul className="space-y-2">
+                          {(infoContent[infoModal] as any).questions?.map((q: string, i: number) => (
+                            <li key={i} className="flex items-start gap-2 text-slate-600">
+                              <span className="text-violet-500 mt-1">•</span>
+                              <span>{q}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className="px-8 py-4 bg-slate-50 border-t border-slate-200">
                   <button onClick={() => setInfoModal(null)} className="w-full py-2.5 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors">
@@ -6452,13 +6519,22 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setInfoModal('crossDimensional')}
-                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    Learn More
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setInfoModal('crossDimensional')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Learn More
+                    </button>
+                    <button 
+                      onClick={() => setInfoModal('patternLibrary')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                      View Patterns
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -10156,7 +10232,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
-                            <p className="text-slate-400 text-sm">Hidden bottlenecks limiting program impact</p>
+                            <p className="text-slate-400 text-sm">Connecting the dots across your assessment</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -10164,7 +10240,7 @@ export default function ExportReportPage() {
                             <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-                            <span className="text-white text-sm font-semibold">{patterns.length} bottleneck{patterns.length !== 1 ? 's' : ''}</span>
+                            <span className="text-white text-sm font-semibold">{patterns.length} {patterns.length === 1 ? 'bottleneck' : 'bottlenecks'} flagged</span>
                           </div>
                         </div>
                       </div>
