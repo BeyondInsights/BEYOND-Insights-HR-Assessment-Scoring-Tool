@@ -4802,7 +4802,11 @@ export default function ExportReportPage() {
                       <div className="p-4">
                         <div className="flex justify-end mb-3">
                           <button
-                            onClick={() => {
+                            onClick={async () => {
+                              // Dynamically load SheetJS
+                              const XLSX = await import('xlsx');
+                              
+                              // Build data rows
                               const rows = [['Dimension', 'Response', 'Element', 'Resources to help confirm']];
                               dimensionAnalysis.filter(d => d.unsure && d.unsure.length > 0).forEach(dim => {
                                 dim.unsure.forEach((item: any) => {
@@ -4811,17 +4815,29 @@ export default function ExportReportPage() {
                                   rows.push([DIMENSION_SHORT_NAMES[dim.dim] || dim.name, responseLabel === 'undefined' ? 'Unsure' : responseLabel, item.name, guidance.evidence]);
                                 });
                               });
-                              const csvContent = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
-                              const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-                              const link = document.createElement('a');
-                              link.href = URL.createObjectURL(blob);
-                              // Normalize company name: remove accents and special chars
+                              
+                              // Create workbook and worksheet
+                              const wb = XLSX.utils.book_new();
+                              const ws = XLSX.utils.aoa_to_sheet(rows);
+                              
+                              // Set column widths
+                              ws['!cols'] = [
+                                { wch: 24 },  // Dimension
+                                { wch: 12 },  // Response
+                                { wch: 55 },  // Element
+                                { wch: 50 },  // Resources to help confirm
+                              ];
+                              
+                              XLSX.utils.book_append_sheet(wb, ws, 'Confirmatory Items');
+                              
+                              // Generate filename
                               const safeName = (companyName || 'company')
-                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
-                                .replace(/[^a-zA-Z0-9\s]/g, '') // Remove special chars except spaces
-                                .replace(/\s+/g, '_'); // Replace spaces with underscores
-                              link.download = `${safeName}_confirmatory_items.csv`;
-                              link.click();
+                                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                                .replace(/[^a-zA-Z0-9\s]/g, '')
+                                .replace(/\s+/g, '_');
+                              
+                              // Download
+                              XLSX.writeFile(wb, `${safeName}_confirmatory_items.xlsx`);
                             }}
                             className="flex items-center gap-2 px-4 py-2 bg-white border-2 rounded-lg hover:bg-slate-50 transition-colors text-sm font-semibold shadow-sm"
                             style={{ borderColor: '#F37021', color: '#F37021' }}
@@ -4829,7 +4845,7 @@ export default function ExportReportPage() {
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                             </svg>
-                            Export to CSV
+                            Export to Excel
                           </button>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
