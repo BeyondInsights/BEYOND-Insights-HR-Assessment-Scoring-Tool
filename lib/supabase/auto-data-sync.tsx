@@ -129,7 +129,7 @@ export function clearDirty(): void {
 }
 
 // Check if there are unsynced local changes
-function isDirty(): boolean {
+export function isDirty(): boolean {
   const data = localStorage.getItem(getDirtyKey());
   if (!data) return false;
   // Handle both old format ('1') and new format (JSON)
@@ -690,27 +690,52 @@ async function syncToSupabase(): Promise<boolean> {
     }
   }
   
+  // Dispatch sync-start event for UI indicator
+  window.dispatchEvent(new CustomEvent('sync-start'))
+  
   console.log('🔄 AUTO-SYNC: Starting... Survey ID:', surveyId || 'none')
   
-  if (isCompdUser(surveyId)) {
-    return await syncCompdUserToSupabase(surveyId)
-  }
+  let success = false
   
   try {
-    const { isSharedFP, saveSharedFPData } = await import('./fp-shared-storage')
-    if (isSharedFP(surveyId)) {
-      const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
-      await saveSharedFPData(surveyId, email || undefined)
-      return true
+    if (isCompdUser(surveyId)) {
+      success = await syncCompdUserToSupabase(surveyId)
+    } else {
+      try {
+        const { isSharedFP, saveSharedFPData } = await import('./fp-shared-storage')
+        if (isSharedFP(surveyId)) {
+          const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
+          await saveSharedFPData(surveyId, email || undefined)
+          success = true
+        }
+      } catch (e) {}
+      
+      if (!success) {
+        const isFP = await checkIsFoundingPartner(surveyId)
+        if (isFP) {
+          success = await syncFPToSupabase(surveyId)
+        } else {
+          success = await syncRegularUserToSupabase()
+        }
+      }
     }
-  } catch (e) {}
-  
-  const isFP = await checkIsFoundingPartner(surveyId)
-  if (isFP) {
-    return await syncFPToSupabase(surveyId)
+    
+    // Dispatch success or error event
+    if (success) {
+      window.dispatchEvent(new CustomEvent('sync-success'))
+    } else {
+      window.dispatchEvent(new CustomEvent('sync-error', { 
+        detail: { message: 'Sync failed' } 
+      }))
+    }
+    
+    return success
+  } catch (error) {
+    window.dispatchEvent(new CustomEvent('sync-error', { 
+      detail: { message: String(error) } 
+    }))
+    return false
   }
-  
-  return await syncRegularUserToSupabase()
 }
 
 // ============================================
