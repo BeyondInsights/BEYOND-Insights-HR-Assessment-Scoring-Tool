@@ -91,7 +91,7 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
   const PLOT_WIDTH = CHART_WIDTH - (PADDING * 2); const PLOT_HEIGHT = CHART_HEIGHT - (PADDING * 2);
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
-      <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4"><div><h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3><p className="text-sm text-slate-500 mt-0.5">Performance vs. imnpact weight</p></div><label className="flex items-center gap-2 cursor-pointer select-none"><span className="text-sm text-slate-500">Show benchmarks</span><button onClick={() => setShowBenchmarks(!showBenchmarks)} className={`relative w-10 h-5 rounded-full transition-colors ${showBenchmarks ? 'bg-slate-700' : 'bg-slate-200'}`}><span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${showBenchmarks ? 'translate-x-5' : ''}`} /></button></label></div>
+      <div className="px-8 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4"><div><h3 className="font-semibold text-slate-900">Strategic Priority Matrix</h3><p className="text-sm text-slate-500 mt-0.5">Performance vs. impact weight</p></div><label className="flex items-center gap-2 cursor-pointer select-none"><span className="text-sm text-slate-500">Show benchmarks</span><button onClick={() => setShowBenchmarks(!showBenchmarks)} className={`relative w-10 h-5 rounded-full transition-colors ${showBenchmarks ? 'bg-slate-700' : 'bg-slate-200'}`}><span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${showBenchmarks ? 'translate-x-5' : ''}`} /></button></label></div>
       <div className="p-6"><div className="relative w-full" style={{ maxWidth: '950px', margin: '0 auto' }}>
         <svg className="w-full" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT + 60}`} preserveAspectRatio="xMidYMid meet">
           <defs><filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.15"/></filter></defs>
@@ -662,21 +662,6 @@ function getTwoStepRoadmap(
   }
   
   return { quickWin, strategicLift };
-}
-
-function getActionItemsByAdoption(dimNum: number, dimensionAnalysis: any[], elementBenchmarks: Record<number, Record<string, { currently: number; total: number }>>): { accelerateItems: { name: string; pct: number; from: string; to: string }[]; buildItems: { name: string; pct: number }[] } {
-  const dim = dimensionAnalysis.find(d => d.dim === dimNum);
-  if (!dim) return { accelerateItems: [], buildItems: [] };
-  const benchmarks = elementBenchmarks[dimNum] || {};
-  const getPct = (n: string) => { const b = benchmarks[n] || { currently: 0, total: 1 }; return Math.round((b.currently / Math.max(b.total, 1)) * 100); };
-  const accel: { name: string; pct: number; from: string; to: string }[] = [];
-  (dim.planning || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Planning', to: 'Offering' }));
-  (dim.assessing || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Assessing', to: 'Planning' }));
-  accel.sort((a, b) => b.pct - a.pct);
-  const build: { name: string; pct: number }[] = [];
-  (dim.gaps || []).forEach((el: any) => build.push({ name: el.name, pct: getPct(el.name) }));
-  build.sort((a, b) => b.pct - a.pct);
-  return { accelerateItems: accel, buildItems: build };
 }
 
 function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
@@ -1525,7 +1510,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ IMPACT WEIGHT
+              ↑ IMPACT IMPORTANCE
             </text>
             
             {/* Data points - at true positions, no nudging */}
@@ -2572,7 +2557,9 @@ export default function ExportReportPage() {
   // Polished design toggle: ?design=polished
   const usePolishedDesign = searchParams?.get('design') === 'polished';
 
-  const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
+  // Token from URL path /report/[token]
+  const token = Array.isArray(params.token) ? params.token[0] : params.token;
+  const [surveyId, setSurveyId] = useState<string | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
 
@@ -2586,8 +2573,13 @@ export default function ExportReportPage() {
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
   const [tierDistribution, setTierDistribution] = useState<{ exemplary: number; leading: number; progressing: number; emerging: number; developing: number } | null>(null);
   
+  // Password protection state
+  const [authenticated, setAuthenticated] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordInput, setPasswordInput] = useState('');
+  
   // Edit Mode State
-  const [editMode, setEditMode] = useState(false);
+  const editMode = false; // Public view - no editing
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
@@ -2619,10 +2611,8 @@ export default function ExportReportPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingEdits, setSavingEdits] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
-  const [showInteractiveLinkModal, setShowInteractiveLinkModal] = useState(false);
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
-  const [customAdditionalDimInsights, setCustomAdditionalDimInsights] = useState<Record<number, { insight: string; roadmapQuickWin: string; roadmapStrategic: string; cacHelp: string }>>({});
   
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 39 + additionalAnalyzedDims.length;
@@ -2635,12 +2625,10 @@ export default function ExportReportPage() {
     quickWin?: { name: string; reason: string }; 
     strategicLift?: { name: string; reason: string } 
   }>>({});
-  const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
   const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
-  const [generatingLink, setGeneratingLink] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
   const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
   const [toast, setToast] = useState<{ show: boolean; message: string; type: 'success' | 'error' }>({ show: false, message: '', type: 'success' });
@@ -2664,8 +2652,6 @@ export default function ExportReportPage() {
   const presenterNotesWindowRef = useRef<Window | null>(null);
   const [presenterNotesOpen, setPresenterNotesOpen] = useState(false);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
-  const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -3247,8 +3233,9 @@ export default function ExportReportPage() {
     }
   }, [company]);
 
+  // Initial token validation - just gets metadata for password screen
   useEffect(() => {
-    // CRITICAL: Reset ALL state when surveyId changes
+    // CRITICAL: Reset ALL state when token changes
     setLoading(true);
     setError(null);
     setCompany(null);
@@ -3257,81 +3244,42 @@ export default function ExportReportPage() {
     setElementDetails(null);
     setPercentileRank(null);
     setTotalCompanies(0);
+    setAuthenticated(false);
+    setSurveyId(null);
     
     async function loadData() {
       try {
-        // Normalize survey ID for flexible matching
-        const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
-        const fpFormat = surveyId.startsWith('FP-') ? surveyId : 
-                        surveyId.toUpperCase().startsWith('FPHR') ? 
-                        `FP-HR-${surveyId.replace(/^FPHR/i, '')}` : surveyId;
-        
-        // Try multiple formats: exact, normalized, FP format, and app_id
-        const { data: assessment, error: assessmentError } = await supabase
-          .from('assessments')
-          .select('*')
-          .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`)
-          .limit(1)
-          .maybeSingle();
-        
-        if (assessmentError || !assessment) {
-          setError(`Company not found: ${assessmentError?.message || 'No data'}`);
+        if (!token) {
+          setError('Invalid report link');
           setLoading(false);
           return;
         }
         
-        const { data: allAssessments } = await supabase.from('assessments').select('*');
+        // Step 1: Check if token exists and get metadata (NO password returned)
+        const response = await fetch(`/.netlify/functions/get-assessment-by-token?token=${encodeURIComponent(token)}`);
         
-        const { scores, elements } = calculateCompanyScores(assessment);
-        setCompanyScores(scores);
-        setElementDetails(elements);
-        setCompany(assessment);
-        
-        if (allAssessments) {
-          const benchmarkScores = calculateBenchmarks(allAssessments);
-          setBenchmarks(benchmarkScores);
-          
-          // Calculate element-level benchmarks for drill-down
-          const elemBenchmarks = calculateElementBenchmarks(allAssessments);
-          setElementBenchmarks(elemBenchmarks);
-          
-          const completeAssessments = allAssessments.filter(a => {
-            let completedDims = 0;
-            for (let dim = 1; dim <= 13; dim++) {
-              const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
-              if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
-            }
-            return completedDims === 13;
-          });
-          
-          const allComposites = completeAssessments.map(a => {
-            try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
-          }).filter(s => s !== null) as number[];
-          
-          if (allComposites.length > 0 && scores.compositeScore) {
-            const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
-            setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
-            setTotalCompanies(allComposites.length);
-            
-            // Calculate tier distribution across all participating companies
-            const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
-            allComposites.forEach(score => {
-              if (score >= 90) tierCounts.exemplary++;
-              else if (score >= 75) tierCounts.leading++;
-              else if (score >= 60) tierCounts.progressing++;
-              else if (score >= 40) tierCounts.emerging++;
-              else tierCounts.developing++;
-            });
-            const total = allComposites.length;
-            setTierDistribution({
-              exemplary: Math.round((tierCounts.exemplary / total) * 100),
-              leading: Math.round((tierCounts.leading / total) * 100),
-              progressing: Math.round((tierCounts.progressing / total) * 100),
-              emerging: Math.round((tierCounts.emerging / total) * 100),
-              developing: Math.round((tierCounts.developing / total) * 100),
-            });
-          }
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error('Error fetching assessment:', response.status, errorData);
+          setError(errorData.error || 'Report not found or link has expired');
+          setLoading(false);
+          return;
         }
+        
+        const metadata = await response.json();
+        
+        if (!metadata.found) {
+          setError('Report not found or link has expired');
+          setLoading(false);
+          return;
+        }
+        
+        // Store minimal metadata for password screen
+        setCompany({ 
+          company_name: metadata.companyName,
+          survey_id: metadata.surveyId,
+          passwordRequired: metadata.passwordRequired 
+        });
         
         setLoading(false);
       } catch (err) {
@@ -3341,9 +3289,117 @@ export default function ExportReportPage() {
       }
     }
     
-    if (surveyId) loadData();
-    else { setError('No survey ID provided'); setLoading(false); }
-  }, [surveyId]);
+    if (token) loadData();
+    else { setError('No report token provided'); setLoading(false); }
+  }, [token]);
+
+  // Handle password authentication - verifies server-side
+  const handleAuthenticate = async () => {
+    if (!token || !passwordInput) return;
+    
+    setPasswordError(null);
+    setLoading(true);
+    
+    try {
+      // Step 2: Verify password SERVER-SIDE (password never sent to client)
+      const verifyResponse = await fetch('/.netlify/functions/verify-report-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, password: passwordInput }),
+      });
+      
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json().catch(() => ({}));
+        if (verifyResponse.status === 401) {
+          setPasswordError('Incorrect password');
+        } else {
+          setPasswordError(errorData.error || 'Verification failed');
+        }
+        setLoading(false);
+        return;
+      }
+      
+      const { assessmentId, surveyId: returnedSurveyId } = await verifyResponse.json();
+      setSurveyId(returnedSurveyId);
+      
+      // Step 3: Fetch full report data using assessmentId
+      const reportResponse = await fetch('/.netlify/functions/get-public-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, surveyId: returnedSurveyId }),
+      });
+      
+      if (!reportResponse.ok) {
+        const errorData = await reportResponse.json().catch(() => ({}));
+        setError(errorData.error || 'Failed to load report');
+        setLoading(false);
+        return;
+      }
+      
+      const reportData = await reportResponse.json();
+      
+      // Set full company data
+      setCompany(reportData.assessment);
+      
+      // Calculate scores
+      const { scores, elements } = calculateCompanyScores(reportData.assessment);
+      setCompanyScores(scores);
+      setElementDetails(elements);
+      
+      // Process benchmarks if available
+      if (reportData.allAssessments) {
+        const benchmarkScores = calculateBenchmarks(reportData.allAssessments);
+        setBenchmarks(benchmarkScores);
+        
+        const elemBenchmarks = calculateElementBenchmarks(reportData.allAssessments);
+        setElementBenchmarks(elemBenchmarks);
+        
+        const completeAssessments = reportData.allAssessments.filter((a: any) => {
+          let completedDims = 0;
+          for (let dim = 1; dim <= 13; dim++) {
+            const mainGrid = a[`dimension${dim}_data`]?.[`d${dim}a`];
+            if (mainGrid && typeof mainGrid === 'object' && Object.keys(mainGrid).length > 0) completedDims++;
+          }
+          return completedDims === 13;
+        });
+        
+        const allComposites = completeAssessments.map((a: any) => {
+          try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
+        }).filter((s: any) => s !== null) as number[];
+        
+        if (allComposites.length > 0 && scores.compositeScore) {
+          const belowCount = allComposites.filter((s: number) => s < scores.compositeScore).length;
+          setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
+          setTotalCompanies(allComposites.length);
+          
+          // Calculate tier distribution
+          const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
+          allComposites.forEach((score: number) => {
+            if (score >= 90) tierCounts.exemplary++;
+            else if (score >= 75) tierCounts.leading++;
+            else if (score >= 60) tierCounts.progressing++;
+            else if (score >= 40) tierCounts.emerging++;
+            else tierCounts.developing++;
+          });
+          const total = allComposites.length;
+          setTierDistribution({
+            exemplary: Math.round((tierCounts.exemplary / total) * 100),
+            leading: Math.round((tierCounts.leading / total) * 100),
+            progressing: Math.round((tierCounts.progressing / total) * 100),
+            emerging: Math.round((tierCounts.emerging / total) * 100),
+            developing: Math.round((tierCounts.developing / total) * 100),
+          });
+        }
+      }
+      
+      setAuthenticated(true);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error during authentication:', err);
+      setPasswordError('Failed to verify password');
+      setLoading(false);
+    }
+  };
 
   // Presentation mode keyboard navigation
   useEffect(() => {
@@ -3769,18 +3825,108 @@ export default function ExportReportPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-700 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Generating report...</p>
+          <p className="mt-4 text-slate-600">Loading report...</p>
         </div>
       </div>
     );
   }
 
-  if (error || !company || !companyScores) {
+  if (error) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
-          <p className="text-red-600 text-lg mb-2">{error || 'Unable to generate report'}</p>
+          <p className="text-red-600 text-lg mb-2">{error}</p>
           <p className="text-slate-500 text-sm">Survey ID: {surveyId || 'not provided'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Password protection screen - show when we have company metadata but not authenticated
+  if (!authenticated && company) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 50%, #1e1b4b 100%)' }}>
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden p-8">
+          {/* Logo */}
+          <div className="flex justify-center mb-6">
+            <Image 
+              src="/BI_LOGO_FINAL.png" 
+              alt="BEYOND Insights" 
+              width={180} 
+              height={60}
+              className="object-contain"
+            />
+          </div>
+          
+          {/* Lock Icon */}
+          <div className="flex justify-center mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+          </div>
+          
+          {/* Title */}
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-slate-800">Your 2026 Index Report</h1>
+            <p className="text-slate-500 mt-1">Best Companies for Working with Cancer</p>
+          </div>
+          
+          {/* Form */}
+          <form onSubmit={(e) => { e.preventDefault(); handleAuthenticate(); }}>
+            <div className="mb-5">
+              <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className={`w-full px-4 py-3 text-base border rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all ${
+                  passwordError ? 'border-red-400 bg-red-50' : 'border-slate-200 bg-slate-50'
+                }`}
+                placeholder="Enter password"
+                autoFocus
+              />
+              {passwordError && (
+                <p className="mt-2 text-sm text-red-600 flex items-center gap-1.5">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {passwordError}
+                </p>
+              )}
+            </div>
+            
+            <button
+              type="submit"
+              disabled={!passwordInput}
+              className="w-full py-3 text-base font-semibold rounded-xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{ 
+                background: passwordInput ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' : '#e2e8f0',
+                color: passwordInput ? '#fff' : '#94a3b8'
+              }}
+            >
+              Access Report
+            </button>
+          </form>
+          
+          <div className="mt-8 text-center">
+            <p className="text-sm text-slate-400">
+              Password provided by your organization administrator
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // After authentication, check we have the data to render the report
+  if (!companyScores || !company) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center max-w-md">
+          <p className="text-red-600 text-lg mb-2">Unable to load report data</p>
+          <p className="text-slate-500 text-sm">Please try refreshing the page</p>
         </div>
       </div>
     );
@@ -3860,8 +4006,7 @@ export default function ExportReportPage() {
   };
   
   const reportSections = [
-    { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
-    { id: 'score-composition-section', label: 'Overall Score', iconKey: 'performance' },
+    { id: 'report-hero-section', label: 'Overview & Score', iconKey: 'overview' },
     { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
     { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
@@ -3994,18 +4139,25 @@ export default function ExportReportPage() {
           }
         `}</style>
         
-        {/* ============ ACTION BAR ============ */}
+        {/* ============ HEADER BAR - PUBLIC VIEW ============ */}
         <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-10 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button onClick={() => window.history.back()} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-medium text-base">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                Back
-              </button>
-              <span className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold tracking-wider">ADMIN MODE</span>
+            <div className="flex items-center gap-4">
+              <Image 
+                src="/cancer-careers-logo.png" 
+                alt="Cancer and Careers" 
+                width={120} 
+                height={40}
+                className="object-contain"
+              />
+              <div className="h-8 w-px bg-slate-200"></div>
+              <div>
+                <p className="text-sm text-slate-500">2026 Best Companies Index Report</p>
+                <p className="font-semibold text-slate-800">{company?.firmographics_data?.company_name || company?.company_name || 'Loading...'}</p>
+              </div>
               
               {/* Jump To Dropdown */}
-              <div className="relative">
+              <div className="relative ml-4">
                 <button 
                   onClick={() => setShowJumpTo(!showJumpTo)}
                   className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
@@ -4047,111 +4199,22 @@ export default function ExportReportPage() {
                 </button>
               )}
             </div>
-            <div className="flex items-center gap-4">
-              {/* Edit Mode Toggle */}
-              <button
-                onClick={() => setEditMode(!editMode)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 border transition-colors ${
-                  editMode 
-                    ? 'bg-amber-100 border-amber-300 text-amber-700' 
-                    : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-                title={editMode ? 'Exit Edit Mode' : 'Enter Edit Mode'}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                {editMode ? 'Editing' : 'Edit'}
-              </button>
-              
-              {/* Save/Reset buttons - only show in edit mode */}
-              {editMode && (
-                <>
-                  <button
-                    onClick={handleSaveCustomizations}
-                    disabled={savingEdits}
-                    className="relative px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
-                  >
-                    {savingEdits ? (
-                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    )}
-                    {savingEdits ? 'Saving...' : 'Save'}
-                    {hasUnsavedChanges && !savingEdits && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white"></span>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleResetCustomizations}
-                    className="px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 rounded-lg text-sm font-semibold"
-                  >
-                    Reset All
-                  </button>
-                </>
-              )}
-              
-              <button 
-                onClick={generateInteractiveLink}
-                disabled={generatingLink}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm disabled:opacity-50"
-              >
-                {generatingLink ? (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                )}
-                {generatingLink ? 'Generating...' : 'Share Link'}
-              </button>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                {savingEdits ? (
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span className="font-medium">Saving…</span>
-                  </div>
-                ) : hasUnsavedChanges ? (
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span className="font-medium">Unsaved changes</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span className="font-medium">Saved{lastSavedAt ? ` · ${new Date(lastSavedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}</span>
-                  </div>
-                )}
-              </div>
-              <button 
-                onClick={() => {
-                  setCurrentSlide(0);
-                  setPresentationMode(true);
-                  document.documentElement.requestFullscreen?.().catch(() => {});
-                }}
-                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Present
-              </button>
-            </div>
+            <button 
+              onClick={() => {
+                setCurrentSlide(0);
+                setPresentationMode(true);
+                document.documentElement.requestFullscreen?.().catch(() => {});
+              }}
+              className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Present
+            </button>
           </div>
         </div>
-        
-        {/* Edit Mode Banner */}
-        {editMode && (
-          <div className="no-print bg-amber-50 border-b border-amber-200 px-10 py-3">
-            <div className="max-w-7xl mx-auto flex items-center gap-3">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <p className="text-sm text-amber-800">
-                <strong>Edit Mode:</strong> Edit strategic insights and recommended actions. Changes are saved to the database and will appear in exported reports.
-              </p>
-            </div>
-          </div>
-        )}
         
         <div className="polished-report max-w-7xl mx-auto py-10 px-10">
         
@@ -4267,7 +4330,7 @@ export default function ExportReportPage() {
             
             
             {/* Understanding Your Composite Score — Collapsible */}
-            <div id="score-composition-section" className="px-12 py-5 bg-white border-b border-slate-200">
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all group"
@@ -6084,24 +6147,19 @@ export default function ExportReportPage() {
                   
                   const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
                   
-                  // Calculate projected dimension score with geo multiplier and follow-up blending
+                  // Calculate projected dimension score directly from raw points
+                  // This gives accurate results: if all elements are Offering, score = 100
                   const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
                   const currentRawScore = maxPoints > 0 ? Math.round((currentRawPoints / maxPoints) * 100) : 0;
+                  const rawScoreChange = projectedRawScore - currentRawScore;
                   
-                  // Apply dimension-specific geo multiplier
-                  const geoMult = dimInfo?.geoMultiplier ?? 1.0;
-                  const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
-                  
-                  // For follow-up dimensions, blend with existing follow-up score
-                  // Follow-up weighting: 85% grid score + 15% follow-up score
+                  // For dimensions without follow-ups, projected = raw score
+                  // For dimensions with follow-ups (D1, D3, D12, D13), the actual score may differ from raw
+                  // In that case, we show the change relative to current actual score
                   const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
-                  let projectedDimScore: number;
-                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                    projectedDimScore = Math.round(projectedAdjustedScore * 0.85 + dimInfo.followUpScore * 0.15);
-                  } else {
-                    projectedDimScore = projectedAdjustedScore;
-                  }
-                  projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
+                  const projectedDimScore = hasFollowUps 
+                    ? Math.min(100, Math.max(0, actualDimScore + rawScoreChange))
+                    : projectedRawScore;
                   
                   // Composite impact based on score change
                   const actualScoreChange = projectedDimScore - actualDimScore;
@@ -6418,7 +6476,7 @@ export default function ExportReportPage() {
                                 <textarea
                                   value={customCrossRecommendations[idx] ?? p.recommendation}
                                   onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                                  className="w-full text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-y"
+                                  className="w-full text-sm text-slate-700 leading-relaxed bg-white border border-slate-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 resize-y"
                                   placeholder="Enter custom recommendation..."
                                 />
                                 {customCrossRecommendations[idx] && (
@@ -7827,20 +7885,8 @@ export default function ExportReportPage() {
                                   </svg>
                                 </div>
                                 Strategic Insight
-                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
                               </h5>
-                              {editMode ? (
-                                <textarea
-                                  value={customAdditionalDimInsights[d.dim]?.insight ?? dynamicInsight.insight}
-                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
-                                    ...prev,
-                                    [d.dim]: { ...prev[d.dim], insight: e.target.value, roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
-                                  }))}
-                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                                />
-                              ) : (
-                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.insight || dynamicInsight.insight}</p>
-                              )}
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
                             </div>
                           </div>
                           
@@ -7875,22 +7921,8 @@ export default function ExportReportPage() {
                             )}
                             
                             <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
-                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">
-                                How Cancer and Careers Can Help
-                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
-                              </h5>
-                              {editMode ? (
-                                <textarea
-                                  value={customAdditionalDimInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
-                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
-                                    ...prev,
-                                    [d.dim]: { ...prev[d.dim], insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: e.target.value }
-                                  }))}
-                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                                />
-                              ) : (
-                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
-                              )}
+                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
+                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
                             </div>
                           </div>
                         </div>
@@ -8626,71 +8658,6 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-        {showInteractiveLinkModal && interactiveLink && (
-            <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowInteractiveLinkModal(false)}>
-              <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-bold text-white">Interactive Report Link</h2>
-                      <p className="text-blue-100 text-sm">Share this link with the organization</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <div className="bg-slate-50 rounded-lg p-4 mb-4">
-                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Report URL</label>
-                    <div className="flex items-center gap-2">
-                      <input type="text" readOnly value={interactiveLink.url} className="flex-1 text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 font-mono" />
-                      <button onClick={() => { navigator.clipboard.writeText(interactiveLink.url); showToast('Link copied to clipboard', 'success'); }} className="px-3 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium">Copy</button>
-                    </div>
-                  </div>
-                  <div className="bg-amber-50 rounded-lg p-4 mb-4 border border-amber-200">
-                    <label className="block text-xs font-medium text-amber-700 uppercase tracking-wide mb-2">
-                      <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                      Password (Required to Access)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input type="text" readOnly value={interactiveLink.password} className="flex-1 text-lg bg-white border border-amber-300 rounded-lg px-3 py-2 font-mono font-bold tracking-wider text-amber-800" />
-                      <button onClick={() => { navigator.clipboard.writeText(interactiveLink.password); showToast('Password copied to clipboard', 'success'); }} className="px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium">Copy</button>
-                    </div>
-                  </div>
-                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                    <div className="flex gap-3">
-                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div className="text-sm text-blue-800">
-                        <p className="font-medium">Interactive Features:</p>
-                        <ul className="mt-1 space-y-1 text-blue-700">
-                          <li>• Click any dimension to see element-level details</li>
-                          <li>• View strengths, gaps, and in-progress items</li>
-                          <li>• Compare performance against benchmark</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
-                    <button onClick={() => { navigator.clipboard.writeText(`Interactive Report Link:\n${interactiveLink.url}\n\nPassword: ${interactiveLink.password}`); showToast('Link and password copied', 'success'); }} className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                      </svg>
-                      Copy Both
-                    </button>
-                    <button onClick={() => setShowInteractiveLinkModal(false)} className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium">Done</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
         {toast.show && (
           <div className="fixed bottom-6 right-6 z-[100]">
             <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-white border-green-200' : 'bg-white border-red-200'}`}>
@@ -10545,7 +10512,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 26: Areas for Growth - exact match to report */}
+                {/* Slide 25: Areas for Growth - exact match to report */}
                 {currentSlide === 26 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
@@ -10594,7 +10561,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 27: Initiatives in Progress - exact match to report */}
+                {/* Slide 26: Initiatives in Progress - exact match to report */}
                 {currentSlide === 27 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
@@ -10864,7 +10831,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 28: From Insight to Action */}
+                {/* Slide 29: From Insight to Action */}
                 {currentSlide === 29 && (
                   <div className="overflow-hidden">
                     <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
@@ -11179,8 +11146,8 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Additional Analyzed Dimensions in Presentation Mode */}
-                {additionalAnalyzedDims.length > 0 && currentSlide >= 34 && currentSlide < 34 + additionalAnalyzedDims.length && (() => {
-                  const addIdx = currentSlide - 34;
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 32 && currentSlide < 32 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 32;
                   const dimNum = additionalAnalyzedDims[addIdx];
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
@@ -12500,6 +12467,16 @@ export default function ExportReportPage() {
                         <li>These are tailored based on assessment findings</li>
                         <li>Each recommendation ties to specific dimension gaps</li>
                         <li>Next slides will detail the specific action items</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 29 && (
+                    <div>
+                      <p className="mb-2"><strong>From Insight to Action:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>3-step framework: Validate → Prioritize → Execute</li>
+                        <li>Assign clear owners for each recommendation</li>
+                        <li>Set 90-day and 180-day milestones</li>
                       </ul>
                     </div>
                   )}
