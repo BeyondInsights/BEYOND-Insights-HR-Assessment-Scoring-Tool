@@ -60,8 +60,15 @@ export default function SyncStatusIndicator() {
       }
     }
 
-    const handleSyncConflict = () => {
+    const handleSyncConflict = (e: CustomEvent) => {
+      const syncId = e.detail?.syncId || Date.now()
+      // Conflict always takes priority - update latestSyncId and set state
+      if (syncId >= latestSyncId.current) {
+        latestSyncId.current = syncId
+      }
       setState('conflict')
+      // Reset error count since this is a conflict, not a connection error
+      setErrorCount(0)
     }
     
     const handleConflictResolved = () => {
@@ -72,7 +79,7 @@ export default function SyncStatusIndicator() {
     window.addEventListener('sync-start', handleSyncStart as EventListener)
     window.addEventListener('sync-success', handleSyncSuccess as EventListener)
     window.addEventListener('sync-error', handleSyncError as EventListener)
-    window.addEventListener('sync-conflict', handleSyncConflict)
+    window.addEventListener('sync-conflict', handleSyncConflict as EventListener)
     window.addEventListener('sync-conflict-resolved', handleConflictResolved)
 
     // Check initial state
@@ -85,7 +92,7 @@ export default function SyncStatusIndicator() {
       window.removeEventListener('sync-start', handleSyncStart as EventListener)
       window.removeEventListener('sync-success', handleSyncSuccess as EventListener)
       window.removeEventListener('sync-error', handleSyncError as EventListener)
-      window.removeEventListener('sync-conflict', handleSyncConflict)
+      window.removeEventListener('sync-conflict', handleSyncConflict as EventListener)
       window.removeEventListener('sync-conflict-resolved', handleConflictResolved)
       clearInterval(interval)
     }
