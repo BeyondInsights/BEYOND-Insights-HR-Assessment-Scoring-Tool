@@ -2,6 +2,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { FileText, Download, Receipt } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import SyncStatusIndicator from './SyncStatusIndicator'
 
 export default function Header() {
   const router = useRouter()
@@ -53,9 +54,14 @@ export default function Header() {
             />
           </div>
           
-          {/* Right: Stacked buttons with equal width */}
+          {/* Right: Sync status + Stacked buttons */}
           <div className="flex-1 flex justify-end">
             <div className="flex flex-col gap-2 w-64">
+              {/* Sync Status Indicator */}
+              <div className="flex justify-end mb-1">
+                <SyncStatusIndicator />
+              </div>
+              
               <button
                 onClick={() => router.push('/company-profile')}
                 className="flex items-center justify-center gap-2 bg-black text-white px-4 py-2.5 rounded-lg font-semibold shadow-sm hover:bg-gray-800 transition text-sm w-full"
