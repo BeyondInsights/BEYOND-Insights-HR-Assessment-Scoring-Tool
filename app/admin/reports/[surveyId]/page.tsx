@@ -3104,10 +3104,10 @@ export default function ExportReportPage() {
   const infoContent = {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
-      what: 'Connects the dots across your scores to highlight bottlenecks, places where one weaker area may be limiting the impact of stronger programs elsewhere.',
-      how: 'These patterns come directly from organizations participating in this assessment. As we analyzed dimension scores across participants, recurring combinations emerged—places where strength in one area was consistently paired with gaps in another. From this data, four common themes took shape, each with specific pattern combinations that surfaced repeatedly. Currently, ten patterns across these themes represent the most meaningful disconnects we\'ve observed. As more organizations participate, we continue to refine and expand this library. When your scores match a known pattern, the system surfaces an explanation and a recommended action you can assign to an owner. Patterns are ranked by strength of the disconnect so you see the most impactful issues first.',
-      when: 'Use this section to align HR and leaders on root causes, prioritize a small number of moves that unlock multiple areas, and clarify what to confirm first before finalizing scores.',
-      questions: ['Where are we investing, but employees may still struggle to access support?', 'What is the "weak link" that could be limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?']
+      what: 'Connects the dots across your dimension scores to surface likely bottlenecks—places where a lower-scoring capability may be limiting the impact of stronger programs elsewhere.',
+      how: 'Cross-Dimensional Insights are derived from aggregated results across participating organizations. We look for recurring combinations in dimension score profiles—where strength in one area is frequently paired with a gap in another.\n\nTo make this actionable, we organize the most frequent combinations into four broader themes. Within those themes, we maintain a working library of patterns (currently 10) that reflect the most commonly observed bottlenecks to date.\n\n<strong>Theme 1: Enablement & Access</strong>\n• Strong culture, managers unprepared (employees feel safe disclosing; managers lack tools to respond)\n• Good benefits, weak navigation (offerings exist; hard to find or use)\n• Enablement bottleneck (navigation + communication + manager readiness all underdeveloped)\n• Strong programs, low awareness (resources exist; employees don\'t know what\'s available)\n\n<strong>Theme 2: Program Design</strong>\n• Good leave, weak return-to-work (time off for treatment; struggle with transition back)\n• Strong accommodations, limited career protection (day-to-day flexibility; long-term career fears)\n\n<strong>Theme 3: Leadership & Infrastructure</strong>\n• Low executive commitment correlating with program gaps (isolated HR initiative vs. organizational priority)\n• Many opportunities, limited continuous improvement (gaps identified; no systematic process to address)\n\n<strong>Theme 4: Positive Momentum</strong>\n• Active improvement underway (planning/assessing items in motion)\n• Strong performance to leverage (leading areas that could inform others)\n\n<em>Important context:</em> These are directional, not definitive—organizations may align with multiple patterns or none. As more organizations participate, patterns may be refined, added, merged, or retired. Recommendations are practical starting points to validate and prioritize—best used alongside your internal context.',
+      when: 'Treat themes as a practical lens for prioritization—identifying likely dependencies and sequencing improvements—rather than a label you must "fit." Use this section to align HR and leaders on root causes, prioritize two or three moves that unlock multiple areas, and clarify what to confirm internally before finalizing scores.',
+      questions: ['Where are we investing, yet employees may still struggle to access support?', 'What is the "weak link" limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?']
     },
     impactRanked: {
       title: 'Impact-Ranked Improvement Priorities',
@@ -6430,8 +6430,8 @@ export default function ExportReportPage() {
                     </div>
                     <div className="ml-[52px]">
                       <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                        These patterns reveal where <span className="text-white font-medium">one weaker area may be limiting the impact</span> of stronger programs elsewhere.<br/>
-                        These are the hidden bottlenecks that often explain why good investments underperform.
+                        Highlights likely bottlenecks where a lower-scoring area may be limiting the impact of stronger programs elsewhere. 
+                        Based on the most common cross-dimensional patterns observed to date across participating organizations.
                       </p>
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-1.5">
@@ -6439,7 +6439,7 @@ export default function ExportReportPage() {
                             <circle cx="10" cy="10" r="6" />
                             <path d="M14.5 14.5L20 20" strokeLinecap="round" />
                           </svg>
-                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> bottlenecks identified</span>
+                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns.length}</span> {patterns.length === 1 ? 'bottleneck' : 'bottlenecks'} flagged</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -6447,7 +6447,7 @@ export default function ExportReportPage() {
                             <circle cx="12" cy="12" r="4" />
                             <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
                           </svg>
-                          <span className="text-slate-300 text-sm">Each with <span className="text-white font-semibold">actionable recommendation</span></span>
+                          <span className="text-slate-300 text-sm">Each includes an <span className="text-white font-semibold">actionable starting step</span></span>
                         </div>
                       </div>
                     </div>
