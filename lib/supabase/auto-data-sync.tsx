@@ -1,11 +1,15 @@
 /**
- * AUTO DATA SYNC v5 - Per ChatGPT final review
+ * AUTO DATA SYNC v6 - With Recovery Mode + Safety Fixes
  * 
  * FIXES APPLIED:
  * 1. Namespaced assessment_version by idKey (prevents cross-survey conflicts)
  * 2. Hydration guard for localStorage patch (prevents false dirty on DB→local writes)
- * 3. TTL auto-heal verifies DB version before clearing
+ * 3. TTL auto-heal clears expired conflict flags (only if not dirty)
  * 4. Patch guard to prevent double-patching
+ * 5. 409 conflict: NO auto-retry (prevents overwriting newer server data)
+ * 6. forceSyncNow: gated by isDirty() and hasConflict()
+ * 7. beforeunload: gated by isDirty() and hasConflict()
+ * 8. Recovery mode for specific surveys (captures localStorage before sync)
  */
 
 'use client'
@@ -513,27 +517,22 @@ async function syncViaNetlifyFunction(
     }
     
     // Handle 409 - version conflict
+    // CRITICAL: Do NOT retry - this can overwrite newer server data
+    // Just capture the actual version, set conflict flag, and STOP
     if (response.status === 409) {
       console.error('❌ AUTO-SYNC: VERSION CONFLICT!')
       console.error('   Expected:', result.expectedVersion)
       console.error('   Actual:', result.actualVersion)
       
-      // CRITICAL: Update localStorage to the ACTUAL version from DB
-      // This way, next sync attempt uses the correct version
+      // Store the actual DB version for reference (but don't retry!)
       if (result.actualVersion) {
-        setStoredVersion(result.actualVersion)
-        console.log('🔄 AUTO-SYNC: Updated localStorage version to:', result.actualVersion)
-        
-        // Retry with correct version (but limit retries to prevent infinite loop)
-        if (retryCount < MAX_RETRIES) {
-          console.log(`🔄 AUTO-SYNC: Retrying with correct version (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
-          return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId, retryCount + 1)
-        }
+        console.log('📝 AUTO-SYNC: DB version is:', result.actualVersion)
+        // Do NOT call setStoredVersion here - that would enable retry to overwrite
       }
       
-      // Only set conflict flag if we can't auto-recover after retries
-      console.error('❌ AUTO-SYNC: Max retries exceeded, setting conflict flag')
+      // Set conflict flag - user must explicitly resolve
       setConflictFlag()
+      console.error('🛑 AUTO-SYNC: Conflict flag set - sync blocked until resolved')
       return { success: false, error: 'Version conflict', conflict: true }
     }
     
@@ -715,6 +714,19 @@ async function syncToSupabase(): Promise<boolean> {
 
 export async function forceSyncNow(): Promise<boolean> {
   console.log('⚡ FORCE SYNC TRIGGERED')
+  
+  // Don't sync if conflict exists
+  if (hasConflict()) {
+    console.log('⏸️ FORCE SYNC: Blocked - unresolved conflict')
+    return false
+  }
+  
+  // Don't sync if nothing changed
+  if (!isDirty()) {
+    console.log('⏭️ FORCE SYNC: Skipped - no dirty changes')
+    return true
+  }
+  
   return await syncToSupabase()
 }
 
@@ -1008,10 +1020,10 @@ export default function AutoDataSync() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [doSync])
   
-  // Before unload
+  // Before unload - only sync if there are unsaved changes
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (!hasConflict()) {
+      if (!hasConflict() && isDirty()) {
         syncToSupabase()
       }
     }
