@@ -11,6 +11,8 @@
  * - Fix "dirty key drift" where dirty was written under dirty_unknown before survey_id/app_id existed,
  *   then later checks looked under dirty_<realId> and skipped syncing entirely.
  *   Now we always write a global 'dirty' key + a namespaced dirty key when available.
+ * 
+ * + EXPORTED isDirty() for SyncStatusIndicator
  */
 
 'use client'
@@ -146,8 +148,8 @@ export function clearDirty(): void {
   localStorage.removeItem(`dirty_${getIdKey()}`);
 }
 
-// Check if there are unsynced local changes
-function isDirty(): boolean {
+// Check if there are unsynced local changes - EXPORTED for SyncStatusIndicator
+export function isDirty(): boolean {
   // Global dirty key wins (covers idKey drift)
   const global = localStorage.getItem('dirty');
   if (global) return true;
