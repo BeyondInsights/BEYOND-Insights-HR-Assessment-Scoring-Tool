@@ -4717,157 +4717,164 @@ export default function ExportReportPage() {
                         <div className="absolute top-12 left-[10%] right-[10%] h-1 bg-gradient-to-r from-emerald-200 via-emerald-400 to-emerald-600 rounded-full hidden lg:block"></div>
                         
                         {/* 5 Steps */}
-                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-4 items-start">
                           {/* Step 1: DIAGNOSE */}
-                          <div className="relative flex flex-col">
+                          <div className="relative">
                             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
                               <span className="text-2xl font-bold text-white">1</span>
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Diagnose</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10 flex items-center justify-center">Where do we stand today?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand today?</p>
                             </div>
-                            <div className="mt-3 text-left pl-2 flex flex-col">
-                              <p className="text-sm text-slate-500 leading-relaxed h-24">Establish your baseline across the Composite and the 13 dimensions, benchmarked against peers.</p>
-                              <div className="space-y-1.5 h-[4.5rem]">
-                                <div className="flex items-center gap-2 h-6">
+                            <div className="mt-2 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed h-24">Establish your baseline across the Composite and the 13 dimensions, benchmarked against peers.</p>
+                              <div className="space-y-2 h-20">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Composite Score</span>
                                 </div>
-                                <div className="flex items-center gap-2 h-6">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Dimension Scores</span>
                                 </div>
-                                <div className="flex items-center gap-2 h-6">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-slate-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Benchmarks</span>
                                 </div>
                               </div>
-                              <p className="text-sm text-slate-400 mt-4 pt-3 border-t border-slate-100">Next: Focus on where the biggest returns are likely.</p>
+                              <div className="h-14 pt-3 border-t border-slate-200">
+                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Focus on where the biggest returns are likely.</p>
+                              </div>
                             </div>
                           </div>
                           
                           {/* Step 2: PRIORITIZE */}
-                          <div className="relative flex flex-col">
+                          <div className="relative">
                             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
                               <span className="text-2xl font-bold text-white">2</span>
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Prioritize</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10 flex items-center justify-center">Where should we focus first?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where should we focus first?</p>
                             </div>
-                            <div className="mt-3 text-left pl-2 flex flex-col">
-                              <p className="text-sm text-slate-500 leading-relaxed h-24">Use the Strategic Matrix to identify the highest-leverage gaps. Focus where investment is most likely to move outcomes.</p>
-                              <div className="space-y-1.5 h-[4.5rem]">
-                                <div className="flex items-center gap-2 h-6">
+                            <div className="mt-2 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed h-24">Use the Strategic Matrix to identify the highest-leverage gaps. Focus where investment is most likely to move outcomes.</p>
+                              <div className="space-y-2 h-20">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Strategic Matrix</span>
                                 </div>
-                                <div className="h-6"></div>
-                                <div className="h-6"></div>
                               </div>
-                              <p className="text-sm text-slate-400 mt-4 pt-3 border-t border-slate-100">Next: Understand the patterns behind these gaps.</p>
+                              <div className="h-14 pt-3 border-t border-slate-200">
+                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Understand the patterns behind these gaps.</p>
+                              </div>
                             </div>
                           </div>
                           
                           {/* Step 3: UNDERSTAND */}
-                          <div className="relative flex flex-col">
+                          <div className="relative">
                             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
                               <span className="text-2xl font-bold text-white">3</span>
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Understand</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10 flex items-center justify-center">Why do strengths and gaps cluster?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Why do strengths and gaps cluster?</p>
                             </div>
-                            <div className="mt-3 text-left pl-2 flex flex-col">
-                              <p className="text-sm text-slate-500 leading-relaxed h-24">See the system patterns behind the scores. Identify shared enablers that influence multiple dimensions at once.</p>
-                              <div className="space-y-1.5 h-[4.5rem]">
-                                <div className="flex items-center gap-2 h-6">
+                            <div className="mt-2 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed h-24">See the system patterns behind the scores. Identify shared enablers that influence multiple dimensions at once.</p>
+                              <div className="space-y-2 h-20">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Cross-Dimensional Insights</span>
                                 </div>
-                                <div className="h-6"></div>
-                                <div className="h-6"></div>
                               </div>
-                              <p className="text-sm text-slate-400 mt-4 pt-3 border-t border-slate-100">Next: Turn these insights into a roadmap.</p>
+                              <div className="h-14 pt-3 border-t border-slate-200">
+                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Turn these insights into a roadmap.</p>
+                              </div>
                             </div>
                           </div>
                           
                           {/* Step 4: BUILD */}
-                          <div className="relative flex flex-col">
+                          <div className="relative">
                             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
                               <span className="text-2xl font-bold text-white">4</span>
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Build</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10 flex items-center justify-center">What&apos;s our roadmap?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our roadmap?</p>
                             </div>
-                            <div className="mt-3 text-left pl-2 flex flex-col">
-                              <p className="text-sm text-slate-500 leading-relaxed h-24">Convert insights into a phased roadmap. Protect strengths, target high-impact gaps, and build on initiatives already underway.</p>
-                              <div className="space-y-1.5 h-[4.5rem]">
-                                <div className="flex items-center gap-2 h-6">
+                            <div className="mt-2 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed h-24">Convert insights into a phased roadmap. Protect strengths, target high-impact gaps, and build on initiatives already underway.</p>
+                              <div className="space-y-2 h-20">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Areas of Excellence</span>
                                 </div>
-                                <div className="flex items-center gap-2 h-6">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Areas for Growth</span>
                                 </div>
-                                <div className="flex items-center gap-2 h-6">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-sky-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Initiatives In Progress</span>
                                 </div>
                               </div>
-                              <p className="text-sm text-slate-400 mt-4 pt-3 border-t border-slate-100">Next: Finalize and activate the plan.</p>
+                              <div className="h-14 pt-3 border-t border-slate-200">
+                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Finalize and activate the plan.</p>
+                              </div>
                             </div>
                           </div>
                           
                           {/* Step 5: ACT */}
-                          <div className="relative flex flex-col">
+                          <div className="relative">
                             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
                               <span className="text-2xl font-bold text-white">5</span>
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Act</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10 flex items-center justify-center text-center px-1">What do we do next, and what impact can we expect?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What do we do next?</p>
                             </div>
-                            <div className="mt-3 text-left pl-2 flex flex-col">
-                              <p className="text-sm text-slate-500 leading-relaxed h-24">Finalize the plan. Pressure-test scenarios, sequence priorities, and align leadership on funding and execution.</p>
-                              <div className="space-y-1.5 h-[4.5rem]">
-                                <div className="flex items-center gap-2 h-6">
+                            <div className="mt-2 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed h-24">Finalize the plan. Pressure-test scenarios, sequence priorities, and align leadership on funding and execution.</p>
+                              <div className="space-y-2 h-20">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-amber-500 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Impact-Ranked Priorities</span>
                                 </div>
-                                <div className="flex items-center gap-2 h-6">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-teal-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">What-If Scenarios</span>
                                 </div>
-                                <div className="flex items-center gap-2 h-6">
+                                <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Strategic Recommendations</span>
                                 </div>
+                              </div>
+                              <div className="h-14 pt-3 border-t border-slate-200">
+                                <p className="text-sm text-slate-500 opacity-0">Placeholder</p>
                               </div>
                             </div>
                           </div>
