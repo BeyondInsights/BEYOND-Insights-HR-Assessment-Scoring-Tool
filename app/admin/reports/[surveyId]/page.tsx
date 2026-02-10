@@ -2688,7 +2688,7 @@ export default function ExportReportPage() {
   const [customAdditionalDimInsights, setCustomAdditionalDimInsights] = useState<Record<number, { insight: string; roadmapQuickWin: string; roadmapStrategic: string; cacHelp: string }>>({});
   
   // Computed total slides - base 35 + any additional dimension deep dives
-  const totalSlides = 39 + additionalAnalyzedDims.length;
+  const totalSlides = 38 + additionalAnalyzedDims.length;
   
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
@@ -2808,25 +2808,24 @@ export default function ExportReportPage() {
       1: 'How Index Was Developed', 
       2: 'Understanding Your Composite Score',
       3: 'The 13 Dimensions',
-      4: 'How to Use This Report',
-      5: 'Executive Summary',
-      6: 'Dimension Performance'
+      4: 'Executive Summary',
+      5: 'Dimension Performance'
     };
-    // Dimension deep dives: slides 7-19
-    for (let i = 7; i <= 19; i++) slideNames[i] = `Dimension ${i - 6} Deep Dive`;
-    // Strategic content: slides 20-31
-    for (let i = 20; i <= 31; i++) slideNames[i] = `Strategic Content ${i - 19}`;
-    // Additional analyzed dimensions: slides 32 to 32+addDimCount-1
+    // Dimension deep dives: slides 6-18
+    for (let i = 6; i <= 18; i++) slideNames[i] = `Dimension ${i - 5} Deep Dive`;
+    // Strategic content: slides 19-30
+    for (let i = 19; i <= 30; i++) slideNames[i] = `Strategic Content ${i - 18}`;
+    // Additional analyzed dimensions: slides 31 to 31+addDimCount-1
     for (let i = 0; i < addDimCount; i++) {
       const dimNum = additionalAnalyzedDims[i];
-      slideNames[32 + i] = `Additional Analysis: Dimension ${dimNum}`;
+      slideNames[31 + i] = `Additional Analysis: Dimension ${dimNum}`;
     }
     // Final slides (shifted by addDimCount)
-    slideNames[32 + addDimCount] = 'Implementation Roadmap';
-    slideNames[33 + addDimCount] = 'Working with Cancer Pledge';
-    slideNames[34 + addDimCount] = 'How CAC Can Help';
-    slideNames[35 + addDimCount] = 'Thank You';
-    slideNames[36 + addDimCount] = 'Methodology';
+    slideNames[31 + addDimCount] = 'Implementation Roadmap';
+    slideNames[32 + addDimCount] = 'Working with Cancer Pledge';
+    slideNames[33 + addDimCount] = 'How CAC Can Help';
+    slideNames[34 + addDimCount] = 'Thank You';
+    slideNames[35 + addDimCount] = 'Methodology';
     
     const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
     const noteKey = `slide_${slideNum}`;
@@ -2837,35 +2836,34 @@ export default function ExportReportPage() {
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
       2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
       3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
-      4: 'Walk through the four-step workflow: Confirm, then Prioritize, then Plan, then Track. Explain that items marked "Needs confirmation" are the first unlock because they are scored as Not Planned until verified. Focus attention on high-weight gaps first since small changes there move the overall score fastest.',
-      5: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
-      6: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
-      20: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
-      21: 'Use this slide to calibrate ambition by comparing to benchmarks. Ask whether they are behind peers because of policy gaps, execution issues, or awareness problems. Benchmarks should be used to set realistic targets, not to chase vanity scores. Help them distinguish between quick parity moves and true differentiator investments.',
-      22: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
-      23: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
-      24: 'This slide builds stakeholder buy-in by showing real strengths. Celebrate what is working and ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer.',
-      25: 'The message here is that improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Frame gaps as opportunities, not failures. Encourage momentum by suggesting they pick a ladder step and commit to moving it this cycle.',
-      26: 'These initiatives represent momentum - work already underway. Confirm timelines and owners for each initiative. Ask what is blocking completion and how can we accelerate. Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve.',
-      27: 'Introduce the strategic recommendations framework. These are tailored based on assessment findings. Each recommendation ties to specific dimension gaps. Set up the audience for the detailed recommendations that follow.',
-      28: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming the uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
-      29: 'Continue with the second recommendation. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
-      30: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
-      31: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
+      4: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
+      5: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
+      19: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
+      20: 'Use this slide to calibrate ambition by comparing to benchmarks. Ask whether they are behind peers because of policy gaps, execution issues, or awareness problems. Benchmarks should be used to set realistic targets, not to chase vanity scores. Help them distinguish between quick parity moves and true differentiator investments.',
+      21: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
+      22: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
+      23: 'This slide builds stakeholder buy-in by showing real strengths. Celebrate what is working and ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer.',
+      24: 'The message here is that improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Frame gaps as opportunities, not failures. Encourage momentum by suggesting they pick a ladder step and commit to moving it this cycle.',
+      25: 'These initiatives represent momentum - work already underway. Confirm timelines and owners for each initiative. Ask what is blocking completion and how can we accelerate. Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve.',
+      26: 'Introduce the strategic recommendations framework. These are tailored based on assessment findings. Each recommendation ties to specific dimension gaps. Set up the audience for the detailed recommendations that follow.',
+      27: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming the uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
+      28: 'Continue with the second recommendation. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
+      29: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
+      30: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
     };
-    // Additional analyzed dimensions get notes (slides 32 to 32+addDimCount-1)
+    // Additional analyzed dimensions get notes (slides 31 to 31+addDimCount-1)
     for (let i = 0; i < addDimCount; i++) {
-      defaultNotes[32 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
+      defaultNotes[31 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
     }
     // Final slides (shifted by addDimCount)
-    defaultNotes[32 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
-    defaultNotes[33 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
-    defaultNotes[34 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
-    defaultNotes[35 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
-    defaultNotes[36 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
+    defaultNotes[31 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
+    defaultNotes[32 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
+    defaultNotes[33 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
+    defaultNotes[34 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
+    defaultNotes[35 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
     
-    // Default notes for dimension deep dive slides (7-19) - flowing prose template
-    for (let i = 7; i <= 19; i++) {
+    // Default notes for dimension deep dive slides (6-18) - flowing prose template
+    for (let i = 6; i <= 18; i++) {
       defaultNotes[i] = 'Start with the outcome this dimension determines by explaining what employees can or cannot do when support is present or absent. Walk through the element breakdown where green items are strengths to protect and communicate, blue items show momentum on initiatives in progress, and red gaps are opportunities to discuss. Use the benchmark to calibrate where peers typically are and what a realistic next step looks like. End with a clear action by identifying who owns this, what the 30-60 day next step is, and what done looks like.';
     }
     
@@ -3093,7 +3091,7 @@ export default function ExportReportPage() {
       } else if (event.data.type === 'prevSlide') {
         setCurrentSlide(prev => Math.max(0, prev - 1));
       } else if (event.data.type === 'nextSlide') {
-        setCurrentSlide(prev => Math.min(37 + additionalAnalyzedDims.length, prev + 1));
+        setCurrentSlide(prev => Math.min(36 + additionalAnalyzedDims.length, prev + 1));
       } else if (event.data.type === 'toggleLaser') {
         setLaserPointer(prev => !prev);
       }
@@ -4728,7 +4726,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your baseline with composite and dimension scores, benchmarked against peers.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against peers.</p>
                               <div className="mt-5 space-y-1.5 h-[4.5rem]">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
@@ -4765,7 +4763,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What matters most?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Use the Strategic Matrix to identify where investment delivers the greatest return.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Use the <strong className="text-slate-600">Strategic Matrix</strong> to identify where investment delivers the <strong className="text-slate-600">greatest return</strong>.</p>
                               <div className="mt-5 space-y-1.5 h-[4.5rem]">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center flex-shrink-0">
@@ -4792,7 +4790,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Why do patterns emerge?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">See how strengths and gaps cluster. Address root causes that influence multiple areas.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">See how strengths and gaps <strong className="text-slate-600">cluster</strong>. Address <strong className="text-slate-600">root causes</strong> that influence multiple areas.</p>
                               <div className="mt-5 space-y-1.5 h-[4.5rem]">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0">
@@ -4819,7 +4817,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our roadmap?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Protect strengths, target high-impact gaps, and build on work already underway.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20"><strong className="text-slate-600">Protect</strong> strengths, target <strong className="text-slate-600">high-impact gaps</strong>, and build on work already underway.</p>
                               <div className="mt-5 space-y-1.5 h-[4.5rem]">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
@@ -4856,7 +4854,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our plan?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Model scenarios, finalize priorities, and land on a plan leadership can fund and execute.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Model <strong className="text-slate-600">scenarios</strong>, finalize <strong className="text-slate-600">priorities</strong>, and land on a plan leadership can <strong className="text-slate-600">fund and execute</strong>.</p>
                               <div className="mt-5 space-y-1.5 h-[4.5rem]">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-amber-500 flex items-center justify-center flex-shrink-0">
@@ -9636,75 +9634,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 4: How to Use This Report */}
+                {/* Slide 4: Executive Summary + Key Findings */}
                 {currentSlide === 4 && (
-                  <div className="p-10">
-                    {/* Header bar matching the collapsible style */}
-                    <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl mb-6">
-                      <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                      </div>
-                      <div className="text-left">
-                        <span className="text-sm font-bold text-slate-800">How to Use This Report</span>
-                        <span className="text-sm text-slate-600 ml-3 font-medium">A guide to getting the most from your assessment</span>
-                      </div>
-                      <div className="ml-auto w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center rotate-180">
-                        <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
-                    
-                    {/* Content box */}
-                    <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
-                      <div className="p-6">
-                        <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                          Use this report to <strong className="text-slate-800">align on priorities, confirm what&apos;s in place, and build a practical action plan</strong>.
-                        </p>
-                        <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                          Every organization is different. Your industry, workforce, and current capabilities shape what&apos;s realistic and impactful. Some recommendations will align with your priorities; others may not be feasible yet, and that&apos;s expected.
-                        </p>
-                        
-                        <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this assessment:</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">1</span>
-                            </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Review</strong> your overall composite and dimension scores and the specific support elements within each</p>
-                          </div>
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">2</span>
-                            </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Identify</strong> where quick wins align with your existing infrastructure and strategic priorities</p>
-                          </div>
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">3</span>
-                            </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Confirm</strong> areas where deeper exploration or validation is needed</p>
-                          </div>
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">4</span>
-                            </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Act</strong>: connect with Cancer and Careers to build a tailored action plan for {companyName}</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
-                        <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                        <p className="text-sm text-slate-200">
-                          <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
-                          industry context, and implementation support to help you prioritize what matters most for your workforce.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 5: Executive Summary + Key Findings */}
-                {currentSlide === 5 && (
                   <div className="overflow-hidden">
                     {/* Top section - Prepared For header */}
                     <div className="px-12 py-8 border-b border-slate-100">
@@ -9890,7 +9821,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 6: Dimension Performance Table */}
-                {currentSlide === 6 && (
+                {currentSlide === 5 && (
                   <div className="overflow-hidden">
                     {/* Dark dramatic header - matching main report */}
                     <div className="px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
@@ -9994,7 +9925,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slides 6-18: D1-D13 Deep Dives */}
-                {currentSlide >= 7 && currentSlide <= 19 && (() => {
+                {currentSlide >= 6 && currentSlide <= 18 && (() => {
                   const dimNum = currentSlide - 6;
                   const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                   if (!d) return <div className="p-10 text-center text-slate-500">Dimension {dimNum} data not available</div>;
@@ -10137,7 +10068,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 20: Strategic Matrix WITHOUT Benchmarks */}
-                {currentSlide === 20 && (
+                {currentSlide === 19 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -10292,7 +10223,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 21: Strategic Matrix WITH Benchmarks */}
-                {currentSlide === 21 && (
+                {currentSlide === 20 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -10491,7 +10422,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 22: Cross-Dimensional Insights - polished design */}
-                {currentSlide === 22 && (
+                {currentSlide === 21 && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* Header */}
                     <div className="px-10 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden flex-shrink-0">
@@ -10601,7 +10532,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 23: Impact-Ranked Priorities (Dims 1-3) */}
-                {currentSlide === 23 && (() => {
+                {currentSlide === 22 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -10869,7 +10800,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 24: Impact-Ranked Priorities (Dims 4-5) */}
-                {currentSlide === 24 && (() => {
+                {currentSlide === 23 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -11048,7 +10979,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 25: Areas of Excellence - exact match to report */}
-                {currentSlide === 25 && (
+                {currentSlide === 24 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
                       <div className="flex items-center justify-between">
@@ -11099,7 +11030,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 26: Areas for Growth - exact match to report */}
-                {currentSlide === 26 && (
+                {currentSlide === 25 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
                       <div className="flex items-center justify-between">
@@ -11148,7 +11079,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 27: Initiatives in Progress - exact match to report */}
-                {currentSlide === 27 && (
+                {currentSlide === 26 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                       <div className="flex items-center justify-between">
@@ -11195,7 +11126,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 28: Strategic Recommendations Setup - matches main report */}
-                {currentSlide === 28 && (
+                {currentSlide === 27 && (
                   <div className="overflow-hidden">
                     {/* Header with gradient and dot pattern */}
                     <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
@@ -11448,7 +11379,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 28: From Insight to Action */}
-                {currentSlide === 29 && (
+                {currentSlide === 28 && (
                   <div className="overflow-hidden">
                     <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-48 h-48 opacity-5">
@@ -11762,8 +11693,8 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Additional Analyzed Dimensions in Presentation Mode */}
-                {additionalAnalyzedDims.length > 0 && currentSlide >= 34 && currentSlide < 34 + additionalAnalyzedDims.length && (() => {
-                  const addIdx = currentSlide - 34;
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 31 && currentSlide < 31 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 31;
                   const dimNum = additionalAnalyzedDims[addIdx];
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
@@ -11967,7 +11898,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 33: Implementation Roadmap - exact match to report */}
-                {currentSlide === 34 + additionalAnalyzedDims.length && (
+                {currentSlide === 33 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
                       <div className="flex items-center justify-between">
@@ -12097,7 +12028,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 34: Working with Cancer Pledge */}
-                {currentSlide === 35 + additionalAnalyzedDims.length && (
+                {currentSlide === 34 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header - Clean white/cream with logo */}
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
@@ -12266,7 +12197,7 @@ export default function ExportReportPage() {
 
 
                 {/* Slide 35: How Cancer and Careers Can Help - exact match to report */}
-                {currentSlide === 36 + additionalAnalyzedDims.length && (
+                {currentSlide === 35 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
@@ -12355,7 +12286,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 38: Methodology - appendix */}
-                {currentSlide === 38 + additionalAnalyzedDims.length && (
+                {currentSlide === 37 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-700 text-base">Assessment Methodology</h3>
@@ -12456,7 +12387,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 37: Thank You */}
-                {currentSlide === 37 + additionalAnalyzedDims.length && (
+                {currentSlide === 36 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -12602,7 +12533,7 @@ export default function ExportReportPage() {
                 </button>
                 <button 
                   onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 37 + additionalAnalyzedDims.length))}
-                  disabled={currentSlide === 38 + additionalAnalyzedDims.length}
+                  disabled={currentSlide === 37 + additionalAnalyzedDims.length}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
                 >
@@ -12952,7 +12883,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 5 && (
+                  {currentSlide === 4 && (
                     <div>
                       <p className="mb-2"><strong>Executive summary focus:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12962,7 +12893,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 6 && (
+                  {currentSlide === 5 && (
                     <div>
                       <p className="mb-2"><strong>Dimension performance table:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12973,7 +12904,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide >= 7 && currentSlide <= 19 && (
+                  {currentSlide >= 6 && currentSlide <= 18 && (
                     <div>
                       <p className="mb-2"><strong>Dimension {currentSlide - 6} deep dive:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12984,7 +12915,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 20 && (
+                  {currentSlide === 19 && (
                     <div>
                       <p className="mb-2"><strong>Strategic matrix (company view):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12994,7 +12925,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 21 && (
+                  {currentSlide === 20 && (
                     <div>
                       <p className="mb-2"><strong>Strategic matrix (with benchmarks):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13004,7 +12935,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 22 && (
+                  {currentSlide === 21 && (
                     <div>
                       <p className="mb-2"><strong>Cross-dimensional insights:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13014,7 +12945,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 23 && (
+                  {currentSlide === 22 && (
                     <div>
                       <p className="mb-2"><strong>Impact-ranked priorities (Dims 1-3):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13024,7 +12955,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 24 && (
+                  {currentSlide === 23 && (
                     <div>
                       <p className="mb-2"><strong>Impact-ranked priorities (Dims 4-5):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13034,7 +12965,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 25 && (
+                  {currentSlide === 24 && (
                     <div>
                       <p className="mb-2"><strong>Areas of excellence:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13044,7 +12975,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 26 && (
+                  {currentSlide === 25 && (
                     <div>
                       <p className="mb-2"><strong>Areas for growth:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13054,7 +12985,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 27 && (
+                  {currentSlide === 26 && (
                     <div>
                       <p className="mb-2"><strong>Initiatives in progress:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13064,7 +12995,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 28 && (
+                  {currentSlide === 27 && (
                     <div>
                       <p className="mb-2"><strong>Strategic recommendations intro:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13095,7 +13026,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 34 + additionalAnalyzedDims.length && (
+                  {currentSlide === 33 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Implementation roadmap:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13106,7 +13037,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 35 + additionalAnalyzedDims.length && (
+                  {currentSlide === 34 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Working with Cancer Pledge:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13117,7 +13048,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 36 + additionalAnalyzedDims.length && (
+                  {currentSlide === 35 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>How CAC can help:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13127,7 +13058,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 37 + additionalAnalyzedDims.length && (
+                  {currentSlide === 36 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Thank you &amp; next steps:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13138,7 +13069,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 38 + additionalAnalyzedDims.length && (
+                  {currentSlide === 37 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Methodology overview:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13175,27 +13106,26 @@ export default function ExportReportPage() {
                            i === 1 ? 'How Index Was Developed' :
                            i === 2 ? 'Understanding Composite Score' :
                            i === 3 ? 'The 13 Dimensions' :
-                           i === 4 ? 'How to Use This Report' :
-                           i === 5 ? 'Executive Summary' :
-                           i === 6 ? 'Dimension Performance' :
-                           i >= 7 && i <= 19 ? `D${i - 6} Deep Dive` :
-                           i === 20 ? 'Strategic Matrix' :
-                           i === 21 ? 'Strategic Matrix (Benchmarks)' :
-                           i === 22 ? 'Cross-Dimensional Insights' :
-                           i === 23 ? 'Impact-Ranked (1-3)' :
-                           i === 24 ? 'Impact-Ranked (4-5)' :
-                           i === 25 ? 'Areas of Excellence' :
-                           i === 26 ? 'Areas for Growth' :
-                           i === 27 ? 'Initiatives In Progress' :
-                           i === 28 ? 'Strategic Recommendations' :
-                           i === 29 ? 'From Insight to Action' :
-                           i >= 30 && i <= 33 ? `Recommendation ${i - 29}` :
-                           i >= 34 && i < 34 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 34]}` :
-                           i === 34 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
-                           i === 35 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
-                           i === 36 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
-                           i === 37 + additionalAnalyzedDims.length ? 'Thank You' :
-                           i === 38 + additionalAnalyzedDims.length ? 'Methodology' :
+                           i === 4 ? 'Executive Summary' :
+                           i === 5 ? 'Dimension Performance' :
+                           i >= 6 && i <= 18 ? `D${i - 5} Deep Dive` :
+                           i === 19 ? 'Strategic Matrix' :
+                           i === 20 ? 'Strategic Matrix (Benchmarks)' :
+                           i === 21 ? 'Cross-Dimensional Insights' :
+                           i === 22 ? 'Impact-Ranked (1-3)' :
+                           i === 23 ? 'Impact-Ranked (4-5)' :
+                           i === 24 ? 'Areas of Excellence' :
+                           i === 25 ? 'Areas for Growth' :
+                           i === 26 ? 'Initiatives In Progress' :
+                           i === 27 ? 'Strategic Recommendations' :
+                           i === 28 ? 'From Insight to Action' :
+                           i >= 29 && i <= 30 ? `Recommendation ${i - 28}` :
+                           i >= 31 && i < 31 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 31]}` :
+                           i === 31 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
+                           i === 32 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
+                           i === 33 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
+                           i === 34 + additionalAnalyzedDims.length ? 'Thank You' :
+                           i === 35 + additionalAnalyzedDims.length ? 'Methodology' :
                            `Slide ${i + 1}`}
                         </div>
                       </button>
