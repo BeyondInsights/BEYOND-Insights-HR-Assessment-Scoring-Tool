@@ -1,5 +1,5 @@
 /**
- * AUTO DATA SYNC v5.6 - WITH RECOVERY MODE
+ * AUTO DATA SYNC v5.7 - WITH RECOVERY MODE + SURVEY ID NORMALIZATION
  * 
  * FIXES APPLIED:
  * 1. Namespaced assessment_version by idKey (prevents cross-survey conflicts)
@@ -8,6 +8,8 @@
  * 4. Patch guard to prevent double-patching
  * 5. EXPORTED isDirty() - was missing, causing SyncStatusIndicator to crash
  * 6. Recovery mode for AbbVie (FP-421967)
+ * 7. EXPORTED setStoredVersion, getStoredVersion - was missing, breaking login page
+ * 8. EXPORTED normalizeSurveyId - removes dashes for consistent comparison (CAC-123 == CAC123)
  */
 
 'use client'
@@ -117,11 +119,18 @@ async function captureLocalStorageForRecovery(surveyId: string): Promise<void> {
 // ID KEY HELPER (used for all namespacing)
 // ============================================
 
+// Normalize survey ID by removing dashes for consistent comparison
+export function normalizeSurveyId(surveyId: string | null | undefined): string {
+  if (!surveyId) return '';
+  return surveyId.replace(/-/g, '').toUpperCase();
+}
+
 function getIdKey(): string {
   const surveyId = localStorage.getItem('survey_id') || '';
   const appId = localStorage.getItem('app_id') || '';
-  // Fallback chain: survey_id → app_id → 'unknown'
-  return surveyId || appId || 'unknown';
+  // Normalize to remove dashes for consistent namespacing
+  const normalized = normalizeSurveyId(surveyId) || normalizeSurveyId(appId);
+  return normalized || 'unknown';
 }
 
 // ============================================
@@ -132,7 +141,7 @@ function isKnownIdKey(idKey: string): boolean {
   return !!idKey && idKey !== 'unknown';
 }
 
-function getStoredVersion(): number {
+export function getStoredVersion(): number {
   const idKey = getIdKey();
   
   // If we don't know the id yet, ONLY read legacy (avoid poisoning with *_unknown)
@@ -155,7 +164,7 @@ function getStoredVersion(): number {
   return stored ? Number(stored) : 0;
 }
 
-function setStoredVersion(version: number): void {
+export function setStoredVersion(version: number): void {
   const idKey = getIdKey();
   // Always keep legacy during transition
   localStorage.setItem('assessment_version', String(version));
