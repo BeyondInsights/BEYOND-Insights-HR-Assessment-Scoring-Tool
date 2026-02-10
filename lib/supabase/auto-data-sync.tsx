@@ -1,5 +1,5 @@
 /**
- * AUTO DATA SYNC v5.1 - EMERGENCY FIX
+ * AUTO DATA SYNC v5.6 - WITH RECOVERY MODE
  * 
  * FIXES APPLIED:
  * 1. Namespaced assessment_version by idKey (prevents cross-survey conflicts)
@@ -7,6 +7,7 @@
  * 3. TTL auto-heal verifies DB version before clearing
  * 4. Patch guard to prevent double-patching
  * 5. EXPORTED isDirty() - was missing, causing SyncStatusIndicator to crash
+ * 6. Recovery mode for AbbVie (FP-421967)
  */
 
 'use client'
@@ -29,9 +30,74 @@ const DB_FIRST_SURVEY_IDS = [
   'CAC25120273411EF',
 ]
 
+// Recovery mode - capture localStorage for these surveys before syncing
+const RECOVERY_MODE_SURVEYS = [
+  'FP-421967',  // AbbVie - Lesli Marasco
+]
+
 function isCompdUser(surveyId: string): boolean {
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
   return COMPD_USER_IDS.some(id => id.replace(/-/g, '').toUpperCase() === normalized)
+}
+
+function isRecoveryModeSurvey(surveyId: string): boolean {
+  return RECOVERY_MODE_SURVEYS.includes(surveyId)
+}
+
+// ============================================
+// RECOVERY CAPTURE (for data loss incidents)
+// ============================================
+
+async function captureLocalStorageForRecovery(surveyId: string): Promise<void> {
+  if (!isRecoveryModeSurvey(surveyId)) return
+  
+  // Only capture once per session
+  const captureKey = `recovery_captured_${surveyId}`
+  if (sessionStorage.getItem(captureKey)) return
+  
+  console.log('🔴 RECOVERY MODE: Capturing localStorage for', surveyId)
+  
+  // Whitelist of keys to capture (avoid auth tokens, sensitive data)
+  const keysToCapture = [
+    'firmographics_data', 'general_benefits_data', 'current_support_data',
+    'cross_dimensional_data', 'employee-impact-assessment_data',
+    ...Array.from({ length: 13 }, (_, i) => `dimension${i + 1}_data`),
+    'auth_completed', 'firmographics_complete', 'general_benefits_complete',
+    'current_support_complete', 'cross_dimensional_complete', 'employee-impact-assessment_complete',
+    ...Array.from({ length: 13 }, (_, i) => `dimension${i + 1}_complete`),
+    'survey_id', 'app_id', 'assessment_version', 'company_name', 'login_company_name',
+    'auth_email', 'login_email', 'login_first_name', 'login_last_name', 'login_title'
+  ]
+  
+  const localStorageData: Record<string, any> = {}
+  keysToCapture.forEach(key => {
+    const value = localStorage.getItem(key)
+    if (value) {
+      localStorageData[key] = value
+    }
+  })
+  
+  try {
+    const response = await fetch('/.netlify/functions/recovery-capture', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        survey_id: surveyId,
+        captured_at: new Date().toISOString(),
+        user_agent: navigator.userAgent,
+        localStorage_data: localStorageData
+      })
+    })
+    
+    if (response.ok) {
+      sessionStorage.setItem(captureKey, '1')
+      console.log('✅ RECOVERY MODE: localStorage captured successfully')
+    } else {
+      console.error('❌ RECOVERY MODE: Capture failed', await response.text())
+    }
+  } catch (e) {
+    console.error('❌ RECOVERY MODE: Capture error', e)
+  }
 }
 
 // ============================================
@@ -698,6 +764,9 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
 
 async function syncToSupabase(): Promise<boolean> {
   const surveyId = localStorage.getItem('survey_id') || ''
+  
+  // RECOVERY MODE: Capture localStorage before any sync (for data loss incidents)
+  await captureLocalStorageForRecovery(surveyId)
   
   // Don't sync if there's an unresolved conflict
   if (hasConflict()) {
