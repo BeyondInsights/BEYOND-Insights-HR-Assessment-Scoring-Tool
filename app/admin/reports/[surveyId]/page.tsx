@@ -6717,6 +6717,9 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="px-8 py-5 pb-8">
+                  {/* Intro text explaining the 5 priority dimensions */}
+                  <p className="text-slate-600 text-sm mb-5">Based on your assessment, we identified these 5 dimensions as having the highest potential impact on your overall score. Recommendations are prioritized by improvement opportunity and implementation readiness.</p>
+                  
                   {/* 2x2 grid - Top: Accelerate/Build, Bottom: Roadmap/Impact */}
                   <div className="mb-5 grid grid-cols-2 gap-4">
                     {/* Accelerate Card */}
@@ -6727,7 +6730,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-slate-900 text-lg mb-0.5">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
-                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Converts work already in motion into tangible progress.</span> These initiatives have organizational momentum. Prioritize completing or advancing them.</p>
+                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, converts work already in motion into tangible progress.</span> These initiatives have organizational momentum.</p>
                         </div>
                       </div>
                       <div className="bg-slate-50 rounded-lg p-3">
@@ -6748,7 +6751,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-slate-900 text-lg mb-0.5">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
-                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Introduces net-new capabilities where gaps exist today.</span> These are your primary improvement targets. Closing them drives the biggest score gains.</p>
+                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, introduces net-new capabilities where gaps exist today.</span> Closing them drives the biggest score gains.</p>
                         </div>
                       </div>
                       <div className="bg-indigo-50 rounded-lg p-3">
@@ -10340,6 +10343,9 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     <div className="p-5 flex-1">
+                      {/* Intro text */}
+                      <p className="text-slate-600 text-xs mb-3">Based on your assessment, we identified these 5 dimensions as having the highest potential impact on your overall score.</p>
+                      
                       {/* 2x2 grid matching main report - Slide 23 */}
                       <div className="mb-4 grid grid-cols-2 gap-3">
                         {/* Accelerate Card */}
@@ -10350,7 +10356,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="flex-1">
                               <h4 className="font-bold text-slate-900 text-base">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
-                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Converts work already in motion.</span> Prioritize completing or advancing.</p>
+                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Within your priority dimensions, converts work already in motion.</span></p>
                             </div>
                           </div>
                           <div className="bg-slate-50 rounded p-2">
@@ -10371,7 +10377,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="flex-1">
                               <h4 className="font-bold text-slate-900 text-base">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
-                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Introduces net-new capabilities.</span> Your primary improvement targets.</p>
+                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Within your priority dimensions, introduces net-new capabilities.</span></p>
                             </div>
                           </div>
                           <div className="bg-indigo-50 rounded p-2">
