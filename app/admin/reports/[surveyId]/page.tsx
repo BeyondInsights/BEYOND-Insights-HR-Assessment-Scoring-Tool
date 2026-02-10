@@ -4720,8 +4720,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Composite Score</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Overall program maturity.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot;</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Overall maturity and completeness of your workplace cancer support program.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot; It summarizes performance across all dimensions and sets context for everything that follows.</p>
                             </div>
                           </div>
                         </div>
@@ -4733,8 +4733,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Dimension Scores</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Strength within each of 13 dimensions.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Where are we strong vs. exposed?</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Strength and maturity within each of the 13 dimensions of workplace cancer support.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Answers &quot;where are we strong vs. where are we exposed?&quot; Dimension results reveal the specific areas driving your overall score.</p>
                             </div>
                           </div>
                         </div>
@@ -4746,8 +4746,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Benchmark Comparisons</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> How you compare with peers.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Are we typical, leading, or lagging?</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> How your Composite and Dimension results compare with peer organizations in the Index.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Adds context: &quot;Are our scores typical, leading, or lagging?&quot; Helps you set realistic targets and understand what &quot;good&quot; looks like.</p>
                             </div>
                           </div>
                         </div>
@@ -4759,8 +4759,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Cross-Dimensional Insights</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Patterns across multiple dimensions.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Bridge from diagnosis to strategy.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Themes that cut across dimensions: systemic strengths, recurring gaps, and patterns that influence multiple areas.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> The bridge from diagnosis to strategy. Shows which underlying capabilities will lift performance across several dimensions simultaneously.</p>
                             </div>
                           </div>
                         </div>
@@ -4772,8 +4772,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Areas of Excellence</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Highest-performing dimensions.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> What to protect and amplify.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Your highest-performing dimensions and standout elements.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Clarifies what to protect and amplify. These are your proof points for internal storytelling and employer brand.</p>
                             </div>
                           </div>
                         </div>
@@ -4785,8 +4785,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Areas for Growth</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Largest gaps relative to peers.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Where investment improves outcomes.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The largest gaps relative to peers and/or relative to your own internal balance.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Identifies where investment is most likely to improve outcomes. Starts converting insights into focus areas.</p>
                             </div>
                           </div>
                         </div>
@@ -4798,8 +4798,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Initiatives In Progress</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Programs you&apos;re actively building.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Shows momentum already underway.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Programs and practices you&apos;re actively building or expanding.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Shows momentum and helps prioritize. Ensures recommendations build on what&apos;s already underway.</p>
                             </div>
                           </div>
                         </div>
@@ -4811,8 +4811,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Strategic Recommendations</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> High-leverage strategic moves.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Executive summary of improvement strategy.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The &quot;so what&quot;: strategic moves that will most effectively strengthen your overall program.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Executive summary of your improvement strategy, grounded in cross-dimensional patterns and biggest leverage points.</p>
                             </div>
                           </div>
                         </div>
@@ -4824,8 +4824,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Impact-Ranked Priorities</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Sequenced action roadmap.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your &quot;what to do next&quot; list.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> A sequenced action roadmap, ranked by expected impact on outcomes and score improvement.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Converts strategy into execution. This is your &quot;what to do next&quot; list: clear, ordered, and practical.</p>
                             </div>
                           </div>
                         </div>
@@ -4837,8 +4837,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">What-If Scenario Builder</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Estimated effect of improvements.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Test options, build business case.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The estimated effect of specific improvements on future scores and maturity.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Turns planning into decision support. Use it to test options, build a business case, and agree on a path forward.</p>
                             </div>
                           </div>
                         </div>
