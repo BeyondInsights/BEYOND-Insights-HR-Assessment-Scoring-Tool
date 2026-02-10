@@ -4349,6 +4349,8 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="text-right">
+                  <p className="text-slate-400 text-sm font-medium">Prepared for</p>
+                  <p className="text-white font-semibold text-lg mb-3">{companyName || 'Your Organization'}</p>
                   <p className="text-slate-400 text-sm font-medium">Report Date</p>
                   <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
@@ -6777,6 +6779,9 @@ export default function ExportReportPage() {
                 </div>
                 
                 <div className="px-8 py-5 pb-8">
+                  {/* Intro text explaining the 5 priority dimensions */}
+                  <p className="text-slate-600 text-base mb-5">Based on your assessment, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on your overall score. Recommendations are prioritized by <span className="font-semibold text-slate-700">improvement opportunity</span> and <span className="font-semibold text-slate-700">implementation readiness</span>.</p>
+                  
                   {/* 2x2 grid - Top: Accelerate/Build, Bottom: Roadmap/Impact */}
                   <div className="mb-5 grid grid-cols-2 gap-4">
                     {/* Accelerate Card */}
@@ -6787,7 +6792,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-slate-900 text-lg mb-0.5">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
-                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Converts work already in motion into tangible progress.</span> These initiatives have organizational momentum. Prioritize completing or advancing them.</p>
+                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, converts work already in motion into tangible progress.</span> These initiatives have organizational momentum.</p>
                         </div>
                       </div>
                       <div className="bg-slate-50 rounded-lg p-3">
@@ -6808,7 +6813,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-bold text-slate-900 text-lg mb-0.5">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
-                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Introduces net-new capabilities where gaps exist today.</span> These are your primary improvement targets. Closing them drives the biggest score gains.</p>
+                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, introduces net-new capabilities where gaps exist today.</span> Closing them drives the biggest score gains.</p>
                         </div>
                       </div>
                       <div className="bg-indigo-50 rounded-lg p-3">
@@ -7102,7 +7107,7 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                    <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                    <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above</p>
                   </div>
                 </div>
                 <button 
@@ -7156,7 +7161,7 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                    <p className="text-slate-300 mt-0.5 text-sm">Dimensions with improvement potential</p>
+                    <p className="text-slate-300 mt-0.5 text-sm">{Math.min(allDimensionsByScore.length, 6)} {Math.min(allDimensionsByScore.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                   </div>
                 </div>
                 <button 
@@ -7233,7 +7238,7 @@ export default function ExportReportPage() {
                           <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
                         </div>
                         <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                        <p className="text-sm text-slate-500 mt-1">{item.dimName}</p>
+                        <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
                       </div>
                     </div>
                   ))}
@@ -8285,9 +8290,9 @@ export default function ExportReportPage() {
                         <div className="flex-1">
                           <h4 className="font-bold text-white text-lg">Quick Wins</h4>
                           {editMode ? (
-                            <input type="text" value={customRoadmapTimeframes.phase1 || '0-3 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-cyan-400/50 text-white border border-cyan-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                            <input type="text" value={customRoadmapTimeframes.phase1 || 'Phase 1'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase1: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-cyan-400/50 text-white border border-cyan-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
                           ) : (
-                            <p className="text-cyan-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                            <p className="text-cyan-100 text-sm">{customRoadmapTimeframes.phase1 || 'Phase 1'}</p>
                           )}
                         </div>
                       </div>
@@ -8332,9 +8337,9 @@ export default function ExportReportPage() {
                         <div className="flex-1">
                           <h4 className="font-bold text-white text-lg">Foundation Building</h4>
                           {editMode ? (
-                            <input type="text" value={customRoadmapTimeframes.phase2 || '3-12 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-blue-400/50 text-white border border-blue-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                            <input type="text" value={customRoadmapTimeframes.phase2 || 'Phase 2'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase2: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-blue-400/50 text-white border border-blue-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
                           ) : (
-                            <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
+                            <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || 'Phase 2'}</p>
                           )}
                         </div>
                       </div>
@@ -8379,9 +8384,9 @@ export default function ExportReportPage() {
                         <div className="flex-1">
                           <h4 className="font-bold text-white text-lg">Excellence</h4>
                           {editMode ? (
-                            <input type="text" value={customRoadmapTimeframes.phase3 || '12-18 months'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-violet-400/50 text-white border border-violet-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
+                            <input type="text" value={customRoadmapTimeframes.phase3 || 'Phase 3'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-violet-400/50 text-white border border-violet-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
                           ) : (
-                            <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || '12-18 months'}</p>
+                            <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || 'Phase 3'}</p>
                           )}
                         </div>
                       </div>
@@ -8993,6 +8998,8 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                         <div className="text-right">
+                          <p className="text-slate-400 text-sm font-medium">Prepared for</p>
+                          <p className="text-white font-semibold text-lg mb-3">{companyName || 'Your Organization'}</p>
                           <p className="text-slate-400 text-sm font-medium">Report Date</p>
                           <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
@@ -10732,7 +10739,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                            <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} dimensions at Leading or above</p>
+                            <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
@@ -10783,7 +10790,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                            <p className="text-slate-300 mt-0.5 text-sm">Dimensions with improvement potential</p>
+                            <p className="text-slate-300 mt-0.5 text-sm">{Math.min(allDimensionsByScore.length, 6)} {Math.min(allDimensionsByScore.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
@@ -10858,7 +10865,7 @@ export default function ExportReportPage() {
                                 <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
                               </div>
                               <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                              <p className="text-sm text-slate-500 mt-1">{item.dimName}</p>
+                              <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
                             </div>
                           </div>
                         ))}
@@ -11641,7 +11648,7 @@ export default function ExportReportPage() {
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-bold text-white text-lg">Quick Wins</h4>
-                                <p className="text-cyan-100 text-sm">{customRoadmapTimeframes.phase1 || '0-3 months'}</p>
+                                <p className="text-cyan-100 text-sm">{customRoadmapTimeframes.phase1 || 'Phase 1'}</p>
                               </div>
                             </div>
                           </div>
@@ -11675,7 +11682,7 @@ export default function ExportReportPage() {
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-bold text-white text-lg">Foundation Building</h4>
-                                <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || '3-12 months'}</p>
+                                <p className="text-blue-100 text-sm">{customRoadmapTimeframes.phase2 || 'Phase 2'}</p>
                               </div>
                             </div>
                           </div>
@@ -11709,7 +11716,7 @@ export default function ExportReportPage() {
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-bold text-white text-lg">Excellence</h4>
-                                <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || '12-18 months'}</p>
+                                <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || 'Phase 3'}</p>
                               </div>
                             </div>
                           </div>
