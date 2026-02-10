@@ -3005,16 +3005,20 @@ export default function AdminDashboard() {
   const [invoiceAssessment, setInvoiceAssessment] = useState<ProcessedAssessment | null>(null)
 
   useEffect(() => {
+    console.log('🔵 AdminDashboard mounted - calling fetchAssessments')
     fetchAssessments()
   }, [])
 
   const fetchAssessments = async () => {
+    console.log('🔵 fetchAssessments started')
     try {
       // Direct Supabase query (requires "Anon can read all assessments" policy)
       const { data, error } = await supabase
         .from('assessments')
         .select('*')
         .order('created_at', { ascending: false })
+
+      console.log('🔵 Supabase response:', { count: data?.length, error })
 
       if (error) throw error
 
