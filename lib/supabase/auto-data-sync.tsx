@@ -108,12 +108,19 @@ function isHydrating(): boolean {
 
 const CONFLICT_TTL_MS = 5 * 60 * 1000;  // 5 minutes TTL for conflict flags
 
+function safeIdKey(): string {
+  const idKey = getIdKey();
+  return isKnownIdKey(idKey) ? idKey : 'legacy';
+}
+
 function getConflictKey(): string {
-  return `version_conflict_${getIdKey()}`;
+  const idKey = safeIdKey();
+  return idKey === 'legacy' ? 'version_conflict' : `version_conflict_${idKey}`;
 }
 
 function getDirtyKey(): string {
-  return `dirty_${getIdKey()}`;
+  const idKey = safeIdKey();
+  return idKey === 'legacy' ? 'dirty' : `dirty_${idKey}`;
 }
 
 // Mark local data as dirty (unsynced changes exist)
@@ -125,13 +132,13 @@ export function markDirty(reason?: string): void {
 // Clear dirty flag (after successful sync)
 export function clearDirty(): void {
   localStorage.removeItem(getDirtyKey());
+  localStorage.removeItem('dirty'); // migration safety
 }
 
 // Check if there are unsynced local changes
 export function isDirty(): boolean {
-  const data = localStorage.getItem(getDirtyKey());
+  const data = localStorage.getItem(getDirtyKey()) || localStorage.getItem('dirty');
   if (!data) return false;
-  // Handle both old format ('1') and new format (JSON)
   if (data === '1') return true;
   try {
     const parsed = JSON.parse(data);
@@ -756,6 +763,7 @@ export default function AutoDataSync() {
     ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
   ])
   
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const doSync = useCallback(async (reason: string) => {
     if (syncInProgress.current) return
     if (hasConflict()) {
@@ -854,22 +862,29 @@ export default function AutoDataSync() {
     const originalProtoSetItem = Storage.prototype.setItem;
     const originalInstanceSetItem = localStorage.setItem; // may be native/bound in some browsers
     
-    // 1) Patch Storage.prototype.setItem (catches Storage.prototype.setItem.call(localStorage,...))
-    Storage.prototype.setItem = wrapSetItem(originalProtoSetItem, 'proto');
-    
-    // 2) Patch localStorage.setItem directly (catches direct localStorage.setItem(...))
-    // Use a wrapper that delegates back to whatever localStorage.setItem was originally
-    // (but called with correct `this`)
-    localStorage.setItem = wrapSetItem(function (this: Storage, key: string, value: string) {
-      return originalInstanceSetItem.call(this, key, value);
-    }, 'instance') as any;
-    
-    console.log('✅ Dual localStorage patch installed (proto + instance)');
+    // Wrap patching in try/catch - some browsers restrict modifying localStorage.setItem
+    try {
+      // 1) Patch Storage.prototype.setItem (catches Storage.prototype.setItem.call(localStorage,...))
+      Storage.prototype.setItem = wrapSetItem(originalProtoSetItem, 'proto');
+      
+      // 2) Patch localStorage.setItem directly (catches direct localStorage.setItem(...))
+      localStorage.setItem = wrapSetItem(function (this: Storage, key: string, value: string) {
+        return originalInstanceSetItem.call(this, key, value);
+      }, 'instance') as any;
+      
+      console.log('✅ Dual localStorage patch installed (proto + instance)');
+    } catch (e) {
+      console.error('❌ Failed to patch localStorage.setItem (browser restriction)', e);
+    }
     
     return () => {
       // Restore originals
-      Storage.prototype.setItem = originalProtoSetItem;
-      localStorage.setItem = originalInstanceSetItem as any;
+      try {
+        Storage.prototype.setItem = originalProtoSetItem;
+        localStorage.setItem = originalInstanceSetItem as any;
+      } catch (e) {
+        // ignore restore errors
+      }
       (window as any).__LS_PATCHED = false;
       if (syncTimeout) clearTimeout(syncTimeout);
     };
