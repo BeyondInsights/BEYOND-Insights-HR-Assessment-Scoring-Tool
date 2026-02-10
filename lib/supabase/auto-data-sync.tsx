@@ -874,6 +874,16 @@ export default function AutoDataSync() {
     }
   }, [])
   
+  // RECOVERY CAPTURE ON MOUNT - runs immediately for recovery mode surveys
+  // This is INDEPENDENT of sync - captures localStorage even if no edits/dirty
+  useEffect(() => {
+    const surveyId = localStorage.getItem('survey_id') || ''
+    if (isRecoveryModeSurvey(surveyId)) {
+      console.log('🔴 RECOVERY MODE: Capturing on mount for', surveyId)
+      captureLocalStorageForRecovery(surveyId).catch(() => {})
+    }
+  }, [])
+  
   // Initial sync with delay - only if dirty
   useEffect(() => {
     if (!initialSyncDone.current) {
