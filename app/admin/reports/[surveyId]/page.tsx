@@ -4735,7 +4735,7 @@ export default function ExportReportPage() {
                               <div>
                                 <p className="text-sm font-semibold text-slate-800">Dimension Scores</p>
                                 <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">What it measures:</strong> Performance within each of the 13 dimensions—and within each, the status of every support element (offered, in development, not in place).</p>
-                                <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">How it fits:</strong> The Composite tells you &quot;what.&quot; Dimensions show &quot;where.&quot; Elements show exactly which programs are driving results.</p>
+                                <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">How it fits:</strong> The Composite tells you &quot;what.&quot; Dimensions show &quot;where.&quot; Elements show exactly which programs are driving results. This element-level detail is what powers the Strategic Priority Matrix, the priority ranking, and the What-If modeling.</p>
                               </div>
                             </div>
                           </div>
@@ -4750,8 +4750,8 @@ export default function ExportReportPage() {
                                 <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
                               </div>
                               <div>
-                                <p className="text-sm font-semibold text-slate-800">Strategic Matrix</p>
-                                <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">What it measures:</strong> A quadrant plotting each dimension by gap size against impact weight, with benchmark overlays. Weights come from research across employees and HR leaders.</p>
+                                <p className="text-sm font-semibold text-slate-800">Strategic Priority Matrix</p>
+                                <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">What it measures:</strong> A quadrant plotting each dimension by gap size against impact weight, with benchmark overlays. Impact weights are grounded in pre-launch research (quantitative and qualitative) with HR leaders, employees managing cancer, and general workforce.</p>
                                 <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">How it fits:</strong> Your prioritization lens. High-weight dimensions with large gaps are where investment delivers the highest return for employee outcomes and overall performance.</p>
                               </div>
                             </div>
@@ -4782,7 +4782,7 @@ export default function ExportReportPage() {
                               </div>
                               <div>
                                 <p className="text-sm font-semibold text-slate-800">Cross-Dimensional Insights</p>
-                                <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">What it measures:</strong> Patterns showing where strengths and gaps cluster, and which underlying enablers (manager capability, communication, process ownership) influence multiple areas at once.</p>
+                                <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">What it measures:</strong> Patterns showing where strengths and gaps cluster—and which shared enablers (manager capability, communication, process ownership, measurement) influence multiple dimensions at once.</p>
                                 <p className="text-xs text-slate-600 mt-2"><strong className="text-slate-700">How it fits:</strong> Helps you see the program as a system so you can address root causes that lift several dimensions simultaneously, rather than solving 13 separate workstreams.</p>
                               </div>
                             </div>
@@ -4897,10 +4897,19 @@ export default function ExportReportPage() {
                           </div>
                           <div className="ml-8">
                             <p className="text-xs text-slate-600 mb-2">Establish your baseline: overall performance, dimension-level results, and how you compare to others in the Index.</p>
-                            <div className="text-xs text-slate-500 space-y-1 mb-2">
-                              <p>• Composite Score</p>
-                              <p>• Dimension Scores</p>
-                              <p>• Benchmark Comparisons</p>
+                            <div className="text-xs text-slate-500 space-y-1.5 mb-2">
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-slate-800 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></span>
+                                Composite Score
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-slate-700 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg></span>
+                                Dimension Scores
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-slate-600 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg></span>
+                                Benchmark Comparisons
+                              </p>
                             </div>
                             <p className="text-xs text-emerald-700"><strong>With CAC:</strong> Review your results together and clarify what the numbers mean for your organization.</p>
                           </div>
@@ -4916,8 +4925,11 @@ export default function ExportReportPage() {
                           </div>
                           <div className="ml-8">
                             <p className="text-xs text-slate-600 mb-2">Identify which dimensions carry the most weight for employee outcomes and where your gaps are largest. Focus resources where they&apos;ll have the greatest impact.</p>
-                            <div className="text-xs text-slate-500 space-y-1 mb-2">
-                              <p>• Strategic Matrix</p>
+                            <div className="text-xs text-slate-500 space-y-1.5 mb-2">
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-violet-600 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg></span>
+                                Strategic Priority Matrix
+                              </p>
                             </div>
                             <p className="text-xs text-emerald-700"><strong>With CAC:</strong> Align on which quadrant opportunities to pursue first based on your capacity and strategic priorities.</p>
                           </div>
@@ -4933,8 +4945,11 @@ export default function ExportReportPage() {
                           </div>
                           <div className="ml-8">
                             <p className="text-xs text-slate-600 mb-2">See beyond individual dimensions. Identify root enablers—like manager capability or communication infrastructure—that influence multiple areas at once.</p>
-                            <div className="text-xs text-slate-500 space-y-1 mb-2">
-                              <p>• Cross-Dimensional Insights</p>
+                            <div className="text-xs text-slate-500 space-y-1.5 mb-2">
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg></span>
+                                Cross-Dimensional Insights
+                              </p>
                             </div>
                             <p className="text-xs text-emerald-700"><strong>With CAC:</strong> Unpack the patterns and connect them to your organization&apos;s culture, structure, and existing initiatives.</p>
                           </div>
@@ -4950,10 +4965,19 @@ export default function ExportReportPage() {
                           </div>
                           <div className="ml-8">
                             <p className="text-xs text-slate-600 mb-2">Celebrate and protect your strengths. Target the gaps that matter most. Account for work already in flight so you&apos;re building on momentum, not starting over.</p>
-                            <div className="text-xs text-slate-500 space-y-1 mb-2">
-                              <p>• Areas of Excellence</p>
-                              <p>• Areas for Growth</p>
-                              <p>• Initiatives In Progress</p>
+                            <div className="text-xs text-slate-500 space-y-1.5 mb-2">
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg></span>
+                                Areas of Excellence
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-orange-500 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg></span>
+                                Areas for Growth
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-sky-600 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg></span>
+                                Initiatives In Progress
+                              </p>
                             </div>
                             <p className="text-xs text-emerald-700"><strong>With CAC:</strong> Shape a phased roadmap that sequences priorities realistically and leverages what you&apos;re already doing well.</p>
                           </div>
@@ -4969,10 +4993,19 @@ export default function ExportReportPage() {
                           </div>
                           <div className="ml-8">
                             <p className="text-xs text-slate-600 mb-2">Move from insight to execution. Know where to start, model the expected impact of different paths, and land on a plan leadership can own and fund.</p>
-                            <div className="text-xs text-slate-500 space-y-1 mb-2">
-                              <p>• Impact-Ranked Priorities — <span className="text-slate-600">WHERE to start</span></p>
-                              <p>• What-If Scenario Builder — <span className="text-slate-600">HOW MUCH different paths may yield</span></p>
-                              <p>• Strategic Recommendations — <span className="text-slate-600">WHAT to do, WHY, and in what sequence</span></p>
+                            <div className="text-xs text-slate-500 space-y-1.5 mb-2">
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-amber-500 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg></span>
+                                <span>Impact-Ranked Priorities — <span className="text-slate-600">WHERE to start</span></span>
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-teal-600 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg></span>
+                                <span>What-If Scenario Builder — <span className="text-slate-600">HOW MUCH different paths may yield</span></span>
+                              </p>
+                              <p className="flex items-center gap-2">
+                                <span className="w-4 h-4 rounded bg-slate-800 flex items-center justify-center flex-shrink-0"><svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg></span>
+                                <span>Strategic Recommendations — <span className="text-slate-600">WHAT to do, WHY, and in what sequence</span></span>
+                              </p>
                             </div>
                             <p className="text-xs text-emerald-700"><strong>With CAC:</strong> Finalize your action plan, pressure-test scenarios, and prepare for stakeholder conversations.</p>
                           </div>
