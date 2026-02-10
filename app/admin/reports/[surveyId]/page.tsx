@@ -4729,7 +4729,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-3 text-left pl-2">
                               <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against peers.</p>
-                              <div className="mt-5 space-y-1.5 h-[4.5rem]">
+                              <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
@@ -4766,7 +4766,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-3 text-left pl-2">
                               <p className="text-sm text-slate-500 leading-relaxed h-20">Use the <strong className="text-slate-600">Strategic Priority Matrix</strong> to identify where investment delivers the <strong className="text-slate-600">greatest return</strong>.</p>
-                              <div className="mt-5 space-y-1.5 h-[4.5rem]">
+                              <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
@@ -4793,7 +4793,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-3 text-left pl-2">
                               <p className="text-sm text-slate-500 leading-relaxed h-20">See how strengths and gaps <strong className="text-slate-600">cluster</strong>. Address <strong className="text-slate-600">root causes</strong> that influence multiple areas.</p>
-                              <div className="mt-5 space-y-1.5 h-[4.5rem]">
+                              <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
@@ -4863,7 +4863,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-3 text-left pl-2">
                               <p className="text-sm text-slate-500 leading-relaxed h-20">Model <strong className="text-slate-600">scenarios</strong>, finalize <strong className="text-slate-600">priorities</strong>, and land on a plan leadership can <strong className="text-slate-600">fund and execute</strong>.</p>
-                              <div className="mt-5 space-y-1.5 h-[4.5rem]">
+                              <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-amber-500 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
