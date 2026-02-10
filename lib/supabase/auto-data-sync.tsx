@@ -864,7 +864,7 @@ export default function AutoDataSync() {
   
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (!hasConflict()) {
+      if (!hasConflict() && isDirty()) {
         syncToSupabase()
       }
     }
