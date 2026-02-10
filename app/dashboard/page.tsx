@@ -102,13 +102,8 @@ export default function DashboardPage() {
         let genProg = 0;
         let curProg = 0;
         
-        // Helper to check if section has substantial data
-        const hasSubstantialData = (data: any, minFields: number = 3): boolean => {
-          return data && typeof data === 'object' && Object.keys(data).length >= minFields;
-        };
-        
-        // Firmographics: use flag OR data presence
-        if (firmComplete || hasSubstantialData(firmo, 5)) {
+        // Firmographics: ONLY use flag for 100%
+        if (firmComplete) {
           firmProg = 100;
         } else {
           const firmCount = firmRequired.filter(field => {
@@ -120,8 +115,8 @@ export default function DashboardPage() {
           firmProg = Math.round((firmCount / firmRequired.length) * 100);
         }
         
-        // General Benefits: use flag OR data presence
-        if (genComplete || hasSubstantialData(general, 3)) {
+        // General Benefits: ONLY use flag for 100%
+        if (genComplete) {
           genProg = 100;
         } else if (general && Object.keys(general).length > 0) {
           const genCount = genRequired.filter(field => {
@@ -133,8 +128,8 @@ export default function DashboardPage() {
           genProg = Math.round((genCount / genRequired.length) * 100);
         }
         
-        // Current Support: use flag OR data presence
-        if (curComplete || hasSubstantialData(current, 3)) {
+        // Current Support: ONLY use flag for 100%
+        if (curComplete) {
           curProg = 100;
         } else if (current && Object.keys(current).length > 0) {
           const curCount = curRequired.filter(field => {
@@ -161,8 +156,8 @@ export default function DashboardPage() {
         let empImpactProg = 0;
         let crossDimProg = 0;
         
-        // Employee Impact: use flag OR data presence
-        if (empImpactComplete || hasSubstantialData(empImpact, 2)) {
+        // Employee Impact: ONLY use flag for 100%
+        if (empImpactComplete) {
           empImpactProg = 100;
         } else {
           let completedSteps = 0;
@@ -178,8 +173,8 @@ export default function DashboardPage() {
           empImpactProg = Math.round((completedSteps / 4) * 100);
         }
         
-        // Cross-Dimensional: use flag OR data presence
-        if (crossDimComplete || hasSubstantialData(crossDim, 2)) {
+        // Cross-Dimensional: ONLY use flag for 100%
+        if (crossDimComplete) {
           crossDimProg = 100;
         } else {
           const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0;
