@@ -4727,8 +4727,13 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Diagnose</p>
-                              <p className="text-sm text-slate-600 mt-1">Where do we stand?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">Where do we stand?</p>
                               <p className="text-sm text-slate-500 mt-3 leading-relaxed">Establish your baseline with composite and dimension scores, benchmarked against peers.</p>
+                              <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Composite Score</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Dimension Scores</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">Benchmarks</span>
+                              </div>
                             </div>
                           </div>
                           
@@ -4741,8 +4746,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Prioritize</p>
-                              <p className="text-sm text-slate-600 mt-1">What matters most?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">What matters most?</p>
                               <p className="text-sm text-slate-500 mt-3 leading-relaxed">Use the Strategic Matrix to identify where investment delivers the greatest return.</p>
+                              <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 border border-violet-200">Strategic Matrix</span>
+                              </div>
                             </div>
                           </div>
                           
@@ -4755,8 +4763,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Understand</p>
-                              <p className="text-sm text-slate-600 mt-1">Why do patterns emerge?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">Why do patterns emerge?</p>
                               <p className="text-sm text-slate-500 mt-3 leading-relaxed">See how strengths and gaps cluster. Address root causes that influence multiple areas.</p>
+                              <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">Cross-Dimensional Insights</span>
+                              </div>
                             </div>
                           </div>
                           
@@ -4769,8 +4780,13 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Build</p>
-                              <p className="text-sm text-slate-600 mt-1">What&apos;s our roadmap?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">What&apos;s our roadmap?</p>
                               <p className="text-sm text-slate-500 mt-3 leading-relaxed">Protect strengths, target high-impact gaps, and build on work already underway.</p>
+                              <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">Areas of Excellence</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 border border-orange-200">Areas for Growth</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-sky-100 text-sky-700 border border-sky-200">Initiatives In Progress</span>
+                              </div>
                             </div>
                           </div>
                           
@@ -4783,8 +4799,13 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Act</p>
-                              <p className="text-sm text-slate-600 mt-1">What&apos;s our plan?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">What&apos;s our plan?</p>
                               <p className="text-sm text-slate-500 mt-3 leading-relaxed">Model scenarios, finalize priorities, and land on a plan leadership can fund and execute.</p>
+                              <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">Impact-Ranked Priorities</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 border border-teal-200">What-If Scenarios</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">Strategic Recommendations</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -4793,9 +4814,7 @@ export default function ExportReportPage() {
                       {/* CAC Partnership Note */}
                       <div className="mt-10 p-5 bg-emerald-50 rounded-xl border border-emerald-200">
                         <div className="flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
-                            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                          </div>
+                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={60} height={60} className="object-contain flex-shrink-0" />
                           <div>
                             <p className="text-base font-semibold text-emerald-800">Work with Cancer and Careers at every stage</p>
                             <p className="text-sm text-emerald-700 mt-1">From interpreting your results to pressure-testing your roadmap, our team partners with you to turn insights into outcomes.</p>
