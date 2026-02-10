@@ -2687,7 +2687,7 @@ export default function ExportReportPage() {
   const [customAdditionalDimInsights, setCustomAdditionalDimInsights] = useState<Record<number, { insight: string; roadmapQuickWin: string; roadmapStrategic: string; cacHelp: string }>>({});
   
   // Computed total slides - base 35 + any additional dimension deep dives
-  const totalSlides = 40 + additionalAnalyzedDims.length;
+  const totalSlides = 39 + additionalAnalyzedDims.length;
   
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
@@ -2808,25 +2808,24 @@ export default function ExportReportPage() {
       2: 'Understanding Your Composite Score',
       3: 'The 13 Dimensions',
       4: 'How to Use This Report',
-      5: 'Understanding Report Sections',
-      6: 'Executive Summary',
-      7: 'Dimension Performance'
+      5: 'Executive Summary',
+      6: 'Dimension Performance'
     };
-    // Dimension deep dives: slides 8-20
-    for (let i = 8; i <= 20; i++) slideNames[i] = `Dimension ${i - 7} Deep Dive`;
-    // Strategic content: slides 21-32
-    for (let i = 21; i <= 32; i++) slideNames[i] = `Strategic Content ${i - 20}`;
-    // Additional analyzed dimensions: slides 33 to 33+addDimCount-1
+    // Dimension deep dives: slides 7-19
+    for (let i = 7; i <= 19; i++) slideNames[i] = `Dimension ${i - 6} Deep Dive`;
+    // Strategic content: slides 20-31
+    for (let i = 20; i <= 31; i++) slideNames[i] = `Strategic Content ${i - 19}`;
+    // Additional analyzed dimensions: slides 32 to 32+addDimCount-1
     for (let i = 0; i < addDimCount; i++) {
       const dimNum = additionalAnalyzedDims[i];
-      slideNames[33 + i] = `Additional Analysis: Dimension ${dimNum}`;
+      slideNames[32 + i] = `Additional Analysis: Dimension ${dimNum}`;
     }
     // Final slides (shifted by addDimCount)
-    slideNames[33 + addDimCount] = 'Implementation Roadmap';
-    slideNames[34 + addDimCount] = 'Working with Cancer Pledge';
-    slideNames[35 + addDimCount] = 'How CAC Can Help';
-    slideNames[36 + addDimCount] = 'Thank You';
-    slideNames[37 + addDimCount] = 'Methodology';
+    slideNames[32 + addDimCount] = 'Implementation Roadmap';
+    slideNames[33 + addDimCount] = 'Working with Cancer Pledge';
+    slideNames[34 + addDimCount] = 'How CAC Can Help';
+    slideNames[35 + addDimCount] = 'Thank You';
+    slideNames[36 + addDimCount] = 'Methodology';
     
     const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
     const noteKey = `slide_${slideNum}`;
@@ -2838,35 +2837,34 @@ export default function ExportReportPage() {
       2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
       3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
       4: 'Walk through the four-step workflow: Confirm, then Prioritize, then Plan, then Track. Explain that items marked "Needs confirmation" are the first unlock because they are scored as Not Planned until verified. Focus attention on high-weight gaps first since small changes there move the overall score fastest.',
-      5: 'Walk through how the report sections connect: from diagnosis (scores and benchmarks) to patterns (cross-dimensional) to action (strategic recommendations, priorities, and what-if scenarios). Help the audience understand the story arc so they can navigate the report effectively.',
-      6: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
-      7: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
-      21: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
-      22: 'Use this slide to calibrate ambition by comparing to benchmarks. Ask whether they are behind peers because of policy gaps, execution issues, or awareness problems. Benchmarks should be used to set realistic targets, not to chase vanity scores. Help them distinguish between quick parity moves and true differentiator investments.',
-      23: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
-      24: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
-      25: 'This slide builds stakeholder buy-in by showing real strengths. Celebrate what is working and ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer.',
-      26: 'The message here is that improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Frame gaps as opportunities, not failures. Encourage momentum by suggesting they pick a ladder step and commit to moving it this cycle.',
-      27: 'These initiatives represent momentum - work already underway. Confirm timelines and owners for each initiative. Ask what is blocking completion and how can we accelerate. Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve.',
-      28: 'Introduce the strategic recommendations framework. These are tailored based on assessment findings. Each recommendation ties to specific dimension gaps. Set up the audience for the detailed recommendations that follow.',
-      29: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming the uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
-      30: 'Continue with the second recommendation. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
-      31: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
-      32: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
+      5: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
+      6: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
+      20: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
+      21: 'Use this slide to calibrate ambition by comparing to benchmarks. Ask whether they are behind peers because of policy gaps, execution issues, or awareness problems. Benchmarks should be used to set realistic targets, not to chase vanity scores. Help them distinguish between quick parity moves and true differentiator investments.',
+      22: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
+      23: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
+      24: 'This slide builds stakeholder buy-in by showing real strengths. Celebrate what is working and ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer.',
+      25: 'The message here is that improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Frame gaps as opportunities, not failures. Encourage momentum by suggesting they pick a ladder step and commit to moving it this cycle.',
+      26: 'These initiatives represent momentum - work already underway. Confirm timelines and owners for each initiative. Ask what is blocking completion and how can we accelerate. Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve.',
+      27: 'Introduce the strategic recommendations framework. These are tailored based on assessment findings. Each recommendation ties to specific dimension gaps. Set up the audience for the detailed recommendations that follow.',
+      28: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming the uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
+      29: 'Continue with the second recommendation. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
+      30: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
+      31: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
     };
-    // Additional analyzed dimensions get notes (slides 33 to 33+addDimCount-1)
+    // Additional analyzed dimensions get notes (slides 32 to 32+addDimCount-1)
     for (let i = 0; i < addDimCount; i++) {
-      defaultNotes[33 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
+      defaultNotes[32 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
     }
     // Final slides (shifted by addDimCount)
-    defaultNotes[33 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
-    defaultNotes[34 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
-    defaultNotes[35 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
-    defaultNotes[36 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
-    defaultNotes[37 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
+    defaultNotes[32 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
+    defaultNotes[33 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
+    defaultNotes[34 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
+    defaultNotes[35 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
+    defaultNotes[36 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
     
-    // Default notes for dimension deep dive slides (8-20) - flowing prose template
-    for (let i = 8; i <= 20; i++) {
+    // Default notes for dimension deep dive slides (7-19) - flowing prose template
+    for (let i = 7; i <= 19; i++) {
       defaultNotes[i] = 'Start with the outcome this dimension determines by explaining what employees can or cannot do when support is present or absent. Walk through the element breakdown where green items are strengths to protect and communicate, blue items show momentum on initiatives in progress, and red gaps are opportunities to discuss. Use the benchmark to calibrate where peers typically are and what a realistic next step looks like. End with a clear action by identifying who owns this, what the 30-60 day next step is, and what done looks like.';
     }
     
@@ -4713,7 +4711,7 @@ export default function ExportReportPage() {
                         The action sections serve different purposes: strategy, sequencing, and planning. So you can move from insight to decisions without guesswork.
                       </p>
                       
-                      {/* Section Grid - 2 columns, 5 rows = 10 items in report order */}
+                      {/* Section Grid - 2x5 in report order */}
                       <div className="grid grid-cols-2 gap-3 mb-6">
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
@@ -4723,7 +4721,7 @@ export default function ExportReportPage() {
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Composite Score</p>
                               <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Overall maturity and completeness of your workplace cancer support program.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot; It summarizes performance across all dimensions and sets context for everything that follows.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot;</p>
                             </div>
                           </div>
                         </div>
@@ -4735,8 +4733,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Dimension Scores</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Strength and maturity within each of the 13 dimensions of workplace cancer support.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Answers &quot;where are we strong vs. where are we exposed?&quot; Dimension results reveal the specific areas driving your overall score.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Strength within each of the 13 dimensions.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Where are we strong vs. exposed?</p>
                             </div>
                           </div>
                         </div>
@@ -4748,8 +4746,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Benchmark Comparisons</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> How your Composite and Dimension results compare with peer organizations in the Index.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Adds context: &quot;Are our scores typical, leading, or lagging?&quot; Helps you set realistic targets and understand what &quot;good&quot; looks like.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> How you compare with peer organizations.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Are we typical, leading, or lagging?</p>
                             </div>
                           </div>
                         </div>
@@ -4761,8 +4759,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Cross-Dimensional Insights</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Themes that cut across dimensions: systemic strengths, recurring gaps, and patterns that influence multiple areas.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> The bridge from diagnosis to strategy. Shows which underlying capabilities will lift performance across several dimensions simultaneously.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Patterns that cut across multiple dimensions.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Bridge from diagnosis to strategy.</p>
                             </div>
                           </div>
                         </div>
@@ -4774,8 +4772,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Areas of Excellence</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Your highest-performing dimensions and standout elements.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Clarifies what to protect and amplify. These are your proof points for internal storytelling and employer brand.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Your highest-performing dimensions.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> What to protect and amplify.</p>
                             </div>
                           </div>
                         </div>
@@ -4787,8 +4785,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Areas for Growth</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The largest gaps relative to peers and/or relative to your own internal balance.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Identifies where investment is most likely to improve outcomes. Starts converting insights into focus areas.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Largest gaps relative to peers.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Where investment improves outcomes.</p>
                             </div>
                           </div>
                         </div>
@@ -4800,8 +4798,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Initiatives In Progress</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Programs and practices you&apos;re actively building or expanding.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Shows momentum and helps prioritize. Ensures recommendations build on what&apos;s already underway.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Programs you&apos;re actively building.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Shows momentum already underway.</p>
                             </div>
                           </div>
                         </div>
@@ -4813,8 +4811,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Strategic Recommendations</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The &quot;so what&quot;: strategic moves that will most effectively strengthen your overall program.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Executive summary of your improvement strategy, grounded in cross-dimensional patterns and biggest leverage points.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> High-leverage strategic moves.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Executive summary of improvement strategy.</p>
                             </div>
                           </div>
                         </div>
@@ -4826,8 +4824,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Impact-Ranked Priorities</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> A sequenced action roadmap, ranked by expected impact on outcomes and score improvement.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Converts strategy into execution. This is your &quot;what to do next&quot; list: clear, ordered, and practical.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Sequenced action roadmap by impact.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your &quot;what to do next&quot; list.</p>
                             </div>
                           </div>
                         </div>
@@ -4839,8 +4837,8 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">What-If Scenario Builder</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The estimated effect of specific improvements on future scores and maturity.</p>
-                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Turns planning into decision support. Use it to test options, build a business case, and agree on a path forward.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Estimated effect of improvements.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Test options, build business case.</p>
                             </div>
                           </div>
                         </div>
@@ -4849,56 +4847,40 @@ export default function ExportReportPage() {
                       {/* Story Arc */}
                       <div className="bg-white rounded-lg border border-emerald-200 p-5">
                         <p className="text-sm font-semibold text-slate-800 mb-4">The Story Arc: How It All Weaves Together</p>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-white">1</span>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-slate-800">Where are we today?</p>
-                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Composite Score → Dimension Scores → Benchmark Comparisons.</strong> You start with your overall position, then see how it breaks down by dimension, then understand what it means relative to peers.</p>
-                            </div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Where are we today?</strong> Composite Score → Dimension Scores → Benchmark Comparisons</p>
                           </div>
                           <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-white">2</span>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-slate-800">What&apos;s driving our performance?</p>
-                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Cross-Dimensional Insights.</strong> You identify system-level patterns that explain why multiple dimensions are strong or weak: the underlying capabilities that matter most.</p>
-                            </div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">What&apos;s driving performance?</strong> Cross-Dimensional Insights reveal system-level patterns.</p>
                           </div>
                           <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-white">3</span>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-slate-800">What should we celebrate and protect?</p>
-                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Areas of Excellence.</strong> You highlight what&apos;s working and preserve your strongest foundations.</p>
-                            </div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">What&apos;s working?</strong> Areas of Excellence highlight what to protect.</p>
                           </div>
                           <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-white">4</span>
                             </div>
-                            <div>
-                              <p className="text-sm font-medium text-slate-800">Where are the biggest leverage points?</p>
-                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Areas for Growth + Initiatives In Progress.</strong> You focus on gaps that matter most while accounting for momentum and ongoing work.</p>
-                            </div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Where are the leverage points?</strong> Areas for Growth + Initiatives In Progress.</p>
                           </div>
                           <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0">
                               <span className="text-xs font-bold text-white">5</span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-slate-800">What should we do next?</p>
-                              <p className="text-xs text-slate-600 mb-2">Three tools work together, each serving a distinct purpose:</p>
-                              <ul className="text-xs text-slate-600 space-y-1 ml-1">
-                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Strategic Recommendations</strong> tell you what matters most and why. The few high-leverage moves that address cross-dimensional patterns.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Impact-Ranked Priorities</strong> translate strategy into an ordered execution roadmap: what to tackle first, next, and later.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">What-If Scenario Builder</strong> is your planning tool. Test combinations, estimate impact, and align on a realistic path forward.</span></li>
-                              </ul>
-                              <p className="text-xs text-slate-700 mt-2 font-medium">How they work together: Strategy defines the &quot;bets,&quot; priorities define the &quot;sequence,&quot; and what-if modeling supports &quot;the plan and business case.&quot;</p>
+                              <p className="text-xs text-slate-600 mb-1"><strong className="text-slate-800">What should we do next?</strong> Three tools work together:</p>
+                              <p className="text-xs text-slate-600 ml-2">• <strong>Strategic Recommendations</strong> define the bets</p>
+                              <p className="text-xs text-slate-600 ml-2">• <strong>Impact-Ranked Priorities</strong> define the sequence</p>
+                              <p className="text-xs text-slate-600 ml-2">• <strong>What-If Scenario Builder</strong> supports the plan and business case</p>
                             </div>
                           </div>
                         </div>
@@ -4908,7 +4890,7 @@ export default function ExportReportPage() {
                     <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
                       <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                       <p className="text-sm text-slate-200">
-                        <strong className="text-white">Use these sections together</strong> to move from diagnosis to action. The report is designed for iterative use as you implement improvements and track progress over time.
+                        <strong className="text-white">Use these sections together</strong> to move from diagnosis to action.
                       </p>
                     </div>
                   </div>
@@ -7377,30 +7359,28 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
-          <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
-                      <path d="M9 14l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+          {quickWinOpportunities.length > 0 && (
+            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+              <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M9 14l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                      <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                    <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length > 0 ? `${quickWinOpportunities.length} programs currently in planning or under consideration` : 'Programs in planning or under consideration'}</p>
-                  </div>
-                </div>
-                {quickWinOpportunities.length > 0 && (
                   <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
                     <p className="text-white font-semibold">Fastest path to improvement</p>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
-            <div className="px-12 py-8">
-              {quickWinOpportunities.length > 0 ? (
+              <div className="px-12 py-8">
                 <div className="grid grid-cols-2 gap-5">
                   {quickWinOpportunities.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-violet-300 transition-all">
@@ -7421,30 +7401,9 @@ export default function ExportReportPage() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="bg-slate-50 rounded-xl border border-slate-200 p-8 text-center">
-                  <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-7 h-7 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <h4 className="font-semibold text-slate-800 text-lg mb-2">No Programs Currently In Progress</h4>
-                  <p className="text-slate-600 text-sm leading-relaxed max-w-xl mx-auto mb-4">
-                    No programs are currently marked as &quot;Planning&quot; or &quot;Assessing&quot; in your assessment responses.
-                  </p>
-                  <div className="bg-white rounded-lg border border-slate-200 p-5 max-w-lg mx-auto text-left">
-                    <p className="text-sm text-slate-700 mb-3">
-                      <strong className="text-slate-800">Your current status:</strong> Your organization is currently offering <span className="font-semibold text-emerald-700">{currentlyOffering}</span> programs across the 13 dimensions, with <span className="font-semibold text-slate-700">{gapItems}</span> programs marked as not feasible at this time.
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      Consider assessing the feasibility of programs not currently offered to identify opportunities for expanding your cancer support infrastructure. The <strong>Impact-Ranked Priorities</strong> section below can help identify where to focus.
-                    </p>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
-          </div>
-          
+          )}
           
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
@@ -9682,123 +9641,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 5: Understanding Your Report Sections */}
+                {/* Slide 5: Executive Summary + Key Findings */}
                 {currentSlide === 5 && (
-                  <div className="p-8 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
-                    {/* Header */}
-                    <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl mb-5">
-                      <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                      </div>
-                      <div className="text-left">
-                        <span className="text-sm font-bold text-slate-800">Understanding Your Report Sections</span>
-                        <span className="text-sm text-slate-600 ml-3 font-medium">How each section fits together</span>
-                      </div>
-                      <div className="ml-auto w-7 h-7 rounded-full bg-white border border-emerald-200 flex items-center justify-center rotate-180">
-                        <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200 rounded-xl overflow-hidden">
-                      <div className="p-5">
-                        <p className="text-xs text-slate-700 leading-relaxed mb-4">
-                          <strong className="text-slate-800">This report takes you from diagnosis to action.</strong> The action sections serve different purposes: strategy, sequencing, and planning. So you can move from insight to decisions without guesswork.
-                        </p>
-                        
-                        {/* Section Grid - 2x5 in report order */}
-                        <div className="grid grid-cols-2 gap-2 mb-4">
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Composite Score</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">Overall program maturity. Your headline number.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Dimension Scores</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">Strength within each of 13 dimensions.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Benchmark Comparisons</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">How you compare to peer organizations.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Cross-Dimensional Insights</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">System-level patterns across dimensions.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Areas of Excellence</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">What to protect and amplify.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Areas for Growth</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">Biggest gaps and opportunities.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Initiatives In Progress</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">Programs already underway.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Strategic Recommendations</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">High-leverage strategic moves.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">Impact-Ranked Priorities</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">Sequenced action roadmap.</p>
-                          </div>
-                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-800">What-If Scenario Builder</p>
-                            <p className="text-[10px] text-slate-600 mt-0.5">Model improvement scenarios.</p>
-                          </div>
-                        </div>
-                        
-                        {/* Story Arc */}
-                        <div className="bg-white rounded-lg border border-emerald-200 p-4">
-                          <p className="text-xs font-semibold text-slate-800 mb-3">The Story Arc: How It All Weaves Together</p>
-                          <div className="grid grid-cols-5 gap-3 text-center">
-                            <div>
-                              <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
-                                <span className="text-[10px] font-bold text-white">1</span>
-                              </div>
-                              <p className="text-[11px] text-slate-700 font-medium">Where are we?</p>
-                              <p className="text-[9px] text-slate-500">Scores + Benchmarks</p>
-                            </div>
-                            <div>
-                              <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
-                                <span className="text-[10px] font-bold text-white">2</span>
-                              </div>
-                              <p className="text-[11px] text-slate-700 font-medium">What&apos;s driving it?</p>
-                              <p className="text-[9px] text-slate-500">Cross-Dimensional</p>
-                            </div>
-                            <div>
-                              <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
-                                <span className="text-[10px] font-bold text-white">3</span>
-                              </div>
-                              <p className="text-[11px] text-slate-700 font-medium">What&apos;s working?</p>
-                              <p className="text-[9px] text-slate-500">Excellence Areas</p>
-                            </div>
-                            <div>
-                              <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
-                                <span className="text-[10px] font-bold text-white">4</span>
-                              </div>
-                              <p className="text-[11px] text-slate-700 font-medium">Where to focus?</p>
-                              <p className="text-[9px] text-slate-500">Growth + In Progress</p>
-                            </div>
-                            <div>
-                              <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
-                                <span className="text-[10px] font-bold text-white">5</span>
-                              </div>
-                              <p className="text-[11px] text-slate-700 font-medium">What to do?</p>
-                              <p className="text-[9px] text-slate-500">Strategy → Priorities → What-If</p>
-                            </div>
-                          </div>
-                          <p className="text-[10px] text-slate-600 mt-3 text-center italic">Strategy defines the &quot;bets&quot; → Priorities define the &quot;sequence&quot; → What-If supports &quot;the plan and business case&quot;</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Slide 6: Executive Summary + Key Findings */}
-                {currentSlide === 40 && (
                   <div className="overflow-hidden">
                     {/* Top section - Prepared For header */}
                     <div className="px-12 py-8 border-b border-slate-100">
@@ -9984,7 +9828,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 6: Dimension Performance Table */}
-                {currentSlide === 40 && (
+                {currentSlide === 6 && (
                   <div className="overflow-hidden">
                     {/* Dark dramatic header - matching main report */}
                     <div className="px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
@@ -10231,7 +10075,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 20: Strategic Matrix WITHOUT Benchmarks */}
-                {currentSlide === 40 && (
+                {currentSlide === 20 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -10386,7 +10230,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 21: Strategic Matrix WITH Benchmarks */}
-                {currentSlide === 40 && (
+                {currentSlide === 21 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -10585,7 +10429,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 22: Cross-Dimensional Insights - polished design */}
-                {currentSlide === 40 && (
+                {currentSlide === 22 && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* Header */}
                     <div className="px-10 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden flex-shrink-0">
@@ -10695,7 +10539,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 23: Impact-Ranked Priorities (Dims 1-3) */}
-                {currentSlide === 40 && (() => {
+                {currentSlide === 23 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -10963,7 +10807,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 24: Impact-Ranked Priorities (Dims 4-5) */}
-                {currentSlide === 40 && (() => {
+                {currentSlide === 24 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -11142,7 +10986,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 25: Areas of Excellence - exact match to report */}
-                {currentSlide === 40 && (
+                {currentSlide === 25 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
                       <div className="flex items-center justify-between">
@@ -11193,7 +11037,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 26: Areas for Growth - exact match to report */}
-                {currentSlide === 40 && (
+                {currentSlide === 26 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
                       <div className="flex items-center justify-between">
@@ -11242,7 +11086,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 27: Initiatives in Progress - exact match to report */}
-                {currentSlide === 40 && (
+                {currentSlide === 27 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                       <div className="flex items-center justify-between">
@@ -11255,65 +11099,41 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                            <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length > 0 ? `${quickWinOpportunities.length} programs currently in planning or under consideration` : 'Programs in planning or under consideration'}</p>
+                            <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
                           </div>
                         </div>
-                        {quickWinOpportunities.length > 0 && (
-                          <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
-                            <p className="text-white font-semibold">Fastest path to improvement</p>
-                          </div>
-                        )}
+                        <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
+                          <p className="text-white font-semibold">Fastest path to improvement</p>
+                        </div>
                       </div>
                     </div>
                     <div className="px-12 py-8">
-                      {quickWinOpportunities.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-5">
-                          {quickWinOpportunities.map((item: any, idx: number) => (
-                            <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200">
-                              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-violet-600' : 'bg-slate-600'}`}>
-                                {item.type === 'Planning' ? (
-                                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                                ) : (
-                                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                                </div>
-                                <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                                <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
-                              </div>
+                      <div className="grid grid-cols-2 gap-5">
+                        {quickWinOpportunities.map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200">
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-violet-600' : 'bg-slate-600'}`}>
+                              {item.type === 'Planning' ? (
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                              ) : (
+                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="bg-slate-50 rounded-xl border border-slate-200 p-8 text-center">
-                          <div className="w-14 h-14 rounded-full bg-violet-100 flex items-center justify-center mx-auto mb-4">
-                            <svg className="w-7 h-7 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
+                              </div>
+                              <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
+                              <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
+                            </div>
                           </div>
-                          <h4 className="font-semibold text-slate-800 text-lg mb-2">No Programs Currently In Progress</h4>
-                          <p className="text-slate-600 text-sm leading-relaxed max-w-xl mx-auto mb-4">
-                            No programs are currently marked as &quot;Planning&quot; or &quot;Assessing&quot; in your assessment responses.
-                          </p>
-                          <div className="bg-white rounded-lg border border-slate-200 p-5 max-w-lg mx-auto text-left">
-                            <p className="text-sm text-slate-700 mb-3">
-                              <strong className="text-slate-800">Your current status:</strong> Your organization is currently offering <span className="font-semibold text-emerald-700">{currentlyOffering}</span> programs across the 13 dimensions, with <span className="font-semibold text-slate-700">{gapItems}</span> programs marked as not feasible at this time.
-                            </p>
-                            <p className="text-sm text-slate-600">
-                              Consider assessing the feasibility of programs not currently offered to identify opportunities for expanding your cancer support infrastructure.
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
 
                 {/* Slide 28: Strategic Recommendations Setup - matches main report */}
-                {currentSlide === 40 && (
+                {currentSlide === 28 && (
                   <div className="overflow-hidden">
                     {/* Header with gradient and dot pattern */}
                     <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
@@ -11566,7 +11386,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 28: From Insight to Action */}
-                {currentSlide === 40 && (
+                {currentSlide === 29 && (
                   <div className="overflow-hidden">
                     <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-48 h-48 opacity-5">
@@ -13080,7 +12900,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 6 && (
                     <div>
                       <p className="mb-2"><strong>Dimension performance table:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13102,7 +12922,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 20 && (
                     <div>
                       <p className="mb-2"><strong>Strategic matrix (company view):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13112,7 +12932,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 21 && (
                     <div>
                       <p className="mb-2"><strong>Strategic matrix (with benchmarks):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13122,7 +12942,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 22 && (
                     <div>
                       <p className="mb-2"><strong>Cross-dimensional insights:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13132,7 +12952,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 23 && (
                     <div>
                       <p className="mb-2"><strong>Impact-ranked priorities (Dims 1-3):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13142,7 +12962,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 24 && (
                     <div>
                       <p className="mb-2"><strong>Impact-ranked priorities (Dims 4-5):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13152,7 +12972,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 25 && (
                     <div>
                       <p className="mb-2"><strong>Areas of excellence:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13162,7 +12982,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 26 && (
                     <div>
                       <p className="mb-2"><strong>Areas for growth:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13172,7 +12992,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 27 && (
                     <div>
                       <p className="mb-2"><strong>Initiatives in progress:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13182,7 +13002,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 40 && (
+                  {currentSlide === 28 && (
                     <div>
                       <p className="mb-2"><strong>Strategic recommendations intro:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
