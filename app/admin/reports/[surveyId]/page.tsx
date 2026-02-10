@@ -4711,124 +4711,134 @@ export default function ExportReportPage() {
                         The action sections serve different purposes: strategy, sequencing, and planning. So you can move from insight to decisions without guesswork.
                       </p>
                       
-                      {/* Section Grid */}
-                      <div className="space-y-3 mb-6">
+                      {/* Section Grid - 2 columns */}
+                      <div className="grid grid-cols-2 gap-3 mb-6">
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Composite Score</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> Overall maturity and completeness of your workplace cancer support program. <strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot; It summarizes performance across all dimensions and sets context for everything that follows.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Overall maturity and completeness of your workplace cancer support program.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot; It summarizes performance across all dimensions and sets context for everything that follows.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Dimension Scores</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> Strength and maturity within each of the 13 dimensions of workplace cancer support. <strong className="text-slate-700">How it fits:</strong> Answers &quot;where are we strong vs. where are we exposed?&quot; Dimension results reveal the specific areas driving your overall score.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Strength and maturity within each of the 13 dimensions of workplace cancer support.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Answers &quot;where are we strong vs. where are we exposed?&quot; Dimension results reveal the specific areas driving your overall score.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Cross-Dimensional Insights</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> Themes that cut across dimensions: systemic strengths, recurring gaps, and patterns that influence multiple areas at once. <strong className="text-slate-700">How it fits:</strong> This is the bridge from diagnosis to strategy. It helps you avoid treating dimensions as silos by showing which underlying capabilities (e.g., manager enablement, communication, process consistency) will lift performance across several dimensions simultaneously.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Themes that cut across dimensions: systemic strengths, recurring gaps, and patterns that influence multiple areas.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> The bridge from diagnosis to strategy. Shows which underlying capabilities will lift performance across several dimensions simultaneously.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-slate-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Benchmark Comparisons</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> How your Composite and Dimension results compare with peer organizations in the Index. <strong className="text-slate-700">How it fits:</strong> Adds context: &quot;Are our scores typical, leading, or lagging?&quot; Benchmarks help you set realistic targets and understand what &quot;good&quot; looks like in practice.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> How your Composite and Dimension results compare with peer organizations in the Index.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Adds context: &quot;Are our scores typical, leading, or lagging?&quot; Helps you set realistic targets and understand what &quot;good&quot; looks like.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Areas of Excellence</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> Your highest-performing dimensions and standout elements. <strong className="text-slate-700">How it fits:</strong> Clarifies what to protect and amplify. These are your proof points for internal storytelling, employer brand, and sustaining momentum.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Your highest-performing dimensions and standout elements.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Clarifies what to protect and amplify. These are your proof points for internal storytelling and employer brand.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Areas for Growth</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> The largest gaps relative to peers and/or relative to your own internal balance. <strong className="text-slate-700">How it fits:</strong> Identifies where investment is most likely to improve outcomes. This section starts converting insights into focus areas.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The largest gaps relative to peers and/or relative to your own internal balance.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Identifies where investment is most likely to improve outcomes. Starts converting insights into focus areas.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Initiatives In Progress</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> Programs and practices you&apos;re actively building or expanding. <strong className="text-slate-700">How it fits:</strong> Shows momentum and helps prioritize. It ensures recommendations build on what&apos;s already underway rather than starting from scratch.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Programs and practices you&apos;re actively building or expanding.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Shows momentum and helps prioritize. Ensures recommendations build on what&apos;s already underway.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Strategic Recommendations</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> The &quot;so what&quot;: a small number of strategic moves that will most effectively strengthen your overall program. <strong className="text-slate-700">How it fits:</strong> This is the executive summary of your improvement strategy, grounded in the cross-dimensional patterns and your biggest leverage points. It translates findings into a cohesive plan rather than a list of fixes.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The &quot;so what&quot;: strategic moves that will most effectively strengthen your overall program.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Executive summary of your improvement strategy, grounded in cross-dimensional patterns and biggest leverage points.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">Impact-Ranked Priorities</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> A sequenced action roadmap, ranked by expected impact on outcomes and score improvement. <strong className="text-slate-700">How it fits:</strong> Converts strategy into execution. This is your &quot;what to do next&quot; list: clear, ordered, and practical.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> A sequenced action roadmap, ranked by expected impact on outcomes and score improvement.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Converts strategy into execution. This is your &quot;what to do next&quot; list: clear, ordered, and practical.</p>
                             </div>
                           </div>
                         </div>
                         
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                            <div className="w-7 h-7 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-800">What-If Scenario Builder</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">What it measures:</strong> The estimated effect of specific improvements on future scores and maturity. <strong className="text-slate-700">How it fits:</strong> Turns planning into decision support. Use it to test options, build a business case, and agree on a realistic path forward.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> The estimated effect of specific improvements on future scores and maturity.</p>
+                              <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Turns planning into decision support. Use it to test options, build a business case, and agree on a path forward.</p>
                             </div>
                           </div>
                         </div>
@@ -4844,7 +4854,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-medium text-slate-800">Where are we today?</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">Composite Score → Dimension Scores → Benchmark Comparisons.</strong> You start with your overall position, then see how it breaks down by dimension, then understand what it means relative to peers.</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Composite Score → Dimension Scores → Benchmark Comparisons.</strong> You start with your overall position, then see how it breaks down by dimension, then understand what it means relative to peers.</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3">
@@ -4853,7 +4863,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-medium text-slate-800">What&apos;s driving our performance?</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">Cross-Dimensional Insights.</strong> You identify system-level patterns that explain why multiple dimensions are strong or weak: the underlying capabilities that matter most.</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Cross-Dimensional Insights.</strong> You identify system-level patterns that explain why multiple dimensions are strong or weak: the underlying capabilities that matter most.</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3">
@@ -4862,7 +4872,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-medium text-slate-800">What should we celebrate and protect?</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">Areas of Excellence.</strong> You highlight what&apos;s working and preserve your strongest foundations.</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Areas of Excellence.</strong> You highlight what&apos;s working and preserve your strongest foundations.</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3">
@@ -4870,8 +4880,8 @@ export default function ExportReportPage() {
                               <span className="text-xs font-bold text-white">4</span>
                             </div>
                             <div>
-                              <p className="text-sm font-medium text-slate-800">Where are the biggest leverage points to improve?</p>
-                              <p className="text-sm text-slate-600"><strong className="text-slate-700">Areas for Growth + Initiatives In Progress.</strong> You focus on gaps that matter most while accounting for momentum and ongoing work.</p>
+                              <p className="text-sm font-medium text-slate-800">Where are the biggest leverage points?</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Areas for Growth + Initiatives In Progress.</strong> You focus on gaps that matter most while accounting for momentum and ongoing work.</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3">
@@ -4880,13 +4890,13 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-sm font-medium text-slate-800">What should we do next?</p>
-                              <p className="text-sm text-slate-600 mb-2">Three tools work together here, each serving a distinct purpose:</p>
-                              <ul className="text-sm text-slate-600 space-y-1.5 ml-1">
-                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Strategic Recommendations</strong> tell you what matters most and why. These are the few high-leverage moves that address the cross-dimensional patterns behind your results.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Impact-Ranked Priorities</strong> translate that strategy into an ordered execution roadmap: the specific initiatives to tackle first, next, and later based on expected impact.</span></li>
-                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">What-If Scenario Builder</strong> is your decision and planning tool. Use it to test combinations of improvements, estimate how they may change future results, and align on a realistic path forward.</span></li>
+                              <p className="text-xs text-slate-600 mb-2">Three tools work together, each serving a distinct purpose:</p>
+                              <ul className="text-xs text-slate-600 space-y-1 ml-1">
+                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Strategic Recommendations</strong> tell you what matters most and why. The few high-leverage moves that address cross-dimensional patterns.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Impact-Ranked Priorities</strong> translate strategy into an ordered execution roadmap: what to tackle first, next, and later.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">What-If Scenario Builder</strong> is your planning tool. Test combinations, estimate impact, and align on a realistic path forward.</span></li>
                               </ul>
-                              <p className="text-sm text-slate-700 mt-3 font-medium">How they work together: Strategy defines the &quot;bets,&quot; priorities define the &quot;sequence,&quot; and what-if modeling supports &quot;the plan and business case.&quot;</p>
+                              <p className="text-xs text-slate-700 mt-2 font-medium">How they work together: Strategy defines the &quot;bets,&quot; priorities define the &quot;sequence,&quot; and what-if modeling supports &quot;the plan and business case.&quot;</p>
                             </div>
                           </div>
                         </div>
@@ -9603,68 +9613,149 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 4: How to Use This Report */}
+                {/* Slide 4: How to Use This Report + Understanding Report Sections */}
                 {currentSlide === 4 && (
-                  <div className="p-10">
-                    {/* Header bar matching the collapsible style */}
-                    <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl mb-6">
-                      <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                  <div className="p-8 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+                    {/* How to Use Header bar */}
+                    <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                       </div>
                       <div className="text-left">
                         <span className="text-sm font-bold text-slate-800">How to Use This Report</span>
-                        <span className="text-sm text-slate-600 ml-3 font-medium">A guide to getting the most from your assessment</span>
-                      </div>
-                      <div className="ml-auto w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center rotate-180">
-                        <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                       </div>
                     </div>
                     
-                    {/* Content box */}
-                    <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
-                      <div className="p-6">
-                        <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                          Use this report to <strong className="text-slate-800">align on priorities, confirm what&apos;s in place, and build a practical action plan</strong>.
+                    {/* How to Use Content - Compact */}
+                    <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden mb-5">
+                      <div className="p-4">
+                        <p className="text-xs text-slate-700 leading-relaxed mb-3">
+                          Use this report to <strong className="text-slate-800">align on priorities, confirm what&apos;s in place, and build a practical action plan</strong>. Every organization is different. Some recommendations will align with your priorities; others may not be feasible yet.
                         </p>
-                        <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                          Every organization is different. Your industry, workforce, and current capabilities shape what&apos;s realistic and impactful. Some recommendations will align with your priorities; others may not be feasible yet, and that&apos;s expected.
-                        </p>
-                        
-                        <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this assessment:</p>
-                        <div className="grid grid-cols-2 gap-3">
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">1</span>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-white rounded-lg px-3 py-2 border border-slate-200 flex items-start gap-2">
+                            <div className="w-5 h-5 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-[10px] font-bold text-white">1</span>
                             </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Review</strong> your overall composite and dimension scores and the specific support elements within each</p>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Review</strong> scores and elements</p>
                           </div>
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">2</span>
+                          <div className="bg-white rounded-lg px-3 py-2 border border-slate-200 flex items-start gap-2">
+                            <div className="w-5 h-5 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-[10px] font-bold text-white">2</span>
                             </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Identify</strong> where quick wins align with your existing infrastructure and strategic priorities</p>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Identify</strong> quick wins</p>
                           </div>
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">3</span>
+                          <div className="bg-white rounded-lg px-3 py-2 border border-slate-200 flex items-start gap-2">
+                            <div className="w-5 h-5 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-[10px] font-bold text-white">3</span>
                             </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Confirm</strong> areas where deeper exploration or validation is needed</p>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Confirm</strong> areas to explore</p>
                           </div>
-                          <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <span className="text-xs font-bold text-white">4</span>
+                          <div className="bg-white rounded-lg px-3 py-2 border border-slate-200 flex items-start gap-2">
+                            <div className="w-5 h-5 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-[10px] font-bold text-white">4</span>
                             </div>
-                            <p className="text-sm text-slate-600"><strong className="text-slate-800">Act</strong>: connect with Cancer and Careers to build a tailored action plan for {companyName}</p>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Act</strong> with Cancer and Careers</p>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
-                        <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                        <p className="text-sm text-slate-200">
-                          <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
-                          industry context, and implementation support to help you prioritize what matters most for your workforce.
+                    </div>
+                    
+                    {/* Understanding Report Sections Header */}
+                    <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                      </div>
+                      <div className="text-left">
+                        <span className="text-sm font-bold text-slate-800">Understanding Your Report Sections</span>
+                      </div>
+                    </div>
+                    
+                    {/* Understanding Report Sections Content */}
+                    <div className="bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200 rounded-xl overflow-hidden">
+                      <div className="p-4">
+                        <p className="text-xs text-slate-700 leading-relaxed mb-3">
+                          <strong className="text-slate-800">This report takes you from diagnosis to action.</strong> The action sections serve different purposes: strategy, sequencing, and planning.
                         </p>
+                        
+                        {/* Section Grid - 2 columns, compact */}
+                        <div className="grid grid-cols-2 gap-2 mb-4">
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Composite &amp; Dimension Scores</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">Where you stand overall and by area</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Benchmark Comparisons</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">How you compare to peers</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Cross-Dimensional Insights</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">System-level patterns across dimensions</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Excellence &amp; Growth Areas</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">What to protect vs. improve</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Initiatives In Progress</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">Programs already underway</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Strategic Recommendations</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">High-leverage strategic moves</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">Impact-Ranked Priorities</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">Sequenced action roadmap</p>
+                          </div>
+                          <div className="bg-white rounded px-3 py-2 border border-slate-200">
+                            <p className="text-xs font-semibold text-slate-800">What-If Scenario Builder</p>
+                            <p className="text-[10px] text-slate-600 mt-0.5">Model improvement scenarios</p>
+                          </div>
+                        </div>
+                        
+                        {/* Story Arc - Compact */}
+                        <div className="bg-white rounded-lg border border-emerald-200 p-3">
+                          <p className="text-xs font-semibold text-slate-800 mb-2">The Story Arc</p>
+                          <div className="grid grid-cols-5 gap-2 text-center">
+                            <div>
+                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
+                                <span className="text-[10px] font-bold text-white">1</span>
+                              </div>
+                              <p className="text-[10px] text-slate-700 font-medium">Where are we?</p>
+                              <p className="text-[9px] text-slate-500">Scores + Benchmarks</p>
+                            </div>
+                            <div>
+                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
+                                <span className="text-[10px] font-bold text-white">2</span>
+                              </div>
+                              <p className="text-[10px] text-slate-700 font-medium">What&apos;s driving it?</p>
+                              <p className="text-[9px] text-slate-500">Cross-Dimensional</p>
+                            </div>
+                            <div>
+                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
+                                <span className="text-[10px] font-bold text-white">3</span>
+                              </div>
+                              <p className="text-[10px] text-slate-700 font-medium">What&apos;s working?</p>
+                              <p className="text-[9px] text-slate-500">Excellence Areas</p>
+                            </div>
+                            <div>
+                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
+                                <span className="text-[10px] font-bold text-white">4</span>
+                              </div>
+                              <p className="text-[10px] text-slate-700 font-medium">Where to focus?</p>
+                              <p className="text-[9px] text-slate-500">Growth + In Progress</p>
+                            </div>
+                            <div>
+                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center mx-auto mb-1">
+                                <span className="text-[10px] font-bold text-white">5</span>
+                              </div>
+                              <p className="text-[10px] text-slate-700 font-medium">What to do?</p>
+                              <p className="text-[9px] text-slate-500">Strat → Priorities → What-If</p>
+                            </div>
+                          </div>
+                          <p className="text-[10px] text-slate-600 mt-2 text-center italic">Strategy defines the &quot;bets&quot; → Priorities define the &quot;sequence&quot; → What-If supports &quot;the plan&quot;</p>
+                        </div>
                       </div>
                     </div>
                   </div>
