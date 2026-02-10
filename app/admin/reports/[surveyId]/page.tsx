@@ -4715,85 +4715,129 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-2 gap-3 mb-6">
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Composite Score</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Overall program maturity.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Your headline &quot;where we stand today.&quot;</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Overall program maturity.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your headline &quot;where we stand today.&quot;</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Dimension Scores</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Strength within each of 13 dimensions.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Where are we strong vs. exposed?</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Strength within each of 13 dimensions.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Where are we strong vs. exposed?</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Benchmark Comparisons</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> How you compare with peers.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Are we typical, leading, or lagging?</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> How you compare with peers.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Are we typical, leading, or lagging?</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Cross-Dimensional Insights</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Patterns across multiple dimensions.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Bridge from diagnosis to strategy.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Patterns across multiple dimensions.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Bridge from diagnosis to strategy.</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Areas of Excellence</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Highest-performing dimensions.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> What to protect and amplify.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Highest-performing dimensions.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> What to protect and amplify.</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Areas for Growth</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Largest gaps relative to peers.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Where investment improves outcomes.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Largest gaps relative to peers.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Where investment improves outcomes.</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Initiatives In Progress</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Programs you&apos;re actively building.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Shows momentum already underway.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Programs you&apos;re actively building.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Shows momentum already underway.</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Strategic Recommendations</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> High-leverage strategic moves.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Executive summary of improvement strategy.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> High-leverage strategic moves.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Executive summary of improvement strategy.</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">Impact-Ranked Priorities</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Sequenced action roadmap.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Your &quot;what to do next&quot; list.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Sequenced action roadmap.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Your &quot;what to do next&quot; list.</p>
                         </div>
+                        
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
                           <p className="text-sm font-semibold text-slate-800">What-If Scenario Builder</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Estimated effect of improvements.</p>
-                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Test options, build business case.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">What it measures:</strong> Estimated effect of improvements.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong className="text-slate-700">How it fits:</strong> Test options, build business case.</p>
                         </div>
                       </div>
                       
                       {/* Story Arc */}
                       <div className="bg-white rounded-lg border border-emerald-200 p-5">
-                        <p className="text-sm font-semibold text-slate-800 mb-4">The Story Arc</p>
-                        <div className="space-y-3">
+                        <p className="text-sm font-semibold text-slate-800 mb-4">The Story Arc: How It All Weaves Together</p>
+                        <div className="space-y-4">
                           <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">1</span></div>
-                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Where are we today?</strong> Composite → Dimensions → Benchmarks</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">2</span></div>
-                            <p className="text-xs text-slate-600"><strong className="text-slate-800">What&apos;s driving it?</strong> Cross-Dimensional Insights</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">3</span></div>
-                            <p className="text-xs text-slate-600"><strong className="text-slate-800">What&apos;s working?</strong> Areas of Excellence</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">4</span></div>
-                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Where to focus?</strong> Areas for Growth + Initiatives In Progress</p>
-                          </div>
-                          <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">5</span></div>
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">1</span>
+                            </div>
                             <div>
-                              <p className="text-xs text-slate-600"><strong className="text-slate-800">What to do next?</strong></p>
-                              <p className="text-xs text-slate-500 mt-1">Strategy defines the bets → Priorities define the sequence → What-If supports the plan</p>
+                              <p className="text-sm font-medium text-slate-800">Where are we today?</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Composite Score → Dimension Scores → Benchmark Comparisons.</strong> You start with your overall position, then see how it breaks down by dimension, then understand what it means relative to peers.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">2</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-slate-800">What&apos;s driving our performance?</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Cross-Dimensional Insights.</strong> You identify system-level patterns that explain why multiple dimensions are strong or weak: the underlying capabilities that matter most.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">3</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-slate-800">What should we celebrate and protect?</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Areas of Excellence.</strong> You highlight what&apos;s working and preserve your strongest foundations.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">4</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-slate-800">Where are the biggest leverage points?</p>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-700">Areas for Growth + Initiatives In Progress.</strong> You focus on gaps that matter most while accounting for momentum and ongoing work.</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <span className="text-xs font-bold text-white">5</span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-slate-800">What should we do next?</p>
+                              <p className="text-xs text-slate-600 mb-2">Three tools work together, each serving a distinct purpose:</p>
+                              <ul className="text-xs text-slate-600 space-y-1 ml-1">
+                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Strategic Recommendations</strong> tell you what matters most and why.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">Impact-Ranked Priorities</strong> translate strategy into an ordered execution roadmap.</span></li>
+                                <li className="flex items-start gap-2"><span className="text-emerald-600 font-bold">•</span><span><strong className="text-slate-700">What-If Scenario Builder</strong> is your planning tool to test combinations and build a business case.</span></li>
+                              </ul>
+                              <p className="text-xs text-slate-700 mt-2 font-medium">How they work together: Strategy defines the &quot;bets,&quot; priorities define the &quot;sequence,&quot; and what-if modeling supports &quot;the plan and business case.&quot;</p>
                             </div>
                           </div>
                         </div>
                       </div>
+                    </div>
+                    
+                    <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
+                      <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                      <p className="text-sm text-slate-200">
+                        <strong className="text-white">Use these sections together</strong> to move from diagnosis to action.
+                      </p>
                     </div>
                   </div>
                 </div>
