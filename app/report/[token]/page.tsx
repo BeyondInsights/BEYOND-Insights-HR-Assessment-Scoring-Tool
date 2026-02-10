@@ -4350,7 +4350,7 @@ export default function ExportReportPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-slate-400 text-sm font-medium">Prepared for</p>
-                  <p className="text-white font-semibold text-lg mb-3">{companyName || 'Your Organization'}</p>
+                  <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                   <p className="text-slate-400 text-sm font-medium">Report Date</p>
                   <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
@@ -7235,7 +7235,6 @@ export default function ExportReportPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                          <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
                         </div>
                         <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
                         <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
@@ -8999,7 +8998,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-slate-400 text-sm font-medium">Prepared for</p>
-                          <p className="text-white font-semibold text-lg mb-3">{companyName || 'Your Organization'}</p>
+                          <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                           <p className="text-slate-400 text-sm font-medium">Report Date</p>
                           <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
@@ -9202,6 +9201,13 @@ export default function ExportReportPage() {
                               })}
                             </div>
                             <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                            
+                            {/* Company's Current Score */}
+                            <div className="mt-4 pt-4 border-t border-slate-200 text-center">
+                              <p className="text-sm text-slate-600">
+                                <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
+                              </p>
+                            </div>
                           </div>
                           
                           {/* Right: Journey message - Better balanced layout */}
@@ -10862,7 +10868,6 @@ export default function ExportReportPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
                                 <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                                <span className="text-sm text-slate-500 font-medium">D{item.dimNum}</span>
                               </div>
                               <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
                               <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
