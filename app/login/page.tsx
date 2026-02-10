@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
 import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
-import { startHydration, endHydration, setStoredVersion, clearDirty } from '@/lib/supabase/auto-data-sync'
+import { startHydration, endHydration, setStoredVersion, clearDirty, normalizeSurveyId } from '@/lib/supabase/auto-data-sync'
 import Footer from '@/components/Footer'
 
 // ============================================
@@ -222,8 +222,11 @@ export default function LoginPage() {
     const currentStoredSurveyId = localStorage.getItem('survey_id') || ''
 
     // Clear data if EITHER email OR survey_id is different
+    // IMPORTANT: Normalize survey IDs before comparing (remove dashes, uppercase)
+    // This handles cases like CAC-260210-48518EB vs CAC26021048518EB
     const emailChanged = lastUserEmail && currentEmail && lastUserEmail !== currentEmail
-    const surveyIdChanged = !isNewUser && currentStoredSurveyId && trimmedSurveyId && currentStoredSurveyId !== trimmedSurveyId
+    const surveyIdChanged = !isNewUser && currentStoredSurveyId && trimmedSurveyId && 
+      normalizeSurveyId(currentStoredSurveyId) !== normalizeSurveyId(trimmedSurveyId)
 
     if (emailChanged || surveyIdChanged) {
       console.log('Different user/survey logging in - clearing old data')
@@ -257,7 +260,7 @@ export default function LoginPage() {
         // Store login info
         localStorage.setItem('login_email', email)
         localStorage.setItem('auth_email', email)
-        localStorage.setItem('survey_id', trimmedSurveyId.replace(/-/g, '').toUpperCase())
+        localStorage.setItem('survey_id', trimmedSurveyId)
         localStorage.setItem('user_authenticated', 'true')
         localStorage.setItem('last_user_email', email)
         localStorage.setItem('login_Survey_id', trimmedSurveyId)
@@ -538,10 +541,11 @@ export default function LoginPage() {
         // FIX: SET BOTH survey_id AND login_Survey_id FOR ALL USERS
         // ============================================
         if (!isNewUser) {
-          const cleanSurveyId = surveyId.trim().replace(/-/g, '').toUpperCase()
-          localStorage.setItem('survey_id', cleanSurveyId)
-          localStorage.setItem('login_Survey_id', cleanSurveyId)
-          console.log('[LOGIN] Set survey_id for returning user:', cleanSurveyId)
+          // Keep original format - normalization is only for comparison
+          const userSurveyId = surveyId.trim().toUpperCase()
+          localStorage.setItem('survey_id', userSurveyId)
+          localStorage.setItem('login_Survey_id', userSurveyId)
+          console.log('[LOGIN] Set survey_id for returning user:', userSurveyId)
         }
         // ============================================
         
