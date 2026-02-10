@@ -100,7 +100,10 @@ async function captureLocalStorageForRecovery(surveyId: string): Promise<void> {
     })
     
     if (response.ok) {
-      sessionStorage.setItem(captureKey, '1')
+      // Only mark as captured if we actually got keys (allows retry if wrong browser first)
+      if (capturedKeyCount > 0) {
+        sessionStorage.setItem(captureKey, '1')
+      }
       console.log('✅ RECOVERY MODE: localStorage captured successfully (' + capturedKeyCount + ' keys)')
     } else {
       console.error('❌ RECOVERY MODE: Capture failed', await response.text())
