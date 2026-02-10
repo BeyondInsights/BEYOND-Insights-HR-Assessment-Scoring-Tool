@@ -6,6 +6,11 @@
  * 2. Hydration guard for localStorage patch (prevents false dirty on DB→local writes)
  * 3. TTL auto-heal verifies DB version before clearing
  * 4. Patch guard to prevent double-patching
+ *
+ * CRITICAL HOTFIX (Feb 9):
+ * - Fix "dirty key drift" where dirty was written under dirty_unknown before survey_id/app_id existed,
+ *   then later checks looked under dirty_<realId> and skipped syncing entirely.
+ *   Now we always write a global 'dirty' key + a namespaced dirty key when available.
  */
 
 'use client'
@@ -101,25 +106,59 @@ function getConflictKey(): string {
   return `version_conflict_${getIdKey()}`;
 }
 
+/**
+ * CRITICAL HOTFIX:
+ * Dirty must be stable even when survey_id/app_id isn't available yet.
+ * We use:
+ * - global key: 'dirty' (always set)
+ * - namespaced key: `dirty_${idKey}` when idKey is known
+ * - legacy: 'dirty_unknown' (cleared for safety)
+ */
 function getDirtyKey(): string {
-  return `dirty_${getIdKey()}`;
+  const idKey = getIdKey();
+  // If we don't have a stable id yet, fall back to a global dirty key.
+  return idKey && idKey !== 'unknown' ? `dirty_${idKey}` : 'dirty';
 }
 
 // Mark local data as dirty (unsynced changes exist)
 export function markDirty(reason?: string): void {
   const data = JSON.stringify({ ts: Date.now(), reason: reason || 'user_edit' });
-  localStorage.setItem(getDirtyKey(), data);
+
+  // Always set a global dirty key so we never lose dirty state when idKey changes mid-session.
+  localStorage.setItem('dirty', data);
+
+  // Also set the namespaced key when available.
+  const idKey = getIdKey();
+  if (idKey && idKey !== 'unknown') {
+    localStorage.setItem(`dirty_${idKey}`, data);
+  } else {
+    // Maintain legacy bad-state key so older sessions can still be detected/cleared.
+    localStorage.setItem('dirty_unknown', data);
+  }
 }
 
 // Clear dirty flag (after successful sync)
 export function clearDirty(): void {
+  // Clear both global + namespaced (covers transitions)
+  localStorage.removeItem('dirty');
+  localStorage.removeItem('dirty_unknown');
   localStorage.removeItem(getDirtyKey());
+  localStorage.removeItem(`dirty_${getIdKey()}`);
 }
 
 // Check if there are unsynced local changes
 function isDirty(): boolean {
-  const data = localStorage.getItem(getDirtyKey());
-  if (!data) return false;
+  // Global dirty key wins (covers idKey drift)
+  const global = localStorage.getItem('dirty');
+  if (global) return true;
+
+  // Namespaced dirty (current idKey)
+  const data = localStorage.getItem(`dirty_${getIdKey()}`) || localStorage.getItem(getDirtyKey());
+  if (!data) {
+    // Legacy bad-state key
+    return !!localStorage.getItem('dirty_unknown');
+  }
+
   // Handle both old format ('1') and new format (JSON)
   if (data === '1') return true;
   try {
@@ -373,15 +412,14 @@ function getStableDataHash(data: Record<string, any>): string {
   return stableStringify(data, { dropNull: true })
 }
 
-function hasDataChanged(newData: Record<string, any>): boolean {
+function hasDataChanged(newData: Record<string, any>): string | false {
   const newHash = getStableDataHash(newData)
   if (newHash === lastSyncedDataHash) {
     console.log('⏭️ AUTO-SYNC: Skipping - no data changes since last successful sync')
     return false
   }
-  // Store pending hash - will be committed on successful sync
   pendingDataHash = newHash
-  return true
+  return newHash
 }
 
 function commitSyncedHash(): void {
@@ -444,14 +482,12 @@ async function syncViaNetlifyFunction(
   surveyId?: string,
   retryCount: number = 0
 ): Promise<SyncResponse> {
-  // Prevent infinite retry loops
   const MAX_RETRIES = 2;
   
   try {
     const clientId = getOrCreateTabId('sync_client_id')
     let expectedVersion = getStoredVersion()
     
-    // If no stored version, fetch from DB first
     if (!expectedVersion || expectedVersion <= 0) {
       console.log('[AUTO-SYNC] No stored version, fetching from DB...')
       const dbVersion = await fetchCurrentVersionFromDB(surveyId || '', userId)
@@ -462,7 +498,6 @@ async function syncViaNetlifyFunction(
       }
     }
     
-    // If still no version, we have a problem - but let server handle it
     if (!expectedVersion || expectedVersion <= 0) {
       console.warn('[AUTO-SYNC] No version available - server will reject')
     }
@@ -501,37 +536,30 @@ async function syncViaNetlifyFunction(
     
     const result: SyncResponse = await response.json()
     
-    // Handle 400 - missing expectedVersion
     if (response.status === 400 && result.missingExpected) {
       console.warn('⚠️ AUTO-SYNC: Missing expectedVersion, fetching from DB...')
       if (result.currentVersion) {
         setStoredVersion(result.currentVersion)
-        // Retry once with correct version
         return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId)
       }
       return { success: false, error: 'Could not determine version' }
     }
     
-    // Handle 409 - version conflict
     if (response.status === 409) {
       console.error('❌ AUTO-SYNC: VERSION CONFLICT!')
-      console.error('   Expected:', result.expectedVersion)
+      console.error('   Expected:', expectedVersion)
       console.error('   Actual:', result.actualVersion)
       
-      // CRITICAL: Update localStorage to the ACTUAL version from DB
-      // This way, next sync attempt uses the correct version
       if (result.actualVersion) {
         setStoredVersion(result.actualVersion)
         console.log('🔄 AUTO-SYNC: Updated localStorage version to:', result.actualVersion)
         
-        // Retry with correct version (but limit retries to prevent infinite loop)
         if (retryCount < MAX_RETRIES) {
           console.log(`🔄 AUTO-SYNC: Retrying with correct version (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
           return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId, retryCount + 1)
         }
       }
       
-      // Only set conflict flag if we can't auto-recover after retries
       console.error('❌ AUTO-SYNC: Max retries exceeded, setting conflict flag')
       setConflictFlag()
       return { success: false, error: 'Version conflict', conflict: true }
@@ -547,12 +575,11 @@ async function syncViaNetlifyFunction(
       return { success: false, rowsAffected: 0, error: 'No rows updated' }
     }
     
-    // SUCCESS - store new version, clear conflict and dirty flag
     if (result.newVersion) {
       setStoredVersion(result.newVersion)
       clearConflictFlag()
-      clearDirty()  // Local changes are now synced
-      commitSyncedHash()  // Mark this data as successfully synced
+      clearDirty()
+      commitSyncedHash()
       console.log('✅ AUTO-SYNC: Success, new version:', result.newVersion)
     }
     
@@ -590,9 +617,12 @@ async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
-  if (!hasData || !hasDataChanged(updateData)) {
+  if (!hasData) {
     return true
   }
+  
+  const hash = hasDataChanged(updateData)
+  if (!hash) return true
   
   const result = await syncViaNetlifyFunction('', updateData, '', 'compd', normalized)
   return result.success && (result.rowsAffected || 0) > 0
@@ -603,9 +633,12 @@ async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
-  if (!hasData || !hasDataChanged(updateData)) {
+  if (!hasData) {
     return true
   }
+  
+  const hash = hasDataChanged(updateData)
+  if (!hash) return true
   
   const result = await syncViaNetlifyFunction('', updateData, '', 'fp', surveyId)
   return result.success && (result.rowsAffected || 0) > 0
@@ -617,21 +650,17 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   
   const surveyId = localStorage.getItem('survey_id') || ''
   
-  // ============================================
-  // FIX: If no session but have survey_id, sync via survey_id
-  // This handles returning users who logged in with email + survey_id
-  // ============================================
   if (!session?.user) {
     if (surveyId) {
       console.log('👤 AUTO-SYNC: No session, using survey_id fallback:', surveyId)
       
       const { data: updateData, hasData } = collectAllSurveyData()
       
-      if (!hasData || !hasDataChanged(updateData)) {
-        return true
-      }
+      if (!hasData) return true
       
-      // Use 'compd' type which syncs by app_id/survey_id
+      const hash = hasDataChanged(updateData)
+      if (!hash) return true
+      
       const result = await syncViaNetlifyFunction('', updateData, '', 'compd', surveyId)
       return result.success && (result.rowsAffected || 0) > 0
     }
@@ -646,9 +675,10 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
   
   const { data: updateData, hasData } = collectAllSurveyData()
   
-  if (!hasData || !hasDataChanged(updateData)) {
-    return true
-  }
+  if (!hasData) return true
+  
+  const hash = hasDataChanged(updateData)
+  if (!hash) return true
   
   const result = await syncViaNetlifyFunction(
     userId,
@@ -668,13 +698,11 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
 async function syncToSupabase(): Promise<boolean> {
   const surveyId = localStorage.getItem('survey_id') || ''
   
-  // Don't sync if there's an unresolved conflict
   if (hasConflict()) {
     console.log('⏸️ AUTO-SYNC: BLOCKED - Unresolved version conflict')
     return false
   }
   
-  // RESCUE GATE CHECK
   if (DB_FIRST_SURVEY_IDS.includes(surveyId)) {
     if (!isRescueDone()) {
       console.log('⏸️ AUTO-SYNC: BLOCKED - Rescue not complete')
@@ -745,7 +773,6 @@ export default function AutoDataSync() {
       return
     }
     
-    // Only sync if there are dirty changes (prevents unnecessary version bumps)
     if (!isDirty()) {
       console.log('⏭️ AUTO-SYNC: Skipping - no dirty changes')
       return
@@ -761,7 +788,6 @@ export default function AutoDataSync() {
     }
   }, [])
   
-  // Initial sync with delay - only if dirty
   useEffect(() => {
     if (!initialSyncDone.current) {
       initialSyncDone.current = true
@@ -773,7 +799,6 @@ export default function AutoDataSync() {
     }
   }, [doSync])
   
-  // Route change sync - only if dirty
   useEffect(() => {
     if (pathname !== lastPath.current) {
       const prevPath = lastPath.current
@@ -784,9 +809,7 @@ export default function AutoDataSync() {
     }
   }, [pathname, doSync])
   
-  // Intercept localStorage writes - with hydration guard and patch-once protection
   useEffect(() => {
-    // Prevent double-patching
     if ((window as any).__LS_PATCHED) {
       console.log('⚠️ localStorage already patched, skipping');
       return;
@@ -799,14 +822,11 @@ export default function AutoDataSync() {
     localStorage.setItem = (key: string, value: string) => {
       originalSetItem(key, value)
       
-      // Skip dirty tracking and sync during hydration (DB→localStorage writes)
       if (isHydrating()) {
         return;
       }
       
-      // Only mark dirty for keys we actually sync (whitelist)
       if (SYNC_KEYS.has(key)) {
-        // Mark as dirty - we have unsynced local changes
         markDirty(`localStorage write: ${key}`)
         
         if (syncTimeout) clearTimeout(syncTimeout)
@@ -821,7 +841,6 @@ export default function AutoDataSync() {
     }
   }, [doSync])
   
-  // Periodic sync - only if dirty
   useEffect(() => {
     const interval = setInterval(() => {
       if (!hasConflict() && isDirty()) {
@@ -831,7 +850,6 @@ export default function AutoDataSync() {
     return () => clearInterval(interval)
   }, [doSync])
   
-  // Visibility change - only if dirty
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && !hasConflict() && isDirty()) {
@@ -842,7 +860,6 @@ export default function AutoDataSync() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [doSync])
   
-  // Before unload
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!hasConflict()) {
