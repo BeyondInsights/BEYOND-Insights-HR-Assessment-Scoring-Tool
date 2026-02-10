@@ -4846,13 +4846,13 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What matters most?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Use the <strong className="text-slate-600">Strategic Matrix</strong> to identify where investment delivers the <strong className="text-slate-600">greatest return</strong>.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Use the <strong className="text-slate-600">Strategic Priority Matrix</strong> to identify where investment delivers the <strong className="text-slate-600">greatest return</strong>.</p>
                               <div className="mt-5 space-y-1.5 h-[4.5rem]">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
                                   </div>
-                                  <span className="text-xs text-slate-600">Strategic Matrix</span>
+                                  <span className="text-xs text-slate-600">Strategic Priority Matrix</span>
                                 </div>
                                 <div className="h-6"></div>
                                 <div className="h-6"></div>
@@ -4901,7 +4901,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-3 text-left pl-2">
                               <p className="text-sm text-slate-500 leading-relaxed h-20"><strong className="text-slate-600">Protect</strong> strengths, target <strong className="text-slate-600">high-impact gaps</strong>, and build on work already underway.</p>
-                              <div className="mt-5 space-y-1.5 h-[4.5rem]">
+                              <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
@@ -4919,6 +4919,12 @@ export default function ExportReportPage() {
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                                   </div>
                                   <span className="text-xs text-slate-600">Initiatives In Progress</span>
+                                </div>
+                                <div className="flex items-center gap-2 h-6">
+                                  <div className="w-5 h-5 rounded bg-purple-600 flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
+                                  </div>
+                                  <span className="text-xs text-slate-600">Implementation Roadmap</span>
                                 </div>
                               </div>
                               <div className="mt-4 pt-3 border-t border-slate-200 h-12">
@@ -4991,15 +4997,16 @@ export default function ExportReportPage() {
                         {[
                           { id: 'composite', name: 'Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
                           { id: 'dimensions', name: 'Dimension Scores', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
-                          { id: 'matrix', name: 'Strategic Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
+                          { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
-                          { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
-                          { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Matrix clarifies which gaps are most consequential.' },
-                          { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
                           { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
+                          { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
+                          { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Priority Matrix clarifies which gaps are most consequential.' },
+                          { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
                           { id: 'whatif', name: 'What-If Scenario Builder', color: 'bg-teal-600', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'Projections of how advancing specific elements could shift future dimension and composite scores.', fits: 'Decision support. Compare investment paths, build internal alignment, and translate priorities into a realistic, staged roadmap.' },
                           { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-800', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Two to four integrated moves that synthesize the full story, anchored in your priority gaps, informed by cross-dimensional patterns, and sequenced with work already in motion.', fits: 'The sponsor-ready agenda. A coherent plan leadership can own, fund, and execute.' },
+                          { id: 'roadmap', name: 'Implementation Roadmap', color: 'bg-purple-600', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2', measures: 'A phased timeline that sequences quick wins, foundational capabilities, and longer-term initiatives into an executable plan.', fits: 'Turns priorities into action. Assigns owners, sets milestones, and creates accountability for progress.' },
                         ].map((section) => (
                           <button
                             key={section.id}
@@ -10037,7 +10044,7 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 20: Strategic Matrix WITHOUT Benchmarks */}
+                {/* Slide 20: Strategic Priority Matrix WITHOUT Benchmarks */}
                 {currentSlide === 19 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
@@ -10192,7 +10199,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 21: Strategic Matrix WITH Benchmarks */}
+                {/* Slide 21: Strategic Priority Matrix WITH Benchmarks */}
                 {currentSlide === 20 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
@@ -13050,21 +13057,21 @@ export default function ExportReportPage() {
                         <div className="text-[10px] text-slate-500 leading-tight truncate">
                           {i === 0 ? 'Title & Overview' : 
                            i === 1 ? 'How Index Was Developed' :
-                           i === 2 ? 'Understanding Composite Score' :
+                           i === 2 ? 'Composite Score' :
                            i === 3 ? 'The 13 Dimensions' :
                            i === 4 ? 'Executive Summary' :
-                           i === 5 ? 'Dimension Performance' :
+                           i === 5 ? 'Dimension Scores' :
                            i >= 6 && i <= 18 ? `D${i - 5} Deep Dive` :
-                           i === 19 ? 'Strategic Matrix' :
-                           i === 20 ? 'Strategic Matrix (Benchmarks)' :
+                           i === 19 ? 'Strategic Priority Matrix' :
+                           i === 20 ? 'Benchmarks' :
                            i === 21 ? 'Cross-Dimensional Insights' :
-                           i === 22 ? 'Impact-Ranked (1-3)' :
-                           i === 23 ? 'Impact-Ranked (4-5)' :
+                           i === 22 ? 'Impact-Ranked Priorities' :
+                           i === 23 ? 'Impact-Ranked Priorities (4-5)' :
                            i === 24 ? 'Areas of Excellence' :
                            i === 25 ? 'Areas for Growth' :
                            i === 26 ? 'Initiatives In Progress' :
-                           i === 27 ? 'Strategic Recommendations' :
-                           i === 28 ? 'From Insight to Action' :
+                           i === 27 ? 'What-If Scenarios' :
+                           i === 28 ? 'Strategic Recommendations' :
                            i >= 29 && i <= 32 ? `Recommendation ${i - 28}` :
                            i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
                            i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
