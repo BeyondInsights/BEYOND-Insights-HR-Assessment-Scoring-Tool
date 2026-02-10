@@ -2652,6 +2652,7 @@ export default function ExportReportPage() {
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
+  const [showReportSections, setShowReportSections] = useState(false);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
   
@@ -4673,6 +4674,126 @@ export default function ExportReportPage() {
                         <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
                         industry context, and implementation support to help you prioritize what matters most.
                       </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Understanding Your Report Sections — Collapsible */}
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowReportSections(!showReportSections)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-100 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">Understanding Your Report Sections</span>
+                    <span className="text-sm text-slate-600 ml-3 font-medium">How each section fits together</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-emerald-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showReportSections && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-gradient-to-br from-emerald-50 to-slate-50 border border-emerald-200 rounded-xl overflow-hidden">
+                    <div className="p-6">
+                      <p className="text-sm text-slate-700 leading-relaxed mb-2">
+                        <strong className="text-slate-800">This report takes you from diagnosis to action.</strong> You&apos;ll first see where you stand, then what&apos;s driving results, and finally how to improve.
+                      </p>
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        The action sections serve different purposes: strategy, sequencing, and planning.
+                      </p>
+                      
+                      {/* 2x5 Grid - Report Order */}
+                      <div className="grid grid-cols-2 gap-3 mb-6">
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Composite Score</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Overall program maturity.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Your headline &quot;where we stand today.&quot;</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Dimension Scores</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Strength within each of 13 dimensions.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Where are we strong vs. exposed?</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Benchmark Comparisons</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> How you compare with peers.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Are we typical, leading, or lagging?</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Cross-Dimensional Insights</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Patterns across multiple dimensions.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Bridge from diagnosis to strategy.</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Areas of Excellence</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Highest-performing dimensions.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> What to protect and amplify.</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Areas for Growth</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Largest gaps relative to peers.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Where investment improves outcomes.</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Initiatives In Progress</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Programs you&apos;re actively building.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Shows momentum already underway.</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Strategic Recommendations</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> High-leverage strategic moves.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Executive summary of improvement strategy.</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">Impact-Ranked Priorities</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Sequenced action roadmap.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Your &quot;what to do next&quot; list.</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200">
+                          <p className="text-sm font-semibold text-slate-800">What-If Scenario Builder</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>What it measures:</strong> Estimated effect of improvements.</p>
+                          <p className="text-xs text-slate-600 mt-1"><strong>How it fits:</strong> Test options, build business case.</p>
+                        </div>
+                      </div>
+                      
+                      {/* Story Arc */}
+                      <div className="bg-white rounded-lg border border-emerald-200 p-5">
+                        <p className="text-sm font-semibold text-slate-800 mb-4">The Story Arc</p>
+                        <div className="space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">1</span></div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Where are we today?</strong> Composite → Dimensions → Benchmarks</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">2</span></div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">What&apos;s driving it?</strong> Cross-Dimensional Insights</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">3</span></div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">What&apos;s working?</strong> Areas of Excellence</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">4</span></div>
+                            <p className="text-xs text-slate-600"><strong className="text-slate-800">Where to focus?</strong> Areas for Growth + Initiatives In Progress</p>
+                          </div>
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center flex-shrink-0"><span className="text-xs font-bold text-white">5</span></div>
+                            <div>
+                              <p className="text-xs text-slate-600"><strong className="text-slate-800">What to do next?</strong></p>
+                              <p className="text-xs text-slate-500 mt-1">Strategy defines the bets → Priorities define the sequence → What-If supports the plan</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
