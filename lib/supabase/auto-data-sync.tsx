@@ -49,12 +49,19 @@ function getIdKey(): string {
 // VERSION TRACKING (namespaced by idKey)
 // ============================================
 
-function getVersionKey(): string {
-  return `assessment_version_${getIdKey()}`;
+function isKnownIdKey(idKey: string): boolean {
+  return !!idKey && idKey !== 'unknown';
 }
 
 function getStoredVersion(): number {
   const idKey = getIdKey();
+  
+  // If we don't know the id yet, ONLY read legacy (avoid poisoning with *_unknown)
+  if (!isKnownIdKey(idKey)) {
+    const legacy = localStorage.getItem('assessment_version');
+    return legacy ? Number(legacy) : 0;
+  }
+  
   // Try namespaced key first, fall back to legacy
   let stored = localStorage.getItem(`assessment_version_${idKey}`);
   if (!stored) {
@@ -71,9 +78,12 @@ function getStoredVersion(): number {
 
 function setStoredVersion(version: number): void {
   const idKey = getIdKey();
-  localStorage.setItem(`assessment_version_${idKey}`, String(version));
-  // Also set legacy for backwards compatibility during transition
+  // Always keep legacy during transition
   localStorage.setItem('assessment_version', String(version));
+  // Only set namespaced if we know idKey (avoid *_unknown)
+  if (isKnownIdKey(idKey)) {
+    localStorage.setItem(`assessment_version_${idKey}`, String(version));
+  }
 }
 
 // ============================================
@@ -437,6 +447,7 @@ interface SyncResponse {
   currentVersion?: number
   conflict?: boolean
   actualVersion?: number
+  expectedVersion?: number
 }
 
 async function syncViaNetlifyFunction(
@@ -886,14 +897,14 @@ export default function AutoDataSync() {
   }, [doSync])
   
   // Before unload - WARNING ONLY, don't rely on async sync during unload
-  // The sync is unreliable (browser kills async during unload)
-  // We already have route/visibility/interval sync, so this is just best-effort
+  // Before unload: DO NOT attempt async sync (unreliable). Warn only.
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!hasConflict() && isDirty()) {
-        // Best-effort sync (may be killed by browser)
-        syncToSupabase()
-        // Optionally warn user - but don't block since we have autosync
+        // Show browser warning prompt - do NOT try to sync (it's unreliable)
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
       }
     }
     window.addEventListener('beforeunload', handleBeforeUnload)
