@@ -46,6 +46,8 @@ export default function SyncDiagnostics() {
         'app_id',
         // We will only touch these if writeEnabled === true
         '__syncdiag_test_key__',
+        // For SYNC_KEYS test
+        'dimension9_data',
       ]
       const SS_KEYS = [
         'version_conflict',
@@ -150,6 +152,51 @@ export default function SyncDiagnostics() {
               name: 'WRITE: forceSyncNow executes (smoke)',
               ok: false,
               detail: e?.message || String(e)
+            })
+          }
+
+          // ---- SYNC_KEYS TEST: This is the critical test for dimension page writes
+          const surveyKeysEnabled = getParam('debugSyncSurveyKeys') === '1'
+
+          if (surveyKeysEnabled) {
+            // Test dimension9_data since that was the failing key
+            const realKey = 'dimension9_data'
+            const realPayload = JSON.stringify({ __diag: true, ts: Date.now() })
+
+            // Snapshot/restore that key so we don't permanently change anything
+            const prev = localStorage.getItem(realKey)
+
+            clearDirty()
+
+            // This should flip dirty via your interceptor (SYNC_KEYS)
+            localStorage.setItem(realKey, realPayload)
+
+            out.push({
+              name: 'WRITE: SYNC_KEYS localStorage.setItem marks dirty',
+              ok: isDirty(),
+              detail: isDirty() ? 'dirty=true (interceptor works!)' : 'dirty=false (INTERCEPTOR FAILED)'
+            })
+
+            // Also test prototype path with real key
+            clearDirty()
+            Storage.prototype.setItem.call(localStorage, realKey, realPayload)
+
+            out.push({
+              name: 'WRITE: SYNC_KEYS Storage.prototype.setItem marks dirty',
+              ok: isDirty(),
+              detail: isDirty() ? 'dirty=true (interceptor works!)' : 'dirty=false (INTERCEPTOR FAILED)'
+            })
+
+            // Restore the prior value
+            if (prev === null) localStorage.removeItem(realKey)
+            else localStorage.setItem(realKey, prev)
+
+            clearDirty()
+          } else {
+            out.push({
+              name: 'WRITE: SYNC_KEYS test skipped (safe)',
+              ok: true,
+              detail: 'Add &debugSyncSurveyKeys=1 to validate interceptor on dimension9_data'
             })
           }
         } else {
