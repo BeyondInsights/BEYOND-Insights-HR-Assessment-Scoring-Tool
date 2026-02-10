@@ -4717,7 +4717,7 @@ export default function ExportReportPage() {
                         <div className="absolute top-12 left-[10%] right-[10%] h-1 bg-gradient-to-r from-emerald-200 via-emerald-400 to-emerald-600 rounded-full hidden lg:block"></div>
                         
                         {/* 5 Steps */}
-                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-4 items-start">
+                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-4">
                           {/* Step 1: DIAGNOSE */}
                           <div className="relative">
                             <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
@@ -4725,11 +4725,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Diagnose</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand today?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">Where do we stand today?</p>
                             </div>
-                            <div className="mt-2 text-left pl-2">
-                              <p className="text-sm text-slate-600 leading-relaxed h-24">Establish your baseline across the Composite and the 13 dimensions, benchmarked against peers.</p>
-                              <div className="space-y-2 h-20">
+                            <div className="mt-3 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed mb-4">Establish your baseline across the Composite and the 13 dimensions, benchmarked against peers.</p>
+                              <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
@@ -4749,7 +4749,7 @@ export default function ExportReportPage() {
                                   <span className="text-xs text-slate-600">Benchmarks</span>
                                 </div>
                               </div>
-                              <div className="h-14 pt-3 border-t border-slate-200">
+                              <div className="pt-3 border-t border-slate-200">
                                 <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Focus on where the biggest returns are likely.</p>
                               </div>
                             </div>
@@ -4762,11 +4762,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Prioritize</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where should we focus first?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">Where should we focus first?</p>
                             </div>
-                            <div className="mt-2 text-left pl-2">
-                              <p className="text-sm text-slate-600 leading-relaxed h-24">Use the Strategic Matrix to identify the highest-leverage gaps. Focus where investment is most likely to move outcomes.</p>
-                              <div className="space-y-2 h-20">
+                            <div className="mt-3 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed mb-4">Use the Strategic Matrix to find where investment moves outcomes most.</p>
+                              <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
@@ -4774,7 +4774,7 @@ export default function ExportReportPage() {
                                   <span className="text-xs text-slate-600">Strategic Matrix</span>
                                 </div>
                               </div>
-                              <div className="h-14 pt-3 border-t border-slate-200">
+                              <div className="pt-3 border-t border-slate-200">
                                 <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Understand the patterns behind these gaps.</p>
                               </div>
                             </div>
@@ -4787,11 +4787,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Understand</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Why do strengths and gaps cluster?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">Why do strengths and gaps cluster?</p>
                             </div>
-                            <div className="mt-2 text-left pl-2">
-                              <p className="text-sm text-slate-600 leading-relaxed h-24">See the system patterns behind the scores. Identify shared enablers that influence multiple dimensions at once.</p>
-                              <div className="space-y-2 h-20">
+                            <div className="mt-3 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed mb-4">See the system patterns behind the scores. Identify shared enablers that influence multiple dimensions.</p>
+                              <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
@@ -4799,7 +4799,7 @@ export default function ExportReportPage() {
                                   <span className="text-xs text-slate-600">Cross-Dimensional Insights</span>
                                 </div>
                               </div>
-                              <div className="h-14 pt-3 border-t border-slate-200">
+                              <div className="pt-3 border-t border-slate-200">
                                 <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Turn these insights into a roadmap.</p>
                               </div>
                             </div>
@@ -4812,11 +4812,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Build</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our roadmap?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">What&apos;s our roadmap?</p>
                             </div>
-                            <div className="mt-2 text-left pl-2">
-                              <p className="text-sm text-slate-600 leading-relaxed h-24">Convert insights into a phased roadmap. Protect strengths, target high-impact gaps, and build on initiatives already underway.</p>
-                              <div className="space-y-2 h-20">
+                            <div className="mt-3 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed mb-4">Convert insights into a phased roadmap. Protect strengths, target gaps, build on work underway.</p>
+                              <div className="space-y-2 mb-4">
                                 <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
@@ -4836,7 +4836,7 @@ export default function ExportReportPage() {
                                   <span className="text-xs text-slate-600">Initiatives In Progress</span>
                                 </div>
                               </div>
-                              <div className="h-14 pt-3 border-t border-slate-200">
+                              <div className="pt-3 border-t border-slate-200">
                                 <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Finalize and activate the plan.</p>
                               </div>
                             </div>
@@ -4849,11 +4849,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="mt-4 text-center">
                               <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Act</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What do we do next?</p>
+                              <p className="text-sm font-semibold text-slate-700 mt-1">What do we do next?</p>
                             </div>
-                            <div className="mt-2 text-left pl-2">
-                              <p className="text-sm text-slate-600 leading-relaxed h-24">Finalize the plan. Pressure-test scenarios, sequence priorities, and align leadership on funding and execution.</p>
-                              <div className="space-y-2 h-20">
+                            <div className="mt-3 text-left pl-2">
+                              <p className="text-sm text-slate-600 leading-relaxed mb-4">Finalize the plan. Pressure-test scenarios, sequence priorities, align leadership on execution.</p>
+                              <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                   <div className="w-5 h-5 rounded bg-amber-500 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -4873,12 +4873,10 @@ export default function ExportReportPage() {
                                   <span className="text-xs text-slate-600">Strategic Recommendations</span>
                                 </div>
                               </div>
-                              <div className="h-14 pt-3 border-t border-slate-200">
-                                <p className="text-sm text-slate-500 opacity-0">Placeholder</p>
-                              </div>
                             </div>
                           </div>
                         </div>
+                      </div>
                       </div>
                       
                       {/* CAC Partnership Note */}
