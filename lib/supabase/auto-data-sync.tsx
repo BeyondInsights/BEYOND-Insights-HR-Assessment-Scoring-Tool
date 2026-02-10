@@ -125,8 +125,15 @@ function getDirtyKey(): string {
 
 // Mark local data as dirty (unsynced changes exist)
 export function markDirty(reason?: string): void {
-  const data = JSON.stringify({ ts: Date.now(), reason: reason || 'user_edit' });
-  localStorage.setItem(getDirtyKey(), data);
+  const data = JSON.stringify({ ts: Date.now(), reason: reason || 'user_edit' })
+  const key = getDirtyKey()
+  localStorage.setItem(key, data)
+
+  // Migration safety: always also mark legacy 'dirty'
+  // (prevents edge cases when idKey becomes known mid-session)
+  if (key !== 'dirty') {
+    localStorage.setItem('dirty', data)
+  }
 }
 
 // Clear dirty flag (after successful sync)
@@ -149,16 +156,15 @@ export function isDirty(): boolean {
 }
 
 function setConflictFlag(): void {
-  const key = getConflictKey();
-  const conflictData = JSON.stringify({
-    ts: Date.now(),
-    id: getIdKey()
-  });
-  sessionStorage.setItem(key, conflictData);
-  // Also set legacy flag for any UI that reads it directly
-  sessionStorage.setItem('version_conflict', '1');
-  // Dispatch event for UI to react
-  window.dispatchEvent(new CustomEvent('sync-conflict', { 
+  const key = getConflictKey()
+  const conflictData = JSON.stringify({ ts: Date.now(), id: getIdKey() })
+
+  sessionStorage.setItem(key, conflictData)
+
+  // Always set legacy flag for any UI that reads it directly
+  sessionStorage.setItem('version_conflict', '1')
+
+  window.dispatchEvent(new CustomEvent('sync-conflict', {
     detail: { message: 'A newer version exists on the server' }
   }))
 }
