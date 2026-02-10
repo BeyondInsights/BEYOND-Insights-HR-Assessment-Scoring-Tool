@@ -2817,18 +2817,20 @@ export default function ExportReportPage() {
     // Dimension deep dives: slides 6-18
     for (let i = 6; i <= 18; i++) slideNames[i] = `Dimension ${i - 5} Deep Dive`;
     // Strategic content: slides 19-30
-    for (let i = 19; i <= 30; i++) slideNames[i] = `Strategic Content ${i - 18}`;
-    // Additional analyzed dimensions: slides 31 to 31+addDimCount-1
+    for (let i = 19; i <= 28; i++) slideNames[i] = `Strategic Content ${i - 18}`;
+    // Recommendation slides 29-32
+    for (let i = 29; i <= 32; i++) slideNames[i] = `Recommendation ${i - 28}`;
+    // Additional analyzed dimensions: slides 33 to 33+addDimCount-1
     for (let i = 0; i < addDimCount; i++) {
       const dimNum = additionalAnalyzedDims[i];
-      slideNames[31 + i] = `Additional Analysis: Dimension ${dimNum}`;
+      slideNames[33 + i] = `Additional Analysis: Dimension ${dimNum}`;
     }
     // Final slides (shifted by addDimCount)
-    slideNames[31 + addDimCount] = 'Implementation Roadmap';
-    slideNames[32 + addDimCount] = 'Working with Cancer Pledge';
-    slideNames[33 + addDimCount] = 'How CAC Can Help';
-    slideNames[34 + addDimCount] = 'Thank You';
-    slideNames[35 + addDimCount] = 'Methodology';
+    slideNames[33 + addDimCount] = 'Implementation Roadmap';
+    slideNames[34 + addDimCount] = 'Working with Cancer Pledge';
+    slideNames[35 + addDimCount] = 'How CAC Can Help';
+    slideNames[36 + addDimCount] = 'Thank You';
+    slideNames[37 + addDimCount] = 'Methodology';
     
     const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
     const noteKey = `slide_${slideNum}`;
@@ -2854,16 +2856,16 @@ export default function ExportReportPage() {
       29: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
       30: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
     };
-    // Additional analyzed dimensions get notes (slides 31 to 31+addDimCount-1)
+    // Additional analyzed dimensions get notes (slides 33 to 33+addDimCount-1)
     for (let i = 0; i < addDimCount; i++) {
-      defaultNotes[31 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
+      defaultNotes[33 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
     }
     // Final slides (shifted by addDimCount)
-    defaultNotes[31 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
-    defaultNotes[32 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
-    defaultNotes[33 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
-    defaultNotes[34 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
-    defaultNotes[35 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
+    defaultNotes[33 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
+    defaultNotes[34 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
+    defaultNotes[35 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
+    defaultNotes[36 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
+    defaultNotes[37 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
     
     // Default notes for dimension deep dive slides (6-18) - flowing prose template
     for (let i = 6; i <= 18; i++) {
@@ -9894,7 +9896,7 @@ export default function ExportReportPage() {
 
                 {/* Slides 6-18: D1-D13 Deep Dives */}
                 {currentSlide >= 6 && currentSlide <= 18 && (() => {
-                  const dimNum = currentSlide - 6;
+                  const dimNum = currentSlide - 5;
                   const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                   if (!d) return <div className="p-10 text-center text-slate-500">Dimension {dimNum} data not available</div>;
                   
@@ -11410,9 +11412,9 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slides 30-33: 4 Strategic Rec Cards */}
-                {currentSlide >= 30 && currentSlide <= 33 && (() => {
-                  const recIdx = currentSlide - 30;
+                {/* Slides 29-32: 4 Strategic Rec Cards */}
+                {currentSlide >= 29 && currentSlide <= 32 && (() => {
+                  const recIdx = currentSlide - 29;
                   const d = strategicPriorityDims[recIdx];
                   if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
                   
@@ -12949,7 +12951,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide >= 30 && currentSlide <= 33 && (
+                  {currentSlide >= 29 && currentSlide <= 32 && (
                     <div>
                       <p className="mb-2"><strong>Recommendation {currentSlide - 29}:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12960,7 +12962,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {additionalAnalyzedDims.length > 0 && currentSlide >= 31 && currentSlide < 31 + additionalAnalyzedDims.length && (
+                  {additionalAnalyzedDims.length > 0 && currentSlide >= 33 && currentSlide < 33 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Additional dimension analysis:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13063,13 +13065,13 @@ export default function ExportReportPage() {
                            i === 26 ? 'Initiatives In Progress' :
                            i === 27 ? 'Strategic Recommendations' :
                            i === 28 ? 'From Insight to Action' :
-                           i >= 29 && i <= 30 ? `Recommendation ${i - 28}` :
-                           i >= 31 && i < 31 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 31]}` :
-                           i === 31 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
-                           i === 32 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
-                           i === 33 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
-                           i === 34 + additionalAnalyzedDims.length ? 'Thank You' :
-                           i === 35 + additionalAnalyzedDims.length ? 'Methodology' :
+                           i >= 29 && i <= 32 ? `Recommendation ${i - 28}` :
+                           i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
+                           i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
+                           i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
+                           i === 35 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
+                           i === 36 + additionalAnalyzedDims.length ? 'Thank You' :
+                           i === 37 + additionalAnalyzedDims.length ? 'Methodology' :
                            `Slide ${i + 1}`}
                         </div>
                       </button>
