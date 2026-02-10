@@ -12,7 +12,7 @@
 
 'use client'
 
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef, useCallback, useLayoutEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { supabase } from './client'
 import { stableStringify } from './stable-stringify'
@@ -77,6 +77,15 @@ async function captureLocalStorageForRecovery(surveyId: string): Promise<void> {
     }
   })
   
+  const capturedKeyCount = Object.keys(localStorageData).length
+  
+  // Warn if no data found (likely wrong browser)
+  if (capturedKeyCount === 0) {
+    console.warn('🔴 RECOVERY MODE: No whitelisted localStorage keys found for', surveyId, '- likely wrong browser')
+  } else {
+    console.log('🔴 RECOVERY MODE: Found', capturedKeyCount, 'keys to capture')
+  }
+  
   try {
     const response = await fetch('/.netlify/functions/recovery-capture', {
       method: 'POST',
@@ -85,13 +94,14 @@ async function captureLocalStorageForRecovery(surveyId: string): Promise<void> {
         survey_id: surveyId,
         captured_at: new Date().toISOString(),
         user_agent: navigator.userAgent,
+        captured_key_count: capturedKeyCount,
         localStorage_data: localStorageData
       })
     })
     
     if (response.ok) {
       sessionStorage.setItem(captureKey, '1')
-      console.log('✅ RECOVERY MODE: localStorage captured successfully')
+      console.log('✅ RECOVERY MODE: localStorage captured successfully (' + capturedKeyCount + ' keys)')
     } else {
       console.error('❌ RECOVERY MODE: Capture failed', await response.text())
     }
@@ -875,8 +885,9 @@ export default function AutoDataSync() {
   }, [])
   
   // RECOVERY CAPTURE ON MOUNT - runs immediately for recovery mode surveys
-  // This is INDEPENDENT of sync - captures localStorage even if no edits/dirty
-  useEffect(() => {
+  // Using useLayoutEffect to run BEFORE other effects and before paint
+  // This ensures capture happens before any DB→localStorage hydration
+  useLayoutEffect(() => {
     const surveyId = localStorage.getItem('survey_id') || ''
     if (isRecoveryModeSurvey(surveyId)) {
       console.log('🔴 RECOVERY MODE: Capturing on mount for', surveyId)
