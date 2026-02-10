@@ -4,7 +4,7 @@ import "./globals.css";
 import SavedToast from "@/components/SavedToast";
 import AutoDataSync from "@/lib/supabase/auto-data-sync";
 import SyncConflictBanner from "@/components/SyncConflictBanner";
-// REMOVED: SilentDataRecovery - auto-sync handles all syncing now
+import SyncDiagnostics from "@/lib/supabase/SyncDiagnostics";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -30,6 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AutoDataSync />
+        <SyncDiagnostics />
         <SyncConflictBanner />
         {children}
         <SavedToast />
