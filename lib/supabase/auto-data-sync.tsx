@@ -1,13 +1,12 @@
 /**
- * AUTO DATA SYNC v5.2 - STABILIZATION PATCH
- *
- * Fixes vs v5.1:
- * 1) Conflict flag migration: also sets legacy sessionStorage 'version_conflict'='1' for UI compatibility
- * 2) beforeunload: no fake async sync; only warns when dirty & no conflict
- * 3) Success handling: clears dirty + commits hash on success even if newVersion missing (fallback logic)
- * 4) Intercept wrapper: marks dirty BEFORE setItem, and catches setItem errors (Safari/private mode)
- * 5) Dirty “stuck” heal: if dirty but payload hash unchanged, clearDirty() (prevents endless dirty)
- * 6) Namespacing guard: avoids migrating/setting namespaced version keys while idKey is 'unknown'
+ * AUTO DATA SYNC v5.1 - EMERGENCY FIX
+ * 
+ * FIXES APPLIED:
+ * 1. Namespaced assessment_version by idKey (prevents cross-survey conflicts)
+ * 2. Hydration guard for localStorage patch (prevents false dirty on DB→local writes)
+ * 3. TTL auto-heal verifies DB version before clearing
+ * 4. Patch guard to prevent double-patching
+ * 5. EXPORTED isDirty() - was missing, causing SyncStatusIndicator to crash
  */
 
 'use client'
@@ -40,53 +39,41 @@ function isCompdUser(surveyId: string): boolean {
 // ============================================
 
 function getIdKey(): string {
-  const surveyId = localStorage.getItem('survey_id') || ''
-  const appId = localStorage.getItem('app_id') || ''
+  const surveyId = localStorage.getItem('survey_id') || '';
+  const appId = localStorage.getItem('app_id') || '';
   // Fallback chain: survey_id → app_id → 'unknown'
-  return surveyId || appId || 'unknown'
-}
-
-function isKnownIdKey(idKey: string): boolean {
-  return !!idKey && idKey !== 'unknown'
+  return surveyId || appId || 'unknown';
 }
 
 // ============================================
 // VERSION TRACKING (namespaced by idKey)
 // ============================================
 
+function getVersionKey(): string {
+  return `assessment_version_${getIdKey()}`;
+}
+
 function getStoredVersion(): number {
-  const idKey = getIdKey()
-
-  // If we don't know the id yet, ONLY read legacy (avoid poisoning with *_unknown)
-  if (!isKnownIdKey(idKey)) {
-    const legacy = localStorage.getItem('assessment_version')
-    return legacy ? Number(legacy) : 0
-  }
-
+  const idKey = getIdKey();
   // Try namespaced key first, fall back to legacy
-  let stored = localStorage.getItem(`assessment_version_${idKey}`)
+  let stored = localStorage.getItem(`assessment_version_${idKey}`);
   if (!stored) {
     // Migration: check legacy key
-    stored = localStorage.getItem('assessment_version')
+    stored = localStorage.getItem('assessment_version');
     if (stored) {
       // Migrate to namespaced
-      localStorage.setItem(`assessment_version_${idKey}`, stored)
-      console.log(`🔄 Migrated assessment_version to namespaced key for ${idKey}`)
+      localStorage.setItem(`assessment_version_${idKey}`, stored);
+      console.log(`🔄 Migrated assessment_version to namespaced key for ${idKey}`);
     }
   }
-  return stored ? Number(stored) : 0
+  return stored ? Number(stored) : 0;
 }
 
 function setStoredVersion(version: number): void {
-  const idKey = getIdKey()
-
-  // Always keep legacy during transition
-  localStorage.setItem('assessment_version', String(version))
-
-  // Only set namespaced if we know idKey (avoid *_unknown)
-  if (isKnownIdKey(idKey)) {
-    localStorage.setItem(`assessment_version_${idKey}`, String(version))
-  }
+  const idKey = getIdKey();
+  localStorage.setItem(`assessment_version_${idKey}`, String(version));
+  // Also set legacy for backwards compatibility during transition
+  localStorage.setItem('assessment_version', String(version));
 }
 
 // ============================================
@@ -94,175 +81,172 @@ function setStoredVersion(version: number): void {
 // ============================================
 
 export function startHydration(): void {
-  sessionStorage.setItem('ls_hydrating', '1')
+  sessionStorage.setItem('ls_hydrating', '1');
 }
 
 export function endHydration(): void {
-  sessionStorage.removeItem('ls_hydrating')
+  sessionStorage.removeItem('ls_hydrating');
 }
 
 function isHydrating(): boolean {
-  return sessionStorage.getItem('ls_hydrating') === '1'
+  return sessionStorage.getItem('ls_hydrating') === '1';
 }
 
 // ============================================
 // CONFLICT STATE (namespaced by survey/app ID with TTL auto-heal)
 // ============================================
 
-const CONFLICT_TTL_MS = 5 * 60 * 1000  // 5 minutes TTL for conflict flags
+const CONFLICT_TTL_MS = 5 * 60 * 1000;  // 5 minutes TTL for conflict flags
 
 function getConflictKey(): string {
-  return `version_conflict_${getIdKey()}`
+  return `version_conflict_${getIdKey()}`;
 }
 
 function getDirtyKey(): string {
-  return `dirty_${getIdKey()}`
+  return `dirty_${getIdKey()}`;
 }
 
 // Mark local data as dirty (unsynced changes exist)
 export function markDirty(reason?: string): void {
-  const data = JSON.stringify({ ts: Date.now(), reason: reason || 'user_edit' })
-  localStorage.setItem(getDirtyKey(), data)
+  const data = JSON.stringify({ ts: Date.now(), reason: reason || 'user_edit' });
+  localStorage.setItem(getDirtyKey(), data);
 }
 
 // Clear dirty flag (after successful sync)
 export function clearDirty(): void {
-  localStorage.removeItem(getDirtyKey())
+  localStorage.removeItem(getDirtyKey());
 }
 
 // Check if there are unsynced local changes
 export function isDirty(): boolean {
-  const data = localStorage.getItem(getDirtyKey())
-  if (!data) return false
+  const data = localStorage.getItem(getDirtyKey());
+  if (!data) return false;
   // Handle both old format ('1') and new format (JSON)
-  if (data === '1') return true
+  if (data === '1') return true;
   try {
-    const parsed = JSON.parse(data)
-    return !!parsed.ts
+    const parsed = JSON.parse(data);
+    return !!parsed.ts;
   } catch {
-    return data === '1'
+    return data === '1';
   }
 }
 
 function setConflictFlag(): void {
-  const key = getConflictKey()
+  const key = getConflictKey();
   const conflictData = JSON.stringify({
     ts: Date.now(),
     id: getIdKey()
-  })
-
-  sessionStorage.setItem(key, conflictData)
-
-  // LEGACY for any UI / old code still checking this:
-  sessionStorage.setItem('version_conflict', '1')
-
+  });
+  sessionStorage.setItem(key, conflictData);
+  // Also set legacy flag for any UI that reads it directly
+  sessionStorage.setItem('version_conflict', '1');
   // Dispatch event for UI to react
-  window.dispatchEvent(new CustomEvent('sync-conflict', {
+  window.dispatchEvent(new CustomEvent('sync-conflict', { 
     detail: { message: 'A newer version exists on the server' }
   }))
 }
 
 function clearConflictFlag(): void {
-  const key = getConflictKey()
-  sessionStorage.removeItem(key)
+  const key = getConflictKey();
+  sessionStorage.removeItem(key);
   // Also clear legacy non-namespaced flag if exists
-  sessionStorage.removeItem('version_conflict')
+  sessionStorage.removeItem('version_conflict');
 }
 
 // Async conflict resolution - verifies DB version before clearing
 // Call this from UI "Reload from server" button
 export async function resolveConflictFromServer(): Promise<boolean> {
-  const surveyId = localStorage.getItem('survey_id') || ''
-  const appId = localStorage.getItem('app_id') || ''
-
+  const surveyId = localStorage.getItem('survey_id') || '';
+  const appId = localStorage.getItem('app_id') || '';
+  
   if (!surveyId && !appId) {
-    console.error('[resolveConflict] No survey_id or app_id')
-    return false
+    console.error('[resolveConflict] No survey_id or app_id');
+    return false;
   }
-
+  
   try {
     // Fetch current DB version
-    const matchField = surveyId ? 'survey_id' : 'app_id'
-    const matchValue = surveyId || appId
-
+    const matchField = surveyId ? 'survey_id' : 'app_id';
+    const matchValue = surveyId || appId;
+    
     const { data, error } = await supabase
       .from('assessments')
       .select('version')
       .eq(matchField, matchValue)
-      .single()
-
+      .single();
+    
     if (error || !data) {
-      console.error('[resolveConflict] Failed to fetch DB version:', error)
-      return false
+      console.error('[resolveConflict] Failed to fetch DB version:', error);
+      return false;
     }
-
-    const dbVersion = data.version || 1
-
+    
+    const dbVersion = data.version || 1;
+    
     // Update local version to match DB
-    setStoredVersion(dbVersion)
-
+    setStoredVersion(dbVersion);
+    
     // Clear dirty flag (discarding local changes)
-    clearDirty()
-
+    clearDirty();
+    
     // Clear conflict flag
-    clearConflictFlag()
-
-    console.log(`✅ [resolveConflict] Resolved - local version set to ${dbVersion}, dirty cleared`)
-
+    clearConflictFlag();
+    
+    console.log(`✅ [resolveConflict] Resolved - local version set to ${dbVersion}, dirty cleared`);
+    
     // Dispatch event for UI to react
-    window.dispatchEvent(new CustomEvent('sync-conflict-resolved'))
-
-    return true
+    window.dispatchEvent(new CustomEvent('sync-conflict-resolved'));
+    
+    return true;
   } catch (e) {
-    console.error('[resolveConflict] Error:', e)
-    return false
+    console.error('[resolveConflict] Error:', e);
+    return false;
   }
 }
 
 export function hasConflict(): boolean {
-  const key = getConflictKey()
-  const conflictData = sessionStorage.getItem(key)
-
+  const key = getConflictKey();
+  const conflictData = sessionStorage.getItem(key);
+  
   // Also check legacy non-namespaced flag
-  const legacyConflict = sessionStorage.getItem('version_conflict') === '1'
-
+  const legacyConflict = sessionStorage.getItem('version_conflict') === '1';
+  
   if (!conflictData && !legacyConflict) {
-    return false
+    return false;
   }
-
+  
   // Check TTL - but DON'T auto-heal if there are dirty (unsynced) changes
   if (conflictData) {
     try {
-      const parsed = JSON.parse(conflictData)
+      const parsed = JSON.parse(conflictData);
       if (Date.now() - parsed.ts > CONFLICT_TTL_MS) {
         // Only auto-heal if no dirty changes - prevents pushing stale data
         if (isDirty()) {
-          console.log('⚠️ AUTO-HEAL: Conflict expired but dirty changes exist - keeping conflict')
-          return true
+          console.log('⚠️ AUTO-HEAL: Conflict expired but dirty changes exist - keeping conflict');
+          return true;
         }
-        console.log('🔄 AUTO-HEAL: Conflict flag expired, clearing...')
-        clearConflictFlag()
-        return false
+        console.log('🔄 AUTO-HEAL: Conflict flag expired, clearing...');
+        clearConflictFlag();
+        return false;
       }
     } catch {
       // Invalid data, clear it (but only if not dirty)
       if (!isDirty()) {
-        clearConflictFlag()
-        return false
+        clearConflictFlag();
+        return false;
       }
     }
   }
-
+  
   // Legacy flag without TTL - clear it after first check to migrate (if not dirty)
   if (legacyConflict && !conflictData) {
     if (!isDirty()) {
-      console.log('🔄 AUTO-HEAL: Clearing legacy conflict flag')
-      sessionStorage.removeItem('version_conflict')
-      return false
+      console.log('🔄 AUTO-HEAL: Clearing legacy conflict flag');
+      sessionStorage.removeItem('version_conflict');
+      return false;
     }
   }
-
-  return true
+  
+  return true;
 }
 
 // ============================================
@@ -283,13 +267,13 @@ function isRescueReadOnly(): boolean {
 
 function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean } {
   const updateData: Record<string, any> = {}
-
+  
   const dataKeys = [
     'firmographics_data', 'general_benefits_data', 'current_support_data',
     'cross_dimensional_data', 'employee-impact-assessment_data',
-    ...Array.from({ length: 13 }, (_, i) => `dimension${i + 1}_data`)
+    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
   ]
-
+  
   const completeKeyMap: Record<string, string> = {
     'firmographics_complete': 'firmographics_complete',
     'auth_completed': 'auth_completed',
@@ -298,13 +282,13 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
     'cross_dimensional_complete': 'cross_dimensional_complete',
     'employee-impact-assessment_complete': 'employee_impact_complete',
   }
-
+  
   for (let i = 1; i <= 13; i++) {
     completeKeyMap[`dimension${i}_complete`] = `dimension${i}_complete`
   }
-
+  
   let itemCount = 0
-
+  
   dataKeys.forEach(key => {
     const value = localStorage.getItem(key)
     if (value) {
@@ -315,12 +299,10 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
           updateData[dbKey] = parsed
           itemCount++
         }
-      } catch {
-        // ignore parse errors
-      }
+      } catch (e) {}
     }
   })
-
+  
   Object.entries(completeKeyMap).forEach(([localKey, dbKey]) => {
     const value = localStorage.getItem(localKey)
     if (value === 'true') {
@@ -328,7 +310,7 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
       itemCount++
     }
   })
-
+  
   // ============================================
   // EXTRACT COMPANY NAME FROM FIRMOGRAPHICS
   // ============================================
@@ -341,13 +323,13 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
       updateData.company_name = companyName
     }
   }
-
+  
   // Also extract email if available
   const email = localStorage.getItem('auth_email') || localStorage.getItem('login_email')
   if (email) {
     updateData.email = email.toLowerCase().trim()
   }
-
+  
   // ============================================
   // PAYMENT DATA
   // ============================================
@@ -362,14 +344,14 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
   if (paymentDate) {
     updateData.payment_date = paymentDate
   }
-
+  
   // ============================================
   // FIRST NAME, LAST NAME, TITLE
   // ============================================
   const firstName = localStorage.getItem('login_first_name')
   const lastName = localStorage.getItem('login_last_name')
   const title = localStorage.getItem('login_title')
-
+  
   // These go into firmographics_data if it exists, or we add them
   if (firstName || lastName || title) {
     if (!updateData.firmographics_data) {
@@ -379,7 +361,7 @@ function collectAllSurveyData(): { data: Record<string, any>, hasData: boolean }
     if (lastName) updateData.firmographics_data.lastName = lastName
     if (title) updateData.firmographics_data.title = title
   }
-
+  
   return { data: updateData, hasData: itemCount > 0 }
 }
 
@@ -412,10 +394,6 @@ function commitSyncedHash(): void {
   }
 }
 
-function clearPendingHash(): void {
-  pendingDataHash = ''
-}
-
 // ============================================
 // FETCH VERSION FROM DB (for missing version case)
 // ============================================
@@ -423,21 +401,21 @@ function clearPendingHash(): void {
 async function fetchCurrentVersionFromDB(surveyId: string, userId?: string): Promise<number | null> {
   try {
     let query = supabase.from('assessments').select('version')
-
+    
     if (userId) {
       const { data } = await query.eq('user_id', userId).single()
       if (data?.version) return data.version
     }
-
+    
     if (surveyId) {
       const { data } = await supabase.from('assessments').select('version').eq('survey_id', surveyId).single()
       if (data?.version) return data.version
-
+      
       const normalized = surveyId.replace(/-/g, '').toUpperCase()
       const { data: appData } = await supabase.from('assessments').select('version').eq('app_id', normalized).single()
       if (appData?.version) return appData.version
     }
-
+    
     return null
   } catch {
     return null
@@ -459,8 +437,6 @@ interface SyncResponse {
   currentVersion?: number
   conflict?: boolean
   actualVersion?: number
-  // note: server may echo expectedVersion in error payloads; we don't rely on it
-  expectedVersion?: number
 }
 
 async function syncViaNetlifyFunction(
@@ -471,12 +447,13 @@ async function syncViaNetlifyFunction(
   surveyId?: string,
   retryCount: number = 0
 ): Promise<SyncResponse> {
-  const MAX_RETRIES = 2
-
+  // Prevent infinite retry loops
+  const MAX_RETRIES = 2;
+  
   try {
     const clientId = getOrCreateTabId('sync_client_id')
     let expectedVersion = getStoredVersion()
-
+    
     // If no stored version, fetch from DB first
     if (!expectedVersion || expectedVersion <= 0) {
       console.log('[AUTO-SYNC] No stored version, fetching from DB...')
@@ -487,11 +464,12 @@ async function syncViaNetlifyFunction(
         console.log('[AUTO-SYNC] Fetched version from DB:', dbVersion)
       }
     }
-
+    
+    // If still no version, we have a problem - but let server handle it
     if (!expectedVersion || expectedVersion <= 0) {
-      console.warn('[AUTO-SYNC] No version available - server may reject')
+      console.warn('[AUTO-SYNC] No version available - server will reject')
     }
-
+    
     const payload: Record<string, any> = {
       user_id: userId,
       data,
@@ -501,20 +479,20 @@ async function syncViaNetlifyFunction(
       client_id: clientId,
       expectedVersion: expectedVersion > 0 ? expectedVersion : undefined
     }
-
+    
     if (surveyId) {
       payload.survey_id = surveyId
       payload.fallbackSurveyId = surveyId
       payload.fallbackAppId = surveyId
     }
-
+    
     console.log('[AUTO-SYNC] Sending:', {
       userType,
       survey_id: surveyId,
       expectedVersion,
       dataFields: Object.keys(data).length
     })
-
+    
     const response = await fetch('/.netlify/functions/sync-assessment', {
       method: 'POST',
       headers: {
@@ -523,77 +501,72 @@ async function syncViaNetlifyFunction(
       },
       body: JSON.stringify(payload)
     })
-
+    
     const result: SyncResponse = await response.json()
-
+    
     // Handle 400 - missing expectedVersion
     if (response.status === 400 && result.missingExpected) {
       console.warn('⚠️ AUTO-SYNC: Missing expectedVersion, fetching from DB...')
       if (result.currentVersion) {
         setStoredVersion(result.currentVersion)
         // Retry once with correct version
-        return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId, retryCount + 1)
+        return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId)
       }
       return { success: false, error: 'Could not determine version' }
     }
-
+    
     // Handle 409 - version conflict
     if (response.status === 409) {
       console.error('❌ AUTO-SYNC: VERSION CONFLICT!')
-      console.error('   Expected(local):', expectedVersion)
-      console.error('   Actual(server):', result.actualVersion)
-
-      // Update local version to the ACTUAL version from DB and retry (bounded)
+      console.error('   Expected:', result.expectedVersion)
+      console.error('   Actual:', result.actualVersion)
+      
+      // CRITICAL: Update localStorage to the ACTUAL version from DB
+      // This way, next sync attempt uses the correct version
       if (result.actualVersion) {
         setStoredVersion(result.actualVersion)
         console.log('🔄 AUTO-SYNC: Updated localStorage version to:', result.actualVersion)
-
+        
+        // Retry with correct version (but limit retries to prevent infinite loop)
         if (retryCount < MAX_RETRIES) {
           console.log(`🔄 AUTO-SYNC: Retrying with correct version (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
           return syncViaNetlifyFunction(userId, data, accessToken, userType, surveyId, retryCount + 1)
         }
       }
-
+      
+      // Only set conflict flag if we can't auto-recover after retries
       console.error('❌ AUTO-SYNC: Max retries exceeded, setting conflict flag')
       setConflictFlag()
-      clearPendingHash()
-      return { success: false, error: 'Version conflict', conflict: true, actualVersion: result.actualVersion }
+      return { success: false, error: 'Version conflict', conflict: true }
     }
-
+    
     if (!response.ok) {
       console.error('❌ AUTO-SYNC: Error:', result.error)
-      clearPendingHash()
       return { success: false, error: result.error }
     }
-
-    if ((result.rowsAffected || 0) === 0) {
+    
+    if (result.rowsAffected === 0) {
       console.warn('⚠️ AUTO-SYNC: 0 rows affected')
-      clearPendingHash()
       return { success: false, rowsAffected: 0, error: 'No rows updated' }
     }
-
-    // SUCCESS (even if server forgot to include newVersion)
-    // Choose best available version to store:
-    const nextVersion =
-      result.newVersion ??
-      result.actualVersion ??
-      (expectedVersion > 0 ? expectedVersion + 1 : undefined)
-
-    if (nextVersion) {
-      setStoredVersion(nextVersion)
-      console.log('✅ AUTO-SYNC: Success, version now:', nextVersion)
-    } else {
-      console.log('✅ AUTO-SYNC: Success (no version in payload)')
+    
+    // SUCCESS - store new version, clear conflict and dirty flag
+    // Handle case where newVersion might be missing
+    if (result.success !== false && (result.rowsAffected || 0) > 0) {
+      const newVersion = result.newVersion ?? result.actualVersion ?? (expectedVersion ? expectedVersion + 1 : undefined)
+      if (newVersion) {
+        setStoredVersion(newVersion)
+      }
+      clearConflictFlag()
+      clearDirty()  // Local changes are now synced
+      commitSyncedHash()  // Mark this data as successfully synced
+      console.log('✅ AUTO-SYNC: Success, new version:', newVersion || 'unknown')
     }
-
-    clearConflictFlag()
-    clearDirty()
-    commitSyncedHash()
-
+    
     return result
+    
   } catch (error) {
     console.error('❌ AUTO-SYNC: Exception:', error)
-    clearPendingHash()
     return { success: false, error: String(error) }
   }
 }
@@ -605,7 +578,7 @@ async function syncViaNetlifyFunction(
 async function checkIsFoundingPartner(surveyId: string): Promise<boolean> {
   if (!surveyId) return false
   if (surveyId.startsWith('FP-')) return true
-
+  
   try {
     const { isFoundingPartner } = await import('@/lib/founding-partners')
     return isFoundingPartner(surveyId)
@@ -621,31 +594,26 @@ async function checkIsFoundingPartner(surveyId: string): Promise<boolean> {
 async function syncCompdUserToSupabase(surveyId: string): Promise<boolean> {
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
   console.log('🎫 AUTO-SYNC: Syncing comp\'d user:', normalized)
-
+  
   const { data: updateData, hasData } = collectAllSurveyData()
-
-  if (!hasData) return true
-  if (!hasDataChanged(updateData)) {
-    // if we’re dirty but hash says no change, clear dirty to avoid infinite churn
-    if (isDirty()) clearDirty()
+  
+  if (!hasData || !hasDataChanged(updateData)) {
     return true
   }
-
+  
   const result = await syncViaNetlifyFunction('', updateData, '', 'compd', normalized)
   return result.success && (result.rowsAffected || 0) > 0
 }
 
 async function syncFPToSupabase(surveyId: string): Promise<boolean> {
   console.log('🏢 AUTO-SYNC: Syncing FP:', surveyId)
-
+  
   const { data: updateData, hasData } = collectAllSurveyData()
-
-  if (!hasData) return true
-  if (!hasDataChanged(updateData)) {
-    if (isDirty()) clearDirty()
+  
+  if (!hasData || !hasDataChanged(updateData)) {
     return true
   }
-
+  
   const result = await syncViaNetlifyFunction('', updateData, '', 'fp', surveyId)
   return result.success && (result.rowsAffected || 0) > 0
 }
@@ -653,22 +621,23 @@ async function syncFPToSupabase(surveyId: string): Promise<boolean> {
 async function syncRegularUserToSupabase(): Promise<boolean> {
   const { data: sessionData } = await supabase.auth.getSession()
   const session = sessionData?.session
-
+  
   const surveyId = localStorage.getItem('survey_id') || ''
-
-  // No session but have survey_id: sync via survey_id fallback
+  
+  // ============================================
+  // FIX: If no session but have survey_id, sync via survey_id
+  // This handles returning users who logged in with email + survey_id
+  // ============================================
   if (!session?.user) {
     if (surveyId) {
       console.log('👤 AUTO-SYNC: No session, using survey_id fallback:', surveyId)
-
+      
       const { data: updateData, hasData } = collectAllSurveyData()
-
-      if (!hasData) return true
-      if (!hasDataChanged(updateData)) {
-        if (isDirty()) clearDirty()
+      
+      if (!hasData || !hasDataChanged(updateData)) {
         return true
       }
-
+      
       // Use 'compd' type which syncs by app_id/survey_id
       const result = await syncViaNetlifyFunction('', updateData, '', 'compd', surveyId)
       return result.success && (result.rowsAffected || 0) > 0
@@ -676,20 +645,18 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
     console.log('⏸️ AUTO-SYNC: No session and no survey_id - skipping')
     return true
   }
-
+  
   const userId = session.user.id
   const accessToken = session.access_token
-
+  
   console.log('👤 AUTO-SYNC: Syncing regular user...')
-
+  
   const { data: updateData, hasData } = collectAllSurveyData()
-
-  if (!hasData) return true
-  if (!hasDataChanged(updateData)) {
-    if (isDirty()) clearDirty()
+  
+  if (!hasData || !hasDataChanged(updateData)) {
     return true
   }
-
+  
   const result = await syncViaNetlifyFunction(
     userId,
     updateData,
@@ -697,7 +664,7 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
     'regular',
     surveyId
   )
-
+  
   return result.success && (result.rowsAffected || 0) > 0
 }
 
@@ -707,19 +674,13 @@ async function syncRegularUserToSupabase(): Promise<boolean> {
 
 async function syncToSupabase(): Promise<boolean> {
   const surveyId = localStorage.getItem('survey_id') || ''
-
+  
   // Don't sync if there's an unresolved conflict
   if (hasConflict()) {
     console.log('⏸️ AUTO-SYNC: BLOCKED - Unresolved version conflict')
     return false
   }
-
-  // Only sync if dirty (hard gate)
-  if (!isDirty()) {
-    console.log('⏭️ AUTO-SYNC: Skipping - no dirty changes')
-    return true
-  }
-
+  
   // RESCUE GATE CHECK
   if (DB_FIRST_SURVEY_IDS.includes(surveyId)) {
     if (!isRescueDone()) {
@@ -731,13 +692,13 @@ async function syncToSupabase(): Promise<boolean> {
       return true
     }
   }
-
+  
   console.log('🔄 AUTO-SYNC: Starting... Survey ID:', surveyId || 'none')
-
+  
   if (isCompdUser(surveyId)) {
     return await syncCompdUserToSupabase(surveyId)
   }
-
+  
   try {
     const { isSharedFP, saveSharedFPData } = await import('./fp-shared-storage')
     if (isSharedFP(surveyId)) {
@@ -745,15 +706,13 @@ async function syncToSupabase(): Promise<boolean> {
       await saveSharedFPData(surveyId, email || undefined)
       return true
     }
-  } catch {
-    // ignore
-  }
-
+  } catch (e) {}
+  
   const isFP = await checkIsFoundingPartner(surveyId)
   if (isFP) {
     return await syncFPToSupabase(surveyId)
   }
-
+  
   return await syncRegularUserToSupabase()
 }
 
@@ -775,38 +734,52 @@ export default function AutoDataSync() {
   const lastPath = useRef<string>('')
   const syncInProgress = useRef(false)
   const initialSyncDone = useRef(false)
-
-  // Whitelist of keys that actually get synced
+  
+  // Whitelist of keys that actually get synced - prevents dirty getting stuck on non-survey keys
   const SYNC_KEYS = new Set([
-    'firmographics_data', 'general_benefits_data', 'current_support_data',
+    'firmographics_data', 'general_benefits_data', 'current_support_data', 
     'cross_dimensional_data', 'employee-impact-assessment_data',
-    ...Array.from({ length: 13 }, (_, i) => `dimension${i + 1}_data`),
-    'auth_completed', 'firmographics_complete', 'general_benefits_complete',
+    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`),
+    'auth_completed', 'firmographics_complete', 'general_benefits_complete', 
     'current_support_complete', 'cross_dimensional_complete', 'employee-impact-assessment_complete',
-    ...Array.from({ length: 13 }, (_, i) => `dimension${i + 1}_complete`)
+    ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
   ])
-
+  
   const doSync = useCallback(async (reason: string) => {
     if (syncInProgress.current) return
     if (hasConflict()) {
       console.log('⏸️ AUTO-SYNC: Skipping - conflict unresolved')
       return
     }
+    
+    // Only sync if there are dirty changes (prevents unnecessary version bumps)
     if (!isDirty()) {
       console.log('⏭️ AUTO-SYNC: Skipping - no dirty changes')
       return
     }
-
+    
+    // Pre-check: if data hash hasn't actually changed, clear dirty and skip
+    // This handles the case where user toggles a value then toggles it back
+    const { data: currentData, hasData } = collectAllSurveyData()
+    if (hasData) {
+      const currentHash = getStableDataHash(currentData)
+      if (currentHash === lastSyncedDataHash) {
+        console.log('⏭️ AUTO-SYNC: Data unchanged from last sync, clearing dirty')
+        clearDirty()
+        return
+      }
+    }
+    
     syncInProgress.current = true
     console.log(`🔄 AUTO-SYNC: ${reason}`)
-
+    
     try {
       await syncToSupabase()
     } finally {
       syncInProgress.current = false
     }
   }, [])
-
+  
   // Initial sync with delay - only if dirty
   useEffect(() => {
     if (!initialSyncDone.current) {
@@ -818,7 +791,7 @@ export default function AutoDataSync() {
       }, 3000)
     }
   }, [doSync])
-
+  
   // Route change sync - only if dirty
   useEffect(() => {
     if (pathname !== lastPath.current) {
@@ -829,58 +802,68 @@ export default function AutoDataSync() {
       }
     }
   }, [pathname, doSync])
-
+  
   // Intercept localStorage writes - DUAL PATCH (prototype + instance)
+  // Some browsers route localStorage.setItem directly, bypassing Storage.prototype
   useEffect(() => {
+    // Prevent double-patching
     if ((window as any).__LS_PATCHED) {
-      console.log('⚠️ localStorage already patched, skipping')
-      return
+      console.log('⚠️ localStorage already patched, skipping');
+      return;
     }
-    ;(window as any).__LS_PATCHED = true
-
-    let syncTimeout: ReturnType<typeof setTimeout> | null = null
-
+    (window as any).__LS_PATCHED = true;
+    
+    let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+    
     const scheduleSync = (key: string) => {
-      if (syncTimeout) clearTimeout(syncTimeout)
-      syncTimeout = setTimeout(() => doSync(`localStorage write: ${key}`), 500)
-    }
-
+      if (syncTimeout) clearTimeout(syncTimeout);
+      syncTimeout = setTimeout(() => doSync(`localStorage write: ${key}`), 500);
+    };
+    
     // Wrap function to add dirty tracking
-    const wrapSetItem = (originalFn: (key: string, value: string) => void, source: string) => {
+    const wrapSetItem = (originalFn: (this: Storage, key: string, value: string) => void, source: string) => {
       return function (this: Storage, key: string, value: string) {
-        // Skip during hydration for dirty marking + sync scheduling
+        // Mark dirty BEFORE attempting storage write (in case setItem throws)
         if (!isHydrating() && SYNC_KEYS.has(key)) {
-          markDirty(`localStorage write (${source}): ${key}`)
-          scheduleSync(key)
+          markDirty(`localStorage write (${source}): ${key}`);
+          scheduleSync(key);
         }
-
         try {
-          originalFn.call(this, key, value)
+          // IMPORTANT: call with the actual storage instance as `this`
+          return originalFn.call(this, key, value);
         } catch (e) {
-          // Don’t lose the dirty flag — but surface the storage failure
-          console.error(`❌ localStorage.setItem failed (${source}) for key=${key}`, e)
+          console.error(`❌ localStorage.setItem failed (${source}) for key=${key}`, e);
+          // keep dirty flag; do not throw
+          return;
         }
-      }
-    }
-
-    // Store originals
-    const originalProtoSetItem = Storage.prototype.setItem
-    const originalInstanceSetItem = localStorage.setItem.bind(localStorage)
-
-    // Patch
-    Storage.prototype.setItem = wrapSetItem(originalProtoSetItem.bind(Storage.prototype), 'proto') as any
-    localStorage.setItem = wrapSetItem(originalInstanceSetItem, 'instance') as any
-
-    console.log('✅ Dual localStorage patch installed (proto + instance)')
-
+      };
+    };
+    
+    // Store originals (unbound!)
+    const originalProtoSetItem = Storage.prototype.setItem;
+    const originalInstanceSetItem = localStorage.setItem; // may be native/bound in some browsers
+    
+    // 1) Patch Storage.prototype.setItem (catches Storage.prototype.setItem.call(localStorage,...))
+    Storage.prototype.setItem = wrapSetItem(originalProtoSetItem, 'proto');
+    
+    // 2) Patch localStorage.setItem directly (catches direct localStorage.setItem(...))
+    // Use a wrapper that delegates back to whatever localStorage.setItem was originally
+    // (but called with correct `this`)
+    localStorage.setItem = wrapSetItem(function (this: Storage, key: string, value: string) {
+      return originalInstanceSetItem.call(this, key, value);
+    }, 'instance') as any;
+    
+    console.log('✅ Dual localStorage patch installed (proto + instance)');
+    
     return () => {
-      Storage.prototype.setItem = originalProtoSetItem
-      localStorage.setItem = originalInstanceSetItem as any
-      ;(window as any).__LS_PATCHED = false
-      if (syncTimeout) clearTimeout(syncTimeout)
-    }
-  }, [doSync])
-
+      // Restore originals
+      Storage.prototype.setItem = originalProtoSetItem;
+      localStorage.setItem = originalInstanceSetItem as any;
+      (window as any).__LS_PATCHED = false;
+      if (syncTimeout) clearTimeout(syncTimeout);
+    };
+  }, [doSync]);
+  
   // Periodic sync - only if dirty
   useEffect(() => {
     const interval = setInterval(() => {
@@ -890,7 +873,7 @@ export default function AutoDataSync() {
     }, 15000)
     return () => clearInterval(interval)
   }, [doSync])
-
+  
   // Visibility change - only if dirty
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -901,22 +884,21 @@ export default function AutoDataSync() {
     document.addEventListener('visibilitychange', handleVisibilityChange)
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [doSync])
-
-  // Before unload: DO NOT attempt async sync (unreliable). Warn only.
+  
+  // Before unload - WARNING ONLY, don't rely on async sync during unload
+  // The sync is unreliable (browser kills async during unload)
+  // We already have route/visibility/interval sync, so this is just best-effort
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (!hasConflict() && isDirty()) {
-        e.preventDefault()
-        // Chrome requires returnValue to show prompt
-        e.returnValue = ''
-        return ''
+        // Best-effort sync (may be killed by browser)
+        syncToSupabase()
+        // Optionally warn user - but don't block since we have autosync
       }
-      return
     }
-
     window.addEventListener('beforeunload', handleBeforeUnload)
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [])
-
+  
   return null
 }
