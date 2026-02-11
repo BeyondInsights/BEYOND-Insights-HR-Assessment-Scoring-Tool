@@ -3820,15 +3820,22 @@ export default function ExportReportPage() {
     setGeneratingLink(true);
     
     try {
-      // Get admin session from cookie (try multiple possible names)
+      // Get admin session from cookie or localStorage
       const getCookie = (name: string) => document.cookie
         .split('; ')
         .find(row => row.startsWith(name + '='))
         ?.split('=')[1];
       
-      const adminSession = getCookie('admin_session') || getCookie('session_token') || getCookie('adminSession');
+      const adminSession = getCookie('admin_session') 
+        || getCookie('session_token') 
+        || getCookie('adminSession')
+        || localStorage.getItem('admin_session')
+        || localStorage.getItem('session_token')
+        || localStorage.getItem('adminSession');
       
       if (!adminSession) {
+        console.error('Available cookies:', document.cookie);
+        console.error('localStorage keys:', Object.keys(localStorage));
         throw new Error('No admin session found. Please log in again.');
       }
       
