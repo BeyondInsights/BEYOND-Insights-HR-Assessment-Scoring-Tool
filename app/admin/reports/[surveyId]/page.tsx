@@ -3820,11 +3820,17 @@ export default function ExportReportPage() {
     setGeneratingLink(true);
     
     try {
+      // Get admin session from cookie
+      const adminSession = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('admin_session='))
+        ?.split('=')[1];
+      
       // Use Netlify function to generate/retrieve link (bypasses RLS)
       const response = await fetch('/.netlify/functions/generate-interactive-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assessmentId: company.id }),
+        body: JSON.stringify({ assessmentId: company.id, adminSession }),
       });
       
       if (!response.ok) {
