@@ -98,14 +98,18 @@ exports.handler = async (event) => {
     if (!session) {
       console.log('[generate-interactive-link] Unauthorized attempt - no valid session');
       
-      // Log the unauthorized attempt
-      await supabase.from('admin_audit_log').insert({
-        event_type: 'unauthorized_link_generation',
-        user_email: 'unknown',
-        ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
-        details: { assessmentId, reason: 'No valid admin session' },
-        user_agent: event.headers?.['user-agent'] || 'unknown'
-      }).catch(() => {}); // Don't fail if audit log fails
+      // Log the unauthorized attempt (don't fail if audit log fails)
+      try {
+        await supabase.from('admin_audit_log').insert({
+          event_type: 'unauthorized_link_generation',
+          user_email: 'unknown',
+          ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
+          details: { assessmentId, reason: 'No valid admin session' },
+          user_agent: event.headers?.['user-agent'] || 'unknown'
+        });
+      } catch (auditErr) {
+        console.log('[generate-interactive-link] Audit log failed:', auditErr.message);
+      }
       
       return {
         statusCode: 401,
@@ -134,14 +138,18 @@ exports.handler = async (event) => {
     if (existing.public_token && existing.public_password) {
       console.log(`[generate-interactive-link] Returning existing token for ${existing.company_name} (by ${session.email})`);
       
-      // Log the access
-      await supabase.from('admin_audit_log').insert({
-        event_type: 'link_retrieved',
-        user_email: session.email,
-        ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
-        details: { assessmentId, companyName: existing.company_name, surveyId: existing.survey_id },
-        user_agent: event.headers?.['user-agent'] || 'unknown'
-      }).catch(() => {}); // Don't fail if audit log fails
+      // Log the access (don't fail if audit log fails)
+      try {
+        await supabase.from('admin_audit_log').insert({
+          event_type: 'link_retrieved',
+          user_email: session.email,
+          ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
+          details: { assessmentId, companyName: existing.company_name, surveyId: existing.survey_id },
+          user_agent: event.headers?.['user-agent'] || 'unknown'
+        });
+      } catch (auditErr) {
+        console.log('[generate-interactive-link] Audit log failed:', auditErr.message);
+      }
       
       return {
         statusCode: 200,
@@ -186,14 +194,18 @@ exports.handler = async (event) => {
 
     console.log(`[generate-interactive-link] Generated new token for ${existing.company_name} (by ${session.email})`);
 
-    // Log the generation
-    await supabase.from('admin_audit_log').insert({
-      event_type: 'link_generated',
-      user_email: session.email,
-      ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
-      details: { assessmentId, companyName: existing.company_name, surveyId: existing.survey_id },
-      user_agent: event.headers?.['user-agent'] || 'unknown'
-    }).catch(() => {}); // Don't fail if audit log fails
+    // Log the generation (don't fail if audit log fails)
+    try {
+      await supabase.from('admin_audit_log').insert({
+        event_type: 'link_generated',
+        user_email: session.email,
+        ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
+        details: { assessmentId, companyName: existing.company_name, surveyId: existing.survey_id },
+        user_agent: event.headers?.['user-agent'] || 'unknown'
+      });
+    } catch (auditErr) {
+      console.log('[generate-interactive-link] Audit log failed:', auditErr.message);
+    }
 
     return {
       statusCode: 200,
