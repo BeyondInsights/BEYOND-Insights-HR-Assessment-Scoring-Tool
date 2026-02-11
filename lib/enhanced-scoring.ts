@@ -530,7 +530,7 @@ function scoreD1PaidLeave(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
   if (v.includes('does not apply')) return 0;
-  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks')) return 100;
+  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks') || v.includes('more than 13')) return 100;
   if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
   if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
   if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
@@ -575,9 +575,9 @@ function scoreD12CaseReview(value: string | undefined): number {
 function scoreD12PolicyChanges(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v.includes('significant') || v.includes('major')) return 100;
-  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
-  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  if (v.includes('several') || v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('few') || v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v === 'no' || v.includes('no change') || v.includes('not yet')) return 20;
   return 0;
 }
 
