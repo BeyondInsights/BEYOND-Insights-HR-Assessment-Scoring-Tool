@@ -27,14 +27,18 @@ async function validateAdminSession(supabase, sessionToken) {
   
   const { data: session, error } = await supabase
     .from('admin_sessions')
-    .select('email, role, expires_at')
+    .select('email, expires_at')
     .eq('session_token', sessionToken)
     .single();
   
-  if (error || !session) return null;
+  if (error || !session) {
+    console.log('[validateAdminSession] Query failed:', error?.message || 'No session found');
+    return null;
+  }
   
   // Check if expired
   if (new Date(session.expires_at) < new Date()) {
+    console.log('[validateAdminSession] Session expired');
     return null;
   }
   
@@ -70,6 +74,8 @@ exports.handler = async (event) => {
   try {
     const { assessmentId, adminSession } = JSON.parse(event.body || '{}');
 
+    console.log('[generate-interactive-link] Request received, assessmentId:', assessmentId, 'hasSession:', !!adminSession);
+
     if (!assessmentId) {
       return {
         statusCode: 400,
@@ -99,7 +105,7 @@ exports.handler = async (event) => {
         ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
         details: { assessmentId, reason: 'No valid admin session' },
         user_agent: event.headers?.['user-agent'] || 'unknown'
-      });
+      }).catch(() => {}); // Don't fail if audit log fails
       
       return {
         statusCode: 401,
@@ -135,7 +141,7 @@ exports.handler = async (event) => {
         ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
         details: { assessmentId, companyName: existing.company_name, surveyId: existing.survey_id },
         user_agent: event.headers?.['user-agent'] || 'unknown'
-      });
+      }).catch(() => {}); // Don't fail if audit log fails
       
       return {
         statusCode: 200,
@@ -187,7 +193,7 @@ exports.handler = async (event) => {
       ip_address: event.headers?.['x-forwarded-for'] || event.headers?.['client-ip'] || 'unknown',
       details: { assessmentId, companyName: existing.company_name, surveyId: existing.survey_id },
       user_agent: event.headers?.['user-agent'] || 'unknown'
-    });
+    }).catch(() => {}); // Don't fail if audit log fails
 
     return {
       statusCode: 200,
