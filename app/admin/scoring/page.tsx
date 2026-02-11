@@ -142,7 +142,7 @@ function scoreD1PaidLeave(value: string | undefined): number {
   const v = String(value).toLowerCase();
   // Match actual survey values: "13 or more weeks", "9 to less than 13 weeks", etc.
   if (v.includes('does not apply')) return 0;
-  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks')) return 100;
+  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks') || v.includes('more than 13')) return 100;
   if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
   if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
   if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
@@ -192,9 +192,9 @@ function scoreD12CaseReview(value: string | undefined): number {
 function scoreD12PolicyChanges(value: string | undefined): number {
   if (!value) return 0;
   const v = String(value).toLowerCase();
-  if (v.includes('significant') || v.includes('major')) return 100;
-  if (v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
-  if (v.includes('no change') || v.includes('not yet') || v.includes('none')) return 20;
+  if (v.includes('several') || v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('few') || v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v === 'no' || v.includes('no change') || v.includes('not yet')) return 20;
   return 0;
 }
 
@@ -689,10 +689,9 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                   <div>
                     <p className="text-xs text-gray-600 mb-1 italic">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                      <span>Significant policy changes</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                      <span>Some adjustments made</span><span className="text-blue-600 font-bold text-right">60 pts</span>
-                      <span>No changes made yet</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                      <span>N/A or no response</span><span className="text-red-600 font-bold text-right">0 pts</span>
+                      <span>Yes, several changes implemented</span><span className="text-green-600 font-bold text-right">100 pts</span>
+                      <span>Yes, a few changes implemented</span><span className="text-blue-600 font-bold text-right">60 pts</span>
+                      <span>No</span><span className="text-orange-600 font-bold text-right">20 pts</span>
                     </div>
                   </div>
                   <p className="text-xs text-purple-600 mt-2 italic">D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
