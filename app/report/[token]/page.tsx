@@ -2656,6 +2656,10 @@ export default function ExportReportPage() {
   
   // Edit Mode State
   const editMode = false; // Public view - no editing
+  const showInteractiveLinkModal = false; // Not used in public
+  const interactiveLink: { url: string; password: string } | null = null; // Not used in public
+  const setShowInteractiveLinkModal = (val: boolean) => {}; // No-op in public
+  const setInteractiveLink = (val: { url: string; password: string } | null) => {}; // No-op in public
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
@@ -4449,7 +4453,7 @@ export default function ExportReportPage() {
             
             
             {/* Understanding Your Composite Score — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
+            <div id="score-composition-section" className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all group"
@@ -4760,7 +4764,6 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-            </div>
             
             {/* Understanding Your Report Sections — Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
@@ -5046,6 +5049,8 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
+            
+            
             {/* Company info + score */}
             <div className="px-12 py-10 border-b border-slate-100">
               <div className="flex items-end justify-between">
@@ -6591,15 +6596,36 @@ export default function ExportReportPage() {
                     return 'not_able';
                   };
                   
-                  // Calculate current raw points from elements
-                  const currentRawPoints = dimElements.reduce((sum: number, el: any) => {
-                    const status = getStatusFromElement(el);
-                    // Unsure items are scored as 0 (like not_able) for calculation purposes
-                    return sum + (STATUS_POINTS[status] ?? 0);
-                  }, 0);
                   const maxPoints = dimElements.length * 5;
                   
-                  // Calculate projected points with changes - only count elements where user made a selection
+                  // Derive current raw points from actual score (same as Impact-Ranked)
+                  // This ensures consistency between What-If and Impact-Ranked projections
+                  const geoMult = dimInfo?.geoMultiplier ?? 1.0;
+                  const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
+                  
+                  let currentRawScore: number;
+                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                    const adjustedScore = (actualDimScore - dimInfo.followUpScore * 0.15) / 0.85;
+                    currentRawScore = geoMult > 0 ? adjustedScore / geoMult : adjustedScore;
+                  } else {
+                    currentRawScore = geoMult > 0 ? actualDimScore / geoMult : actualDimScore;
+                  }
+                  const currentRawPoints = Math.round((currentRawScore / 100) * maxPoints);
+                  
+                  // Calculate the DELTA in points from user's changes
+                  const getPointDelta = (el: any) => {
+                    const newStatus = whatIfChanges[el.name];
+                    if (!newStatus) return 0; // No change
+                    const currentStatus = getStatusFromElement(el);
+                    const currentPts = STATUS_POINTS[currentStatus] ?? 0;
+                    const newPts = STATUS_POINTS[newStatus] ?? 0;
+                    return newPts - currentPts;
+                  };
+                  
+                  const totalPointsDelta = dimElements.reduce((sum: number, el: any) => sum + getPointDelta(el), 0);
+                  const projectedRawPoints = currentRawPoints + totalPointsDelta;
+                  
+                  // Calculate projected points with changes (for display purposes)
                   const getNewPoints = (el: any) => {
                     const newStatus = whatIfChanges[el.name];
                     if (newStatus) return STATUS_POINTS[newStatus];
@@ -6608,21 +6634,20 @@ export default function ExportReportPage() {
                     return STATUS_POINTS[currentStatus] ?? 0;
                   };
                   
-                  const projectedRawPoints = dimElements.reduce((sum: number, el: any) => sum + getNewPoints(el), 0);
-                  
-                  // Calculate projected dimension score directly from raw points
-                  // This gives accurate results: if all elements are Offering, score = 100
+                  // Calculate projected dimension score with geo multiplier and follow-up blending
+                  // projectedRawPoints already calculated above using delta approach
                   const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
-                  const currentRawScore = maxPoints > 0 ? Math.round((currentRawPoints / maxPoints) * 100) : 0;
-                  const rawScoreChange = projectedRawScore - currentRawScore;
+                  const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
                   
-                  // For dimensions without follow-ups, projected = raw score
-                  // For dimensions with follow-ups (D1, D3, D12, D13), the actual score may differ from raw
-                  // In that case, we show the change relative to current actual score
-                  const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
-                  const projectedDimScore = hasFollowUps 
-                    ? Math.min(100, Math.max(0, actualDimScore + rawScoreChange))
-                    : projectedRawScore;
+                  // For follow-up dimensions, blend with existing follow-up score
+                  // Follow-up weighting: 85% grid score + 15% follow-up score
+                  let projectedDimScore: number;
+                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                    projectedDimScore = Math.round(projectedAdjustedScore * 0.85 + dimInfo.followUpScore * 0.15);
+                  } else {
+                    projectedDimScore = projectedAdjustedScore;
+                  }
+                  projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
                   
                   // Composite impact based on score change
                   const actualScoreChange = projectedDimScore - actualDimScore;
@@ -6948,7 +6973,7 @@ export default function ExportReportPage() {
                                 <textarea
                                   value={customCrossRecommendations[idx] ?? p.recommendation}
                                   onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                                  className="w-full text-sm text-slate-700 leading-relaxed bg-white border border-slate-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 resize-y"
+                                  className="w-full text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-y"
                                   placeholder="Enter custom recommendation..."
                                 />
                                 {customCrossRecommendations[idx] && (
@@ -8413,8 +8438,20 @@ export default function ExportReportPage() {
                                   </svg>
                                 </div>
                                 Strategic Insight
+                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
                               </h5>
-                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.insight}</p>
+                              {editMode ? (
+                                <textarea
+                                  value={customAdditionalDimInsights[d.dim]?.insight ?? dynamicInsight.insight}
+                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
+                                    ...prev,
+                                    [d.dim]: { ...prev[d.dim], insight: e.target.value, roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
+                                  }))}
+                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                                />
+                              ) : (
+                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                              )}
                             </div>
                           </div>
                           
@@ -8449,8 +8486,22 @@ export default function ExportReportPage() {
                             )}
                             
                             <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
-                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">How Cancer and Careers Can Help</h5>
-                              <p className="text-base text-slate-600 leading-relaxed">{dynamicInsight.cacHelp}</p>
+                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">
+                                How Cancer and Careers Can Help
+                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
+                              </h5>
+                              {editMode ? (
+                                <textarea
+                                  value={customAdditionalDimInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
+                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
+                                    ...prev,
+                                    [d.dim]: { ...prev[d.dim], insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: e.target.value }
+                                  }))}
+                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
+                                />
+                              ) : (
+                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -9174,6 +9225,71 @@ export default function ExportReportPage() {
             </div>
           </div>
           
+        {showInteractiveLinkModal && interactiveLink && (
+            <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowInteractiveLinkModal(false)}>
+              <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
+                <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">Interactive Report Link</h2>
+                      <p className="text-blue-100 text-sm">Share this link with the organization</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <div className="bg-slate-50 rounded-lg p-4 mb-4">
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Report URL</label>
+                    <div className="flex items-center gap-2">
+                      <input type="text" readOnly value={interactiveLink.url} className="flex-1 text-sm bg-white border border-slate-300 rounded-lg px-3 py-2 font-mono" />
+                      <button onClick={() => { navigator.clipboard.writeText(interactiveLink.url); showToast('Link copied to clipboard', 'success'); }} className="px-3 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium">Copy</button>
+                    </div>
+                  </div>
+                  <div className="bg-amber-50 rounded-lg p-4 mb-4 border border-amber-200">
+                    <label className="block text-xs font-medium text-amber-700 uppercase tracking-wide mb-2">
+                      <svg className="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      Password (Required to Access)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input type="text" readOnly value={interactiveLink.password} className="flex-1 text-lg bg-white border border-amber-300 rounded-lg px-3 py-2 font-mono font-bold tracking-wider text-amber-800" />
+                      <button onClick={() => { navigator.clipboard.writeText(interactiveLink.password); showToast('Password copied to clipboard', 'success'); }} className="px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 text-sm font-medium">Copy</button>
+                    </div>
+                  </div>
+                  <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                    <div className="flex gap-3">
+                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="text-sm text-blue-800">
+                        <p className="font-medium">Interactive Features:</p>
+                        <ul className="mt-1 space-y-1 text-blue-700">
+                          <li>• Click any dimension to see element-level details</li>
+                          <li>• View strengths, gaps, and in-progress items</li>
+                          <li>• Compare performance against benchmark</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
+                    <button onClick={() => { navigator.clipboard.writeText(`Interactive Report Link:\n${interactiveLink.url}\n\nPassword: ${interactiveLink.password}`); showToast('Link and password copied', 'success'); }} className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                      </svg>
+                      Copy Both
+                    </button>
+                    <button onClick={() => setShowInteractiveLinkModal(false)} className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 text-sm font-medium">Done</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         {toast.show && (
           <div className="fixed bottom-6 right-6 z-[100]">
             <div className={`flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl border ${toast.type === 'success' ? 'bg-white border-green-200' : 'bg-white border-red-200'}`}>
@@ -9812,7 +9928,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-2xl">Dimension Performance</h3>
-                            <p className="text-slate-400 mt-1">All 13 dimensions sorted by score</p>
+                            <p className="text-slate-400 mt-1">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
@@ -10422,7 +10538,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
-                            <p className="text-slate-400 text-sm">Hidden bottlenecks limiting program impact</p>
+                            <p className="text-slate-400 text-sm">Connecting the dots across your assessment</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -10430,7 +10546,7 @@ export default function ExportReportPage() {
                             <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
-                            <span className="text-white text-sm font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' ? 0 : patterns.length} bottleneck{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' || patterns.length !== 1 ? 's' : ''}</span>
+                            <span className="text-white text-sm font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' ? 0 : patterns.length} {patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' || patterns.length !== 1 ? 'bottlenecks' : 'bottleneck'} flagged</span>
                           </div>
                         </div>
                       </div>
@@ -11006,7 +11122,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 25: Areas for Growth - exact match to report */}
+                {/* Slide 26: Areas for Growth - exact match to report */}
                 {currentSlide === 25 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
@@ -11055,7 +11171,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 26: Initiatives in Progress - exact match to report */}
+                {/* Slide 27: Initiatives in Progress - exact match to report */}
                 {currentSlide === 26 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
@@ -11355,7 +11471,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 29: From Insight to Action */}
+                {/* Slide 28: From Insight to Action */}
                 {currentSlide === 28 && (
                   <div className="overflow-hidden">
                     <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
@@ -11670,8 +11786,8 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Additional Analyzed Dimensions in Presentation Mode */}
-                {additionalAnalyzedDims.length > 0 && currentSlide >= 32 && currentSlide < 32 + additionalAnalyzedDims.length && (() => {
-                  const addIdx = currentSlide - 32;
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 33 && currentSlide < 33 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 33;
                   const dimNum = additionalAnalyzedDims[addIdx];
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
@@ -12860,7 +12976,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 5 && (
+                  {currentSlide === 4 && (
                     <div>
                       <p className="mb-2"><strong>Executive summary focus:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -12982,16 +13098,6 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 28 && (
-                    <div>
-                      <p className="mb-2"><strong>From Insight to Action:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>3-step framework: Validate → Prioritize → Execute</li>
-                        <li>Assign clear owners for each recommendation</li>
-                        <li>Set 90-day and 180-day milestones</li>
-                      </ul>
-                    </div>
-                  )}
                   {currentSlide >= 29 && currentSlide <= 32 && (
                     <div>
                       <p className="mb-2"><strong>Recommendation {currentSlide - 29}:</strong></p>
@@ -13003,7 +13109,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {additionalAnalyzedDims.length > 0 && currentSlide >= 33 && currentSlide < 33 + additionalAnalyzedDims.length && (
+                  {additionalAnalyzedDims.length > 0 && currentSlide >= 34 && currentSlide < 34 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Additional dimension analysis:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13123,7 +13229,8 @@ export default function ExportReportPage() {
             )}
           </div>
         )}
-      </div>
 
+      </div>
+      </div>
     );
 }
