@@ -7,6 +7,7 @@ import Header from '@/components/Header'
 import dynamic from 'next/dynamic'
 import { Lock, CheckCircle, CreditCard, Award } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { startHydration, endHydration } from '@/lib/supabase/auto-data-sync'
 import { isFoundingPartner, getFoundingPartnerMessage } from '@/lib/founding-partners'
 
 const ProgressCircle = dynamic(() => import('@/components/ProgressCircle'), {
@@ -40,6 +41,79 @@ export default function DashboardPage() {
       router.push('/authorization');
       return;
     }
+    
+    const loadDataAndCalculateProgress = async () => {
+      if (typeof window === 'undefined') return;
+      
+      const surveyId = localStorage.getItem('survey_id') || '';
+      const normalized = surveyId.replace(/-/g, '').toUpperCase();
+      
+      // ============================================
+      // SUPABASE FALLBACK: If localStorage is missing data, fetch from DB
+      // This handles multi-browser/device scenarios
+      // ============================================
+      const localFirmComplete = localStorage.getItem('firmographics_complete');
+      const localGenComplete = localStorage.getItem('general_benefits_complete');
+      const localFirmData = localStorage.getItem('firmographics_data');
+      const localGenData = localStorage.getItem('general_benefits_data');
+      const localCurData = localStorage.getItem('current_support_data');
+      
+      // If we have a survey_id but missing completion flags OR data, fetch from Supabase
+      if (surveyId && (
+        !localFirmComplete || !localGenComplete ||
+        !localFirmData || !localGenData || !localCurData
+      )) {
+        console.log('📥 Dashboard: Missing localStorage data, fetching from Supabase...');
+        try {
+          const { data: dbData, error } = await supabase
+            .from('assessments')
+            .select('*')
+            .or(`survey_id.eq.${surveyId},app_id.eq.${surveyId},survey_id.eq.${normalized},app_id.eq.${normalized}`)
+            .maybeSingle();
+          
+          if (dbData && !error) {
+            console.log('✅ Dashboard: Found data in Supabase, hydrating localStorage...');
+            
+            // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
+            startHydration();
+            try {
+              // Hydrate localStorage from database
+              if (dbData.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(dbData.firmographics_data));
+              if (dbData.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(dbData.general_benefits_data));
+              if (dbData.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(dbData.current_support_data));
+              if (dbData.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(dbData.cross_dimensional_data));
+              if (dbData.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(dbData.employee_impact_data));
+              
+              for (let i = 1; i <= 13; i++) {
+                const dimData = dbData[`dimension${i}_data`];
+                if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData));
+              }
+              
+              // Hydrate completion flags
+              if (dbData.firmographics_complete) localStorage.setItem('firmographics_complete', 'true');
+              if (dbData.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true');
+              if (dbData.current_support_complete) localStorage.setItem('current_support_complete', 'true');
+              if (dbData.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true');
+              if (dbData.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true');
+              
+              for (let i = 1; i <= 13; i++) {
+                if (dbData[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true');
+              }
+              
+              if (dbData.company_name) localStorage.setItem('login_company_name', dbData.company_name);
+            } finally {
+              // END HYDRATION - re-enable dirty tracking
+              endHydration();
+            }
+          }
+        } catch (err) {
+          console.error('Dashboard: Error fetching from Supabase:', err);
+        }
+      }
+      
+      // Now calculate progress from localStorage (which may have just been hydrated)
+      calculateProgress();
+    };
     
     const calculateProgress = () => {
       if (typeof window === 'undefined') return;
@@ -205,10 +279,10 @@ export default function DashboardPage() {
       }
     };
     
-    calculateProgress();
+    loadDataAndCalculateProgress();
     
     const handleFocus = () => {
-      calculateProgress();
+      loadDataAndCalculateProgress();
     };
     
     window.addEventListener("focus", handleFocus);
