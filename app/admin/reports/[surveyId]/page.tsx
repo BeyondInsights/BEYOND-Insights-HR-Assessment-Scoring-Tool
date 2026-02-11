@@ -3823,6 +3823,8 @@ export default function ExportReportPage() {
       // Get admin session from sessionStorage (set by admin login)
       const adminSession = sessionStorage.getItem('adminSessionToken');
       
+      console.log('Admin session token found:', adminSession ? `${adminSession.substring(0, 20)}...` : 'none');
+      
       if (!adminSession) {
         throw new Error('No admin session found. Please log in again.');
       }
@@ -3833,6 +3835,8 @@ export default function ExportReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assessmentId: company.id, adminSession }),
       });
+      
+      console.log('Response status:', response.status);
       
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
