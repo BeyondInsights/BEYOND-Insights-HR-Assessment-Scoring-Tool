@@ -446,7 +446,7 @@ function scoreD12CaseReview(value: string | undefined): number {
   const v = String(value).toLowerCase();
   if (v.includes('systematic')) return 100;
   if (v.includes('ad hoc')) return 50;
-  if (v.includes('aggregate') || v.includes('no,')) return 0;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
   return 0;
 }
 
