@@ -3310,6 +3310,8 @@ export default function ExportReportPage() {
         setCustomCrossRecommendations({});
         setCustomRoadmap({});
         setCustomDimRoadmaps({});
+        setCustomCacHelp({});
+        setCustomRoadmapTimeframes({ phase1: '', phase2: '', phase3: '' });
         setHasUnsavedChanges(true);
         setConfirmModal({ show: false, message: '', onConfirm: () => {} });
       }
