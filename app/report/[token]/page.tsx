@@ -4809,7 +4809,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against peers.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against participating organizations.</p>
                               <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
@@ -4972,7 +4972,7 @@ export default function ExportReportPage() {
                       </div>
                       
                       {/* CAC Partnership Note */}
-                      <div className="mt-10 p-6 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <div className="mt-14 p-8 bg-emerald-50 rounded-xl border border-emerald-200">
                         <div className="flex items-center gap-6">
                           <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={120} height={45} className="object-contain flex-shrink-0" />
                           <div>
@@ -4984,7 +4984,7 @@ export default function ExportReportPage() {
                     </div>
                     
                     {/* REPORT SECTIONS - Expandable Grid */}
-                    <div className="p-8 border-t border-slate-200">
+                    <div className="p-8 border-t border-slate-200 mt-4">
                       <div className="flex items-center justify-between mb-6">
                         <div>
                           <h3 className="text-lg font-bold text-slate-800">Report Sections</h3>
