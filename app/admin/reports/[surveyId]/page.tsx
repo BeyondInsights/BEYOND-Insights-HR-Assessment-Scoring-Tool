@@ -3820,11 +3820,17 @@ export default function ExportReportPage() {
     setGeneratingLink(true);
     
     try {
-      // Get admin session from cookie
-      const adminSession = document.cookie
+      // Get admin session from cookie (try multiple possible names)
+      const getCookie = (name: string) => document.cookie
         .split('; ')
-        .find(row => row.startsWith('admin_session='))
+        .find(row => row.startsWith(name + '='))
         ?.split('=')[1];
+      
+      const adminSession = getCookie('admin_session') || getCookie('session_token') || getCookie('adminSession');
+      
+      if (!adminSession) {
+        throw new Error('No admin session found. Please log in again.');
+      }
       
       // Use Netlify function to generate/retrieve link (bypasses RLS)
       const response = await fetch('/.netlify/functions/generate-interactive-link', {
@@ -4734,7 +4740,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against participating organizations.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against other participants.</p>
                               <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
