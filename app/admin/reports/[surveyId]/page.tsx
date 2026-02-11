@@ -2690,6 +2690,32 @@ export default function ExportReportPage() {
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 38 + additionalAnalyzedDims.length;
   
+  // Helper to get all slide names for the selector
+  const getSlideNames = () => {
+    const addDimCount = additionalAnalyzedDims.length;
+    const names: Record<number, string> = {
+      0: 'Title & Overview',
+      1: 'How Index Was Developed', 
+      2: 'Understanding Your Composite Score',
+      3: 'The 13 Dimensions',
+      4: 'Executive Summary',
+      5: 'Dimension Performance'
+    };
+    for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
+    for (let i = 19; i <= 28; i++) names[i] = `Strategic Content ${i - 18}`;
+    for (let i = 29; i <= 32; i++) names[i] = `Recommendation ${i - 28}`;
+    for (let i = 0; i < addDimCount; i++) {
+      const dimNum = additionalAnalyzedDims[i];
+      names[33 + i] = `Additional: Dimension ${dimNum}`;
+    }
+    names[33 + addDimCount] = 'Implementation Roadmap';
+    names[34 + addDimCount] = 'Working with Cancer Pledge';
+    names[35 + addDimCount] = 'How CAC Can Help';
+    names[36 + addDimCount] = 'Thank You';
+    names[37 + addDimCount] = 'Methodology';
+    return names;
+  };
+  
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
@@ -2722,6 +2748,39 @@ export default function ExportReportPage() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showPresenterNotes, setShowPresenterNotes] = useState(false);
   const [customNotes, setCustomNotes] = useState<Record<string, string>>({});
+  const [showSlideSelector, setShowSlideSelector] = useState(false);
+  const [enabledSlides, setEnabledSlides] = useState<Set<number>>(new Set());
+  
+  // Navigation helpers that skip disabled slides
+  const goToNextSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    const currentIndex = sortedEnabled.findIndex(s => s >= currentSlide);
+    if (currentIndex === -1 || currentIndex >= sortedEnabled.length - 1) return;
+    // If we're on an enabled slide, go to next enabled. If we're on disabled, go to next enabled from current
+    const nextSlide = sortedEnabled.find(s => s > currentSlide);
+    if (nextSlide !== undefined) setCurrentSlide(nextSlide);
+  };
+  
+  const goToPrevSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    // Find the largest enabled slide that's less than current
+    const prevSlides = sortedEnabled.filter(s => s < currentSlide);
+    if (prevSlides.length > 0) setCurrentSlide(prevSlides[prevSlides.length - 1]);
+  };
+  
+  const goToFirstSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    setCurrentSlide(sortedEnabled[0]);
+  };
+  
+  const goToLastSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    setCurrentSlide(sortedEnabled[sortedEnabled.length - 1]);
+  };
   
   // Use ref for presenter notes window to avoid re-render issues
   const presenterNotesWindowRef = useRef<Window | null>(null);
@@ -3469,16 +3528,16 @@ export default function ExportReportPage() {
         }
       } else if ((e.key === 'ArrowLeft' && e.metaKey) || (e.key === 'ArrowUp' && e.metaKey) || e.key === 'Home') {
         e.preventDefault();
-        setCurrentSlide(0);
+        goToFirstSlide();
       } else if ((e.key === 'ArrowRight' && e.metaKey) || (e.key === 'ArrowDown' && e.metaKey) || e.key === 'End') {
         e.preventDefault();
-        setCurrentSlide(37 + additionalAnalyzedDims.length);
+        goToLastSlide();
       } else if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === '>' || e.key === '.' || e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, 37 + additionalAnalyzedDims.length));
+        goToNextSlide();
       } else if (e.key === 'ArrowLeft' || e.key === 'Backspace' || e.key === 'Delete' || e.key === '<' || e.key === ',' || e.key === 'p' || e.key === 'P') {
         e.preventDefault();
-        setCurrentSlide(prev => Math.max(prev - 1, 0));
+        goToPrevSlide();
       } else if (e.key === '+' || e.key === '=') {
         setSlideZoom(prev => Math.min(prev + 10, 150));
       } else if (e.key === '-' || e.key === '_') {
@@ -4236,9 +4295,13 @@ export default function ExportReportPage() {
               </div>
               <button 
                 onClick={() => {
-                  setCurrentSlide(0);
-                  setPresentationMode(true);
-                  document.documentElement.requestFullscreen?.().catch(() => {});
+                  // Initialize all slides as enabled if not set yet
+                  if (enabledSlides.size === 0) {
+                    const allSlides = new Set<number>();
+                    for (let i = 0; i < totalSlides; i++) allSlides.add(i);
+                    setEnabledSlides(allSlides);
+                  }
+                  setShowSlideSelector(true);
                 }}
                 className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
               >
@@ -9154,6 +9217,111 @@ export default function ExportReportPage() {
             </div>
           </div>
           
+        {/* Slide Selector Modal */}
+        {showSlideSelector && (
+          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowSlideSelector(false)}>
+            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+              <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">Select Slides for Presentation</h2>
+                      <p className="text-orange-100 text-sm">{enabledSlides.size} of {totalSlides} slides selected</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        const allSlides = new Set<number>();
+                        for (let i = 0; i < totalSlides; i++) allSlides.add(i);
+                        setEnabledSlides(allSlides);
+                      }}
+                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium"
+                    >
+                      Select All
+                    </button>
+                    <button
+                      onClick={() => setEnabledSlides(new Set())}
+                      className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded-lg text-sm font-medium"
+                    >
+                      Clear All
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 overflow-y-auto max-h-[55vh]">
+                <div className="grid grid-cols-3 gap-2">
+                  {(() => {
+                    const names = getSlideNames();
+                    return Array.from({ length: totalSlides }, (_, i) => (
+                      <label
+                        key={i}
+                        className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                          enabledSlides.has(i)
+                            ? 'bg-orange-50 border-orange-300 text-slate-800'
+                            : 'bg-slate-50 border-slate-200 text-slate-500'
+                        } hover:border-orange-400`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={enabledSlides.has(i)}
+                          onChange={(e) => {
+                            const newSet = new Set(enabledSlides);
+                            if (e.target.checked) {
+                              newSet.add(i);
+                            } else {
+                              newSet.delete(i);
+                            }
+                            setEnabledSlides(newSet);
+                          }}
+                          className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                        />
+                        <span className="text-xs font-medium text-slate-400 w-6">{i + 1}</span>
+                        <span className="text-sm font-medium truncate">{names[i] || `Slide ${i + 1}`}</span>
+                      </label>
+                    ));
+                  })()}
+                </div>
+              </div>
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                <p className="text-sm text-slate-500">
+                  Unchecked slides will be skipped during presentation
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowSlideSelector(false)}
+                    className="px-4 py-2 text-slate-600 hover:text-slate-800 font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSlideSelector(false);
+                      // Find first enabled slide
+                      const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+                      setCurrentSlide(sortedEnabled[0] || 0);
+                      setPresentationMode(true);
+                      document.documentElement.requestFullscreen?.().catch(() => {});
+                    }}
+                    disabled={enabledSlides.size === 0}
+                    className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-slate-300 text-white rounded-lg font-semibold text-sm flex items-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    </svg>
+                    Start Presentation ({enabledSlides.size} slides)
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+          
         {showInteractiveLinkModal && interactiveLink && (
             <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowInteractiveLinkModal(false)}>
               <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
@@ -12486,11 +12654,23 @@ export default function ExportReportPage() {
                   className="text-white text-sm hover:bg-slate-700 px-2 py-1 rounded transition-colors"
                   title="Go to slide (G)"
                 >
-                  <span className="font-bold">{currentSlide + 1}</span>
-                  <span className="text-slate-400"> / {totalSlides}</span>
+                  {(() => {
+                    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+                    const posInEnabled = sortedEnabled.indexOf(currentSlide) + 1;
+                    return (
+                      <>
+                        <span className="font-bold">{posInEnabled > 0 ? posInEnabled : '?'}</span>
+                        <span className="text-slate-400"> / {enabledSlides.size}</span>
+                      </>
+                    );
+                  })()}
                 </button>
                 <div className="w-40 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / totalSlides) * 100}%` }}></div>
+                  {(() => {
+                    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+                    const posInEnabled = sortedEnabled.indexOf(currentSlide) + 1;
+                    return <div className="h-full bg-orange-500 transition-all duration-300" style={{ width: `${(posInEnabled / enabledSlides.size) * 100}%` }}></div>;
+                  })()}
                 </div>
                 <button
                   onClick={() => setShowSlideNav(true)}
@@ -12546,16 +12726,16 @@ export default function ExportReportPage() {
               {/* Right side - navigation and controls */}
               <div className="flex items-center gap-2">
                 <button 
-                  onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 0))}
-                  disabled={currentSlide === 0}
+                  onClick={() => goToPrevSlide()}
+                  disabled={enabledSlides.size === 0 || currentSlide <= Math.min(...Array.from(enabledSlides))}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Previous slide (←)"
                 >
                   Previous
                 </button>
                 <button 
-                  onClick={() => setCurrentSlide(prev => Math.min(prev + 1, 37 + additionalAnalyzedDims.length))}
-                  disabled={currentSlide === 37 + additionalAnalyzedDims.length}
+                  onClick={() => goToNextSlide()}
+                  disabled={enabledSlides.size === 0 || currentSlide >= Math.max(...Array.from(enabledSlides))}
                   className="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:text-slate-500 text-white rounded-lg text-sm font-medium"
                   title="Next slide (→)"
                 >
