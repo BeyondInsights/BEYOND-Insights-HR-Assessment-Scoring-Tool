@@ -10542,6 +10542,9 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     <div className="p-5 flex-1">
+                      {/* Intro text */}
+                      <p className="text-slate-600 text-sm mb-3">Based on your assessment, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on your overall score.</p>
+                      
                       {/* 2x2 grid matching main report - Slide 23 */}
                       <div className="mb-4 grid grid-cols-2 gap-3">
                         {/* Accelerate Card */}
@@ -10552,7 +10555,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="flex-1">
                               <h4 className="font-bold text-slate-900 text-base">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
-                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Converts work already in motion.</span> Prioritize completing or advancing.</p>
+                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Within your priority dimensions, converts work already in motion.</span></p>
                             </div>
                           </div>
                           <div className="bg-slate-50 rounded p-2">
@@ -10573,7 +10576,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="flex-1">
                               <h4 className="font-bold text-slate-900 text-base">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
-                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Introduces net-new capabilities.</span> Your primary improvement targets.</p>
+                              <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Within your priority dimensions, introduces net-new capabilities.</span></p>
                             </div>
                           </div>
                           <div className="bg-indigo-50 rounded p-2">
@@ -11127,10 +11130,41 @@ export default function ExportReportPage() {
                               <p className="text-slate-400 text-sm mt-0.5">From diagnosis to action in four priority dimensions</p>
                             </div>
                           </div>
-                          <p className="text-slate-300 text-base leading-relaxed max-w-3xl">
-                            Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
-                            This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
-                          </p>
+                          
+                          {/* Two-card layout for context with visual connector */}
+                          <div className="flex items-stretch gap-0 mt-4">
+                            {/* Card 1: Assessment insights */}
+                            <div className="flex-1 bg-white/10 backdrop-blur rounded-l-xl p-4 border border-white/10 border-r-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">1</span>
+                                </div>
+                                <span className="text-white/70 text-xs font-medium uppercase tracking-wide">What we found</span>
+                              </div>
+                              <p className="text-slate-200 text-sm leading-relaxed">
+                                Your assessment identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
+                                This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect.
+                              </p>
+                            </div>
+                            
+                            {/* Visual connector */}
+                            <div className="w-6 flex items-center justify-center bg-gradient-to-r from-white/10 to-white/10 relative">
+                              <div className="w-px h-12 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
+                            </div>
+                            
+                            {/* Card 2: Context + CAC connection */}
+                            <div className="flex-1 bg-white/10 backdrop-blur rounded-r-xl p-4 border border-white/10 border-l-0">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                                  <span className="text-white text-xs font-bold">2</span>
+                                </div>
+                                <span className="text-white/70 text-xs font-medium uppercase tracking-wide">How to use it</span>
+                              </div>
+                              <p className="text-slate-200 text-sm leading-relaxed">
+                                Every organization is different. <span className="text-white font-semibold">Use these insights as a starting point</span> for conversations with Cancer and Careers about what&apos;s realistic and impactful for your workforce.
+                              </p>
+                            </div>
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white text-sm font-medium rounded-lg backdrop-blur border border-white/10">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
