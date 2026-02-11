@@ -4809,7 +4809,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against participating organizations.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against other participants.</p>
                               <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
