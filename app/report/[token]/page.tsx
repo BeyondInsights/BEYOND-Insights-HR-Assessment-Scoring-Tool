@@ -2699,6 +2699,32 @@ export default function ExportReportPage() {
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 38 + additionalAnalyzedDims.length;
   
+  // Helper to get all slide names for the selector
+  const getSlideNames = () => {
+    const addDimCount = additionalAnalyzedDims.length;
+    const names: Record<number, string> = {
+      0: 'Title & Overview',
+      1: 'How Index Was Developed', 
+      2: 'Understanding Your Composite Score',
+      3: 'The 13 Dimensions',
+      4: 'Executive Summary',
+      5: 'Dimension Performance'
+    };
+    for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
+    for (let i = 19; i <= 28; i++) names[i] = `Strategic Content ${i - 18}`;
+    for (let i = 29; i <= 32; i++) names[i] = `Recommendation ${i - 28}`;
+    for (let i = 0; i < addDimCount; i++) {
+      const dimNum = additionalAnalyzedDims[i];
+      names[33 + i] = `Additional: Dimension ${dimNum}`;
+    }
+    names[33 + addDimCount] = 'Implementation Roadmap';
+    names[34 + addDimCount] = 'Working with Cancer Pledge';
+    names[35 + addDimCount] = 'How CAC Can Help';
+    names[36 + addDimCount] = 'Thank You';
+    names[37 + addDimCount] = 'Methodology';
+    return names;
+  };
+  
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
@@ -2729,6 +2755,35 @@ export default function ExportReportPage() {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [showPresenterNotes, setShowPresenterNotes] = useState(false);
   const [customNotes, setCustomNotes] = useState<Record<string, string>>({});
+  const [showSlideSelector, setShowSlideSelector] = useState(false);
+  const [enabledSlides, setEnabledSlides] = useState<Set<number>>(new Set());
+  
+  // Navigation helpers that skip disabled slides
+  const goToNextSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    const nextSlide = sortedEnabled.find(s => s > currentSlide);
+    if (nextSlide !== undefined) setCurrentSlide(nextSlide);
+  };
+  
+  const goToPrevSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    const prevSlides = sortedEnabled.filter(s => s < currentSlide);
+    if (prevSlides.length > 0) setCurrentSlide(prevSlides[prevSlides.length - 1]);
+  };
+  
+  const goToFirstSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    setCurrentSlide(sortedEnabled[0]);
+  };
+  
+  const goToLastSlide = () => {
+    if (enabledSlides.size === 0) return;
+    const sortedEnabled = Array.from(enabledSlides).sort((a, b) => a - b);
+    setCurrentSlide(sortedEnabled[sortedEnabled.length - 1]);
+  };
   
   // Use ref for presenter notes window to avoid re-render issues
   const presenterNotesWindowRef = useRef<Window | null>(null);
