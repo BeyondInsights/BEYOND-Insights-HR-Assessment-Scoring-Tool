@@ -226,7 +226,7 @@ exports.handler = async (event) => {
     } catch (e) { /* ignore parse errors */ }
 
     // Load all assessments for benchmarking - ONLY fields needed for score calculation
-    // SECURITY: Do NOT return sensitive fields like firmographics, payment info, verbatims, etc.
+    // SECURITY: Do NOT return sensitive fields like payment info, verbatims, etc.
     const { data: allAssessmentsRaw } = await supabase
       .from('assessments')
       .select(`
@@ -236,11 +236,12 @@ exports.handler = async (event) => {
         dimension9_data, dimension10_data, dimension11_data, dimension12_data, dimension13_data,
         dimension1_complete, dimension2_complete, dimension3_complete, dimension4_complete,
         dimension5_complete, dimension6_complete, dimension7_complete, dimension8_complete,
-        dimension9_complete, dimension10_complete, dimension11_complete, dimension12_complete, dimension13_complete
+        dimension9_complete, dimension10_complete, dimension11_complete, dimension12_complete, dimension13_complete,
+        current_support_data, general_benefits_data, firmographics_data
       `);
     
-    // Further strip dimension data to only the 'd#a' grid responses needed for scoring
-    // Remove verbatim comments (d#b fields), follow-up questions, and any other extras
+    // Further strip dimension data to only the fields needed for scoring
+    // Keep d#a (main grid), d#aa (geo response), and follow-up fields for D1, D3, D12, D13
     const allAssessments = (allAssessmentsRaw || []).map(a => {
       const stripped = { id: a.id };
       for (let dim = 1; dim <= 13; dim++) {
@@ -249,13 +250,66 @@ exports.handler = async (event) => {
         stripped[completeKey] = a[completeKey];
         
         if (dimData && typeof dimData === 'object') {
-          // Only keep the main grid (d#a) - strip verbatims (d#b) and other fields
+          // Keep main grid (d#a), geo response (d#aa), and follow-up fields for blended scoring
           const gridKey = `d${dim}a`;
-          stripped[`dimension${dim}_data`] = dimData[gridKey] ? { [gridKey]: dimData[gridKey] } : {};
+          const geoKey = `d${dim}aa`;
+          const keepData = {};
+          
+          // Always keep main grid and geo
+          if (dimData[gridKey]) keepData[gridKey] = dimData[gridKey];
+          if (dimData[geoKey]) keepData[geoKey] = dimData[geoKey];
+          
+          // Keep follow-up fields for dimensions with 85/15 blend (D1, D3, D12, D13)
+          if (dim === 1) {
+            // D1 follow-ups: paid leave duration, part-time benefits
+            ['d1_1', 'd1_1_usa', 'd1_1_non_usa', 'd11', 'd11_usa', 'd11_non_usa', 'd1_4b', 'd14b'].forEach(k => {
+              if (dimData[k] !== undefined) keepData[k] = dimData[k];
+            });
+          } else if (dim === 3) {
+            // D3 follow-ups: manager training percentage
+            ['d3_1', 'd31', 'd3'].forEach(k => {
+              if (dimData[k] !== undefined) keepData[k] = dimData[k];
+            });
+          } else if (dim === 12) {
+            // D12 follow-ups: case review, policy changes
+            ['d12_1', 'd12_2', 'd121', 'd122'].forEach(k => {
+              if (dimData[k] !== undefined) keepData[k] = dimData[k];
+            });
+          } else if (dim === 13) {
+            // D13 follow-ups: communication frequency
+            ['d13_1', 'd131'].forEach(k => {
+              if (dimData[k] !== undefined) keepData[k] = dimData[k];
+            });
+          }
+          
+          stripped[`dimension${dim}_data`] = keepData;
         } else {
           stripped[`dimension${dim}_data`] = {};
         }
       }
+      
+      // Also need current_support_data and general_benefits_data for maturity/breadth scoring
+      if (a.current_support_data) {
+        stripped.current_support_data = {
+          or1: a.current_support_data.or1,
+          cb3a: a.current_support_data.cb3a,
+          cb3b: a.current_support_data.cb3b,
+          cb3c: a.current_support_data.cb3c
+        };
+      }
+      if (a.general_benefits_data) {
+        stripped.general_benefits_data = {
+          cb3a: a.general_benefits_data.cb3a,
+          cb3b: a.general_benefits_data.cb3b,
+          cb3c: a.general_benefits_data.cb3c
+        };
+      }
+      
+      // Need firmographics for single-country detection
+      if (a.firmographics_data?.s9a) {
+        stripped.firmographics_data = { s9a: a.firmographics_data.s9a };
+      }
+      
       return stripped;
     });
 
