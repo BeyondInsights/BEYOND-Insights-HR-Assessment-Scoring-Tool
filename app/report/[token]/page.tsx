@@ -8900,12 +8900,12 @@ export default function ExportReportPage() {
                     <p className="font-bold text-slate-900 text-sm mb-1">Corporate Policies and Benefits</p>
                     <p className="text-slate-600 text-xs leading-relaxed">To ensure those diagnosed with cancer and other chronic illness can confidently secure and make space for the treatment they need</p>
                   </div>
-                  <div className="rounded-lg p-4 shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-white/20">
+                  <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="font-bold text-white text-sm mb-1">Community Engagement</p>
-                    <p className="text-white/90 text-xs leading-relaxed">To create connectivity across impacted individuals and encourage a culture of empathy and understanding across the workforce</p>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Community Engagement</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">To create connectivity across impacted individuals and encourage a culture of empathy and understanding across the workforce</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
@@ -8914,12 +8914,12 @@ export default function ExportReportPage() {
                     <p className="font-bold text-slate-900 text-sm mb-1">Coaching Opportunities</p>
                     <p className="text-slate-600 text-xs leading-relaxed">To ensure that impacted individuals have access to support that can help integrate work with treatment and its effects</p>
                   </div>
-                  <div className="rounded-lg p-4 shadow-md" style={{ backgroundColor: '#ff353c' }}>
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-white/20">
+                  <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="font-bold text-white text-sm mb-1">Caregiver Support</p>
-                    <p className="text-white/90 text-xs leading-relaxed">To support with practical tools and resources to help balance work with personal obligations</p>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Caregiver Support</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">To support with practical tools and resources to help balance work with personal obligations</p>
                   </div>
                 </div>
               </div>
@@ -12370,12 +12370,12 @@ export default function ExportReportPage() {
                             <p className="font-bold text-slate-900 text-sm">Corporate Policies and Benefits</p>
                             <p className="text-slate-500 text-xs mt-1 leading-relaxed">To ensure those diagnosed with cancer and other chronic illness can confidently secure and make space for the treatment they need</p>
                           </div>
-                          <div className="rounded-lg p-4 shadow-lg" style={{ backgroundColor: '#ff353c' }}>
-                            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-white/20">
+                          <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <p className="font-bold text-white text-sm">Community Engagement</p>
-                            <p className="text-white/90 text-xs mt-1 leading-relaxed">To create connectivity across impacted individuals and encourage a culture of empathy and understanding across the workforce</p>
+                            <p className="font-bold text-slate-900 text-sm">Community Engagement</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">To create connectivity across impacted individuals and encourage a culture of empathy and understanding across the workforce</p>
                           </div>
                           <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
@@ -12384,12 +12384,12 @@ export default function ExportReportPage() {
                             <p className="font-bold text-slate-900 text-sm">Coaching Opportunities</p>
                             <p className="text-slate-500 text-xs mt-1 leading-relaxed">To ensure that impacted individuals have access to support that can help integrate work with treatment and its effects</p>
                           </div>
-                          <div className="rounded-lg p-4 shadow-lg" style={{ backgroundColor: '#ff353c' }}>
-                            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-white/20">
+                          <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
-                            <p className="font-bold text-white text-sm">Caregiver Support</p>
-                            <p className="text-white/90 text-xs mt-1 leading-relaxed">To support with practical tools and resources to help balance work with personal obligations</p>
+                            <p className="font-bold text-slate-900 text-sm">Caregiver Support</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">To support with practical tools and resources to help balance work with personal obligations</p>
                           </div>
                         </div>
                       </div>
