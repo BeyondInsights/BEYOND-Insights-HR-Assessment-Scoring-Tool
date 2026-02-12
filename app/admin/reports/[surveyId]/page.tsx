@@ -200,7 +200,20 @@ const DIMENSION_SHORT_NAMES: Record<number, string> = {
 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 
-const D10_EXCLUDED_ITEMS = ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'];
+// Elements added in the app but not in the original survey — exclude from scoring and benchmarks
+// These only have N=11-12 responses out of 43 completes
+const APP_ONLY_EXCLUDED_ITEMS: Record<number, string[]> = {
+  1: ['Full salary (100%) continuation during cancer-related short-term disability leave'],
+  9: ['Executive-led town halls focused on health benefits and employee support'],
+  10: ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'],
+  12: ['Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)'],
+  13: ['Cancer awareness month campaigns with resources'],
+};
+
+// Helper to check if an element should be excluded
+const isExcludedElement = (dim: number, itemKey: string): boolean => {
+  return APP_ONLY_EXCLUDED_ITEMS[dim]?.includes(itemKey) ?? false;
+};
 
 
 // ============================================
@@ -3623,7 +3636,7 @@ export default function ExportReportPage() {
       let earnedPoints = 0; let totalItems = 0; let answeredItems = 0;
       
       Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
-        if (dim === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+        if (isExcludedElement(dim, itemKey)) return;
         totalItems++;
         const result = statusToPoints(status);
         if (result.isUnsure) { answeredItems++; }
@@ -3779,7 +3792,7 @@ export default function ExportReportPage() {
         
         if (mainGrid && typeof mainGrid === 'object') {
           Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
-            if (dim === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+            if (isExcludedElement(dim, itemKey)) return;
             
             if (!elementStats[dim][itemKey]) {
               elementStats[dim][itemKey] = { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 0 };
