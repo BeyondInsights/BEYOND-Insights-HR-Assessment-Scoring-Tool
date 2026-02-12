@@ -2477,14 +2477,14 @@ export default function ElementWeightingPage() {
             </div>
 
             {/* The Question */}
-            <section className="rounded-2xl overflow-hidden border-2 border-violet-200 bg-gradient-to-br from-violet-50 to-white">
-              <div className="px-10 py-6 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-violet-600 flex items-center justify-center shadow-sm">
+            <section className="rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm">
+              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center shadow-sm">
                   <IconTarget />
                 </div>
                 <h3 className="font-bold text-slate-900 text-xl">The Question</h3>
               </div>
-              <div className="px-10 pb-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
+              <div className="px-10 py-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
                 <p>The Index assesses workplace cancer support across 13 dimensions, with each dimension containing between 9 and 20 individual support elements. In the first version of the scoring, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as offering an employee assistance program.</p>
                 <p>That is a reasonable starting point, but it does not reflect reality. Some elements are table-stakes practices that most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs from the rest. The question is whether the scoring should reflect that distinction.</p>
               </div>
@@ -2492,42 +2492,42 @@ export default function ElementWeightingPage() {
 
             {/* Our Answer */}
             <section className="rounded-2xl shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-violet-700 to-purple-700 px-10 py-8">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-10 py-8">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><IconCheck /></div>
-                  <p className="text-xs font-bold text-violet-200 uppercase tracking-widest">Our Answer</p>
+                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center"><IconCheck /></div>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Our Answer</p>
                 </div>
                 <p className="text-white text-lg leading-relaxed">
-                  <strong>Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em className="text-violet-200">calibrates</em> the scoring rather than rewrites it.
+                  <strong>Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em className="text-slate-300">calibrates</em> the scoring rather than rewrites it.
                 </p>
               </div>
-              <div className="bg-gradient-to-r from-violet-800 to-purple-800 px-10 py-5 border-t border-white/10">
+              <div className="bg-slate-900 px-10 py-5 border-t border-white/10">
                 <p className="text-slate-300 text-sm">The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.</p>
               </div>
             </section>
 
             {/* How We Did It (8 Steps) */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-indigo-700 to-violet-700 px-10 py-6">
+              <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 px-10 py-6">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white"><IconLayers /></div>
+                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white"><IconLayers /></div>
                   <div>
                     <h3 className="font-bold text-white text-xl">How We Did It</h3>
-                    <p className="text-sm text-indigo-200 mt-0.5">A transparent, reproducible process designed to withstand peer review</p>
+                    <p className="text-sm text-slate-400 mt-0.5">A transparent, reproducible process designed to withstand peer review</p>
                   </div>
                 </div>
               </div>
               <div className="px-10 py-8">
                 <div className="space-y-6">
                   {[
-                    { t: 'Preserved the full response scale', d: 'Each element is scored on four levels: Currently Offer, Planning, Assessing, and Not Offered. Collapsing this to a binary would discard the progression signal the survey was designed to capture.', color: '#8B5CF6' },
-                    { t: 'Used only clean data', d: 'If a company reported \u201cUnsure\u201d on a significant proportion of elements in a dimension, that company was excluded from weight estimation for that dimension. This prevents the analysis from learning patterns in incomplete data. Those companies still receive scored reports using the final weights.', color: '#6366F1' },
-                    { t: 'Built a model that predicts overall program strength', d: 'For each dimension, we asked: which elements in this dimension best predict a company\u2019s composite score across all the other 12 dimensions? Elements that predict overall strength are the true differentiators. They signal depth and maturity that extends beyond a single area.', color: '#3B82F6' },
-                    { t: 'Avoided circularity by design', d: 'We deliberately did not predict the dimension\u2019s own score. If we had, the model would reward elements simply for being part of the formula, not for predicting anything meaningful. By looking outward to the composite, an element earns higher weight only if companies that score well on it also tend to score well everywhere else.', color: '#0EA5E9' },
-                    { t: 'Measured each element\u2019s contribution by disruption', d: 'If we temporarily scramble an element\u2019s data across companies, how much does the model\u2019s ability to predict composite strength decline? Elements that cause a larger decline when scrambled are stronger differentiators. This approach produces importance scores that are always positive and intuitive to interpret.', color: '#10B981' },
-                    { t: 'Tested stability through resampling', d: 'The analysis was repeated 200 times on different random samples of companies. Elements that consistently appeared as important across all samples received their full weight. Elements whose importance fluctuated were dampened proportionally. This protects against any single company driving an element\u2019s weight.', color: '#EAB308' },
-                    { t: 'Blended the results back toward equal weights', d: 'The final weight for each element is a blend of what the data suggests and what equal weighting would produce. This ensures that even where the empirical signal is strong, the expert framework still anchors the result. As participation grows in future years, the empirical share can increase.', color: '#F97316' },
-                    { t: 'Capped the maximum weight', d: 'No single element can exceed 20% of its dimension\u2019s total weight, regardless of what the data suggests. Any excess is redistributed proportionally among the other elements. This prevents any one program from dominating a dimension\u2019s score.', color: '#EF4444' }
+                    { t: 'Preserved the full response scale', d: 'Each element is scored on four levels: Currently Offer, Planning, Assessing, and Not Offered. Collapsing this to a binary would discard the progression signal the survey was designed to capture.', color: '#64748B' },
+                    { t: 'Used only clean data', d: 'If a company reported \u201cUnsure\u201d on a significant proportion of elements in a dimension, that company was excluded from weight estimation for that dimension. This prevents the analysis from learning patterns in incomplete data. Those companies still receive scored reports using the final weights.', color: '#64748B' },
+                    { t: 'Built a model that predicts overall program strength', d: 'For each dimension, we asked: which elements in this dimension best predict a company\u2019s composite score across all the other 12 dimensions? Elements that predict overall strength are the true differentiators. They signal depth and maturity that extends beyond a single area.', color: '#64748B' },
+                    { t: 'Avoided circularity by design', d: 'We deliberately did not predict the dimension\u2019s own score. If we had, the model would reward elements simply for being part of the formula, not for predicting anything meaningful. By looking outward to the composite, an element earns higher weight only if companies that score well on it also tend to score well everywhere else.', color: '#64748B' },
+                    { t: 'Measured each element\u2019s contribution by disruption', d: 'If we temporarily scramble an element\u2019s data across companies, how much does the model\u2019s ability to predict composite strength decline? Elements that cause a larger decline when scrambled are stronger differentiators. This approach produces importance scores that are always positive and intuitive to interpret.', color: '#64748B' },
+                    { t: 'Tested stability through resampling', d: 'The analysis was repeated 200 times on different random samples of companies. Elements that consistently appeared as important across all samples received their full weight. Elements whose importance fluctuated were dampened proportionally. This protects against any single company driving an element\u2019s weight.', color: '#64748B' },
+                    { t: 'Blended the results back toward equal weights', d: 'The final weight for each element is a blend of what the data suggests and what equal weighting would produce. This ensures that even where the empirical signal is strong, the expert framework still anchors the result. As participation grows in future years, the empirical share can increase.', color: '#64748B' },
+                    { t: 'Capped the maximum weight', d: 'No single element can exceed 20% of its dimension\u2019s total weight, regardless of what the data suggests. Any excess is redistributed proportionally among the other elements. This prevents any one program from dominating a dimension\u2019s score.', color: '#64748B' }
                   ].map((step, i) => (
                     <div key={i} className="flex gap-5">
                       <div className="flex-shrink-0 w-11 h-11 rounded-full text-white text-sm font-bold flex items-center justify-center shadow-lg border-2 border-white" style={{ backgroundColor: step.color }}>{i + 1}</div>
@@ -2576,12 +2576,12 @@ export default function ElementWeightingPage() {
             </section>
 
             {/* How the Blend Adapts */}
-            <section className="rounded-2xl overflow-hidden border-2 border-sky-200 bg-gradient-to-br from-sky-50 to-white">
-              <div className="px-10 py-6 flex items-center gap-4">
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center shadow-sm text-white"><IconRefresh /></div>
                 <h3 className="font-bold text-slate-900 text-xl">How the Blend Adapts</h3>
               </div>
-              <div className="px-10 pb-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
+              <div className="px-10 py-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
                 <p>The blend between data-driven weights and equal weights adapts by dimension based on the strength of the empirical signal. In dimensions where the data clearly identifies which elements differentiate stronger programs, the blend leans more toward the empirical finding. Where the signal is emerging, the blend anchors more heavily toward the expert framework.</p>
                 <p>This is a Year 1 calibration. The adaptive blend is conservative by design. As participation grows, the empirical signal strengthens across all dimensions, and the blend can shift further toward data-driven weights.</p>
                 <p>No dimension is excluded. The same methodology is applied across all 13 dimensions, with the blend adapting to the strength of evidence in each.</p>
@@ -2636,9 +2636,9 @@ export default function ElementWeightingPage() {
 
             {/* What We Chose Not to Do */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-red-700 to-rose-700 px-10 py-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-10 py-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </div>
                 <h3 className="font-bold text-white text-xl">What We Chose Not to Do</h3>
               </div>
@@ -2669,17 +2669,18 @@ export default function ElementWeightingPage() {
             </section>
 
             {/* How This Evolves */}
-            <section className="rounded-2xl overflow-hidden border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-white">
-              <div className="px-10 py-6 flex items-center gap-4">
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm text-white"><IconRefresh /></div>
                 <h3 className="font-bold text-slate-900 text-xl">How This Evolves</h3>
               </div>
-              <div className="px-10 pb-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
+              <div className="px-10 py-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
                 <p>This is a Year 1 calibration. The methodology is designed to scale naturally as participation grows. With more organizations completing the assessment each year, the empirical signal strengthens across all dimensions, the stability of element weights increases, and the blend can shift further toward data-driven weights with greater confidence.</p>
                 <p>Weights are recalibrated annually using the latest data and published alongside each Index release.</p>
               </div>
-              <div className="mx-10 mb-8 py-4 bg-white rounded-xl border border-amber-200">
-                <div className="grid grid-cols-4 gap-4 text-xs px-6">
+              <div className="px-10 pb-8">
+                <div className="bg-slate-50 rounded-xl border border-slate-200 p-6">
+                  <div className="grid grid-cols-4 gap-4 text-xs">
                   {[
                     { m: 'Year 1 (Current)', a: 'Conservative blend. Equal weights substantial.', color: 'bg-violet-600' },
                     { m: '75+ Organizations', a: 'Re-run analysis. Consider increasing empirical share.', color: 'bg-blue-600' },
@@ -2695,25 +2696,26 @@ export default function ElementWeightingPage() {
                     </div>
                   ))}
                 </div>
+                </div>
               </div>
             </section>
 
             {/* Key Principles */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-emerald-700 to-teal-700 px-10 py-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-white"><IconShield /></div>
+              <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-10 py-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white"><IconShield /></div>
                 <h3 className="font-bold text-white text-xl">Key Principles</h3>
               </div>
               <div className="px-10 py-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
-                    { t: 'The framework comes first.', d: 'Dimensions are not reweighted. Elements are not moved between dimensions. The Cancer and Careers framework is the foundation.', color: '#8B5CF6' },
-                    { t: 'Calibration, not reinvention.', d: 'Score shifts of 1\u20133 points confirm the adjustment is proportionate to the evidence.', color: '#3B82F6' },
-                    { t: 'Data-driven, not opinion-driven.', d: 'Every weight traces to observed patterns across participating organizations.', color: '#0EA5E9' },
-                    { t: 'Conservative by design.', d: 'Substantial equal-weight component in every blend. 20% cap provides an additional safety net.', color: '#10B981' },
-                    { t: 'All elements contribute.', d: 'No element is removed or zeroed out. The weighting adjusts relative emphasis, not inclusion.', color: '#EAB308' },
-                    { t: 'Every dimension uses the same method.', d: 'The blend adapts to signal strength, but the process is identical across all 13 dimensions.', color: '#F97316' },
-                    { t: 'Transparent and reproducible.', d: 'Fully documented methodology. Available for peer review and Advisory Committee vetting.', color: '#EF4444' }
+                    { t: 'The framework comes first.', d: 'Dimensions are not reweighted. Elements are not moved between dimensions. The Cancer and Careers framework is the foundation.', color: '#64748B' },
+                    { t: 'Calibration, not reinvention.', d: 'Score shifts of 1\u20133 points confirm the adjustment is proportionate to the evidence.', color: '#64748B' },
+                    { t: 'Data-driven, not opinion-driven.', d: 'Every weight traces to observed patterns across participating organizations.', color: '#64748B' },
+                    { t: 'Conservative by design.', d: 'Substantial equal-weight component in every blend. 20% cap provides an additional safety net.', color: '#64748B' },
+                    { t: 'All elements contribute.', d: 'No element is removed or zeroed out. The weighting adjusts relative emphasis, not inclusion.', color: '#64748B' },
+                    { t: 'Every dimension uses the same method.', d: 'The blend adapts to signal strength, but the process is identical across all 13 dimensions.', color: '#64748B' },
+                    { t: 'Transparent and reproducible.', d: 'Fully documented methodology. Available for peer review and Advisory Committee vetting.', color: '#64748B' }
                   ].map((p, i) => (
                     <div key={i} className="flex gap-3.5 p-4 rounded-xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:shadow-sm transition-all">
                       <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5" style={{ backgroundColor: p.color }}>
@@ -2987,9 +2989,9 @@ export default function ElementWeightingPage() {
 
             {/* Alternatives */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-red-700 to-rose-700 px-10 py-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+              <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-10 py-5 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </div>
                 <h3 className="font-bold text-white text-xl">Alternatives Explored and Rejected</h3>
               </div>
