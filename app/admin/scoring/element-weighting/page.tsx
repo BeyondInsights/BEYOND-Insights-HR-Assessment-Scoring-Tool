@@ -5,806 +5,800 @@ import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 // ============================================
-// CONSTANTS - EXACT MATCH TO AGGREGATE SCORING
-// ============================================
-const DW: Record<number, number> = { 4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3 };
-const DO = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
-const DN: Record<number, string> = {
-  1: 'Medical Leave & Flexibility', 2: 'Insurance & Financial Protection', 3: 'Manager Preparedness & Capability',
-  4: 'Cancer Support Resources', 5: 'Workplace Accommodations', 6: 'Culture & Psychological Safety',
-  7: 'Career Continuity & Advancement', 8: 'Work Continuation & Resumption', 9: 'Executive Commitment & Resources',
-  10: 'Caregiver & Family Support', 11: 'Prevention & Wellness', 12: 'Continuous Improvement', 13: 'Communication & Awareness'
-};
-const PTS = { OFFER: 5, PLAN: 3, ASSESS: 2, NOT: 0 };
-const D10X = ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'];
-const BLEND_WEIGHTS = { d1: { grid: 85, followUp: 15 }, d3: { grid: 85, followUp: 15 }, d12: { grid: 85, followUp: 15 }, d13: { grid: 85, followUp: 15 } };
-
-const DM: Record<number, { cvR2: number; alpha: number; n: number; elems: number }> = {
-  1: { cvR2: -0.135, alpha: 0.3, n: 41, elems: 13 }, 2: { cvR2: 0.018, alpha: 0.4, n: 36, elems: 17 },
-  3: { cvR2: 0.156, alpha: 0.5, n: 38, elems: 10 }, 4: { cvR2: 0.419, alpha: 0.5, n: 40, elems: 10 },
-  5: { cvR2: 0.412, alpha: 0.5, n: 39, elems: 11 }, 6: { cvR2: 0.361, alpha: 0.5, n: 38, elems: 12 },
-  7: { cvR2: 0.33, alpha: 0.5, n: 34, elems: 9 }, 8: { cvR2: 0.53, alpha: 0.5, n: 38, elems: 12 },
-  9: { cvR2: 0.136, alpha: 0.5, n: 34, elems: 12 }, 10: { cvR2: -0.063, alpha: 0.3, n: 40, elems: 20 },
-  11: { cvR2: 0.473, alpha: 0.5, n: 40, elems: 13 }, 12: { cvR2: 0.12, alpha: 0.5, n: 40, elems: 9 },
-  13: { cvR2: 0.642, alpha: 0.5, n: 40, elems: 11 }
-};
-
-// ============================================
-// ELEMENT WEIGHTS BY DIMENSION
-// ============================================
-const EW: Record<number, Array<{ e: string; w: number; eq: number; s: number }>> = {
-  1: [
-    { e: 'Emergency leave within 24 hours', w: 0.1431, eq: 0.0769, s: 0.92 },
-    { e: 'Remote work options for on-site employees', w: 0.1287, eq: 0.0769, s: 0.925 },
-    { e: 'Intermittent leave beyond local / legal requirements', w: 0.1136, eq: 0.0769, s: 0.835 },
-    { e: 'Paid micro-breaks for side effects', w: 0.0818, eq: 0.0769, s: 0.76 },
-    { e: 'Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)', w: 0.076, eq: 0.0769, s: 0.715 },
-    { e: 'Job protection beyond local / legal requirements', w: 0.0623, eq: 0.0769, s: 0.48 },
-    { e: 'Paid medical leave beyond local / legal requirements', w: 0.059, eq: 0.0769, s: 0.395 },
-    { e: 'Reduced schedule/part-time with full benefits', w: 0.0579, eq: 0.0769, s: 0.425 },
-    { e: 'Paid micro-breaks for medical-related side effects', w: 0.056, eq: 0.0769, s: 0.36 },
-    { e: 'PTO accrual during leave', w: 0.0558, eq: 0.0769, s: 0.335 },
-    { e: 'Full salary (100%) continuation during cancer-related short-term disability leave', w: 0.0553, eq: 0.0769, s: 0.295 },
-    { e: 'Disability pay top-up (employer adds to disability insurance)', w: 0.0553, eq: 0.0769, s: 0.285 },
-    { e: 'Leave donation bank (employees can donate PTO to colleagues)', w: 0.0551, eq: 0.0769, s: 0.27 }
-  ],
-  2: [
-    { e: 'Accelerated life insurance benefits (partial payout for terminal / critical illness)', w: 0.1724, eq: 0.0588, s: 0.96 },
-    { e: 'Tax/estate planning assistance', w: 0.1346, eq: 0.0588, s: 0.91 },
-    { e: 'Real-time cost estimator tools', w: 0.0742, eq: 0.0588, s: 0.825 },
-    { e: 'Insurance advocacy/pre-authorization support', w: 0.072, eq: 0.0588, s: 0.78 },
-    { e: '\$0 copay for specialty drugs', w: 0.0553, eq: 0.0588, s: 0.62 },
-    { e: 'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance', w: 0.0463, eq: 0.0588, s: 0.515 },
-    { e: 'Financial counseling services', w: 0.0449, eq: 0.0588, s: 0.485 },
-    { e: 'Long-term disability covering 60%+ of salary', w: 0.0448, eq: 0.0588, s: 0.525 },
-    { e: 'Paid time off for clinical trial participation', w: 0.0433, eq: 0.0588, s: 0.505 },
-    { e: 'Coverage for clinical trials and experimental treatments not covered by standard health insurance', w: 0.0424, eq: 0.0588, s: 0.485 },
-    { e: 'Short-term disability covering 60%+ of salary', w: 0.0424, eq: 0.0588, s: 0.45 },
-    { e: 'Hardship grants program funded by employer', w: 0.0395, eq: 0.0588, s: 0.395 },
-    { e: 'Guaranteed job protection', w: 0.0385, eq: 0.0588, s: 0.36 },
-    { e: 'Employer-paid disability insurance supplements', w: 0.038, eq: 0.0588, s: 0.325 },
-    { e: 'Voluntary supplemental illness insurance (with employer contribution)', w: 0.0378, eq: 0.0588, s: 0.34 },
-    { e: 'Set out-of-pocket maximums (for in-network single coverage)', w: 0.0369, eq: 0.0588, s: 0.26 },
-    { e: 'Travel/lodging reimbursement for specialized care beyond insurance coverage', w: 0.0367, eq: 0.0588, s: 0.26 }
-  ],
-  3: [
-    { e: 'Manager peer support / community building', w: 0.2, eq: 0.1, s: 0.9 },
-    { e: 'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams', w: 0.1958, eq: 0.1, s: 0.865 },
-    { e: 'Empathy/communication skills training', w: 0.1639, eq: 0.1, s: 0.775 },
-    { e: 'Dedicated manager resource hub', w: 0.0802, eq: 0.1, s: 0.505 },
-    { e: 'Clear escalation protocol for manager response', w: 0.0707, eq: 0.1, s: 0.46 },
-    { e: 'Manager evaluations include how well they support impacted employees', w: 0.0632, eq: 0.1, s: 0.37 },
-    { e: 'Privacy protection and confidentiality management', w: 0.0584, eq: 0.1, s: 0.325 },
-    { e: 'AI-powered guidance tools', w: 0.058, eq: 0.1, s: 0.33 },
-    { e: 'Legal compliance training', w: 0.0555, eq: 0.1, s: 0.235 },
-    { e: 'Senior leader coaching on supporting impacted employees', w: 0.0544, eq: 0.1, s: 0.235 }
-  ],
-  4: [
-    { e: 'Physical rehabilitation support', w: 0.2001, eq: 0.1, s: 0.98 },
-    { e: 'Nutrition coaching', w: 0.1317, eq: 0.1, s: 0.73 },
-    { e: 'Insurance advocacy/appeals support', w: 0.1024, eq: 0.1, s: 0.625 },
-    { e: 'Dedicated navigation support to help employees understand benefits and access medical care', w: 0.0867, eq: 0.1, s: 0.475 },
-    { e: 'Online tools, apps, or portals for health/benefits support', w: 0.0818, eq: 0.1, s: 0.42 },
-    { e: 'Occupational therapy/vocational rehabilitation', w: 0.0806, eq: 0.1, s: 0.37 },
-    { e: 'Care coordination concierge', w: 0.0805, eq: 0.1, s: 0.38 },
-    { e: 'Survivorship planning assistance', w: 0.0801, eq: 0.1, s: 0.385 },
-    { e: 'Benefits optimization assistance (maximizing coverage, minimizing costs)', w: 0.079, eq: 0.1, s: 0.35 },
-    { e: 'Clinical trial matching service', w: 0.0772, eq: 0.1, s: 0.285 }
-  ],
-  5: [
-    { e: 'Flexible scheduling options', w: 0.2, eq: 0.0909, s: 0.84 },
-    { e: 'Ergonomic equipment funding', w: 0.1399, eq: 0.0909, s: 0.79 },
-    { e: 'Temporary role redesigns', w: 0.1125, eq: 0.0909, s: 0.71 },
-    { e: 'Rest areas / quiet spaces', w: 0.1125, eq: 0.0909, s: 0.72 },
-    { e: 'Assistive technology catalog', w: 0.0894, eq: 0.0909, s: 0.63 },
-    { e: 'Cognitive / fatigue support tools', w: 0.068, eq: 0.0909, s: 0.49 },
-    { e: 'Priority parking', w: 0.0655, eq: 0.0909, s: 0.52 },
-    { e: 'Policy accommodations (e.g., dress code flexibility, headphone use)', w: 0.0577, eq: 0.0909, s: 0.44 },
-    { e: 'Remote work capability', w: 0.0539, eq: 0.0909, s: 0.325 },
-    { e: 'Physical workspace modifications', w: 0.0523, eq: 0.0909, s: 0.3 },
-    { e: 'Transportation reimbursement', w: 0.0482, eq: 0.0909, s: 0.235 }
-  ],
-  6: [
-    { e: 'Employee peer support groups (internal employees with shared experience)', w: 0.2, eq: 0.0833, s: 0.985 },
-    { e: 'Stigma-reduction initiatives', w: 0.1628, eq: 0.0833, s: 0.77 },
-    { e: 'Anonymous benefits navigation tool or website (no login required)', w: 0.1039, eq: 0.0833, s: 0.745 },
-    { e: 'Specialized emotional counseling', w: 0.0746, eq: 0.0833, s: 0.505 },
-    { e: 'Manager training on handling sensitive health information', w: 0.0664, eq: 0.0833, s: 0.47 },
-    { e: 'Strong anti-discrimination policies specific to health conditions', w: 0.0635, eq: 0.0833, s: 0.47 },
-    { e: 'Inclusive communication guidelines', w: 0.0623, eq: 0.0833, s: 0.435 },
-    { e: 'Professional-led support groups (external facilitator/counselor)', w: 0.0591, eq: 0.0833, s: 0.45 },
-    { e: 'Written anti-retaliation policies for health disclosures', w: 0.0564, eq: 0.0833, s: 0.37 },
-    { e: 'Confidential HR channel for health benefits, policies and insurance-related questions', w: 0.0508, eq: 0.0833, s: 0.305 },
-    { e: 'Clear process for confidential health disclosures', w: 0.0504, eq: 0.0833, s: 0.245 },
-    { e: 'Optional open health dialogue forums', w: 0.0496, eq: 0.0833, s: 0.25 }
-  ],
-  7: [
-    { e: 'Peer mentorship program (employees who had similar condition mentoring current employees)', w: 0.2001, eq: 0.1111, s: 0.985 },
-    { e: 'Continued access to training/development', w: 0.1797, eq: 0.1111, s: 0.87 },
-    { e: 'Adjusted performance goals/deliverables during treatment and recovery', w: 0.1006, eq: 0.1111, s: 0.59 },
-    { e: 'Succession planning protections', w: 0.0973, eq: 0.1111, s: 0.56 },
-    { e: 'Optional stay-connected program', w: 0.096, eq: 0.1111, s: 0.52 },
-    { e: 'Structured reintegration programs', w: 0.0936, eq: 0.1111, s: 0.51 },
-    { e: 'Career coaching for employees managing cancer or other serious health conditions', w: 0.0829, eq: 0.1111, s: 0.43 },
-    { e: 'Professional coach/mentor for employees managing cancer or other serious health conditions', w: 0.0764, eq: 0.1111, s: 0.325 },
-    { e: 'Project continuity protocols', w: 0.0735, eq: 0.1111, s: 0.21 }
-  ],
-  8: [
-    { e: 'Flexibility for medical setbacks', w: 0.1922, eq: 0.0833, s: 0.83 },
-    { e: 'Long-term success tracking', w: 0.1428, eq: 0.0833, s: 0.88 },
-    { e: 'Manager training on supporting team members during treatment/return', w: 0.1371, eq: 0.0833, s: 0.815 },
-    { e: 'Workload adjustments during treatment', w: 0.092, eq: 0.0833, s: 0.635 },
-    { e: 'Access to occupational therapy/vocational rehabilitation', w: 0.0797, eq: 0.0833, s: 0.63 },
-    { e: 'Buddy/mentor pairing for support', w: 0.0588, eq: 0.0833, s: 0.475 },
-    { e: 'Structured progress reviews', w: 0.0573, eq: 0.0833, s: 0.385 },
-    { e: 'Flexible work arrangements during treatment', w: 0.0548, eq: 0.0833, s: 0.395 },
-    { e: 'Online peer support forums', w: 0.0538, eq: 0.0833, s: 0.415 },
-    { e: 'Phased return-to-work plans', w: 0.0445, eq: 0.0833, s: 0.195 },
-    { e: 'Contingency planning for treatment schedules', w: 0.0444, eq: 0.0833, s: 0.21 },
-    { e: 'Access to specialized work resumption professionals', w: 0.0426, eq: 0.0833, s: 0.135 }
-  ],
-  9: [
-    { e: 'Executive sponsors communicate regularly about workplace support programs', w: 0.2001, eq: 0.0833, s: 0.97 },
-    { e: 'ESG/CSR reporting inclusion', w: 0.143, eq: 0.0833, s: 0.72 },
-    { e: 'Public success story celebrations', w: 0.1323, eq: 0.0833, s: 0.76 },
-    { e: 'Year-over-year budget growth', w: 0.0873, eq: 0.0833, s: 0.645 },
-    { e: 'Executive-led town halls focused on health benefits and employee support', w: 0.0767, eq: 0.0833, s: 0.59 },
-    { e: 'Support programs included in investor/stakeholder communications', w: 0.0612, eq: 0.0833, s: 0.435 },
-    { e: 'Compensation tied to support outcomes', w: 0.0546, eq: 0.0833, s: 0.43 },
-    { e: 'Executive accountability metrics', w: 0.0503, eq: 0.0833, s: 0.315 },
-    { e: 'C-suite executive serves as program champion/sponsor', w: 0.0495, eq: 0.0833, s: 0.3 },
-    { e: 'Cross-functional executive steering committee for workplace support programs', w: 0.0489, eq: 0.0833, s: 0.295 },
-    { e: 'Support metrics included in annual report/sustainability reporting', w: 0.0486, eq: 0.0833, s: 0.275 },
-    { e: 'Dedicated budget allocation for serious illness support programs', w: 0.0477, eq: 0.0833, s: 0.265 }
-  ],
-  10: [
-    { e: 'Practical support for managing caregiving and work', w: 0.1259, eq: 0.05, s: 0.92 },
-    { e: 'Eldercare consultation and referral services', w: 0.0988, eq: 0.05, s: 0.81 },
-    { e: 'Family navigation support', w: 0.0743, eq: 0.05, s: 0.775 },
-    { e: 'Caregiver resource navigator/concierge', w: 0.0485, eq: 0.05, s: 0.565 },
-    { e: 'Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)', w: 0.0465, eq: 0.05, s: 0.56 },
-    { e: 'Paid caregiver leave with expanded eligibility (beyond local legal requirements)', w: 0.0465, eq: 0.05, s: 0.545 },
-    { e: 'Unpaid leave job protection beyond local / legal requirements', w: 0.0431, eq: 0.05, s: 0.48 },
-    { e: 'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)', w: 0.043, eq: 0.05, s: 0.505 },
-    { e: 'Flexible work arrangements for caregivers', w: 0.0416, eq: 0.05, s: 0.455 },
-    { e: 'Emergency dependent care when regular arrangements unavailable', w: 0.0414, eq: 0.05, s: 0.48 },
-    { e: 'Respite care funding/reimbursement', w: 0.041, eq: 0.05, s: 0.465 },
-    { e: 'Paid time off for care coordination appointments', w: 0.041, eq: 0.05, s: 0.44 },
-    { e: 'Legal/financial planning assistance for caregivers', w: 0.0408, eq: 0.05, s: 0.455 },
-    { e: 'Manager training for supervising caregivers', w: 0.0396, eq: 0.05, s: 0.44 },
-    { e: 'Caregiver peer support groups', w: 0.0396, eq: 0.05, s: 0.42 },
-    { e: 'Dependent care subsidies', w: 0.039, eq: 0.05, s: 0.42 },
-    { e: 'Mental health support specifically for caregivers', w: 0.0389, eq: 0.05, s: 0.4 },
-    { e: 'Modified job duties during peak caregiving periods', w: 0.0376, eq: 0.05, s: 0.32 },
-    { e: 'Emergency caregiver funds', w: 0.0367, eq: 0.05, s: 0.285 },
-    { e: 'Dependent care account matching/contributions', w: 0.0365, eq: 0.05, s: 0.26 }
-  ],
-  11: [
-    { e: 'Legal protections beyond requirements', w: 0.1655, eq: 0.0769, s: 0.96 },
-    { e: 'Individual health assessments (online or in-person)', w: 0.1453, eq: 0.0769, s: 0.855 },
-    { e: 'Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)', w: 0.1252, eq: 0.0769, s: 0.81 },
-    { e: 'Genetic screening/counseling', w: 0.1172, eq: 0.0769, s: 0.83 },
-    { e: 'Full or partial coverage for annual health screenings/checkups', w: 0.0592, eq: 0.0769, s: 0.51 },
-    { e: 'Regular health education sessions', w: 0.055, eq: 0.0769, s: 0.465 },
-    { e: 'Paid time off for preventive care appointments', w: 0.0542, eq: 0.0769, s: 0.515 },
-    { e: 'At least 70% coverage for regionally / locally recommended screenings', w: 0.0534, eq: 0.0769, s: 0.435 },
-    { e: 'On-site vaccinations', w: 0.0499, eq: 0.0769, s: 0.4 },
-    { e: 'Workplace safety assessments to minimize health risks', w: 0.0457, eq: 0.0769, s: 0.39 },
-    { e: 'Targeted risk-reduction programs', w: 0.0455, eq: 0.0769, s: 0.355 },
-    { e: 'Risk factor tracking/reporting', w: 0.0444, eq: 0.0769, s: 0.315 },
-    { e: 'Lifestyle coaching programs', w: 0.0396, eq: 0.0769, s: 0.16 }
-  ],
-  12: [
-    { e: 'Regular program enhancements', w: 0.2, eq: 0.1111, s: 0.9 },
-    { e: 'Employee confidence in employer support', w: 0.1522, eq: 0.1111, s: 0.735 },
-    { e: 'Innovation pilots', w: 0.1419, eq: 0.1111, s: 0.765 },
-    { e: 'External benchmarking', w: 0.1289, eq: 0.1111, s: 0.745 },
-    { e: 'Program utilization analytics', w: 0.099, eq: 0.1111, s: 0.55 },
-    { e: 'Return-to-work success metrics', w: 0.0797, eq: 0.1111, s: 0.465 },
-    { e: 'Employee satisfaction tracking', w: 0.0683, eq: 0.1111, s: 0.35 },
-    { e: 'Business impact/ROI assessment', w: 0.0651, eq: 0.1111, s: 0.25 },
-    { e: 'Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)', w: 0.0649, eq: 0.1111, s: 0.24 }
-  ],
-  13: [
-    { e: 'Family/caregiver communication inclusion', w: 0.2001, eq: 0.0909, s: 0.97 },
-    { e: 'Employee testimonials/success stories', w: 0.1368, eq: 0.0909, s: 0.855 },
-    { e: 'Proactive communication at point of diagnosis disclosure', w: 0.1315, eq: 0.0909, s: 0.915 },
-    { e: 'Multi-channel communication strategy', w: 0.0984, eq: 0.0909, s: 0.685 },
-    { e: 'Anonymous information access options', w: 0.0981, eq: 0.0909, s: 0.84 },
-    { e: 'Ability to access program information and resources anonymously', w: 0.0947, eq: 0.0909, s: 0.805 },
-    { e: 'Dedicated program website or portal', w: 0.0532, eq: 0.0909, s: 0.38 },
-    { e: 'Regular company-wide awareness campaigns (at least quarterly)', w: 0.0473, eq: 0.0909, s: 0.185 },
-    { e: 'New hire orientation coverage', w: 0.0471, eq: 0.0909, s: 0.17 },
-    { e: 'Manager toolkit for cascade communications', w: 0.0465, eq: 0.0909, s: 0.115 },
-    { e: 'Cancer awareness month campaigns with resources', w: 0.0462, eq: 0.0909, s: 0.08 }
-  ]
-};
-
-// Build element weight lookup
-function norm(t: string): string { return t.toLowerCase().trim().replace(/\s+/g, ' '); }
-function buildLookup(d: number): Map<string, number> {
-  const m = new Map();
-  for (const i of EW[d] || []) m.set(norm(i.e), i.w);
-  return m;
-}
-
-// ============================================
-// SCORING FUNCTIONS - EXACT MATCH TO AGGREGATE SCORING
+// DATA FROM EXCEL FILE - Element_Weighting_Final_v6_1.xlsx
 // ============================================
 
-function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
-  if (typeof status === 'number') {
-    switch (status) {
-      case 4: return { points: PTS.OFFER, isUnsure: false };
-      case 3: return { points: PTS.PLAN, isUnsure: false };
-      case 2: return { points: PTS.ASSESS, isUnsure: false };
-      case 1: return { points: PTS.NOT, isUnsure: false };
-      case 5: return { points: null, isUnsure: true };
-      default: return { points: null, isUnsure: false };
-    }
-  }
-  if (typeof status === 'string') {
-    const s = status.toLowerCase().trim();
-    if (s.includes('not able')) return { points: PTS.NOT, isUnsure: false };
-    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
-    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) return { points: PTS.OFFER, isUnsure: false };
-    if (s.includes('planning') || s.includes('development')) return { points: PTS.PLAN, isUnsure: false };
-    if (s.includes('assessing') || s.includes('feasibility')) return { points: PTS.ASSESS, isUnsure: false };
-    if (s.length > 0) return { points: PTS.NOT, isUnsure: false };
-  }
-  return { points: null, isUnsure: false };
-}
+const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
 
-function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
-  if (geoResponse === undefined || geoResponse === null) return 1.0;
-  if (typeof geoResponse === 'number') {
-    switch (geoResponse) { case 1: return 0.75; case 2: return 0.90; case 3: return 1.0; default: return 1.0; }
-  }
-  const s = String(geoResponse).toLowerCase();
-  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
-  if (s.includes('vary') || s.includes('varies')) return 0.90;
-  if (s.includes('select') || s.includes('only available in select')) return 0.75;
-  return 1.0;
-}
-
-// Follow-up scoring - EXACT MATCH
-function scoreD1PaidLeave(v: string): number {
-  const s = v.toLowerCase();
-  if (s.includes('does not apply')) return 0;
-  if (s.includes('13 or more') || s.includes('13 weeks or more') || s.includes('13+ weeks') || s.includes('more than 13')) return 100;
-  if ((s.includes('9 to') && s.includes('13')) || s.includes('9-13')) return 70;
-  if ((s.includes('5 to') && s.includes('9')) || s.includes('5-9')) return 40;
-  if ((s.includes('3 to') && s.includes('5')) || s.includes('3-5')) return 20;
-  if ((s.includes('1 to') && s.includes('3')) || s.includes('1-3')) return 10;
-  return 0;
-}
-
-function scoreD1PartTime(v: string): number {
-  const s = v.toLowerCase();
-  if (s.includes('no additional')) return 0;
-  if (s.includes('medically necessary') || s.includes('healthcare provider')) return 100;
-  if (s.includes('26 weeks or more') || s.includes('26+ weeks') || s.includes('26 or more')) return 80;
-  if ((s.includes('12 to') || s.includes('13 to')) && s.includes('26')) return 50;
-  if ((s.includes('5 to') && s.includes('12')) || (s.includes('5 to') && s.includes('13'))) return 30;
-  if (s.includes('case-by-case')) return 40;
-  if (s.includes('4 weeks') || s.includes('up to 4')) return 10;
-  return 0;
-}
-
-function scoreD3Training(v: string): number {
-  const s = v.toLowerCase();
-  if (s.includes('less than 10%') || s === 'less than 10' || s.includes('less than 10 percent')) return 0;
-  if (s === '100%' || s === '100' || s.includes('100% of') || (s.includes('100') && !s.includes('less than'))) return 100;
-  if (s.includes('75') && s.includes('100')) return 80;
-  if (s.includes('50') && s.includes('75')) return 50;
-  if (s.includes('25') && s.includes('50')) return 30;
-  if (s.includes('10') && s.includes('25')) return 10;
-  return 0;
-}
-
-function scoreD12CaseReview(v: string): number {
-  const s = v.toLowerCase();
-  if (s.includes('systematic')) return 100;
-  if (s.includes('ad hoc')) return 50;
-  if (s.includes('aggregate') || s.includes('only review aggregate')) return 20;
-  return 0;
-}
-
-function scoreD12PolicyChanges(v: string): number {
-  const s = v.toLowerCase();
-  if (s.includes('several') || s.includes('significant') || s.includes('major')) return 100;
-  if (s.includes('few') || s.includes('some') || s.includes('minor') || s.includes('adjustments')) return 60;
-  if (s === 'no' || s.includes('no change') || s.includes('not yet')) return 20;
-  return 0;
-}
-
-function scoreD13Communication(v: string): number {
-  const s = v.toLowerCase();
-  if (s.includes('monthly')) return 100;
-  if (s.includes('quarterly')) return 70;
-  if (s.includes('twice')) return 40;
-  if (s.includes('annually') || s.includes('world cancer day')) return 20;
-  if (s.includes('only when asked')) return 0;
-  if (s.includes('do not actively') || s.includes('no regular')) return 0;
-  return 0;
-}
-
-function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
-  const dimData = assessment[`dimension${dimNum}_data`];
-  if (!dimData) return null;
-  
-  switch (dimNum) {
-    case 1: {
-      const scores: number[] = [];
-      if (dimData.d1_1_usa) scores.push(scoreD1PaidLeave(dimData.d1_1_usa));
-      if (dimData.d1_1_non_usa) scores.push(scoreD1PaidLeave(dimData.d1_1_non_usa));
-      if (dimData.d1_4b) scores.push(scoreD1PartTime(dimData.d1_4b));
-      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    }
-    case 3: {
-      const d31 = dimData.d31 ?? dimData.d3_1;
-      return d31 ? scoreD3Training(d31) : null;
-    }
-    case 12: {
-      const scores: number[] = [];
-      if (dimData.d12_1) scores.push(scoreD12CaseReview(dimData.d12_1));
-      if (dimData.d12_2) scores.push(scoreD12PolicyChanges(dimData.d12_2));
-      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-    }
-    case 13: {
-      return dimData.d13_1 ? scoreD13Communication(dimData.d13_1) : null;
-    }
-    default: return null;
-  }
-}
-
-// Maturity - EXACT MATCH
-function calculateMaturityScore(assessment: Record<string, any>): number {
-  const cs = assessment.current_support_data || {};
-  const or1 = cs.or1;
-  if (or1 === 6 || or1 === '6') return 100;
-  if (or1 === 5 || or1 === '5') return 80;
-  if (or1 === 4 || or1 === '4') return 50;
-  if (or1 === 3 || or1 === '3') return 20;
-  if (or1 === 2 || or1 === '2') return 0;
-  if (or1 === 1 || or1 === '1') return 0;
-  const v = String(or1 || '').toLowerCase();
-  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
-  if (v.includes('comprehensive')) return 100;
-  if (v.includes('enhanced') || v.includes('strong')) return 80;
-  if (v.includes('moderate')) return 50;
-  if (v.includes('basic') || v.includes('developing')) return 20;
-  if (v.includes('legal minimum') || v.includes('no formal')) return 0;
-  return 0;
-}
-
-// Breadth - EXACT MATCH
-function calculateBreadthScore(assessment: Record<string, any>): number {
-  const cs = assessment.current_support_data || {};
-  const gb = assessment.general_benefits_data || {};
-  const scores: number[] = [];
-  
-  const cb3a = cs.cb3a ?? gb.cb3a;
-  if (cb3a === 3 || cb3a === '3') scores.push(100);
-  else if (cb3a === 2 || cb3a === '2') scores.push(50);
-  else if (cb3a === 1 || cb3a === '1') scores.push(0);
-  else if (cb3a !== undefined && cb3a !== null) {
-    const v = String(cb3a).toLowerCase();
-    if (v.includes('yes') && v.includes('additional support')) scores.push(100);
-    else if (v.includes('developing') || v.includes('currently developing')) scores.push(50);
-    else scores.push(0);
-  } else scores.push(0);
-  
-  const cb3b = cs.cb3b || gb.cb3b;
-  if (cb3b && Array.isArray(cb3b)) scores.push(Math.min(100, Math.round((cb3b.length / 6) * 100)));
-  else scores.push(0);
-  
-  const cb3c = cs.cb3c || gb.cb3c;
-  if (cb3c && Array.isArray(cb3c)) scores.push(Math.min(100, Math.round((cb3c.length / 13) * 100)));
-  else scores.push(0);
-  
-  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
-}
-
-// ============================================
-// DIMENSION SCORING - Equal vs Weighted
-// ============================================
-
-interface DimScore {
-  rawScore: number;
-  adjustedScore: number;
-  geoMultiplier: number;
-  followUpScore: number | null;
-  blendedScore: number;
-}
-
-function calculateDimensionScore(dimNum: number, assessment: Record<string, any>, useElementWeights: boolean): DimScore {
-  const result: DimScore = { rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, followUpScore: null, blendedScore: 0 };
-  const dimData = assessment[`dimension${dimNum}_data`];
-  if (!dimData) return result;
-  
-  const mainGrid = dimData[`d${dimNum}a`];
-  if (!mainGrid || typeof mainGrid !== 'object') return result;
-  
-  const lookup = useElementWeights ? buildLookup(dimNum) : null;
-  let earnedPoints = 0;
-  let totalItems = 0;
-  let answeredItems = 0;
-  
-  // For element weighting
-  let weightedSum = 0;
-  let weightTotal = 0;
-  
-  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
-    if (dimNum === 10 && D10X.includes(itemKey)) return;
-    
-    totalItems++;
-    const { points, isUnsure } = statusToPoints(status);
-    
-    if (isUnsure) {
-      answeredItems++;
-      // For element weighting, unsure counts with 0 points
-      if (useElementWeights && lookup) {
-        const wt = lookup.get(norm(itemKey)) ?? (1 / totalItems);
-        weightTotal += wt;
-      }
-    } else if (points !== null) {
-      answeredItems++;
-      earnedPoints += points;
-      
-      if (useElementWeights && lookup) {
-        const wt = lookup.get(norm(itemKey)) ?? (1 / totalItems);
-        weightedSum += (points / PTS.OFFER) * wt;
-        weightTotal += wt;
-      }
-    }
-  });
-  
-  // Calculate raw score
-  const maxPoints = answeredItems * PTS.OFFER;
-  if (useElementWeights && weightTotal > 0) {
-    result.rawScore = Math.round((weightedSum / weightTotal) * 100);
-  } else if (maxPoints > 0) {
-    result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
-  }
-  
-  // Apply geo multiplier
-  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
-  result.geoMultiplier = getGeoMultiplier(geoResponse);
-  result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
-  
-  // Apply follow-up blend for D1, D3, D12, D13
-  if ([1, 3, 12, 13].includes(dimNum)) {
-    result.followUpScore = calculateFollowUpScore(dimNum, assessment);
-    if (result.followUpScore !== null) {
-      const key = `d${dimNum}` as keyof typeof BLEND_WEIGHTS;
-      const gridPct = BLEND_WEIGHTS[key].grid;
-      const followUpPct = BLEND_WEIGHTS[key].followUp;
-      result.blendedScore = Math.round((result.adjustedScore * (gridPct / 100)) + (result.followUpScore * (followUpPct / 100)));
-    } else {
-      result.blendedScore = result.adjustedScore;
-    }
-  } else {
-    result.blendedScore = result.adjustedScore;
-  }
-  
-  return result;
-}
-
-// ============================================
-// COMPANY SCORING
-// ============================================
-
-interface CR {
+const DIMENSIONS: Record<number, {
   name: string;
-  sid: string;
-  isPanel: boolean;
-  ok: boolean;
-  eqDims: Record<number, DimScore>;
-  wtDims: Record<number, DimScore>;
-  maturity: number;
-  breadth: number;
-  eqComposite: number;
-  wtComposite: number;
-}
-
-function scoreCompany(assessment: Record<string, any>): CR {
-  const id = assessment.app_id || assessment.survey_id || '';
-  const isPanel = id.startsWith('PANEL-');
-  
-  const eqDims: Record<number, DimScore> = {};
-  const wtDims: Record<number, DimScore> = {};
-  let completeDims = 0;
-  
-  for (let d = 1; d <= 13; d++) {
-    eqDims[d] = calculateDimensionScore(d, assessment, false);
-    wtDims[d] = calculateDimensionScore(d, assessment, true);
-    if (eqDims[d].blendedScore > 0 || assessment[`dimension${d}_data`]?.[`d${d}a`]) completeDims++;
+  weight: number;
+  elements: number;
+  cvR2: number;
+  alpha: number;
+  n: number;
+  items: Array<{ rank: number; name: string; weight: number; equal: number; delta: number; stability: number }>;
+}> = {
+  1: {
+    name: 'Medical Leave & Flexible Work',
+    weight: 7,
+    elements: 13,
+    cvR2: -0.135,
+    alpha: 0.3,
+    n: 41,
+    items: [
+      { rank: 1, name: 'Emergency leave within 24 hours', weight: 0.1431, equal: 0.0769, delta: 0.0662, stability: 0.92 },
+      { rank: 2, name: 'Remote work options for on-site employees', weight: 0.1287, equal: 0.0769, delta: 0.0518, stability: 0.925 },
+      { rank: 3, name: 'Intermittent leave beyond local / legal requirements', weight: 0.1136, equal: 0.0769, delta: 0.0367, stability: 0.835 },
+      { rank: 4, name: 'Paid micro-breaks for side effects', weight: 0.0818, equal: 0.0769, delta: 0.0049, stability: 0.76 },
+      { rank: 5, name: 'Flexible work hours during treatment', weight: 0.0760, equal: 0.0769, delta: -0.0009, stability: 0.715 },
+      { rank: 6, name: 'Job protection beyond local / legal requirements', weight: 0.0623, equal: 0.0769, delta: -0.0146, stability: 0.48 },
+      { rank: 7, name: 'Paid medical leave beyond local / legal requirements', weight: 0.0590, equal: 0.0769, delta: -0.0179, stability: 0.395 },
+      { rank: 8, name: 'Reduced schedule/part-time with full benefits', weight: 0.0579, equal: 0.0769, delta: -0.0190, stability: 0.425 },
+      { rank: 9, name: 'Paid micro-breaks for medical-related side effects', weight: 0.0560, equal: 0.0769, delta: -0.0209, stability: 0.36 },
+      { rank: 10, name: 'PTO accrual during leave', weight: 0.0558, equal: 0.0769, delta: -0.0211, stability: 0.335 },
+      { rank: 11, name: 'Full salary (100%) continuation during cancer-related short-term disability leave', weight: 0.0553, equal: 0.0769, delta: -0.0216, stability: 0.295 },
+      { rank: 12, name: 'Disability pay top-up (employer adds to disability insurance)', weight: 0.0553, equal: 0.0769, delta: -0.0216, stability: 0.285 },
+      { rank: 13, name: 'Leave donation bank (employees can donate PTO to colleagues)', weight: 0.0551, equal: 0.0769, delta: -0.0218, stability: 0.27 }
+    ]
+  },
+  2: {
+    name: 'Insurance & Financial Protection',
+    weight: 11,
+    elements: 17,
+    cvR2: 0.018,
+    alpha: 0.4,
+    n: 36,
+    items: [
+      { rank: 1, name: 'Accelerated life insurance benefits (partial payout for terminal / critical illness)', weight: 0.1724, equal: 0.0588, delta: 0.1136, stability: 0.96 },
+      { rank: 2, name: 'Tax/estate planning assistance', weight: 0.1346, equal: 0.0588, delta: 0.0758, stability: 0.91 },
+      { rank: 3, name: 'Real-time cost estimator tools', weight: 0.0742, equal: 0.0588, delta: 0.0153, stability: 0.825 },
+      { rank: 4, name: 'Insurance advocacy/pre-authorization support', weight: 0.0720, equal: 0.0588, delta: 0.0131, stability: 0.78 },
+      { rank: 5, name: '$0 copay for specialty drugs', weight: 0.0553, equal: 0.0588, delta: -0.0035, stability: 0.62 },
+      { rank: 6, name: 'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy)', weight: 0.0463, equal: 0.0588, delta: -0.0125, stability: 0.515 },
+      { rank: 7, name: 'Financial counseling services', weight: 0.0449, equal: 0.0588, delta: -0.0139, stability: 0.485 },
+      { rank: 8, name: 'Long-term disability covering 60%+ of salary', weight: 0.0448, equal: 0.0588, delta: -0.0140, stability: 0.525 },
+      { rank: 9, name: 'Paid time off for clinical trial participation', weight: 0.0433, equal: 0.0588, delta: -0.0155, stability: 0.505 },
+      { rank: 10, name: 'Coverage for clinical trials and experimental treatments', weight: 0.0424, equal: 0.0588, delta: -0.0164, stability: 0.485 },
+      { rank: 11, name: 'Short-term disability covering 60%+ of salary', weight: 0.0424, equal: 0.0588, delta: -0.0165, stability: 0.45 },
+      { rank: 12, name: 'Hardship grants program funded by employer', weight: 0.0395, equal: 0.0588, delta: -0.0193, stability: 0.395 },
+      { rank: 13, name: 'Guaranteed job protection', weight: 0.0385, equal: 0.0588, delta: -0.0203, stability: 0.36 },
+      { rank: 14, name: 'Employer-paid disability insurance supplements', weight: 0.0380, equal: 0.0588, delta: -0.0208, stability: 0.325 },
+      { rank: 15, name: 'Voluntary supplemental illness insurance (with employer contribution)', weight: 0.0378, equal: 0.0588, delta: -0.0211, stability: 0.34 },
+      { rank: 16, name: 'Set out-of-pocket maximums (for in-network single coverage)', weight: 0.0369, equal: 0.0588, delta: -0.0219, stability: 0.26 },
+      { rank: 17, name: 'Travel/lodging reimbursement for specialized care', weight: 0.0367, equal: 0.0588, delta: -0.0221, stability: 0.26 }
+    ]
+  },
+  3: {
+    name: 'Manager Preparedness',
+    weight: 12,
+    elements: 10,
+    cvR2: 0.156,
+    alpha: 0.5,
+    n: 38,
+    items: [
+      { rank: 1, name: 'Manager peer support / community building', weight: 0.2000, equal: 0.1000, delta: 0.1000, stability: 0.90 },
+      { rank: 2, name: 'Manager training on supporting employees managing cancer or serious health conditions', weight: 0.1958, equal: 0.1000, delta: 0.0958, stability: 0.865 },
+      { rank: 3, name: 'Empathy/communication skills training', weight: 0.1639, equal: 0.1000, delta: 0.0639, stability: 0.775 },
+      { rank: 4, name: 'Dedicated manager resource hub', weight: 0.0802, equal: 0.1000, delta: -0.0198, stability: 0.505 },
+      { rank: 5, name: 'Clear escalation protocol for manager response', weight: 0.0707, equal: 0.1000, delta: -0.0293, stability: 0.46 },
+      { rank: 6, name: 'Manager evaluations include how well they support impacted employees', weight: 0.0632, equal: 0.1000, delta: -0.0368, stability: 0.37 },
+      { rank: 7, name: 'Privacy protection and confidentiality management', weight: 0.0584, equal: 0.1000, delta: -0.0416, stability: 0.325 },
+      { rank: 8, name: 'AI-powered guidance tools', weight: 0.0580, equal: 0.1000, delta: -0.0420, stability: 0.33 },
+      { rank: 9, name: 'Legal compliance training', weight: 0.0555, equal: 0.1000, delta: -0.0445, stability: 0.235 },
+      { rank: 10, name: 'Senior leader coaching on supporting impacted employees', weight: 0.0544, equal: 0.1000, delta: -0.0456, stability: 0.235 }
+    ]
+  },
+  4: {
+    name: 'Treatment & Navigation',
+    weight: 14,
+    elements: 10,
+    cvR2: 0.419,
+    alpha: 0.5,
+    n: 40,
+    items: [
+      { rank: 1, name: 'Physical rehabilitation support', weight: 0.2001, equal: 0.1000, delta: 0.1001, stability: 0.98 },
+      { rank: 2, name: 'Nutrition coaching', weight: 0.1317, equal: 0.1000, delta: 0.0317, stability: 0.73 },
+      { rank: 3, name: 'Insurance advocacy/appeals support', weight: 0.1024, equal: 0.1000, delta: 0.0024, stability: 0.625 },
+      { rank: 4, name: 'Dedicated navigation support to help employees understand benefits', weight: 0.0867, equal: 0.1000, delta: -0.0133, stability: 0.475 },
+      { rank: 5, name: 'Online tools, apps, or portals for health/benefits support', weight: 0.0818, equal: 0.1000, delta: -0.0182, stability: 0.42 },
+      { rank: 6, name: 'Occupational therapy/vocational rehabilitation', weight: 0.0806, equal: 0.1000, delta: -0.0194, stability: 0.37 },
+      { rank: 7, name: 'Care coordination concierge', weight: 0.0805, equal: 0.1000, delta: -0.0195, stability: 0.38 },
+      { rank: 8, name: 'Survivorship planning assistance', weight: 0.0801, equal: 0.1000, delta: -0.0199, stability: 0.385 },
+      { rank: 9, name: 'Benefits optimization assistance', weight: 0.0790, equal: 0.1000, delta: -0.0210, stability: 0.35 },
+      { rank: 10, name: 'Clinical trial matching service', weight: 0.0772, equal: 0.1000, delta: -0.0228, stability: 0.285 }
+    ]
+  },
+  5: {
+    name: 'Workplace Accommodations',
+    weight: 7,
+    elements: 11,
+    cvR2: 0.412,
+    alpha: 0.5,
+    n: 39,
+    items: [
+      { rank: 1, name: 'Flexible scheduling options', weight: 0.2000, equal: 0.0909, delta: 0.1091, stability: 0.84 },
+      { rank: 2, name: 'Ergonomic equipment funding', weight: 0.1399, equal: 0.0909, delta: 0.0490, stability: 0.79 },
+      { rank: 3, name: 'Temporary role redesigns', weight: 0.1125, equal: 0.0909, delta: 0.0216, stability: 0.71 },
+      { rank: 4, name: 'Rest areas / quiet spaces', weight: 0.1125, equal: 0.0909, delta: 0.0216, stability: 0.72 },
+      { rank: 5, name: 'Assistive technology catalog', weight: 0.0894, equal: 0.0909, delta: -0.0015, stability: 0.63 },
+      { rank: 6, name: 'Cognitive / fatigue support tools', weight: 0.0680, equal: 0.0909, delta: -0.0229, stability: 0.49 },
+      { rank: 7, name: 'Priority parking', weight: 0.0655, equal: 0.0909, delta: -0.0254, stability: 0.52 },
+      { rank: 8, name: 'Policy accommodations (dress code flexibility, headphone use)', weight: 0.0577, equal: 0.0909, delta: -0.0332, stability: 0.44 },
+      { rank: 9, name: 'Remote work capability', weight: 0.0539, equal: 0.0909, delta: -0.0370, stability: 0.325 },
+      { rank: 10, name: 'Physical workspace modifications', weight: 0.0523, equal: 0.0909, delta: -0.0386, stability: 0.30 },
+      { rank: 11, name: 'Transportation reimbursement', weight: 0.0482, equal: 0.0909, delta: -0.0427, stability: 0.235 }
+    ]
+  },
+  6: {
+    name: 'Culture & Stigma',
+    weight: 8,
+    elements: 12,
+    cvR2: 0.361,
+    alpha: 0.5,
+    n: 38,
+    items: [
+      { rank: 1, name: 'Employee peer support groups (internal employees with shared experience)', weight: 0.2000, equal: 0.0833, delta: 0.1167, stability: 0.985 },
+      { rank: 2, name: 'Stigma-reduction initiatives', weight: 0.1628, equal: 0.0833, delta: 0.0795, stability: 0.77 },
+      { rank: 3, name: 'Anonymous benefits navigation tool or website', weight: 0.1039, equal: 0.0833, delta: 0.0206, stability: 0.745 },
+      { rank: 4, name: 'Specialized emotional counseling', weight: 0.0746, equal: 0.0833, delta: -0.0087, stability: 0.505 },
+      { rank: 5, name: 'Manager training on handling sensitive health information', weight: 0.0664, equal: 0.0833, delta: -0.0169, stability: 0.47 },
+      { rank: 6, name: 'Strong anti-discrimination policies specific to health conditions', weight: 0.0635, equal: 0.0833, delta: -0.0199, stability: 0.47 },
+      { rank: 7, name: 'Inclusive communication guidelines', weight: 0.0623, equal: 0.0833, delta: -0.0210, stability: 0.435 },
+      { rank: 8, name: 'Professional-led support groups (external facilitator)', weight: 0.0591, equal: 0.0833, delta: -0.0242, stability: 0.45 },
+      { rank: 9, name: 'Written anti-retaliation policies for health disclosures', weight: 0.0564, equal: 0.0833, delta: -0.0269, stability: 0.37 },
+      { rank: 10, name: 'Confidential HR channel for health-related questions', weight: 0.0508, equal: 0.0833, delta: -0.0325, stability: 0.305 },
+      { rank: 11, name: 'Clear process for confidential health disclosures', weight: 0.0504, equal: 0.0833, delta: -0.0329, stability: 0.245 },
+      { rank: 12, name: 'Optional open health dialogue forums', weight: 0.0496, equal: 0.0833, delta: -0.0337, stability: 0.25 }
+    ]
+  },
+  7: {
+    name: 'Career Continuity',
+    weight: 4,
+    elements: 9,
+    cvR2: 0.330,
+    alpha: 0.5,
+    n: 34,
+    items: [
+      { rank: 1, name: 'Peer mentorship program', weight: 0.2001, equal: 0.1111, delta: 0.0890, stability: 0.985 },
+      { rank: 2, name: 'Continued access to training/development', weight: 0.1797, equal: 0.1111, delta: 0.0685, stability: 0.87 },
+      { rank: 3, name: 'Adjusted performance goals during treatment and recovery', weight: 0.1006, equal: 0.1111, delta: -0.0105, stability: 0.59 },
+      { rank: 4, name: 'Succession planning protections', weight: 0.0973, equal: 0.1111, delta: -0.0138, stability: 0.56 },
+      { rank: 5, name: 'Optional stay-connected program', weight: 0.0960, equal: 0.1111, delta: -0.0151, stability: 0.52 },
+      { rank: 6, name: 'Structured reintegration programs', weight: 0.0936, equal: 0.1111, delta: -0.0175, stability: 0.51 },
+      { rank: 7, name: 'Career coaching for employees managing cancer', weight: 0.0829, equal: 0.1111, delta: -0.0282, stability: 0.43 },
+      { rank: 8, name: 'Professional coach/mentor for employees managing cancer', weight: 0.0764, equal: 0.1111, delta: -0.0347, stability: 0.325 },
+      { rank: 9, name: 'Project continuity protocols', weight: 0.0735, equal: 0.1111, delta: -0.0376, stability: 0.21 }
+    ]
+  },
+  8: {
+    name: 'Treatment Support & Reintegration',
+    weight: 13,
+    elements: 12,
+    cvR2: 0.530,
+    alpha: 0.5,
+    n: 38,
+    items: [
+      { rank: 1, name: 'Flexibility for medical setbacks', weight: 0.1922, equal: 0.0833, delta: 0.1089, stability: 0.83 },
+      { rank: 2, name: 'Long-term success tracking', weight: 0.1428, equal: 0.0833, delta: 0.0594, stability: 0.88 },
+      { rank: 3, name: 'Manager training on supporting team members during treatment/return', weight: 0.1371, equal: 0.0833, delta: 0.0538, stability: 0.815 },
+      { rank: 4, name: 'Workload adjustments during treatment', weight: 0.0920, equal: 0.0833, delta: 0.0086, stability: 0.635 },
+      { rank: 5, name: 'Access to occupational therapy/vocational rehabilitation', weight: 0.0797, equal: 0.0833, delta: -0.0036, stability: 0.63 },
+      { rank: 6, name: 'Buddy/mentor pairing for support', weight: 0.0588, equal: 0.0833, delta: -0.0246, stability: 0.475 },
+      { rank: 7, name: 'Structured progress reviews', weight: 0.0573, equal: 0.0833, delta: -0.0261, stability: 0.385 },
+      { rank: 8, name: 'Flexible work arrangements during treatment', weight: 0.0548, equal: 0.0833, delta: -0.0285, stability: 0.395 },
+      { rank: 9, name: 'Online peer support forums', weight: 0.0538, equal: 0.0833, delta: -0.0295, stability: 0.415 },
+      { rank: 10, name: 'Phased return-to-work plans', weight: 0.0445, equal: 0.0833, delta: -0.0388, stability: 0.195 },
+      { rank: 11, name: 'Contingency planning for treatment schedules', weight: 0.0444, equal: 0.0833, delta: -0.0390, stability: 0.21 },
+      { rank: 12, name: 'Access to specialized work resumption professionals', weight: 0.0426, equal: 0.0833, delta: -0.0407, stability: 0.135 }
+    ]
+  },
+  9: {
+    name: 'Leadership & Accountability',
+    weight: 4,
+    elements: 12,
+    cvR2: 0.136,
+    alpha: 0.5,
+    n: 34,
+    items: [
+      { rank: 1, name: 'Executive sponsors communicate regularly about support programs', weight: 0.2001, equal: 0.0833, delta: 0.1167, stability: 0.97 },
+      { rank: 2, name: 'ESG/CSR reporting inclusion', weight: 0.1430, equal: 0.0833, delta: 0.0597, stability: 0.72 },
+      { rank: 3, name: 'Public success story celebrations', weight: 0.1323, equal: 0.0833, delta: 0.0490, stability: 0.76 },
+      { rank: 4, name: 'Year-over-year budget growth', weight: 0.0873, equal: 0.0833, delta: 0.0040, stability: 0.645 },
+      { rank: 5, name: 'Executive-led town halls focused on health benefits', weight: 0.0767, equal: 0.0833, delta: -0.0067, stability: 0.59 },
+      { rank: 6, name: 'Support programs in investor/stakeholder communications', weight: 0.0612, equal: 0.0833, delta: -0.0221, stability: 0.435 },
+      { rank: 7, name: 'Compensation tied to support outcomes', weight: 0.0546, equal: 0.0833, delta: -0.0287, stability: 0.43 },
+      { rank: 8, name: 'Executive accountability metrics', weight: 0.0503, equal: 0.0833, delta: -0.0331, stability: 0.315 },
+      { rank: 9, name: 'C-suite executive serves as program champion/sponsor', weight: 0.0495, equal: 0.0833, delta: -0.0339, stability: 0.30 },
+      { rank: 10, name: 'Cross-functional executive steering committee', weight: 0.0489, equal: 0.0833, delta: -0.0345, stability: 0.295 },
+      { rank: 11, name: 'Support metrics in annual report/sustainability reporting', weight: 0.0486, equal: 0.0833, delta: -0.0347, stability: 0.275 },
+      { rank: 12, name: 'Dedicated budget allocation for serious illness support', weight: 0.0477, equal: 0.0833, delta: -0.0357, stability: 0.265 }
+    ]
+  },
+  10: {
+    name: 'Caregiver Support',
+    weight: 4,
+    elements: 20,
+    cvR2: -0.063,
+    alpha: 0.3,
+    n: 40,
+    items: [
+      { rank: 1, name: 'Practical support for managing caregiving and work', weight: 0.1259, equal: 0.0500, delta: 0.0759, stability: 0.92 },
+      { rank: 2, name: 'Eldercare consultation and referral services', weight: 0.0988, equal: 0.0500, delta: 0.0488, stability: 0.81 },
+      { rank: 3, name: 'Family navigation support', weight: 0.0743, equal: 0.0500, delta: 0.0243, stability: 0.775 },
+      { rank: 4, name: 'Caregiver resource navigator/concierge', weight: 0.0485, equal: 0.0500, delta: -0.0015, stability: 0.565 },
+      { rank: 5, name: 'Expanded caregiver leave eligibility beyond legal definitions', weight: 0.0465, equal: 0.0500, delta: -0.0035, stability: 0.56 },
+      { rank: 6, name: 'Paid caregiver leave with expanded eligibility', weight: 0.0465, equal: 0.0500, delta: -0.0035, stability: 0.545 },
+      { rank: 7, name: 'Unpaid leave job protection beyond legal requirements', weight: 0.0431, equal: 0.0500, delta: -0.0069, stability: 0.48 },
+      { rank: 8, name: 'Concierge services for caregiving logistics', weight: 0.0430, equal: 0.0500, delta: -0.0070, stability: 0.505 },
+      { rank: 9, name: 'Flexible work arrangements for caregivers', weight: 0.0416, equal: 0.0500, delta: -0.0084, stability: 0.455 },
+      { rank: 10, name: 'Emergency dependent care when regular arrangements unavailable', weight: 0.0414, equal: 0.0500, delta: -0.0086, stability: 0.48 },
+      { rank: 11, name: 'Respite care funding/reimbursement', weight: 0.0410, equal: 0.0500, delta: -0.0090, stability: 0.465 },
+      { rank: 12, name: 'Paid time off for care coordination appointments', weight: 0.0410, equal: 0.0500, delta: -0.0090, stability: 0.44 },
+      { rank: 13, name: 'Legal/financial planning assistance for caregivers', weight: 0.0408, equal: 0.0500, delta: -0.0092, stability: 0.455 },
+      { rank: 14, name: 'Manager training for supervising caregivers', weight: 0.0396, equal: 0.0500, delta: -0.0104, stability: 0.44 },
+      { rank: 15, name: 'Caregiver peer support groups', weight: 0.0396, equal: 0.0500, delta: -0.0104, stability: 0.42 },
+      { rank: 16, name: 'Dependent care subsidies', weight: 0.0390, equal: 0.0500, delta: -0.0110, stability: 0.42 },
+      { rank: 17, name: 'Mental health support specifically for caregivers', weight: 0.0389, equal: 0.0500, delta: -0.0111, stability: 0.40 },
+      { rank: 18, name: 'Modified job duties during peak caregiving periods', weight: 0.0376, equal: 0.0500, delta: -0.0124, stability: 0.32 },
+      { rank: 19, name: 'Emergency caregiver funds', weight: 0.0367, equal: 0.0500, delta: -0.0133, stability: 0.285 },
+      { rank: 20, name: 'Dependent care account matching/contributions', weight: 0.0365, equal: 0.0500, delta: -0.0135, stability: 0.26 }
+    ]
+  },
+  11: {
+    name: 'Prevention & Early Detection',
+    weight: 3,
+    elements: 13,
+    cvR2: 0.473,
+    alpha: 0.5,
+    n: 40,
+    items: [
+      { rank: 1, name: 'Legal protections beyond requirements', weight: 0.1655, equal: 0.0769, delta: 0.0886, stability: 0.96 },
+      { rank: 2, name: 'Individual health assessments (online or in-person)', weight: 0.1453, equal: 0.0769, delta: 0.0684, stability: 0.855 },
+      { rank: 3, name: 'Policies to support immuno-compromised colleagues', weight: 0.1252, equal: 0.0769, delta: 0.0483, stability: 0.81 },
+      { rank: 4, name: 'Genetic screening/counseling', weight: 0.1172, equal: 0.0769, delta: 0.0403, stability: 0.83 },
+      { rank: 5, name: 'Full or partial coverage for annual health screenings', weight: 0.0592, equal: 0.0769, delta: -0.0177, stability: 0.51 },
+      { rank: 6, name: 'Regular health education sessions', weight: 0.0550, equal: 0.0769, delta: -0.0220, stability: 0.465 },
+      { rank: 7, name: 'Paid time off for preventive care appointments', weight: 0.0542, equal: 0.0769, delta: -0.0228, stability: 0.515 },
+      { rank: 8, name: 'At least 70% coverage for recommended screenings', weight: 0.0534, equal: 0.0769, delta: -0.0236, stability: 0.435 },
+      { rank: 9, name: 'On-site vaccinations', weight: 0.0499, equal: 0.0769, delta: -0.0271, stability: 0.40 },
+      { rank: 10, name: 'Workplace safety assessments to minimize health risks', weight: 0.0457, equal: 0.0769, delta: -0.0312, stability: 0.39 },
+      { rank: 11, name: 'Targeted risk-reduction programs', weight: 0.0455, equal: 0.0769, delta: -0.0314, stability: 0.355 },
+      { rank: 12, name: 'Risk factor tracking/reporting', weight: 0.0444, equal: 0.0769, delta: -0.0326, stability: 0.315 },
+      { rank: 13, name: 'Lifestyle coaching programs', weight: 0.0396, equal: 0.0769, delta: -0.0374, stability: 0.16 }
+    ]
+  },
+  12: {
+    name: 'Measurement & Outcomes',
+    weight: 3,
+    elements: 9,
+    cvR2: 0.120,
+    alpha: 0.5,
+    n: 40,
+    items: [
+      { rank: 1, name: 'Regular program enhancements', weight: 0.2000, equal: 0.1111, delta: 0.0889, stability: 0.90 },
+      { rank: 2, name: 'Employee confidence in employer support', weight: 0.1522, equal: 0.1111, delta: 0.0411, stability: 0.735 },
+      { rank: 3, name: 'Innovation pilots', weight: 0.1419, equal: 0.1111, delta: 0.0308, stability: 0.765 },
+      { rank: 4, name: 'External benchmarking', weight: 0.1289, equal: 0.1111, delta: 0.0177, stability: 0.745 },
+      { rank: 5, name: 'Program utilization analytics', weight: 0.0990, equal: 0.1111, delta: -0.0122, stability: 0.55 },
+      { rank: 6, name: 'Return-to-work success metrics', weight: 0.0797, equal: 0.1111, delta: -0.0314, stability: 0.465 },
+      { rank: 7, name: 'Employee satisfaction tracking', weight: 0.0683, equal: 0.1111, delta: -0.0428, stability: 0.35 },
+      { rank: 8, name: 'Business impact/ROI assessment', weight: 0.0651, equal: 0.1111, delta: -0.0460, stability: 0.25 },
+      { rank: 9, name: 'Measure screening campaign ROI', weight: 0.0649, equal: 0.1111, delta: -0.0462, stability: 0.24 }
+    ]
+  },
+  13: {
+    name: 'Communication & Awareness',
+    weight: 10,
+    elements: 11,
+    cvR2: 0.642,
+    alpha: 0.5,
+    n: 40,
+    items: [
+      { rank: 1, name: 'Family/caregiver communication inclusion', weight: 0.2001, equal: 0.0909, delta: 0.1092, stability: 0.97 },
+      { rank: 2, name: 'Employee testimonials/success stories', weight: 0.1368, equal: 0.0909, delta: 0.0459, stability: 0.855 },
+      { rank: 3, name: 'Proactive communication at point of diagnosis disclosure', weight: 0.1315, equal: 0.0909, delta: 0.0406, stability: 0.915 },
+      { rank: 4, name: 'Multi-channel communication strategy', weight: 0.0984, equal: 0.0909, delta: 0.0075, stability: 0.685 },
+      { rank: 5, name: 'Anonymous information access options', weight: 0.0981, equal: 0.0909, delta: 0.0072, stability: 0.84 },
+      { rank: 6, name: 'Ability to access program information anonymously', weight: 0.0947, equal: 0.0909, delta: 0.0038, stability: 0.805 },
+      { rank: 7, name: 'Dedicated program website or portal', weight: 0.0532, equal: 0.0909, delta: -0.0377, stability: 0.38 },
+      { rank: 8, name: 'Regular company-wide awareness campaigns', weight: 0.0473, equal: 0.0909, delta: -0.0436, stability: 0.185 },
+      { rank: 9, name: 'New hire orientation coverage', weight: 0.0471, equal: 0.0909, delta: -0.0438, stability: 0.17 },
+      { rank: 10, name: 'Manager toolkit for cascade communications', weight: 0.0465, equal: 0.0909, delta: -0.0444, stability: 0.115 },
+      { rank: 11, name: 'Cancer awareness month campaigns with resources', weight: 0.0462, equal: 0.0909, delta: -0.0447, stability: 0.08 }
+    ]
   }
-  
-  const ok = completeDims >= 13;
-  const maturity = calculateMaturityScore(assessment);
-  const breadth = calculateBreadthScore(assessment);
-  
-  // Calculate weighted dimension scores using dimension weights
-  let eqWeightedDim = 0;
-  let wtWeightedDim = 0;
-  const totalDimWeight = Object.values(DW).reduce((a, b) => a + b, 0);
-  
-  for (let d = 1; d <= 13; d++) {
-    const dimWeight = (DW[d] || 0) / totalDimWeight;
-    eqWeightedDim += eqDims[d].blendedScore * dimWeight;
-    wtWeightedDim += wtDims[d].blendedScore * dimWeight;
-  }
-  
-  // Composite = 90% weighted dims + 5% maturity + 5% breadth
-  const eqComposite = ok ? Math.round(eqWeightedDim * 0.90 + maturity * 0.05 + breadth * 0.05) : 0;
-  const wtComposite = ok ? Math.round(wtWeightedDim * 0.90 + maturity * 0.05 + breadth * 0.05) : 0;
-  
-  return {
-    name: assessment.company_name || assessment.firmographics_data?.company_name || id || 'Unknown',
-    sid: assessment.survey_id || id,
-    isPanel,
-    ok,
-    eqDims,
-    wtDims,
-    maturity,
-    breadth,
-    eqComposite,
-    wtComposite
-  };
-}
+};
 
-// ============================================
-// MAIN PAGE
-// ============================================
+// Score comparison data from Excel
+const SCORE_COMPARISON = [
+  { name: 'Merck', eqC: 86, wtC: 90 },
+  { name: 'Best Buy', eqC: 85, wtC: 88 },
+  { name: 'Google (Alphabet)', eqC: 85, wtC: 88 },
+  { name: 'Blood Cancer United', eqC: 86, wtC: 87 },
+  { name: 'Sanofi', eqC: 81, wtC: 86 },
+  { name: 'Pfizer', eqC: 82, wtC: 85 },
+  { name: 'Publicis', eqC: 82, wtC: 84 },
+  { name: 'AbbVie', eqC: 78, wtC: 82 },
+  { name: 'Memorial Sloan Kettering', eqC: 80, wtC: 81 },
+  { name: 'Marriott International', eqC: 79, wtC: 80 },
+  { name: 'Haymarket', eqC: 76, wtC: 79 },
+  { name: 'Lloyds Bank (Group)', eqC: 76, wtC: 78 },
+  { name: 'Nestlé', eqC: 73, wtC: 76 },
+  { name: 'Stellantis', eqC: 69, wtC: 73 },
+  { name: 'Citi', eqC: 72, wtC: 73 },
+  { name: 'Maven Search Corporation', eqC: 69, wtC: 69 },
+  { name: 'ICBC-AXA Life', eqC: 69, wtC: 69 },
+  { name: 'Renault Group', eqC: 71, wtC: 69 },
+  { name: 'Schneider Electric', eqC: 62, wtC: 60 },
+  { name: 'Ford Otosan', eqC: 55, wtC: 56 },
+  { name: "L'Oréal", eqC: 47, wtC: 47 },
+  { name: 'Inspire Brands', eqC: 26, wtC: 24 }
+];
+
+const BENCHMARK = { eqC: 71, wtC: 72 };
 
 export default function ElementWeightingPage() {
-  const [tab, setTab] = useState<'method' | 'compare'>('method');
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expDim, setExpDim] = useState<number | null>(null);
-  const [showTech, setShowTech] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { data: d } = await supabase.from('assessments').select('id, app_id, survey_id, company_name, firmographics_data, current_support_data, general_benefits_data, dimension1_data, dimension2_data, dimension3_data, dimension4_data, dimension5_data, dimension6_data, dimension7_data, dimension8_data, dimension9_data, dimension10_data, dimension11_data, dimension12_data, dimension13_data').order('company_name');
-      if (d) setData(d);
-      setLoading(false);
-    })();
-  }, []);
-
-  const results = useMemo(() => {
-    if (!data.length) return { cos: [] as CR[], bench: null as { eqC: number; wtC: number; eqDims: Record<number, number>; wtDims: Record<number, number> } | null };
-    
-    const all = data.filter((a: any) => {
-      const id = a.app_id || a.survey_id || '';
-      return !id.startsWith('TEST') && a.dimension1_data;
-    }).map(scoreCompany);
-    
-    const complete = all.filter(c => c.ok);
-    // Table shows ONLY index companies
-    const index = complete.filter(c => !c.isPanel).sort((a, b) => b.wtComposite - a.wtComposite);
-    
-    // Benchmark uses ALL complete (index + panel)
-    let bench = null;
-    if (complete.length > 0) {
-      const eqDims: Record<number, number> = {};
-      const wtDims: Record<number, number> = {};
-      for (let d = 1; d <= 13; d++) {
-        eqDims[d] = Math.round(complete.reduce((s, c) => s + c.eqDims[d].blendedScore, 0) / complete.length);
-        wtDims[d] = Math.round(complete.reduce((s, c) => s + c.wtDims[d].blendedScore, 0) / complete.length);
-      }
-      bench = {
-        eqC: Math.round(complete.reduce((s, c) => s + c.eqComposite, 0) / complete.length),
-        wtC: Math.round(complete.reduce((s, c) => s + c.wtComposite, 0) / complete.length),
-        eqDims,
-        wtDims
-      };
-    }
-    
-    return { cos: index, bench };
-  }, [data]);
-
-  if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-10 h-10 border-3 border-slate-300 border-t-violet-600 rounded-full animate-spin"></div></div>;
-
-  const { cos, bench } = results;
+  const [activeTab, setActiveTab] = useState<'overview' | 'methodology' | 'dimensions' | 'comparison'>('overview');
+  const [expandedDim, setExpandedDim] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Hero Header */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* ============ HERO HEADER - Matches Company Report ============ */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800">
-        <div className="max-w-7xl mx-auto px-10 py-10">
+        <div className="max-w-7xl mx-auto px-12 py-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <div className="bg-white rounded-xl p-4 shadow-lg"><img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-14" /></div>
+            <div className="flex items-center gap-10">
+              <div className="bg-white rounded-xl p-5 shadow-lg">
+                <img src="/best-companies-2026-logo.png" alt="Best Companies 2026" className="h-24 object-contain" />
+              </div>
               <div>
-                <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Scoring Calibration</p>
+                <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Scoring Methodology</p>
                 <h1 className="text-3xl font-bold text-white mt-2">Element Weighting Analysis</h1>
-                <p className="text-slate-300 mt-1">Best Companies for Working with Cancer Index 2026</p>
+                <p className="text-slate-300 mt-1 text-lg">Best Companies for Working with Cancer Index 2026</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Link href="/admin/scoring" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-semibold transition-colors border border-white/20">Aggregate Scoring</Link>
-              <Link href="/admin" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-semibold transition-colors border border-white/20">Dashboard</Link>
+              <Link href="/admin/scoring" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-semibold transition-colors border border-white/20">
+                Aggregate Scoring
+              </Link>
+              <Link href="/admin" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-semibold transition-colors border border-white/20">
+                Dashboard
+              </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tab Bar */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-10">
-          <div className="flex">
-            {[{ k: 'method' as const, l: 'Methodology' }, { k: 'compare' as const, l: 'Score Comparison' }].map(t => (
-              <button key={t.k} onClick={() => setTab(t.k)} className={`px-8 py-4 text-sm font-semibold border-b-2 transition-colors ${tab === t.k ? 'border-violet-600 text-violet-700' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>{t.l}</button>
+      {/* ============ TAB NAVIGATION ============ */}
+      <div className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-12">
+          <div className="flex gap-1">
+            {[
+              { key: 'overview' as const, label: 'Overview' },
+              { key: 'methodology' as const, label: 'Statistical Methodology' },
+              { key: 'dimensions' as const, label: 'Dimension Weights' },
+              { key: 'comparison' as const, label: 'Score Comparison' }
+            ].map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-6 py-4 text-sm font-semibold border-b-2 transition-all ${
+                  activeTab === tab.key
+                    ? 'border-violet-600 text-violet-700 bg-violet-50/50'
+                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                {tab.label}
+              </button>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className={`mx-auto px-10 py-10 ${tab === 'compare' ? 'max-w-none' : 'max-w-7xl'}`}>
-        {tab === 'method' ? (
-          <div className="max-w-4xl space-y-8">
-            {/* Main Card */}
-            <div className="bg-gradient-to-br from-violet-50/80 via-white to-slate-50 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
-              <div className="p-8">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-3"><span className="w-1.5 h-8 bg-violet-500 rounded-full"></span>What We Did and Why</h2>
-                <p className="text-slate-700 leading-relaxed mb-6"><strong className="text-slate-900">Not all survey elements carry equal weight in differentiating program quality.</strong> Some elements represent table-stakes practices that most organizations offer. Others are rarer commitments that signal a genuinely mature, comprehensive program. Element weighting lets the scoring reflect that distinction without overreacting to sample-specific patterns or undermining the conceptual framework.</p>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6"><p className="text-slate-600 italic leading-relaxed">"We kept the CAC framework intact. We used the full maturity scale for each element, identified which items most consistently differentiate stronger programs using only high-quality responses, and then blended those findings back toward equal weighting so that we calibrate the scoring rather than overhaul it."</p></div>
-                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-3"><span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>The approach, step by step</h3>
-                <div className="space-y-4">
-                  {[
-                    { n: 1, t: 'Start with the existing framework', b: 'The 13 dimensions, the element response options (Not Offered, Assessing, Planning, Currently Offer), and the dimension weights all remain unchanged. Element weighting adjusts how much each item contributes within its dimension.' },
-                    { n: 2, t: 'Use the full response scale, not a binary shortcut', b: 'Each element is scored on its full four-level scale: Not Offered (0), Assessing (2), Planning (3), Currently Offer (5). Collapsing responses to yes/no would discard the progression signal.' },
-                    { n: 3, t: 'Only learn weights from companies with sufficient confirmed data', b: 'If a company reported Unsure on more than 40% of elements in a given dimension, that company is excluded from weight estimation for that dimension.' },
-                    { n: 4, t: 'Define importance to avoid circularity', b: "An element's importance is measured by how well it predicts overall program strength outside its own dimension. No element is rewarded simply for being part of the score it is predicting." },
-                    { n: 5, t: 'Use ridge regression for small samples', b: 'Ridge regression prevents any single element from receiving an extreme weight due to chance correlations. It is purpose-built for situations where the number of predictors is large relative to observations.' },
-                    { n: 6, t: 'Measure importance through prediction impact', b: "For each element, values are shuffled and the resulting R-squared drop is measured. Elements that cause a larger drop when scrambled are stronger differentiators." },
-                    { n: 7, t: 'Test stability through bootstrapping', b: 'The importance calculation is repeated 200 times on different resamples of companies. Elements that consistently appear as important across resamples receive full weight.' },
-                    { n: 8, t: 'Blend toward equal weights', b: "The final weight blends empirical importance (50%) with equal weighting (50%). No single element can exceed 20% of its dimension's total weight." }
-                  ].map(s => (<div key={s.n} className="flex gap-4"><div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-600 text-white text-sm font-bold flex items-center justify-center">{s.n}</div><div><p className="font-semibold text-slate-800">{s.t}</p><p className="text-slate-600 mt-1">{s.b}</p></div></div>))}
+      {/* ============ CONTENT ============ */}
+      <div className="max-w-7xl mx-auto px-12 py-10">
+        
+        {/* ============ OVERVIEW TAB ============ */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8">
+            {/* Hero Card */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-br from-violet-50 via-white to-slate-50 p-10">
+                <div className="flex items-start gap-8">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-slate-900 mb-4">What We Did and Why</h2>
+                    <p className="text-lg text-slate-700 leading-relaxed">
+                      <strong className="text-slate-900">Not all survey elements carry equal weight in differentiating program quality.</strong> Some elements represent table-stakes practices that most organizations offer. Others are rarer commitments that signal a genuinely mature, comprehensive program. Element weighting lets the scoring reflect that distinction without overreacting to sample-specific patterns or undermining the conceptual framework.
+                    </p>
+                  </div>
                 </div>
               </div>
-              <div className="px-8 py-5 bg-gradient-to-r from-violet-700 to-purple-700"><p className="text-violet-100 text-sm leading-relaxed"><strong className="text-white">Result:</strong> Across all scored companies, element weighting shifts composite scores by approximately 1 to 3 points. Within each dimension, the highest-weighted element is typically 2 to 3 times the lowest. Rankings are largely preserved, with modest reordering among companies with similar scores.</p></div>
+              
+              {/* Quote Block */}
+              <div className="px-10 py-6 bg-slate-50 border-t border-slate-200">
+                <div className="flex items-start gap-4">
+                  <div className="w-1 h-full bg-violet-400 rounded-full flex-shrink-0"></div>
+                  <p className="text-slate-600 italic leading-relaxed">
+                    "We kept the CAC framework intact. We used the full maturity scale for each element, identified which items most consistently differentiate stronger programs using only high-quality responses, and then blended those findings back toward equal weighting so that we calibrate the scoring rather than overhaul it."
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Technical Section */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <button onClick={() => setShowTech(!showTech)} className="w-full px-8 py-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors">
-                <div><h3 className="text-lg font-bold text-slate-800">Full Statistical Methodology</h3><p className="text-slate-500 mt-0.5">Technical specification for peer review and validation</p></div>
-                <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform ${showTech ? 'rotate-180' : ''}`}><svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg></div>
-              </button>
-              {showTech && (
-                <div className="px-8 py-6 border-t border-slate-200 space-y-5 text-sm text-slate-700">
-                  <div><h4 className="font-bold text-slate-900 mb-2">1. Overview</h4><p>Within each of the 13 assessment dimensions, element weights calibrate scoring so that elements more predictive of overall program strength receive modestly higher weight. The model operates on 159 elements across 13 dimensions, fit on n = 43 companies.</p></div>
-                  <div><h4 className="font-bold text-slate-900 mb-2">2. Feature encoding</h4><p>Each element is scored on its full ordinal scale: Currently Offer = 5, Planning = 3, Assessing = 2, Not Offered = 0. Unsure responses are treated as missing for model fitting.</p></div>
-                  <div><h4 className="font-bold text-slate-900 mb-2">3. Adaptive shrinkage by dimension</h4>
-                    <div className="overflow-x-auto mt-3">
-                      <table className="w-full text-xs border border-slate-200 rounded-lg overflow-hidden">
-                        <thead><tr className="bg-slate-100"><th className="px-3 py-2 text-left font-semibold text-slate-700">Dim</th><th className="px-3 py-2 text-left font-semibold text-slate-700">Name</th><th className="px-3 py-2 text-center font-semibold text-slate-700">Elems</th><th className="px-3 py-2 text-center font-semibold text-slate-700">CV R²</th><th className="px-3 py-2 text-center font-semibold text-slate-700">α</th><th className="px-3 py-2 text-center font-semibold text-slate-700">n</th><th className="px-3 py-2 text-center font-semibold text-slate-700">Wt</th></tr></thead>
-                        <tbody className="divide-y divide-slate-100">{DO.map(d => { const m = DM[d]; return (<tr key={d} className={m.cvR2 < 0 ? 'bg-amber-50' : ''}><td className="px-3 py-1.5 font-medium">D{d}</td><td className="px-3 py-1.5 text-slate-600">{DN[d]}</td><td className="px-3 py-1.5 text-center">{m.elems}</td><td className={`px-3 py-1.5 text-center font-medium ${m.cvR2 < 0 ? 'text-amber-700' : m.cvR2 > 0.3 ? 'text-emerald-700' : 'text-slate-600'}`}>{m.cvR2.toFixed(3)}</td><td className="px-3 py-1.5 text-center">{m.alpha}</td><td className="px-3 py-1.5 text-center">{m.n}</td><td className="px-3 py-1.5 text-center font-medium">{DW[d]}%</td></tr>); })}</tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div><h4 className="font-bold text-slate-900 mb-2">4. Hard cap and normalization</h4><p>No single element can exceed 20% of its dimension's total weight. Excess redistributed proportionally. Final weights normalize to 1.000 within each dimension.</p></div>
-                  <div><h4 className="font-bold text-slate-900 mb-2">5. Recalibration roadmap</h4><p>At n = 43, equal weights remain the dominant anchor. At n = 75+, consider 60% empirical. At n = 100+, consider 70%. Recalibrate annually.</p></div>
+            {/* Key Stats */}
+            <div className="grid grid-cols-4 gap-6">
+              {[
+                { value: '159', label: 'Elements Weighted', sublabel: '13 dimensions' },
+                { value: 'n=43', label: 'Companies Analyzed', sublabel: '22 index + 21 panel' },
+                { value: '1-3 pts', label: 'Score Impact', sublabel: 'Typical shift' },
+                { value: '2-3×', label: 'Weight Ratio', sublabel: 'High vs low within dim' }
+              ].map((stat, i) => (
+                <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                  <p className="text-3xl font-bold text-violet-600">{stat.value}</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-1">{stat.label}</p>
+                  <p className="text-xs text-slate-500">{stat.sublabel}</p>
                 </div>
-              )}
+              ))}
+            </div>
+
+            {/* The Approach */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-10 py-6 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-xl font-bold text-slate-900">The Approach, Step by Step</h3>
+              </div>
+              <div className="p-10">
+                <div className="space-y-6">
+                  {[
+                    { num: 1, title: 'Start with the existing framework', desc: 'The 13 dimensions, the element response options (Not Offered, Assessing, Planning, Currently Offer), and the dimension weights all remain unchanged. Element weighting adjusts how much each item contributes within its dimension.' },
+                    { num: 2, title: 'Use the full response scale, not a binary shortcut', desc: 'Each element is scored on its full four-level scale: Not Offered (0), Assessing (2), Planning (3), Currently Offer (5). Collapsing responses to yes/no would discard the progression signal.' },
+                    { num: 3, title: 'Only learn weights from companies with sufficient confirmed data', desc: 'If a company reported Unsure on more than 40% of elements in a given dimension, that company is excluded from weight estimation for that dimension.' },
+                    { num: 4, title: 'Define importance to avoid circularity', desc: "An element's importance is measured by how well it predicts overall program strength outside its own dimension. No element is rewarded simply for being part of the score it is predicting." },
+                    { num: 5, title: 'Use ridge regression for small samples', desc: 'Ridge regression prevents any single element from receiving an extreme weight due to chance correlations. It is purpose-built for situations where the number of predictors is large relative to observations.' },
+                    { num: 6, title: 'Measure importance through prediction impact', desc: "For each element, values are shuffled and the resulting R-squared drop is measured. Elements that cause a larger drop when scrambled are stronger differentiators." },
+                    { num: 7, title: 'Test stability through bootstrapping', desc: 'The importance calculation is repeated 200 times on different resamples of companies. Elements that consistently appear as important across resamples receive full weight.' },
+                    { num: 8, title: 'Blend toward equal weights', desc: "The final weight blends empirical importance (50%) with equal weighting (50%). No single element can exceed 20% of its dimension's total weight." }
+                  ].map(step => (
+                    <div key={step.num} className="flex gap-5">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-600 to-purple-600 text-white text-sm font-bold flex items-center justify-center shadow-md">
+                        {step.num}
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <p className="font-semibold text-slate-900">{step.title}</p>
+                        <p className="text-slate-600 mt-1 leading-relaxed">{step.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Result Footer */}
+              <div className="px-10 py-6 bg-gradient-to-r from-violet-700 to-purple-700">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-violet-100">
+                    <strong className="text-white">Result:</strong> Across all scored companies, element weighting shifts composite scores by approximately 1 to 3 points. Within each dimension, the highest-weighted element is typically 2 to 3 times the lowest. Rankings are largely preserved, with modest reordering among companies with similar scores.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Score Table */}
-            {bench && cos.length > 0 && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-violet-700 to-purple-700 px-8 py-5">
-                  <h2 className="text-lg font-bold text-white">Score Comparison: Equal Weight vs. Element-Weighted</h2>
-                  <p className="text-violet-200 text-sm mt-1">All pipeline components (dimension weights, geo multiplier, follow-up blend, maturity, breadth) are identical. The only difference is element weighting within each dimension's grid calculation.</p>
+        )}
+
+        {/* ============ METHODOLOGY TAB ============ */}
+        {activeTab === 'methodology' && (
+          <div className="space-y-8">
+            {/* Section Cards */}
+            {[
+              {
+                title: '1. Overview',
+                content: 'Within each of the 13 assessment dimensions, element weights calibrate scoring so that elements more predictive of overall program strength receive modestly higher weight. The model operates on 159 elements across 13 dimensions (152 original plus 7 sub-elements introduced in 2026 for D1, D9, D10, D12, and D13), fit on n = 43 companies (22 index participants and 21 HR panel respondents).'
+              },
+              {
+                title: '2. Feature Encoding',
+                content: 'Each element is scored on its full ordinal scale: Currently Offer = 5, Planning = 3, Assessing = 2, Not Offered = 0. Unsure responses are treated as missing for model fitting. This preserves the full response granularity rather than collapsing to a binary indicator.'
+              },
+              {
+                title: '3. Company and Element Filtering',
+                content: 'Company inclusion rule: For each dimension, companies with fewer than 60% observed (non-Unsure) elements are excluded from model fitting. This prevents excessive Unsure responses from distorting weight estimation. Excluded companies still receive scores using the final weights.\n\nElement inclusion rule: Elements with greater than 90% identical responses or fewer than 70% observed values are dropped and receive floor weight. In v6.1, zero elements were dropped.'
+              },
+              {
+                title: '4. Ridge Regression with Leave-One-Out Outcome',
+                content: 'For each dimension d, the outcome variable is the leave-one-out composite: the mean of all dimension scores excluding dimension d. This eliminates circularity. Predictors are the ordinal element scores, standardized (z-scored) before fitting. Ridge regularization (α = 1.0) distributes weight among correlated elements rather than concentrating it.\n\nKey: Ridge coefficients are not used as weights directly because they can be negative due to multicollinearity. Instead, permutation importance is computed.'
+              },
+              {
+                title: '5. Permutation Importance',
+                content: 'For each element j, importance is measured as: I(j) = max( 0, R²_base − R²_permuted(j) )\n\nWhere R²_base is the model R² with all elements intact and R²_permuted(j) is the model R² after shuffling element j across companies. Each element is permuted 100 times for stable estimates. Importance is non-negative by construction.'
+              },
+              {
+                title: '6. Bootstrap Stability and Soft Attenuation',
+                content: '200 bootstrap resamples of companies are drawn. In each, the ridge model is refit and permutation importances recomputed. The stability metric s(j) is the fraction of bootstraps where element j\'s importance exceeds zero.\n\nSoft attenuation: w_attenuated(j) = I(j) × s(j) ^ 1.5\n\nElements with high stability retain their full empirical weight. Elements with low stability are dampened continuously.'
+              }
+            ].map((section, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                  <h3 className="text-lg font-bold text-slate-900">{section.title}</h3>
                 </div>
-                <div className="overflow-x-auto max-h-[70vh]">
-                  <table className="text-xs border-collapse">
-                    <thead className="sticky top-0 z-20">
-                      <tr className="bg-slate-50 border-b border-slate-200">
-                        <th className="sticky left-0 bg-slate-50 z-30 px-4 py-3 text-left font-semibold text-slate-600 min-w-[180px] border-r border-slate-200">Metric</th>
-                        <th className="px-4 py-3 text-center font-semibold text-slate-600 min-w-[90px] bg-violet-50 border-r border-slate-200">Benchmark</th>
-                        {cos.map(c => <th key={c.sid} className="px-3 py-3 text-center font-medium text-slate-700 min-w-[100px] whitespace-nowrap">{c.name}</th>)}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="bg-slate-800">
-                        <td className="sticky left-0 bg-slate-800 z-10 px-4 py-2 font-bold text-xs text-white uppercase tracking-wider border-r border-slate-700">Composite Score</td>
-                        <td className="px-4 py-2 border-r border-slate-700"></td>
-                        <td colSpan={cos.length}></td>
-                      </tr>
-                      <tr className="border-b border-slate-100">
-                        <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 font-medium border-r border-slate-200">Equal Weight</td>
-                        <td className="px-4 py-2 text-center font-semibold text-slate-700 bg-violet-50 border-r border-slate-200">{bench.eqC}</td>
-                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqComposite}</td>)}
-                      </tr>
-                      <tr className="border-b border-slate-100 bg-emerald-50/50">
-                        <td className="sticky left-0 bg-emerald-50/50 z-10 px-4 py-2 text-emerald-800 font-medium border-r border-slate-200">Element-Weighted</td>
-                        <td className="px-4 py-2 text-center font-bold text-emerald-700 bg-emerald-100/50 border-r border-slate-200">{bench.wtC}</td>
-                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700 font-semibold">{c.wtComposite}</td>)}
-                      </tr>
-                      <tr className="border-b border-slate-200">
-                        <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-500 border-r border-slate-200">Delta</td>
-                        <td className="px-4 py-2 text-center text-slate-500 bg-violet-50 border-r border-slate-200">{(bench.wtC - bench.eqC >= 0 ? '+' : '') + (bench.wtC - bench.eqC)}</td>
-                        {cos.map(c => { const delta = c.wtComposite - c.eqComposite; return <td key={c.sid} className="px-3 py-2 text-center"><span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{(delta >= 0 ? '+' : '') + delta}</span></td>; })}
-                      </tr>
-                      {DO.map(d => (
-                        <React.Fragment key={d}>
-                          <tr className="bg-slate-100 border-t border-slate-200">
-                            <td className="sticky left-0 bg-slate-100 z-10 px-4 py-2 font-semibold text-xs text-slate-700 border-r border-slate-200">D{d}: {DN[d]} <span className="font-normal text-slate-400">({DW[d]}%)</span></td>
-                            <td className="px-4 py-2 bg-slate-100 border-r border-slate-200"></td>
-                            <td colSpan={cos.length} className="bg-slate-100"></td>
-                          </tr>
-                          <tr className="border-b border-slate-100">
-                            <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 pl-8 border-r border-slate-200">Equal</td>
-                            <td className="px-4 py-2 text-center text-slate-600 bg-violet-50 border-r border-slate-200">{bench.eqDims[d]}</td>
-                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqDims[d].blendedScore}</td>)}
-                          </tr>
-                          <tr className="border-b border-slate-100 bg-emerald-50/30">
-                            <td className="sticky left-0 bg-emerald-50/30 z-10 px-4 py-2 text-emerald-700 pl-8 border-r border-slate-200">Weighted</td>
-                            <td className="px-4 py-2 text-center text-emerald-700 bg-emerald-50/50 border-r border-slate-200">{bench.wtDims[d]}</td>
-                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700">{c.wtDims[d].blendedScore}</td>)}
-                          </tr>
-                        </React.Fragment>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="p-8">
+                  <p className="text-slate-700 leading-relaxed whitespace-pre-line">{section.content}</p>
                 </div>
               </div>
-            )}
+            ))}
 
-            {/* Element Weights by Dimension */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100"><h2 className="text-lg font-bold text-slate-800">Element Weights by Dimension</h2><p className="text-slate-500 mt-0.5">Click a dimension to expand element-level detail</p></div>
-              <div className="divide-y divide-slate-100">
-                {DO.map(d => {
-                  const m = DM[d]; const ws = EW[d] || []; const open = expDim === d;
-                  return (
-                    <div key={d}>
-                      <button onClick={() => setExpDim(open ? null : d)} className="w-full px-8 py-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors">
-                        <div className="flex items-center gap-4 flex-wrap">
-                          <span className="w-8 h-8 rounded-full bg-slate-700 text-white text-sm font-bold flex items-center justify-center">{d}</span>
-                          <span className="font-medium text-slate-700">{DN[d]}</span>
-                          <span className="text-sm text-slate-400">{m.elems} elements</span>
-                          <span className={`text-xs px-2 py-0.5 rounded ${m.cvR2 < 0 ? 'bg-amber-100 text-amber-700' : m.cvR2 > 0.3 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>CV R² = {m.cvR2.toFixed(3)}</span>
-                        </div>
-                        <div className={`w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center transition-transform ${open ? 'rotate-180' : ''}`}><svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg></div>
-                      </button>
-                      {open && (
-                        <div className="px-8 pb-6">
-                          <table className="w-full text-xs border border-slate-200 rounded-lg overflow-hidden">
-                            <thead><tr className="bg-slate-50 border-b border-slate-200"><th className="px-3 py-2.5 text-left font-semibold text-slate-600 w-8">#</th><th className="px-3 py-2.5 text-left font-semibold text-slate-600">Element</th><th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">Equal Wt</th><th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">Adj. Wt</th><th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-20">Delta</th><th className="px-3 py-2.5 text-center font-semibold text-slate-600 w-28">Stability</th></tr></thead>
-                            <tbody className="divide-y divide-slate-100">
-                              {ws.map((w, i) => {
-                                const delta = w.w - w.eq; const cap = w.w >= 0.195;
-                                return (
-                                  <tr key={i} className={cap ? 'bg-violet-50/40' : delta < 0 ? 'bg-slate-50/50' : ''}>
-                                    <td className="px-3 py-2 text-slate-400">{i + 1}</td>
-                                    <td className="px-3 py-2 text-slate-700">{w.e}</td>
-                                    <td className="px-3 py-2 text-center text-slate-500">{(w.eq * 100).toFixed(1)}%</td>
-                                    <td className={`px-3 py-2 text-center font-medium ${cap ? 'text-violet-700' : 'text-slate-700'}`}>{(w.w * 100).toFixed(1)}%{cap && <span className="ml-1 text-violet-400" title="Capped at 20%">*</span>}</td>
-                                    <td className="px-3 py-2 text-center"><span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{delta >= 0 ? '+' : ''}{(delta * 100).toFixed(1)}</span></td>
-                                    <td className="px-3 py-2 text-center">
-                                      <div className="flex items-center justify-center gap-2">
-                                        <div className="w-14 h-2 bg-slate-100 rounded-full overflow-hidden"><div className="h-full rounded-full" style={{ width: `${w.s * 100}%`, backgroundColor: w.s >= 0.7 ? '#059669' : w.s >= 0.5 ? '#d97706' : '#dc2626' }} /></div>
-                                        <span className="text-slate-500 w-8">{Math.round(w.s * 100)}%</span>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
+            {/* Adaptive Shrinkage Table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-lg font-bold text-slate-900">7. Adaptive Shrinkage Toward Equal Weights</h3>
+              </div>
+              <div className="p-8">
+                <p className="text-slate-700 mb-6">The final weight blends empirical importance with equal weighting: <code className="bg-slate-100 px-2 py-1 rounded text-sm">w_final(j) = α × w_empirical(j) + (1 − α) × w_equal</code></p>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">CV R² Range</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">α (Empirical Share)</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Rationale</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-slate-100">
+                      <td className="px-4 py-3 font-medium text-amber-700">CV R² ≤ 0</td>
+                      <td className="px-4 py-3">α = 0.30 (30% empirical / 70% equal)</td>
+                      <td className="px-4 py-3 text-slate-600">No reliable signal. Anchor heavily toward equal weights.</td>
+                    </tr>
+                    <tr className="border-b border-slate-100">
+                      <td className="px-4 py-3 font-medium text-slate-700">0 &lt; CV R² &lt; 0.05</td>
+                      <td className="px-4 py-3">α = 0.40 (40% empirical / 60% equal)</td>
+                      <td className="px-4 py-3 text-slate-600">Marginal signal. Lean toward equal but allow some differentiation.</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 font-medium text-emerald-700">CV R² ≥ 0.05</td>
+                      <td className="px-4 py-3">α = 0.50 (50% empirical / 50% equal)</td>
+                      <td className="px-4 py-3 text-slate-600">Meaningful signal. Balanced blend of empirical and equal.</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p className="text-slate-600 mt-4 text-sm">Hard cap: No single element can exceed 20% of its dimension's total weight. Any excess is redistributed proportionally.</p>
+              </div>
+            </div>
+
+            {/* Dimension Results Table */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-lg font-bold text-slate-900">8. Dimension-Level Results</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Dim</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Name</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">Wt</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">CV R²</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">α</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">n</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Top Element</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DIMENSION_ORDER.map(d => {
+                      const dim = DIMENSIONS[d];
+                      const topItem = dim.items[0];
+                      return (
+                        <tr key={d} className={`border-b border-slate-100 ${dim.cvR2 < 0 ? 'bg-amber-50/50' : dim.cvR2 > 0.3 ? 'bg-emerald-50/30' : ''}`}>
+                          <td className="px-4 py-3 font-medium">D{d}</td>
+                          <td className="px-4 py-3">{dim.name}</td>
+                          <td className="px-4 py-3 text-center font-semibold">{dim.weight}%</td>
+                          <td className={`px-4 py-3 text-center font-medium ${dim.cvR2 < 0 ? 'text-amber-700' : dim.cvR2 > 0.3 ? 'text-emerald-700' : 'text-slate-600'}`}>
+                            {dim.cvR2.toFixed(3)}
+                          </td>
+                          <td className="px-4 py-3 text-center">{dim.alpha}</td>
+                          <td className="px-4 py-3 text-center">{dim.n}</td>
+                          <td className="px-4 py-3 text-slate-600 truncate max-w-xs">{topItem.name} ({(topItem.weight * 100).toFixed(1)}%)</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recalibration Roadmap */}
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-lg font-bold text-slate-900">9. Scalability and Recalibration Roadmap</h3>
+              </div>
+              <div className="p-8">
+                <div className="grid grid-cols-2 gap-4">
+                  {[
+                    { milestone: 'Current (n ≈ 43)', action: 'Year 1 preliminary. Adaptive α keeps equal weights dominant where signal is weak.' },
+                    { milestone: 'At n = 75+', action: 'Re-run analysis. Consider shifting low-signal dimensions to α = 0.50, others to 0.60.' },
+                    { milestone: 'At n = 100+', action: 'Full recalibration. Consider α = 0.70 for high-signal dimensions.' },
+                    { milestone: 'Annually', action: 'Recalibrate using latest year\'s data. Publish weight updates with each index release.' }
+                  ].map((item, i) => (
+                    <div key={i} className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <p className="font-semibold text-violet-700">{item.milestone}</p>
+                      <p className="text-sm text-slate-600 mt-1">{item.action}</p>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============ DIMENSIONS TAB ============ */}
+        {activeTab === 'dimensions' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6 shadow-sm">
+              <p className="text-slate-600">Click any dimension to view element-level weights. Elements are ranked by adjusted weight. <span className="text-violet-600 font-medium">Purple highlight</span> indicates elements at the 20% cap.</p>
+            </div>
+            
+            {DIMENSION_ORDER.map(d => {
+              const dim = DIMENSIONS[d];
+              const isExpanded = expandedDim === d;
+              
+              return (
+                <div key={d} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                  <button
+                    onClick={() => setExpandedDim(isExpanded ? null : d)}
+                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 text-white font-bold flex items-center justify-center shadow-md">
+                        {d}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900">{dim.name}</p>
+                        <div className="flex items-center gap-4 mt-1 text-sm">
+                          <span className="text-slate-500">{dim.elements} elements</span>
+                          <span className="font-medium text-violet-600">{dim.weight}% dimension weight</span>
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            dim.cvR2 < 0 ? 'bg-amber-100 text-amber-700' : 
+                            dim.cvR2 > 0.3 ? 'bg-emerald-100 text-emerald-700' : 
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            CV R² = {dim.cvR2.toFixed(3)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                      <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+                  
+                  {isExpanded && (
+                    <div className="px-6 pb-6 border-t border-slate-100">
+                      <table className="w-full text-sm mt-4">
+                        <thead>
+                          <tr className="bg-slate-50 rounded-lg">
+                            <th className="px-4 py-3 text-left font-semibold text-slate-600 w-12">#</th>
+                            <th className="px-4 py-3 text-left font-semibold text-slate-600">Element</th>
+                            <th className="px-4 py-3 text-center font-semibold text-slate-600 w-24">Equal Wt</th>
+                            <th className="px-4 py-3 text-center font-semibold text-slate-600 w-24">Adj. Wt</th>
+                            <th className="px-4 py-3 text-center font-semibold text-slate-600 w-24">Delta</th>
+                            <th className="px-4 py-3 text-center font-semibold text-slate-600 w-32">Stability</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {dim.items.map((item, i) => {
+                            const isCapped = item.weight >= 0.195;
+                            return (
+                              <tr key={i} className={`border-b border-slate-100 ${isCapped ? 'bg-violet-50/50' : item.delta < 0 ? 'bg-slate-50/30' : ''}`}>
+                                <td className="px-4 py-3 text-slate-400">{item.rank}</td>
+                                <td className="px-4 py-3 text-slate-700">{item.name}</td>
+                                <td className="px-4 py-3 text-center text-slate-500">{(item.equal * 100).toFixed(1)}%</td>
+                                <td className={`px-4 py-3 text-center font-medium ${isCapped ? 'text-violet-700' : 'text-slate-700'}`}>
+                                  {(item.weight * 100).toFixed(1)}%
+                                  {isCapped && <span className="text-violet-400 ml-1">*</span>}
+                                </td>
+                                <td className="px-4 py-3 text-center">
+                                  <span className={item.delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>
+                                    {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full"
+                                        style={{
+                                          width: `${item.stability * 100}%`,
+                                          backgroundColor: item.stability >= 0.7 ? '#059669' : item.stability >= 0.5 ? '#d97706' : '#dc2626'
+                                        }}
+                                      />
+                                    </div>
+                                    <span className="text-slate-500 text-xs w-8">{Math.round(item.stability * 100)}%</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ============ COMPARISON TAB ============ */}
+        {activeTab === 'comparison' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-8 py-6 bg-gradient-to-r from-violet-700 to-purple-700">
+                <h2 className="text-xl font-bold text-white">Score Comparison: Equal Weight vs. Element-Weighted</h2>
+                <p className="text-violet-200 mt-1">All pipeline components (dimension weights, geo multiplier, follow-up blend, maturity, breadth) are identical. The only difference is element weighting within each dimension.</p>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200">
+                      <th className="sticky left-0 bg-slate-50 z-10 px-6 py-4 text-left font-semibold text-slate-700 min-w-[200px]">Company</th>
+                      <th className="px-4 py-4 text-center font-semibold text-slate-700 w-24">Equal Wt</th>
+                      <th className="px-4 py-4 text-center font-semibold text-emerald-700 bg-emerald-50 w-24">Weighted</th>
+                      <th className="px-4 py-4 text-center font-semibold text-slate-700 w-24">Delta</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-violet-50 border-b-2 border-violet-200">
+                      <td className="sticky left-0 bg-violet-50 z-10 px-6 py-4 font-bold text-violet-700">Benchmark (All Complete)</td>
+                      <td className="px-4 py-4 text-center font-semibold">{BENCHMARK.eqC}</td>
+                      <td className="px-4 py-4 text-center font-bold text-emerald-700 bg-emerald-100/50">{BENCHMARK.wtC}</td>
+                      <td className="px-4 py-4 text-center">
+                        <span className={BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}>
+                          {BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? '+' : ''}{BENCHMARK.wtC - BENCHMARK.eqC}
+                        </span>
+                      </td>
+                    </tr>
+                    {SCORE_COMPARISON.map((company, i) => {
+                      const delta = company.wtC - company.eqC;
+                      return (
+                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
+                          <td className="sticky left-0 bg-white hover:bg-slate-50 z-10 px-6 py-3 font-medium text-slate-700">{company.name}</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{company.eqC}</td>
+                          <td className="px-4 py-3 text-center font-semibold text-emerald-700 bg-emerald-50/30">{company.wtC}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>
+                              {delta >= 0 ? '+' : ''}{delta}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-3 gap-6">
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <p className="text-3xl font-bold text-emerald-600">+{Math.round(SCORE_COMPARISON.filter(c => c.wtC > c.eqC).length / SCORE_COMPARISON.length * 100)}%</p>
+                <p className="text-sm font-semibold text-slate-700 mt-1">Companies with Higher Weighted Score</p>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <p className="text-3xl font-bold text-violet-600">{Math.round(SCORE_COMPARISON.reduce((sum, c) => sum + Math.abs(c.wtC - c.eqC), 0) / SCORE_COMPARISON.length * 10) / 10}</p>
+                <p className="text-sm font-semibold text-slate-700 mt-1">Average Score Shift (pts)</p>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+                <p className="text-3xl font-bold text-slate-700">{Math.max(...SCORE_COMPARISON.map(c => Math.abs(c.wtC - c.eqC)))}</p>
+                <p className="text-sm font-semibold text-slate-700 mt-1">Maximum Score Shift (pts)</p>
               </div>
             </div>
           </div>
