@@ -1049,7 +1049,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
       { rank: 1, name: "Emergency leave within 24 hours", weight: 0.164705, equal: 0.083333, delta: 0.081372 },
       { rank: 2, name: "Remote work options for on-site employees", weight: 0.125719, equal: 0.083333, delta: 0.042386 },
       { rank: 3, name: "Intermittent leave beyond local / legal requirements", weight: 0.110911, equal: 0.083333, delta: 0.027578 },
-      { rank: 4, name: "Paid micro-breaks for medical-related side effects (merged)", weight: 0.093921, equal: 0.083333, delta: 0.010588 },
+      { rank: 4, name: "Paid micro-breaks for medical-related side effects", weight: 0.093921, equal: 0.083333, delta: 0.010588 },
       { rank: 5, name: "Flexible work hours during treatment (e.g., varying start/end times...", weight: 0.093364, equal: 0.083333, delta: 0.010031 },
       { rank: 6, name: "Job protection beyond local / legal requirements", weight: 0.070545, equal: 0.083333, delta: -0.012788 },
       { rank: 7, name: "Paid medical leave beyond local / legal requirements", weight: 0.062391, equal: 0.083333, delta: -0.020942 },
@@ -1369,7 +1369,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     n: 40,
     topElements: [
       "Family/caregiver communication inclusion",
-      "Ability to access program information (merged)",
+      "Ability to access program information",
       "Employee testimonials/success stories",
     ],
     items: [
