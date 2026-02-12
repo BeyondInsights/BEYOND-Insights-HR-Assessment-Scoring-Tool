@@ -1031,80 +1031,48 @@ export default function UnsureMethodologyPage() {
             </section>
           </div>
         )}
+
         {/* ===== TAB 2: TECHNICAL METHODOLOGY ===== */}
         {activeTab === 'technical' && (
           <div className="space-y-8">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-1">Technical Methodology</h2>
-              <p className="text-slate-600 text-sm">Discounted Expected-Value Substitution with (1&minus;r)&sup2; decay and 10% structural cap</p>
+              <p className="text-slate-600 text-sm">Discounted partial credit using (1&minus;r)&sup2; decay with a 10% structural cap</p>
             </div>
 
             {/* Formula */}
             <section className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg overflow-hidden text-white p-8">
               <h3 className="font-bold text-xl mb-6">The Formula</h3>
-              <div className="space-y-5">
+              <div className="grid grid-cols-3 gap-5">
                 <div className="bg-white/10 rounded-lg p-5 border border-white/10">
-                  <p className="text-sm text-slate-300 mb-2 font-medium">Per-unsure credit:</p>
+                  <p className="text-sm text-slate-300 mb-2 font-medium">Per-unsure credit</p>
                   <p className="text-xl font-mono font-bold">v<sub>d</sub> = &mu;<sub>d</sub> &times; (1 &minus; r<sub>d</sub>)&sup2;</p>
+                  <p className="text-xs text-slate-400 mt-2">&mu;<sub>d</sub> = dimension population mean, r<sub>d</sub> = unsure rate</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-5 border border-white/10">
-                  <p className="text-sm text-slate-300 mb-2 font-medium">Total unsure contribution:</p>
-                  <p className="text-xl font-mono font-bold">V<sub>d</sub> = min( U<sub>d</sub> &times; v<sub>d</sub> , 0.10 &times; MaxPts<sub>d</sub> )</p>
+                  <p className="text-sm text-slate-300 mb-2 font-medium">Total unsure contribution</p>
+                  <p className="text-xl font-mono font-bold">V<sub>d</sub> = min( U<sub>d</sub> &times; v<sub>d</sub> , 0.10 &times; Max<sub>d</sub> )</p>
+                  <p className="text-xs text-slate-400 mt-2">U<sub>d</sub> = unsure count, capped at 10% of dimension max</p>
                 </div>
                 <div className="bg-white/10 rounded-lg p-5 border border-white/10">
-                  <p className="text-sm text-slate-300 mb-2 font-medium">Dimension score:</p>
-                  <p className="text-xl font-mono font-bold">Score<sub>d</sub> = (ConfirmedPts + V<sub>d</sub>) / MaxPts<sub>d</sub> &times; 100</p>
+                  <p className="text-sm text-slate-300 mb-2 font-medium">Dimension score</p>
+                  <p className="text-xl font-mono font-bold">Score<sub>d</sub> = (Pts + V<sub>d</sub>) / Max<sub>d</sub></p>
+                  <p className="text-xs text-slate-400 mt-2">Pts = confirmed points (5/3/2/0 scale)</p>
                 </div>
               </div>
-            </section>
-
-            {/* Variable Definitions */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-lg">Variable Definitions</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
-                      <th className="px-6 py-3 text-left font-semibold w-40">Variable</th>
-                      <th className="px-6 py-3 text-left font-semibold">Definition</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">&mu;<sub>d</sub></td><td className="px-6 py-3 text-slate-700">Per-dimension population mean score (out of 5), from confirmed responses across all 43 companies (22 Index + 21 HR panel). Each dimension has its own mean.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">r<sub>d</sub></td><td className="px-6 py-3 text-slate-700">Company&apos;s unsure rate in dimension d. (Unsure elements) / (total elements). Ranges 0 to 1.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">U<sub>d</sub></td><td className="px-6 py-3 text-slate-700">Number of unsure elements in dimension d for this company.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">v<sub>d</sub></td><td className="px-6 py-3 text-slate-700">Substituted credit per unsure element. Starts at population mean, declines quadratically as r<sub>d</sub> increases.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">V<sub>d</sub></td><td className="px-6 py-3 text-slate-700">Total unsure contribution for dimension d, subject to the 10% cap.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">MaxPts<sub>d</sub></td><td className="px-6 py-3 text-slate-700">Maximum possible points in dimension d (number of elements &times; 5).</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-3 font-mono font-bold text-slate-900">ConfirmedPts</td><td className="px-6 py-3 text-slate-700">Points from confirmed responses (Currently Offer = 5, Planning = 3, Assessing = 2, Not Offered = 0).</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            {/* Why squared */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><IconChart /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Why (1 &minus; r)&sup2; Instead of (1 &minus; r)</h3>
-              </div>
-              <p className="text-slate-700 leading-relaxed mb-5">An earlier iteration used a linear discount: v<sub>d</sub> = &mu;<sub>d</sub> &times; (1 &minus; r<sub>d</sub>). This produced a &ldquo;hump problem&rdquo; where the total unsure contribution peaked at r = 50%, meaning a company with half its elements unsure could receive more unsure credit than one with only a few unsures. The squared term fixes this: the total contribution peaks at approximately r = 33% at only 8.9% of the dimension maximum, naturally falling below the 10% cap.</p>
             </section>
 
             {/* Discount Schedule */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-8 py-5 border-b border-slate-100">
                 <h3 className="font-bold text-slate-900 text-lg">Discount Schedule</h3>
-                <p className="text-slate-500 text-sm mt-1">Using &mu;<sub>d</sub> = 3.09 (global average) for illustration. Actual values are per-dimension.</p>
+                <p className="text-slate-500 text-sm mt-1">The squared term ensures total credit peaks around r = 33% then declines, avoiding the &ldquo;hump problem&rdquo; that a linear discount creates at r = 50%. Illustrative values use &mu;<sub>d</sub> = 3.09.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
                       <th className="px-5 py-3 text-left font-semibold">Unsure Rate</th>
-                      <th className="px-5 py-3 text-center font-semibold">(1&minus;r)</th>
                       <th className="px-5 py-3 text-center font-semibold">(1&minus;r)&sup2;</th>
                       <th className="px-5 py-3 text-center font-semibold">Per-Item Credit</th>
                       <th className="px-5 py-3 text-center font-semibold">Total Contrib</th>
@@ -1115,7 +1083,6 @@ export default function UnsureMethodologyPage() {
                     {DISCOUNT_TABLE.map((row) => (
                       <tr key={row.label} className="hover:bg-slate-50">
                         <td className="px-5 py-3 font-semibold text-slate-800">{row.label}</td>
-                        <td className="px-5 py-3 text-center font-mono text-slate-700">{row.oneMinusR.toFixed(2)}</td>
                         <td className="px-5 py-3 text-center font-mono font-bold text-slate-900">{row.squared.toFixed(2)}</td>
                         <td className="px-5 py-3 text-center font-mono text-slate-700">{row.perItem.toFixed(2)}</td>
                         <td className="px-5 py-3 text-center font-mono text-slate-700">{row.total.toFixed(2)}</td>
@@ -1136,89 +1103,33 @@ export default function UnsureMethodologyPage() {
 
             {/* Worked Example */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconShield /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Worked Example: Company X, Dimension 3</h3>
+              <h3 className="font-bold text-slate-900 text-lg mb-4">Worked Example: Company X, Dimension 3</h3>
+              <p className="text-slate-600 mb-5">10 elements. Company confirms 7 (earning 26 pts out of 50 max), says &ldquo;Unsure&rdquo; on 3. Population mean &mu;<sub>3</sub> = 3.12.</p>
+              <div className="grid grid-cols-4 gap-4">
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
+                  <p className="text-xs text-slate-500 mb-1">Unsure rate (r)</p>
+                  <p className="text-xl font-bold text-slate-800 font-mono">0.30</p>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
+                  <p className="text-xs text-slate-500 mb-1">Per-unsure credit</p>
+                  <p className="text-xl font-bold text-slate-800 font-mono">1.53</p>
+                  <p className="text-[10px] text-slate-400">3.12 &times; 0.49</p>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
+                  <p className="text-xs text-slate-500 mb-1">Total unsure credit</p>
+                  <p className="text-xl font-bold text-slate-800 font-mono">4.59</p>
+                  <p className="text-[10px] text-slate-400">3 &times; 1.53 (under 5.0 cap)</p>
+                </div>
+                <div className="bg-violet-50 rounded-lg p-4 border border-violet-200 text-center">
+                  <p className="text-xs text-violet-600 mb-1">Final score</p>
+                  <p className="text-xl font-bold text-violet-800 font-mono">61.2%</p>
+                  <p className="text-[10px] text-violet-500">(26 + 4.59) / 50</p>
+                </div>
               </div>
-              <p className="text-slate-600 mb-5">10 elements. Company confirms 7, says &ldquo;Unsure&rdquo; on 3.</p>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
-                      <th className="px-6 py-3 text-left font-semibold w-56">Step</th>
-                      <th className="px-6 py-3 text-left font-semibold">Calculation</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">Confirmed points</td><td className="px-6 py-3 text-slate-700 font-mono">4 Offer (20) + 2 Planning (6) + 1 Not Offered (0) = 26 pts</td></tr>
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">Maximum points</td><td className="px-6 py-3 text-slate-700 font-mono">10 &times; 5 = 50 pts</td></tr>
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">Unsure rate (r<sub>d</sub>)</td><td className="px-6 py-3 text-slate-700 font-mono">3 / 10 = 0.30</td></tr>
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">Population mean (&mu;<sub>d</sub>)</td><td className="px-6 py-3 text-slate-700 font-mono">3.12 (D3 average across 43 companies)</td></tr>
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">Per-unsure credit (v<sub>d</sub>)</td><td className="px-6 py-3 text-slate-700 font-mono">3.12 &times; (1 &minus; 0.30)&sup2; = 3.12 &times; 0.49 = 1.53 pts</td></tr>
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">Total unsure contribution</td><td className="px-6 py-3 text-slate-700 font-mono">3 &times; 1.53 = 4.59 pts</td></tr>
-                    <tr><td className="px-6 py-3 font-semibold text-slate-800">10% cap check</td><td className="px-6 py-3 text-slate-700 font-mono">10% &times; 50 = 5.0 pts. 4.59 &lt; 5.0 &rarr; no cap</td></tr>
-                    <tr className="bg-emerald-50"><td className="px-6 py-3 font-bold text-emerald-800">Final dimension score</td><td className="px-6 py-3 font-bold text-emerald-800 font-mono">(26 + 4.59) / 50 &times; 100 = 61.2%</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div className="mt-5 p-4 bg-slate-50 rounded-lg border border-slate-200">
-                <p className="text-sm text-slate-600"><strong className="text-slate-800">Compare:</strong> Unsure = 0 in denominator: 26/50 = 52.0%. Pure exclusion: 26/35 = 74.3%. Discounted substitution: 61.2%.</p>
-              </div>
-            </section>
-
-            {/* Pipeline */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-lg">Integration with Full Scoring Pipeline</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
-                      <th className="px-5 py-3 text-center font-semibold w-20">Stage</th>
-                      <th className="px-5 py-3 text-left font-semibold w-56">Step</th>
-                      <th className="px-5 py-3 text-left font-semibold">Detail</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr className="bg-violet-50"><td className="px-5 py-3 text-center font-bold text-violet-800">1</td><td className="px-5 py-3 font-bold text-violet-800">Element scoring + unsure handling</td><td className="px-5 py-3 text-slate-700">Score confirmed elements (5/3/2/0). Apply (1&minus;r)&sup2; substitution for unsures with 10% cap.</td></tr>
-                    <tr><td className="px-5 py-3 text-center font-bold text-slate-700">2</td><td className="px-5 py-3 font-semibold text-slate-800">Geographic multiplier</td><td className="px-5 py-3 text-slate-700">Applied based on multi-country response (&times;1.0, &times;0.90, or &times;0.75).</td></tr>
-                    <tr><td className="px-5 py-3 text-center font-bold text-slate-700">3</td><td className="px-5 py-3 font-semibold text-slate-800">Follow-up blending</td><td className="px-5 py-3 text-slate-700">D1, D3, D12, D13: blend 85% grid + 15% follow-up score.</td></tr>
-                    <tr><td className="px-5 py-3 text-center font-bold text-slate-700">4</td><td className="px-5 py-3 font-semibold text-slate-800">Element weighting</td><td className="px-5 py-3 text-slate-700">Within-dimension element weights (ridge + bootstrap + adaptive shrinkage).</td></tr>
-                    <tr><td className="px-5 py-3 text-center font-bold text-slate-700">5</td><td className="px-5 py-3 font-semibold text-slate-800">Dimension weighting</td><td className="px-5 py-3 text-slate-700">Apply dimension weights to produce weighted dimension score.</td></tr>
-                    <tr><td className="px-5 py-3 text-center font-bold text-slate-700">6</td><td className="px-5 py-3 font-semibold text-slate-800">Composite</td><td className="px-5 py-3 text-slate-700">90% Weighted Dimensions + 5% Maturity + 5% Breadth.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            {/* Status Criteria */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-lg">Score Status and Rank Eligibility</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
-                      <th className="px-5 py-3 text-left font-semibold w-64">Status</th>
-                      <th className="px-5 py-3 text-left font-semibold">Criteria</th>
-                      <th className="px-5 py-3 text-left font-semibold w-48">Rank Eligibility</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">Scored (Confirmed)</span></td><td className="px-5 py-3 text-slate-700">Overall unsure &le; 25% AND max dimension &le; 40%</td><td className="px-5 py-3 text-emerald-700 font-semibold">Eligible</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">Provisional &mdash; Verify</span></td><td className="px-5 py-3 text-slate-700">Overall unsure &le; 25% AND max dim 40&ndash;50%</td><td className="px-5 py-3 text-amber-700 font-semibold">Pending verification</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-800 border border-orange-200">Provisional &mdash; Resolution</span></td><td className="px-5 py-3 text-slate-700">Overall &le; 25% AND max dim &gt; 50% OR overall &gt; 25%</td><td className="px-5 py-3 text-orange-700 font-semibold">Pending resolution</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-800 border border-red-200">Excluded from Ranking</span></td><td className="px-5 py-3 text-slate-700">Overall &gt; 50% OR max dimension = 100%</td><td className="px-5 py-3 text-red-700 font-semibold">Excluded</td></tr>
-                  </tbody>
-                </table>
-              </div>
+              <p className="text-sm text-slate-500 mt-4">Compare: unsure = 0 gives 52.0%. Pure exclusion gives 74.3%. Discounted substitution: 61.2%.</p>
             </section>
           </div>
         )}
-
-
         {/* ===== TAB 3: SCORE COMPARISON — LIVE FROM SUPABASE ===== */}
         {activeTab === 'impact' && (
           <div className="space-y-6">
@@ -1459,8 +1370,8 @@ export default function UnsureMethodologyPage() {
         {activeTab === 'alternatives' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Alternatives Explored and Rejected</h2>
-              <p className="text-slate-600 text-sm">Nine approaches were tested during development and stress-tested against the full dataset of 43 organizations</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Alternatives Explored</h2>
+              <p className="text-slate-600 text-sm">Nine approaches were tested and stress-tested against the full dataset of 43 organizations</p>
             </div>
 
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1474,19 +1385,19 @@ export default function UnsureMethodologyPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {[
-                      { approach: 'Unsure = 0, in denominator', reason: 'Treats \u201cI don\u2019t know\u201d identically to \u201cwe don\u2019t offer this.\u201d Penalizes honest uncertainty and discourages use of the Unsure option.' },
+                      { approach: 'Unsure = 0, in denominator', reason: 'Treats \u201cI don\u2019t know\u201d identically to \u201cwe don\u2019t offer this.\u201d Penalizes honest uncertainty.' },
                       { approach: 'Positive point value (e.g., 1pt)', reason: 'Creates a perverse incentive: saying \u201cUnsure\u201d scores better than confirming \u201cNot Offered\u201d (0pts).' },
-                      { approach: 'Negative point value (e.g., \u22121pt)', reason: 'Even one unsure penalizes the company worse than confirming absence. Contradicts the benefit-of-the-doubt principle.' },
-                      { approach: 'Pure mean substitution', reason: 'Replaces each unsure with the population average regardless of unsure concentration. Fabricates data and compresses variance.' },
-                      { approach: 'Statistical imputation (multiple)', reason: 'Unstable at n = 43. Difficult to explain at executive and advisory committee venues. Hard to defend model assumptions.' },
-                      { approach: 'Exclude from denominator, no penalty', reason: 'Too generous. A company confirming 1 of 10 elements at \u201cCurrently Offer\u201d would score 100%. Not credible.' },
-                      { approach: 'Flat per-unsure penalty (2.5pp or 3.5pp)', reason: 'The base penalty could not be cleanly derived from the data. Under peer review, \u201cWhy 3.5?\u201d has no satisfying answer.' },
-                      { approach: 'Sliding penalty (3.5 + r \u00d7 5.0 pp)', reason: 'Improved on flat penalty but still relied on arbitrary constants. Produced implausible scores at certain unsure concentrations.' },
-                      { approach: 'Linear discount: \u03bc\u1d48 \u00d7 (1\u2212r)', reason: 'Produced a \u201chump\u201d at r = 50% where total unsure credit peaked. Companies with 50% unsure received more credit than companies with 25% unsure.' },
+                      { approach: 'Negative point value (e.g., \u22121pt)', reason: 'Even one unsure penalizes worse than confirming absence. Contradicts the benefit-of-the-doubt principle.' },
+                      { approach: 'Pure mean substitution', reason: 'Replaces each unsure with the population average regardless of concentration. Fabricates data, compresses variance.' },
+                      { approach: 'Statistical imputation', reason: 'Unstable at n = 43. Difficult to explain at executive and advisory committee venues.' },
+                      { approach: 'Exclude from denominator', reason: 'Too generous. A company confirming 1 of 10 elements at full credit would score 100%.' },
+                      { approach: 'Flat per-unsure penalty', reason: 'The penalty amount could not be cleanly derived from the data. Under peer review, the constant has no satisfying justification.' },
+                      { approach: 'Sliding penalty', reason: 'Improved on flat penalty but still relied on arbitrary constants. Produced implausible scores at certain concentrations.' },
+                      { approach: 'Linear discount: \u03bc \u00d7 (1\u2212r)', reason: 'Total credit peaked at r = 50%, meaning companies with half their elements unsure received more credit than those with 25% unsure.' },
                     ].map((item, i) => (
-                      <tr key={i} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-red-50/30`}>
-                        <td className="px-6 py-4 font-semibold text-slate-800">{item.approach}</td>
-                        <td className="px-6 py-4 text-slate-700">{item.reason}</td>
+                      <tr key={i} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-slate-100/50`}>
+                        <td className="px-6 py-3.5 font-semibold text-slate-800">{item.approach}</td>
+                        <td className="px-6 py-3.5 text-slate-700">{item.reason}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1494,40 +1405,14 @@ export default function UnsureMethodologyPage() {
               </div>
             </section>
 
-            {/* Why our approach won */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconShield /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Why the Final Approach Was Selected</h3>
-              </div>
-              <p className="text-slate-700 leading-relaxed mb-4">The final approach was selected because every number in the calculation traces directly to the data. The population averages come from confirmed responses across all participants. The discount rate is simply the proportion of unknowns. There are no arbitrary constants to defend.</p>
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-                  <p className="font-bold text-emerald-800 mb-1">Data-grounded</p>
-                  <p className="text-sm text-emerald-700">Population averages and discount rates come directly from the dataset. No arbitrary constants.</p>
-                </div>
-                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-                  <p className="font-bold text-emerald-800 mb-1">Explainable</p>
-                  <p className="text-sm text-emerald-700">Every step can be explained in plain language to non-technical audiences and advisory committees.</p>
-                </div>
-                <div className="bg-emerald-50 rounded-lg p-4 border border-emerald-200">
-                  <p className="font-bold text-emerald-800 mb-1">Scales naturally</p>
-                  <p className="text-sm text-emerald-700">As participation grows in future years, population averages become more robust without structural changes.</p>
-                </div>
-              </div>
-            </section>
-
             {/* Disclosure Language */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
-              <div className="flex items-center gap-3 mb-5">
-                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><IconClipboard /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Disclosure Language</h3>
-              </div>
-              <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 mb-5">
-                <p className="text-sm text-slate-800 font-medium"><strong>Approved language:</strong> &ldquo;Unsure items receive discounted partial credit using a squared discount function calibrated to the dimension population mean, capped at 10% of the dimension maximum. Provisional scores require verification before final ranking.&rdquo;</p>
+              <h3 className="font-bold text-slate-900 text-lg mb-4">Disclosure Language</h3>
+              <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 mb-4">
+                <p className="text-sm text-slate-800"><span className="font-bold">Approved:</span> &ldquo;Unsure items receive discounted partial credit using a squared discount function calibrated to the dimension population mean, capped at 10% of the dimension maximum. Provisional scores require verification before final ranking.&rdquo;</p>
               </div>
               <div className="bg-red-50 rounded-lg p-5 border border-red-200">
-                <p className="text-sm text-red-800 font-medium"><strong>Do NOT use:</strong> &ldquo;Incentive compatible,&rdquo; &ldquo;no advantage to selecting Unsure,&rdquo; or similar claims. The methodology gives modest partial credit for unsure responses, which means there is a small advantage to saying Unsure over confirming Not Offered. This is a deliberate design choice to encourage honesty, not a claim of incentive neutrality.</p>
+                <p className="text-sm text-red-800"><span className="font-bold">Do not use:</span> &ldquo;Incentive compatible,&rdquo; &ldquo;no advantage to selecting Unsure,&rdquo; or similar claims. The methodology gives modest partial credit for unsure responses, which means there is a small advantage to saying Unsure over confirming Not Offered. This is a deliberate design choice, not a claim of incentive neutrality.</p>
               </div>
             </section>
           </div>
