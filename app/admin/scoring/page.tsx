@@ -1,89 +1,49 @@
-/**
- * AGGREGATE SCORING REPORT - CORRECTED
- * 
- * FIXES APPLIED:
- * 1. TierBadge now shows "Provisional" indicator when isProvisional=true
- * 2. Maturity scoring: "legal minimum" = 0 points (not 30)
- * 3. Wt% column widened from 50 to 65px
- * 4. Totals row added with adjustment helper
- * 5. Blend weights adjustable via settings panel (not scattered popovers)
- * 6. Unweighted Average row - KEPT
- * 7. Dimension Tier row - KEPT
- * 8. D10 "Concierge services" item excluded - added post-launch, will include in Year 2
- * 9. Follow-up scoring substring bugs fixed - proper range ordering to avoid mis-scoring
- * 10. Geo multiplier: Single-country = 1.0 (N/A - question doesn't apply)
- *     - 1.0 = Multi-country + Consistent OR Single-country (N/A)
- *     - 0.90 = Multi-country + Varies
- *     - 0.75 = Multi-country + Select locations only
- * 11. Tier Stats modal with composite/dimension tier counts + provisional count
- * 12. Sensitivity analysis for weight robustness testing
- * 13. Reliability diagnostics for internal consistency
- * 14. Data Confidence metric: % of items NOT marked "Unsure" (color-coded badge per company)
- */
-
 'use client';
 
-import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
 
 // ============================================
-// CONSTANTS
+// TYPES
 // ============================================
+
+interface ElementItem { rank: number; name: string; weight: number; equal: number; delta: number; stability: number; }
+interface DimensionData { name: string; weight: number; elements: number; cvR2: number; alpha: number; n: number; topElements: string[]; items: ElementItem[]; }
+
+// ============================================
+// SCORING CONSTANTS (from page_146_)
+// ============================================
+
+const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
+const INSUFFICIENT_DATA_THRESHOLD = 0.40;
+
+const D10_EXCLUDED_ITEMS = [
+  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
+];
 
 const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
   4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
 };
 
-const DEFAULT_COMPOSITE_WEIGHTS = {
-  weightedDim: 90,  // Primary: weighted dimension scores (depth blended into D1/D3/D12/D13)
-  depth: 0,         // Deprecated: now integrated into dimensions via 85/15 blend
-  maturity: 5,      // Program maturity level (OR1)
-  breadth: 5,       // Coverage scope (CB3a/b/c)
-};
-
-// Default blend weights for dimensions with follow-up questions
+const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, depth: 0, maturity: 5, breadth: 5 };
 const DEFAULT_BLEND_WEIGHTS = {
-  d1: { grid: 85, followUp: 15 },
-  d3: { grid: 85, followUp: 15 },
-  d12: { grid: 85, followUp: 15 },
-  d13: { grid: 85, followUp: 15 },
+  d1: { grid: 85, followUp: 15 }, d3: { grid: 85, followUp: 15 },
+  d12: { grid: 85, followUp: 15 }, d13: { grid: 85, followUp: 15 },
 };
 
 const DIMENSION_NAMES: Record<number, string> = {
-  1: 'Medical Leave & Flexibility',
-  2: 'Insurance & Financial Protection',
-  3: 'Manager Preparedness & Capability',
-  4: 'Cancer Support Resources',
-  5: 'Workplace Accommodations',
-  6: 'Culture & Psychological Safety',
-  7: 'Career Continuity & Advancement',
-  8: 'Work Continuation & Resumption',
-  9: 'Executive Commitment & Resources',
-  10: 'Caregiver & Family Support',
-  11: 'Prevention & Wellness',
-  12: 'Continuous Improvement',
+  1: 'Medical Leave & Flexible Work', 2: 'Insurance & Financial Protection',
+  3: 'Manager Preparedness', 4: 'Treatment & Navigation',
+  5: 'Workplace Accommodations', 6: 'Culture & Stigma',
+  7: 'Career Continuity', 8: 'Treatment Support & Reintegration',
+  9: 'Leadership & Accountability', 10: 'Caregiver Support',
+  11: 'Prevention & Early Detection', 12: 'Measurement & Outcomes',
   13: 'Communication & Awareness',
 };
 
-const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
+const DIMENSION_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
-const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
-const INSUFFICIENT_DATA_THRESHOLD = 0.40;
-
-// D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
-// Will be included in Year 2 scoring once all respondents have had opportunity to answer
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
-
-const COL1_WIDTH = 280;
-const COL2_WIDTH = 65;  // WIDENED from 50
-const COL_AVG_WIDTH = 60;
-
-// ============================================
-// SCORING FUNCTIONS
 // ============================================
 
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
@@ -551,3803 +511,2734 @@ function getScoreColor(score: number): string {
   return '#DC2626';
 }
 
-function getPerformanceTier(score: number): { name: string; color: string; bg: string; border: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#065F46', bg: '#D1FAE5', border: '#6EE7B7' };
-  if (score >= 75) return { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' };
-  if (score >= 60) return { name: 'Progressing', color: '#92400E', bg: '#FEF3C7', border: '#FCD34D' };
-  if (score >= 40) return { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5', border: '#FDBA74' };
-  return { name: 'Developing', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
-}
-
 // ============================================
-// EDUCATIONAL MODALS
+// ELEMENT-WEIGHTED SCORING
 // ============================================
 
-function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => void; defaultWeights: Record<number, number> }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">How Dimension Scoring Works</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          <div className="space-y-6">
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">1</span>
-                Grid Response Scoring
-              </h3>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-green-700">Currently Offer</span>
-                  <div className="flex-1 h-2 bg-green-200 rounded-full" />
-                  <span className="font-bold text-green-700">5 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-blue-700">Planning</span>
-                  <div className="flex-1 h-2 bg-blue-200 rounded-full" style={{ width: '60%' }} />
-                  <span className="font-bold text-blue-700">3 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-amber-700">Assessing</span>
-                  <div className="flex-1 h-2 bg-amber-200 rounded-full" style={{ width: '40%' }} />
-                  <span className="font-bold text-amber-700">2 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-red-700">Not Able</span>
-                  <div className="flex-1 h-2 bg-red-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-red-700">0 points</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-24 text-sm font-medium text-gray-500">Unsure</span>
-                  <div className="flex-1 h-2 bg-gray-200 rounded-full" style={{ width: '5%' }} />
-                  <span className="font-bold text-gray-500">0 pts (in denominator)</span>
-                </div>
-              </div>
-            </section>
-            
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">2</span>
-                Geographic Multiplier
-              </h3>
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span>Multi-country + Consistent across all locations</span><span className="font-bold text-green-600">x1.00</span></div>
-                <div className="flex justify-between"><span>Single-country (geo question not applicable)</span><span className="font-bold text-green-600">x1.00</span></div>
-                <div className="flex justify-between"><span>Multi-country + Varies by location</span><span className="font-bold text-amber-600">x0.90</span></div>
-                <div className="flex justify-between"><span>Multi-country + Only available in select locations</span><span className="font-bold text-red-600">x0.75</span></div>
-              </div>
-              <p className="text-xs text-gray-500 mt-2 italic">
-                Note: The geo multiplier measures consistency across locations. Single-country companies receive 1.0 
-                because the question does not apply. Global operational complexity is displayed separately via the 
-                Global Footprint indicator.
-              </p>
-            </section>
-            
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">3</span>
-                Depth Blend (D1, D3, D12, D13)
-              </h3>
-              <div className="bg-purple-50 rounded-lg p-4 text-sm">
-                <p className="mb-2">These dimensions blend Grid Score with Follow-up Quality:</p>
-                <div className="bg-white rounded p-3 border border-purple-200 mb-3">
-                  <strong>Blended Score</strong> = (Grid x Grid%) + (Follow-up x Follow-up%)
-                </div>
-                <p className="text-purple-600 text-xs mb-4">Default: 85% Grid + 15% Follow-up. Adjust in settings panel above table.</p>
-                
-                {/* D1 Follow-up Scoring */}
-                <div className="bg-white rounded-lg p-3 border border-blue-200 mb-3">
-                  <h4 className="font-bold text-blue-800 mb-2 text-sm">D1: Medical Leave Follow-up (D1_1)</h4>
-                  <p className="text-xs text-gray-600 mb-2 italic">"How many weeks of 100% paid medical leave do you offer?"</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <span>13 or more weeks</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                    <span>9 to less than 13 weeks</span><span className="text-blue-600 font-bold text-right">70 pts</span>
-                    <span>5 to less than 9 weeks</span><span className="text-amber-600 font-bold text-right">40 pts</span>
-                    <span>3 to less than 5 weeks</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                    <span>1 to less than 3 weeks</span><span className="text-red-600 font-bold text-right">10 pts</span>
-                    <span>Does not apply / None</span><span className="text-red-600 font-bold text-right">0 pts</span>
-                  </div>
-                  <p className="text-xs text-blue-600 mt-2 italic">If both USA and non-USA values provided, scores are averaged.</p>
-                </div>
-                
-                {/* D3 Follow-up Scoring */}
-                <div className="bg-white rounded-lg p-3 border border-emerald-200 mb-3">
-                  <h4 className="font-bold text-emerald-800 mb-2 text-sm">D3: Manager Training Follow-up (D3_1)</h4>
-                  <p className="text-xs text-gray-600 mb-2 italic">"What percentage of managers have received training on supporting employees with serious health conditions?"</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <span>100% of managers</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                    <span>75% to less than 100%</span><span className="text-green-600 font-bold text-right">80 pts</span>
-                    <span>50% to less than 75%</span><span className="text-blue-600 font-bold text-right">50 pts</span>
-                    <span>25% to less than 50%</span><span className="text-amber-600 font-bold text-right">30 pts</span>
-                    <span>10% to less than 25%</span><span className="text-orange-600 font-bold text-right">10 pts</span>
-                    <span>Less than 10%</span><span className="text-red-600 font-bold text-right">0 pts</span>
-                  </div>
-                </div>
-                
-                {/* D12 Follow-up Scoring */}
-                <div className="bg-white rounded-lg p-3 border border-orange-200 mb-3">
-                  <h4 className="font-bold text-orange-800 mb-2 text-sm">D12: Continuous Improvement Follow-ups</h4>
-                  
-                  <div className="mb-3">
-                    <p className="text-xs text-gray-600 mb-1 italic">D12_1: "Do you review individual employee experiences to assess accommodation effectiveness?"</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                      <span>Systematic case reviews</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                      <span>Ad hoc case reviews</span><span className="text-amber-600 font-bold text-right">50 pts</span>
-                      <span>Only review aggregate data</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                      <span>No review process</span><span className="text-red-600 font-bold text-right">0 pts</span>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1 italic">D12_2: "Over the past 2 years, have individual employee experiences led to policy changes?"</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                      <span>Yes, several changes implemented</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                      <span>Yes, a few changes implemented</span><span className="text-blue-600 font-bold text-right">60 pts</span>
-                      <span>No</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-purple-600 mt-2 italic">D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
-                </div>
-                
-                {/* D13 Follow-up Scoring */}
-                <div className="bg-white rounded-lg p-3 border border-indigo-200">
-                  <h4 className="font-bold text-indigo-800 mb-2 text-sm">D13: Communication Follow-up (D13_1)</h4>
-                  <p className="text-xs text-gray-600 mb-2 italic">"How frequently do you communicate about health support programs to employees?"</p>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <span>Monthly</span><span className="text-green-600 font-bold text-right">100 pts</span>
-                    <span>Quarterly</span><span className="text-blue-600 font-bold text-right">70 pts</span>
-                    <span>Twice per year</span><span className="text-amber-600 font-bold text-right">40 pts</span>
-                    <span>Annually / World Cancer Day</span><span className="text-orange-600 font-bold text-right">20 pts</span>
-                    <span>Only when asked</span><span className="text-red-600 font-bold text-right">0 pts</span>
-                    <span>Do not actively communicate</span><span className="text-red-600 font-bold text-right">0 pts</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CompositeModal({ onClose, compositeWeights }: { onClose: () => void; compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">How Composite Scoring Works</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-80px)]">
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl p-5 border border-purple-200">
-              <div className="text-center space-y-3">
-                <p className="text-sm text-purple-700 font-medium">Composite Score =</p>
-                <div className="flex items-center justify-center gap-2 flex-wrap text-sm">
-                  <span className="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold">Weighted Dim x {compositeWeights.weightedDim}%</span>
-                  <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-purple-600 text-white rounded-lg font-bold">Maturity x {compositeWeights.maturity}%</span>
-                  <span className="text-purple-600 font-bold">+</span>
-                  <span className="px-3 py-1.5 bg-violet-600 text-white rounded-lg font-bold">Breadth x {compositeWeights.breadth}%</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Maturity - FIXED scoring shown */}
-            <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-              <h4 className="font-bold text-indigo-900 mb-3">Maturity Score (OR1)</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-600">
-                <p>Comprehensive support: <strong className="text-green-600">100 pts</strong></p>
-                <p>Enhanced support: <strong className="text-green-600">80 pts</strong></p>
-                <p>Moderate support: <strong className="text-blue-600">50 pts</strong></p>
-                <p>Developing approach: <strong className="text-amber-600">20 pts</strong></p>
-                <p>Legal minimum only: <strong className="text-red-600">0 pts</strong></p>
-                <p>No formal approach: <strong className="text-red-600">0 pts</strong></p>
-              </div>
-              <p className="text-xs text-indigo-600 mt-2 italic">
-                Note: Meeting only legal requirements earns 0 points—the index recognizes going beyond compliance.
-              </p>
-            </div>
-            
-            {/* Breadth */}
-            <div className="bg-violet-50 rounded-lg p-4 border border-violet-200">
-              <h4 className="font-bold text-violet-900 mb-3">Breadth Score (CB3a/b/c average)</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p><strong>CB3a:</strong> Beyond legal requirements (100/50/0)</p>
-                <p><strong>CB3b:</strong> Program structure elements (count / 6 x 100)</p>
-                <p><strong>CB3c:</strong> Conditions covered (count / 13 x 100)</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// TIER STATS MODAL
-// ============================================
-
-function TierStatsModal({ 
-  onClose, 
-  companyScores,
-  includePanel 
-}: { 
-  onClose: () => void; 
-  companyScores: CompanyScores[];
-  includePanel: boolean;
-}) {
-  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
+function calculateElementWeightedDimensionScore(
+  dimNum: number,
+  dimData: Record<string, any> | null,
+  assessment?: Record<string, any>,
+  blendWeights?: typeof DEFAULT_BLEND_WEIGHTS
+): { equalScore: number; weightedScore: number; blendedEqual: number; blendedWeighted: number } {
+  const result = { equalScore: 0, weightedScore: 0, blendedEqual: 0, blendedWeighted: 0 };
+  if (!dimData) return result;
   
-  const getTierName = (score: number) => {
-    if (score >= 90) return 'Exemplary';
-    if (score >= 75) return 'Leading';
-    if (score >= 60) return 'Progressing';
-    if (score >= 40) return 'Emerging';
-    return 'Developing';
-  };
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
   
-  // Composite tier counts (5 tiers to match main scoring)
-  const compositeCounts = {
-    exemplary: filteredCompanies.filter(c => c.compositeScore >= 90).length,
-    leading: filteredCompanies.filter(c => c.compositeScore >= 75 && c.compositeScore < 90).length,
-    progressing: filteredCompanies.filter(c => c.compositeScore >= 60 && c.compositeScore < 75).length,
-    emerging: filteredCompanies.filter(c => c.compositeScore >= 40 && c.compositeScore < 60).length,
-    developing: filteredCompanies.filter(c => c.compositeScore < 40).length,
-  };
+  const dimWeights = ELEMENT_WEIGHTS[dimNum] || {};
+  let earnedPoints = 0;
+  let weightedEarned = 0;
+  let weightedMax = 0;
+  let answeredItems = 0;
+  let unsureCount = 0;
+  let totalItems = 0;
   
-  // Provisional count
-  const provisionalCount = filteredCompanies.filter(c => c.isProvisional).length;
-  
-  // Global Footprint counts
-  const footprintCounts = {
-    single: filteredCompanies.filter(c => c.globalFootprint.segment === 'Single').length,
-    regional: filteredCompanies.filter(c => c.globalFootprint.segment === 'Regional').length,
-    global: filteredCompanies.filter(c => c.globalFootprint.segment === 'Global').length,
-  };
-  
-  // Dimension tier counts (5 tiers)
-  const getDimensionTierCounts = (dimNum: number) => {
-    const scores = filteredCompanies
-      .map(c => c.dimensions[dimNum]?.blendedScore ?? c.dimensions[dimNum]?.adjustedScore ?? null)
-      .filter((s): s is number => s !== null);
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+    totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
     
-    return {
-      exemplary: scores.filter(s => s >= 90).length,
-      leading: scores.filter(s => s >= 75 && s < 90).length,
-      progressing: scores.filter(s => s >= 60 && s < 75).length,
-      emerging: scores.filter(s => s >= 40 && s < 60).length,
-      developing: scores.filter(s => s < 40).length,
-    };
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Tier Classification Summary</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        <div className="p-6 overflow-y-auto max-h-[calc(85vh-80px)]">
-          <div className="space-y-6">
-            {/* Summary Stats */}
-            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700 font-medium">Total Complete Companies:</span>
-                <span className="text-2xl font-bold text-gray-900">{filteredCompanies.length}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-amber-700 font-medium">Provisional Scores (4+ dims with 40%+ Unsure):</span>
-                <span className="text-xl font-bold text-amber-600">{provisionalCount}</span>
-              </div>
-              <div className="border-t border-gray-200 pt-3">
-                <div className="text-gray-700 font-medium mb-2">Global Footprint Breakdown:</div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-100 rounded-lg p-3 text-center border border-slate-200">
-                    <div className="flex justify-center mb-1">
-                      <svg className="w-8 h-8 text-slate-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-slate-700">{footprintCounts.single}</div>
-                    <div className="text-xs text-slate-600 font-medium">Single Country</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg p-3 text-center border border-blue-200">
-                    <div className="flex justify-center mb-1">
-                      <svg className="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-700">{footprintCounts.regional}</div>
-                    <div className="text-xs text-blue-600 font-medium">Regional (2-10)</div>
-                  </div>
-                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-3 text-center border border-indigo-200">
-                    <div className="flex justify-center mb-1">
-                      <svg className="w-8 h-8 text-indigo-600" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                      </svg>
-                    </div>
-                    <div className="text-2xl font-bold text-indigo-700">{footprintCounts.global}</div>
-                    <div className="text-xs text-indigo-600 font-medium">Global (11+)</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Composite Tier Counts */}
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">★</span>
-                Composite Score Tiers
-              </h3>
-              <div className="grid grid-cols-5 gap-3">
-                <div className="bg-emerald-50 rounded-lg p-4 text-center border border-emerald-200">
-                  <div className="text-3xl font-bold text-emerald-700">{compositeCounts.exemplary}</div>
-                  <div className="text-sm font-medium text-emerald-600">Exemplary</div>
-                  <div className="text-xs text-emerald-500">90+</div>
-                </div>
-                <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
-                  <div className="text-3xl font-bold text-blue-700">{compositeCounts.leading}</div>
-                  <div className="text-sm font-medium text-blue-600">Leading</div>
-                  <div className="text-xs text-blue-500">75-89</div>
-                </div>
-                <div className="bg-amber-50 rounded-lg p-4 text-center border border-amber-200">
-                  <div className="text-3xl font-bold text-amber-700">{compositeCounts.progressing}</div>
-                  <div className="text-sm font-medium text-amber-600">Progressing</div>
-                  <div className="text-xs text-amber-500">60-74</div>
-                </div>
-                <div className="bg-orange-50 rounded-lg p-4 text-center border border-orange-200">
-                  <div className="text-3xl font-bold text-orange-700">{compositeCounts.emerging}</div>
-                  <div className="text-sm font-medium text-orange-600">Emerging</div>
-                  <div className="text-xs text-orange-500">40-59</div>
-                </div>
-                <div className="bg-red-50 rounded-lg p-4 text-center border border-red-200">
-                  <div className="text-3xl font-bold text-red-700">{compositeCounts.developing}</div>
-                  <div className="text-sm font-medium text-red-600">Developing</div>
-                  <div className="text-xs text-red-500">&lt;40</div>
-                </div>
-              </div>
-            </section>
-            
-            {/* Dimension Tier Counts */}
-            <section>
-              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold">D</span>
-                Dimension Score Tiers
-              </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 px-3 font-semibold text-gray-700">Dimension</th>
-                      <th className="text-center py-2 px-2 font-semibold text-emerald-700">Exemplary<br/><span className="font-normal text-xs">90+</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-blue-700">Leading<br/><span className="font-normal text-xs">75-89</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-amber-700">Progressing<br/><span className="font-normal text-xs">60-74</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-orange-700">Emerging<br/><span className="font-normal text-xs">40-59</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-red-700">Developing<br/><span className="font-normal text-xs">&lt;40</span></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {DIMENSION_ORDER.map((dim, idx) => {
-                      const counts = getDimensionTierCounts(dim);
-                      return (
-                        <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                          <td className="py-2 px-3 font-medium text-gray-900">
-                            <span className="text-blue-600">D{dim}:</span> {DIMENSION_NAMES[dim]}
-                          </td>
-                          <td className="py-2 px-2 text-center font-bold text-emerald-700">{counts.exemplary}</td>
-                          <td className="py-2 px-2 text-center font-bold text-blue-700">{counts.leading}</td>
-                          <td className="py-2 px-2 text-center font-bold text-amber-700">{counts.progressing}</td>
-                          <td className="py-2 px-2 text-center font-bold text-orange-700">{counts.emerging}</td>
-                          <td className="py-2 px-2 text-center font-bold text-red-700">{counts.developing}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-            
-            {/* Tier Thresholds Reference */}
-            <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600">
-              <strong>Tier Thresholds:</strong> Exemplary (90+) | Leading (75-89) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// SENSITIVITY ANALYSIS MODAL
-// ============================================
-
-function SensitivityAnalysisModal({ 
-  onClose, 
-  companyScores,
-  weights,
-  includePanel,
-  assessments
-}: { 
-  onClose: () => void; 
-  companyScores: CompanyScores[];
-  weights: Record<number, number>;
-  includePanel: boolean;
-  assessments: Record<string, any>[];
-}) {
-  const [activeTab, setActiveTab] = useState<'weights' | 'scenarios'>('weights');
-  const [isRunning, setIsRunning] = useState(false);
-  const [results, setResults] = useState<{
-    spearmanCorrelation: number;
-    tierChangePercent: number;
-    perturbations: number;
-    stableCompanies: number;
-    totalCompanies: number;
-  } | null>(null);
-  
-  // Scenario results
-  const [scenarioResults, setScenarioResults] = useState<{
-    name: string;
-    description: string;
-    spearmanCorrelation: number;
-    tierChanges: number;
-    avgScoreChange: number;
-  }[] | null>(null);
-  const [isRunningScenarios, setIsRunningScenarios] = useState(false);
-  
-  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
-
-  const getTierName = (score: number) => {
-    if (score >= 90) return 'Exemplary';
-    if (score >= 75) return 'Leading';
-    if (score >= 60) return 'Progressing';
-    if (score >= 40) return 'Emerging';
-    return 'Developing';
-  };
-
-  // Weight perturbation analysis (existing)
-  const runWeightAnalysis = () => {
-    setIsRunning(true);
+    // Find element weight (fuzzy match for slight name differences)
+    let elemWeight = dimWeights[itemKey];
+    if (elemWeight === undefined) {
+      // Try partial match
+      const keys = Object.keys(dimWeights);
+      const match = keys.find(k => k.startsWith(itemKey.substring(0, 30)) || itemKey.startsWith(k.substring(0, 30)));
+      elemWeight = match ? dimWeights[match] : (1 / totalItems); // fallback to equal
+    }
     
-    setTimeout(() => {
-      if (filteredCompanies.length < 3) {
-        setResults(null);
-        setIsRunning(false);
-        return;
-      }
-      
-      // Baseline rankings
-      const baselineRanks = new Map<string, number>();
-      const baselineTiers = new Map<string, string>();
-      const sorted = [...filteredCompanies].sort((a, b) => b.compositeScore - a.compositeScore);
-      sorted.forEach((c, idx) => {
-        baselineRanks.set(c.surveyId, idx + 1);
-        baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
-      });
-      
-      // Run perturbations (±10% on each weight)
-      const perturbationResults: { ranks: Map<string, number>; tiers: Map<string, string> }[] = [];
-      const numPerturbations = 50;
-      
-      for (let p = 0; p < numPerturbations; p++) {
-        const perturbedWeights: Record<number, number> = {};
-        let totalWeight = 0;
-        
-        for (let dim = 1; dim <= 13; dim++) {
-          const baseWeight = weights[dim] || 0;
-          const perturbation = (Math.random() - 0.5) * 0.2 * baseWeight;
-          perturbedWeights[dim] = Math.max(0, baseWeight + perturbation);
-          totalWeight += perturbedWeights[dim];
-        }
-        
-        for (let dim = 1; dim <= 13; dim++) {
-          perturbedWeights[dim] = (perturbedWeights[dim] / totalWeight) * 100;
-        }
-        
-        const perturbedScores = filteredCompanies.map(c => {
-          let newWeightedScore = 0;
-          for (let dim = 1; dim <= 13; dim++) {
-            const dimScore = c.dimensions[dim]?.blendedScore || 0;
-            newWeightedScore += dimScore * (perturbedWeights[dim] / 100);
-          }
-          return {
-            surveyId: c.surveyId,
-            score: Math.round(newWeightedScore * 0.90 + c.maturityScore * 0.05 + c.breadthScore * 0.05),
-          };
-        });
-        
-        const perturbedRanks = new Map<string, number>();
-        const perturbedTiers = new Map<string, string>();
-        const perturbedSorted = [...perturbedScores].sort((a, b) => b.score - a.score);
-        perturbedSorted.forEach((c, idx) => {
-          perturbedRanks.set(c.surveyId, idx + 1);
-          perturbedTiers.set(c.surveyId, getTierName(c.score));
-        });
-        
-        perturbationResults.push({ ranks: perturbedRanks, tiers: perturbedTiers });
-      }
-      
-      let totalCorrelation = 0;
-      let tierChanges = 0;
-      
-      perturbationResults.forEach(({ ranks, tiers }) => {
-        const n = filteredCompanies.length;
-        let sumD2 = 0;
-        filteredCompanies.forEach(c => {
-          const baseRank = baselineRanks.get(c.surveyId) || 0;
-          const pertRank = ranks.get(c.surveyId) || 0;
-          sumD2 += Math.pow(baseRank - pertRank, 2);
-        });
-        const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
-        totalCorrelation += spearman;
-        
-        filteredCompanies.forEach(c => {
-          if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) {
-            tierChanges++;
-          }
-        });
-      });
-      
-      const avgCorrelation = totalCorrelation / numPerturbations;
-      const avgTierChangePercent = (tierChanges / (numPerturbations * filteredCompanies.length)) * 100;
-      
-      setResults({
-        spearmanCorrelation: Math.round(avgCorrelation * 1000) / 1000,
-        tierChangePercent: Math.round(avgTierChangePercent * 10) / 10,
-        perturbations: numPerturbations,
-        stableCompanies: filteredCompanies.filter(c => {
-          let changes = 0;
-          perturbationResults.forEach(({ tiers }) => {
-            if (baselineTiers.get(c.surveyId) !== tiers.get(c.surveyId)) changes++;
-          });
-          return changes === 0;
-        }).length,
-        totalCompanies: filteredCompanies.length,
-      });
-      
-      setIsRunning(false);
-    }, 50);
-  };
-
-  // Scenario analysis (new)
-  const runScenarioAnalysis = () => {
-    setIsRunningScenarios(true);
-    
-    setTimeout(() => {
-      if (filteredCompanies.length < 3) {
-        setScenarioResults(null);
-        setIsRunningScenarios(false);
-        return;
-      }
-      
-      // Baseline scores and tiers
-      const baselineScores = new Map<string, number>();
-      const baselineRanks = new Map<string, number>();
-      const baselineTiers = new Map<string, string>();
-      const sorted = [...filteredCompanies].sort((a, b) => b.compositeScore - a.compositeScore);
-      sorted.forEach((c, idx) => {
-        baselineScores.set(c.surveyId, c.compositeScore);
-        baselineRanks.set(c.surveyId, idx + 1);
-        baselineTiers.set(c.surveyId, getTierName(c.compositeScore));
-      });
-      
-      // Define scenarios
-      const scenarios = [
-        {
-          name: 'Planning = 2 pts',
-          description: 'Reduce Planning credit from 3 to 2 points',
-          statusMultiplier: { currently: 1.0, planning: 0.667, assessing: 1.0, notAble: 1.0 }, // 2/3 = 0.667
-          geoMultiplier: 1.0,
-          blendMultiplier: 1.0,
-          compositeChange: null,
-        },
-        {
-          name: 'Assessing = 1 pt',
-          description: 'Reduce Assessing credit from 2 to 1 point',
-          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 0.5, notAble: 1.0 }, // 1/2 = 0.5
-          geoMultiplier: 1.0,
-          blendMultiplier: 1.0,
-          compositeChange: null,
-        },
-        {
-          name: 'Geo = 0.95/0.80',
-          description: 'Softer geo penalty (0.95 for Varies, 0.80 for Select)',
-          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
-          geoMultiplier: 1.05, // ~5% boost for multi-country
-          blendMultiplier: 1.0,
-          compositeChange: null,
-        },
-        {
-          name: 'Follow-up 90/10',
-          description: 'Increase grid weight in blended dimensions (90% grid, 10% follow-up)',
-          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
-          geoMultiplier: 1.0,
-          blendMultiplier: 0.97, // Slight reduction since follow-up typically scores higher
-          compositeChange: null,
-        },
-        {
-          name: 'Follow-up 80/20',
-          description: 'Decrease grid weight in blended dimensions (80% grid, 20% follow-up)',
-          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
-          geoMultiplier: 1.0,
-          blendMultiplier: 1.03, // Slight boost since follow-up typically scores higher
-          compositeChange: null,
-        },
-        {
-          name: 'Maturity/Breadth = 3%/2%',
-          description: 'Reduce maturity and breadth weights (95/3/2 instead of 90/5/5)',
-          statusMultiplier: { currently: 1.0, planning: 1.0, assessing: 1.0, notAble: 1.0 },
-          geoMultiplier: 1.0,
-          blendMultiplier: 1.0,
-          compositeChange: { weightedDim: 0.95, maturity: 0.03, breadth: 0.02 },
-        },
-      ];
-      
-      const results = scenarios.map(scenario => {
-        // Simplified scenario scoring - applies multipliers to baseline dimension scores
-        const scenarioScores = filteredCompanies.map(c => {
-          let adjustedScore = 0;
-          
-          // Adjust dimension scores based on scenario
-          for (let dim = 1; dim <= 13; dim++) {
-            let dimScore = c.dimensions[dim]?.blendedScore || 0;
-            
-            // Apply status multiplier (approximation - affects overall score proportionally)
-            // This is a simplified model - assumes ~40% Currently, ~30% Planning, ~20% Assessing, ~10% Not Able
-            const statusAdj = 0.4 * scenario.statusMultiplier.currently +
-                             0.3 * scenario.statusMultiplier.planning +
-                             0.2 * scenario.statusMultiplier.assessing +
-                             0.1 * scenario.statusMultiplier.notAble;
-            dimScore = dimScore * statusAdj;
-            
-            // Apply geo multiplier (for companies with geo adjustments)
-            if (c.dimensions[dim]?.geoMultiplier && c.dimensions[dim].geoMultiplier < 1) {
-              dimScore = dimScore * scenario.geoMultiplier;
-            }
-            
-            // Apply blend multiplier for blended dimensions
-            if ([1, 3, 12, 13].includes(dim) && c.dimensions[dim]?.followUpScore !== null) {
-              dimScore = dimScore * scenario.blendMultiplier;
-            }
-            
-            adjustedScore += dimScore * ((weights[dim] || 0) / 100);
-          }
-          
-          // Apply composite weights
-          let compositeScore: number;
-          if (scenario.compositeChange) {
-            compositeScore = Math.round(
-              adjustedScore * scenario.compositeChange.weightedDim +
-              c.maturityScore * scenario.compositeChange.maturity +
-              c.breadthScore * scenario.compositeChange.breadth
-            );
-          } else {
-            compositeScore = Math.round(adjustedScore * 0.90 + c.maturityScore * 0.05 + c.breadthScore * 0.05);
-          }
-          
-          return { surveyId: c.surveyId, score: compositeScore };
-        });
-        
-        // Calculate correlation and tier changes
-        const scenarioRanks = new Map<string, number>();
-        const scenarioTiers = new Map<string, string>();
-        const scenarioSorted = [...scenarioScores].sort((a, b) => b.score - a.score);
-        scenarioSorted.forEach((c, idx) => {
-          scenarioRanks.set(c.surveyId, idx + 1);
-          scenarioTiers.set(c.surveyId, getTierName(c.score));
-        });
-        
-        // Spearman correlation
-        const n = filteredCompanies.length;
-        let sumD2 = 0;
-        filteredCompanies.forEach(c => {
-          const baseRank = baselineRanks.get(c.surveyId) || 0;
-          const scenRank = scenarioRanks.get(c.surveyId) || 0;
-          sumD2 += Math.pow(baseRank - scenRank, 2);
-        });
-        const spearman = 1 - (6 * sumD2) / (n * (n * n - 1));
-        
-        // Tier changes
-        let tierChanges = 0;
-        filteredCompanies.forEach(c => {
-          if (baselineTiers.get(c.surveyId) !== scenarioTiers.get(c.surveyId)) {
-            tierChanges++;
-          }
-        });
-        
-        // Average score change
-        let totalScoreChange = 0;
-        filteredCompanies.forEach(c => {
-          const baseline = baselineScores.get(c.surveyId) || 0;
-          const scenScore = scenarioScores.find(s => s.surveyId === c.surveyId)?.score || 0;
-          totalScoreChange += Math.abs(scenScore - baseline);
-        });
-        const avgScoreChange = totalScoreChange / n;
-        
-        return {
-          name: scenario.name,
-          description: scenario.description,
-          spearmanCorrelation: Math.round(spearman * 1000) / 1000,
-          tierChanges,
-          avgScoreChange: Math.round(avgScoreChange * 10) / 10,
-        };
-      });
-      
-      setScenarioResults(results);
-      setIsRunningScenarios(false);
-    }, 50);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-orange-600 to-amber-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Sensitivity Analysis</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          {/* Tabs */}
-          <div className="flex gap-2 mt-3">
-            {[
-              { id: 'weights', label: 'Weight Perturbation' },
-              { id: 'scenarios', label: 'Scenario Analysis' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-orange-700' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {/* WEIGHT PERTURBATION TAB */}
-          {activeTab === 'weights' && (
-            <div className="space-y-6">
-              <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                <h3 className="font-bold text-amber-900 mb-2">What This Tests</h3>
-                <p className="text-sm text-amber-800">
-                  Runs 50 simulations with randomly perturbed dimension weights (±10%) to verify 
-                  that rankings are stable and not overly sensitive to small weight changes.
-                </p>
-              </div>
-              
-              <button
-                onClick={runWeightAnalysis}
-                disabled={isRunning}
-                className={`w-full py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
-                  isRunning ? 'bg-orange-400 cursor-wait' : 'bg-orange-600 hover:bg-orange-700'
-                }`}
-              >
-                {isRunning ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Running 50 Simulations...
-                  </>
-                ) : (
-                  'Run Weight Perturbation Analysis'
-                )}
-              </button>
-              
-              {results && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-gray-900">Results</h3>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className={`rounded-lg p-4 text-center border ${
-                      results.spearmanCorrelation >= 0.95 ? 'bg-green-50 border-green-200' : 
-                      results.spearmanCorrelation >= 0.90 ? 'bg-amber-50 border-amber-200' : 
-                      'bg-red-50 border-red-200'
-                    }`}>
-                      <div className="text-3xl font-bold">{results.spearmanCorrelation}</div>
-                      <div className="text-sm font-medium text-gray-600">Spearman Correlation</div>
-                      <div className="text-xs text-gray-500 mt-1">Target: ≥0.95</div>
-                    </div>
-                    
-                    <div className={`rounded-lg p-4 text-center border ${
-                      results.tierChangePercent <= 10 ? 'bg-green-50 border-green-200' : 
-                      results.tierChangePercent <= 15 ? 'bg-amber-50 border-amber-200' : 
-                      'bg-red-50 border-red-200'
-                    }`}>
-                      <div className="text-3xl font-bold">{results.tierChangePercent}%</div>
-                      <div className="text-sm font-medium text-gray-600">Tier Change Rate</div>
-                      <div className="text-xs text-gray-500 mt-1">Target: ≤10-15%</div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-600">Perturbations run:</span>
-                        <span className="font-bold ml-2">{results.perturbations}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Companies analyzed:</span>
-                        <span className="font-bold ml-2">{results.totalCompanies}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Tier-stable companies:</span>
-                        <span className="font-bold ml-2 text-green-600">{results.stableCompanies}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-600">Tier-variable companies:</span>
-                        <span className="font-bold ml-2 text-amber-600">{results.totalCompanies - results.stableCompanies}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* SCENARIO ANALYSIS TAB */}
-          {activeTab === 'scenarios' && (
-            <div className="space-y-6">
-              <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
-                <h3 className="font-bold text-purple-900 mb-2">What This Tests</h3>
-                <p className="text-sm text-purple-800">
-                  Tests named scenarios that vary key "judgment knobs" in the methodology:
-                  status point values, geo multipliers, follow-up blend weights, and composite weights.
-                  High stability across scenarios demonstrates robustness to methodological choices.
-                </p>
-              </div>
-              
-              <button
-                onClick={runScenarioAnalysis}
-                disabled={isRunningScenarios}
-                className={`w-full py-3 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2 ${
-                  isRunningScenarios ? 'bg-purple-400 cursor-wait' : 'bg-purple-600 hover:bg-purple-700'
-                }`}
-              >
-                {isRunningScenarios ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Running Scenario Analysis...
-                  </>
-                ) : (
-                  'Run Scenario Analysis'
-                )}
-              </button>
-              
-              {scenarioResults && (
-                <div className="space-y-4">
-                  <h3 className="font-bold text-gray-900">Scenario Results</h3>
-                  
-                  <div className="overflow-x-auto rounded-lg border border-gray-200">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="bg-gray-50 border-b border-gray-200">
-                          <th className="text-left py-3 px-4 font-semibold">Scenario</th>
-                          <th className="text-center py-3 px-3 font-semibold">Rank Corr.</th>
-                          <th className="text-center py-3 px-3 font-semibold">Tier Changes</th>
-                          <th className="text-center py-3 px-3 font-semibold">Avg Δ Score</th>
-                          <th className="text-center py-3 px-3 font-semibold">Stability</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {scenarioResults.map((result, idx) => {
-                          const isStable = result.spearmanCorrelation >= 0.95 && result.tierChanges <= 5;
-                          const isMarginal = result.spearmanCorrelation >= 0.90 && result.tierChanges <= 10;
-                          return (
-                            <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                              <td className="py-3 px-4">
-                                <div className="font-medium text-gray-900">{result.name}</div>
-                                <div className="text-xs text-gray-500">{result.description}</div>
-                              </td>
-                              <td className={`py-3 px-3 text-center font-mono font-bold ${
-                                result.spearmanCorrelation >= 0.95 ? 'text-green-600' :
-                                result.spearmanCorrelation >= 0.90 ? 'text-amber-600' : 'text-red-600'
-                              }`}>
-                                {result.spearmanCorrelation}
-                              </td>
-                              <td className={`py-3 px-3 text-center font-bold ${
-                                result.tierChanges <= 3 ? 'text-green-600' :
-                                result.tierChanges <= 6 ? 'text-amber-600' : 'text-red-600'
-                              }`}>
-                                {result.tierChanges} / {filteredCompanies.length}
-                              </td>
-                              <td className="py-3 px-3 text-center text-gray-600">
-                                ±{result.avgScoreChange} pts
-                              </td>
-                              <td className="py-3 px-3 text-center">
-                                {isStable ? (
-                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">Stable</span>
-                                ) : isMarginal ? (
-                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">Marginal</span>
-                                ) : (
-                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Sensitive</span>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                  
-                  {/* Summary */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div>
-                        <div className="text-2xl font-bold text-green-600">
-                          {scenarioResults.filter(r => r.spearmanCorrelation >= 0.95 && r.tierChanges <= 5).length}
-                        </div>
-                        <div className="text-xs text-gray-500">Stable Scenarios</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-amber-600">
-                          {scenarioResults.filter(r => !(r.spearmanCorrelation >= 0.95 && r.tierChanges <= 5) && (r.spearmanCorrelation >= 0.90 && r.tierChanges <= 10)).length}
-                        </div>
-                        <div className="text-xs text-gray-500">Marginal Scenarios</div>
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold text-red-600">
-                          {scenarioResults.filter(r => r.spearmanCorrelation < 0.90 || r.tierChanges > 10).length}
-                        </div>
-                        <div className="text-xs text-gray-500">Sensitive Scenarios</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 italic">
-                    <strong>Interpretation:</strong> Stable = rank correlation ≥0.95 & ≤5 tier changes. 
-                    High stability across scenarios indicates methodology is robust to reasonable parameter variations.
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// RELIABILITY DIAGNOSTICS MODAL
-// ============================================
-
-function ReliabilityDiagnosticsModal({ 
-  onClose, 
-  companyScores,
-  assessments,
-  includePanel 
-}: { 
-  onClose: () => void; 
-  companyScores: CompanyScores[];
-  assessments: Record<string, any>[];
-  includePanel: boolean;
-}) {
-  const [activeTab, setActiveTab] = useState<'executive' | 'detailed' | 'items'>('executive');
-  const [selectedDim, setSelectedDim] = useState<number>(1);
-  
-  const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
-  const filteredAssessments = assessments.filter(a => {
-    const company = filteredCompanies.find(c => c.surveyId === a.app_id);
-    return company !== undefined;
+    if (isUnsure) { 
+      unsureCount++; 
+      answeredItems++;
+      // Unsure = 0 points earned, but counts in denominator
+      weightedMax += POINTS.CURRENTLY_OFFER * (elemWeight || 0);
+    } else if (points !== null) { 
+      answeredItems++; 
+      earnedPoints += points;
+      weightedEarned += points * (elemWeight || 0);
+      weightedMax += POINTS.CURRENTLY_OFFER * (elemWeight || 0);
+    }
   });
   
-  // Dimension field mapping
-  const DIMENSION_FIELDS: Record<number, { key: string; field: string }> = {
-    1: { key: 'd1a', field: 'dimension1_data' },
-    2: { key: 'd2a', field: 'dimension2_data' },
-    3: { key: 'd3a', field: 'dimension3_data' },
-    4: { key: 'd4a', field: 'dimension4_data' },
-    5: { key: 'd5a', field: 'dimension5_data' },
-    6: { key: 'd6a', field: 'dimension6_data' },
-    7: { key: 'd7a', field: 'dimension7_data' },
-    8: { key: 'd8a', field: 'dimension8_data' },
-    9: { key: 'd9a', field: 'dimension9_data' },
-    10: { key: 'd10a', field: 'dimension10_data' },
-    11: { key: 'd11a', field: 'dimension11_data' },
-    12: { key: 'd12a', field: 'dimension12_data' },
-    13: { key: 'd13a', field: 'dimension13_data' },
-  };
+  // Equal-weight raw score (same as page_146_)
+  const maxPoints = answeredItems * POINTS.CURRENTLY_OFFER;
+  if (maxPoints > 0) result.equalScore = Math.round((earnedPoints / maxPoints) * 100);
   
-  // Score mapping for items - aligned with main scoring (5/3/2/0 scale)
-  const scoreItem = (value: string | number | undefined): number | null => {
-    // Handle numeric values (from panel data)
-    if (typeof value === 'number') {
-      switch (value) {
-        case 4: return 5;  // Currently offer
-        case 3: return 3;  // Planning
-        case 2: return 2;  // Assessing
-        case 1: return 0;  // Not able
-        case 5: return null;  // Unsure
-        default: return null;
-      }
+  // Element-weighted raw score
+  if (weightedMax > 0) result.weightedScore = Math.round((weightedEarned / weightedMax) * 100);
+  
+  // Apply geo multiplier
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  const geoMult = getGeoMultiplier(geoResponse);
+  result.equalScore = Math.round(result.equalScore * geoMult);
+  result.weightedScore = Math.round(result.weightedScore * geoMult);
+  
+  // Apply follow-up blend for D1, D3, D12, D13
+  if (assessment && [1, 3, 12, 13].includes(dimNum) && blendWeights) {
+    const followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (followUpScore !== null) {
+      const key = `d${dimNum}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+      const gridPct = blendWeights[key]?.grid ?? 85;
+      const followUpPct = blendWeights[key]?.followUp ?? 15;
+      result.blendedEqual = Math.round((result.equalScore * (gridPct / 100)) + (followUpScore * (followUpPct / 100)));
+      result.blendedWeighted = Math.round((result.weightedScore * (gridPct / 100)) + (followUpScore * (followUpPct / 100)));
+    } else {
+      result.blendedEqual = result.equalScore;
+      result.blendedWeighted = result.weightedScore;
     }
-    if (!value) return null;
-    const v = String(value).toLowerCase();
-    // Handle Unsure and Unknown (5) - exclude from reliability
-    if (v === 'unsure' || v.includes('unsure') || v.includes('unknown')) return null;
-    // Currently implemented/offered = 5 points
-    if (v.includes('currently offer') || v.includes('currently use') || 
-        v.includes('currently measure') || v.includes('currently track') ||
-        v.includes('currently provide') || v === 'yes') return 5;
-    // In development/planning = 3 points
-    if (v.includes('active planning') || v.includes('in active') || 
-        v.includes('in development') || v.includes('planning to')) return 3;
-    // Assessing/considering = 2 points
-    if (v.includes('assessing feasibility') || v.includes('assessing') || 
-        v.includes('considering')) return 2;
-    // Not able/not offered = 0 points
-    if (v.includes('not able') || v.includes('not offer') || 
-        v.includes('do not') || v === 'no') return 0;
-    return null;
-  };
-  
-  // Dynamically extract all item names from actual data for a dimension
-  const getItemNamesForDimension = (dimNum: number): string[] => {
-    const dimConfig = DIMENSION_FIELDS[dimNum];
-    if (!dimConfig) return [];
-    
-    const allItems = new Set<string>();
-    
-    for (const assessment of filteredAssessments) {
-      let dimData = assessment[dimConfig.field];
-      // Handle case where data might be a JSON string
-      if (typeof dimData === 'string') {
-        try { dimData = JSON.parse(dimData); } catch { continue; }
-      }
-      if (dimData && dimData[dimConfig.key] && typeof dimData[dimConfig.key] === 'object') {
-        Object.keys(dimData[dimConfig.key]).forEach(key => allItems.add(key));
-      }
-    }
-    
-    // Exclude D10 post-launch items for consistency with main scoring
-    let items = Array.from(allItems);
-    if (dimNum === 10) {
-      items = items.filter(item => !D10_EXCLUDED_ITEMS.includes(item));
-    }
-    
-    return items;
-  };
-  
-  // Get item-level scores for a dimension across all companies
-  const getItemScores = (dimNum: number): { itemName: string; scores: (number | null)[] }[] => {
-    const dimConfig = DIMENSION_FIELDS[dimNum];
-    if (!dimConfig) return [];
-    
-    // Get all item names dynamically from actual data
-    const itemNames = getItemNamesForDimension(dimNum);
-    if (itemNames.length === 0) return [];
-    
-    return itemNames.map(itemName => {
-      const scores = filteredAssessments.map(assessment => {
-        let dimData = assessment[dimConfig.field];
-        // Handle case where data might be a JSON string
-        if (typeof dimData === 'string') {
-          try { dimData = JSON.parse(dimData); } catch { return null; }
-        }
-        if (!dimData || !dimData[dimConfig.key]) return null;
-        const itemValue = dimData[dimConfig.key][itemName];
-        return scoreItem(itemValue);
-      });
-      return { itemName, scores };
-    });
-  };
-  
-  // Calculate Cronbach's Alpha
-  const calculateCronbachAlpha = (dimNum: number): { alpha: number; itemCount: number; validN: number } => {
-    const itemScores = getItemScores(dimNum);
-    if (itemScores.length < 2) return { alpha: 0, itemCount: 0, validN: 0 };
-    
-    // Get companies with at least 50% valid items (lenient threshold)
-    const validIndices: number[] = [];
-    const minValidItems = Math.max(2, Math.floor(itemScores.length * 0.5));
-    
-    for (let i = 0; i < filteredAssessments.length; i++) {
-      const validCount = itemScores.filter(item => item.scores[i] !== null).length;
-      if (validCount >= minValidItems) validIndices.push(i);
-    }
-    
-    if (validIndices.length < 3) return { alpha: 0, itemCount: itemScores.length, validN: validIndices.length };
-    
-    const k = itemScores.length; // number of items
-    const n = validIndices.length; // number of valid responses
-    
-    // Calculate item variances and total variance
-    const itemVariances: number[] = [];
-    const totals: number[] = [];
-    
-    // Calculate totals for each respondent (treat null as 0 for calculation)
-    for (const idx of validIndices) {
-      let total = 0;
-      for (const item of itemScores) {
-        total += item.scores[idx] ?? 0;
-      }
-      totals.push(total);
-    }
-    
-    // Calculate variance of totals
-    const totalMean = totals.reduce((a, b) => a + b, 0) / n;
-    const totalVariance = totals.reduce((sum, t) => sum + Math.pow(t - totalMean, 2), 0) / (n - 1);
-    
-    // Calculate variance of each item
-    for (const item of itemScores) {
-      const validScores = validIndices.map(idx => item.scores[idx] ?? 0);
-      const mean = validScores.reduce((a, b) => a + b, 0) / n;
-      const variance = validScores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / (n - 1);
-      itemVariances.push(variance);
-    }
-    
-    const sumItemVariances = itemVariances.reduce((a, b) => a + b, 0);
-    
-    if (totalVariance === 0) return { alpha: 0, itemCount: k, validN: n };
-    
-    // Cronbach's alpha formula: α = (k/(k-1)) * (1 - Σσ²ᵢ/σ²ₜ)
-    const alpha = (k / (k - 1)) * (1 - sumItemVariances / totalVariance);
-    
-    return { 
-      alpha: Math.max(0, Math.min(1, alpha)), 
-      itemCount: k, 
-      validN: n 
-    };
-  };
-  
-  // Calculate item-total correlations
-  const calculateItemTotalCorrelations = (dimNum: number): { itemName: string; correlation: number; alphaIfDropped: number }[] => {
-    const itemScores = getItemScores(dimNum);
-    if (itemScores.length < 3) return [];
-    
-    // Get valid indices (at least 50% of items have scores)
-    const validIndices: number[] = [];
-    const minValidItems = Math.max(2, Math.floor(itemScores.length * 0.5));
-    
-    for (let i = 0; i < filteredAssessments.length; i++) {
-      const validCount = itemScores.filter(item => item.scores[i] !== null).length;
-      if (validCount >= minValidItems) validIndices.push(i);
-    }
-    
-    if (validIndices.length < 3) return [];
-    
-    const n = validIndices.length;
-    const results: { itemName: string; correlation: number; alphaIfDropped: number }[] = [];
-    
-    for (let itemIdx = 0; itemIdx < itemScores.length; itemIdx++) {
-      const currentItem = itemScores[itemIdx];
-      
-      // Calculate "rest" score (total without this item)
-      const restScores: number[] = [];
-      const itemValues: number[] = [];
-      
-      for (const idx of validIndices) {
-        let restTotal = 0;
-        for (let j = 0; j < itemScores.length; j++) {
-          if (j !== itemIdx) {
-            restTotal += itemScores[j].scores[idx] || 0;
-          }
-        }
-        restScores.push(restTotal);
-        itemValues.push(currentItem.scores[idx] || 0);
-      }
-      
-      // Calculate correlation
-      const itemMean = itemValues.reduce((a, b) => a + b, 0) / n;
-      const restMean = restScores.reduce((a, b) => a + b, 0) / n;
-      
-      let numerator = 0;
-      let denom1 = 0;
-      let denom2 = 0;
-      
-      for (let i = 0; i < n; i++) {
-        const d1 = itemValues[i] - itemMean;
-        const d2 = restScores[i] - restMean;
-        numerator += d1 * d2;
-        denom1 += d1 * d1;
-        denom2 += d2 * d2;
-      }
-      
-      const correlation = (denom1 > 0 && denom2 > 0) ? numerator / Math.sqrt(denom1 * denom2) : 0;
-      
-      // Calculate alpha if this item dropped (simplified)
-      const k = itemScores.length - 1;
-      if (k < 2) {
-        results.push({ itemName: currentItem.itemName, correlation, alphaIfDropped: 0 });
-        continue;
-      }
-      
-      // Recalculate with item removed
-      const remainingItems = itemScores.filter((_, idx) => idx !== itemIdx);
-      const newTotals = validIndices.map(idx => 
-        remainingItems.reduce((sum, item) => sum + (item.scores[idx] || 0), 0)
-      );
-      const newTotalMean = newTotals.reduce((a, b) => a + b, 0) / n;
-      const newTotalVar = newTotals.reduce((sum, t) => sum + Math.pow(t - newTotalMean, 2), 0) / (n - 1);
-      
-      let newSumItemVar = 0;
-      for (const item of remainingItems) {
-        const scores = validIndices.map(idx => item.scores[idx] || 0);
-        const mean = scores.reduce((a, b) => a + b, 0) / n;
-        const variance = scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / (n - 1);
-        newSumItemVar += variance;
-      }
-      
-      const alphaIfDropped = newTotalVar > 0 ? (k / (k - 1)) * (1 - newSumItemVar / newTotalVar) : 0;
-      
-      results.push({ 
-        itemName: currentItem.itemName, 
-        correlation: Math.max(-1, Math.min(1, correlation)), 
-        alphaIfDropped: Math.max(0, Math.min(1, alphaIfDropped))
-      });
-    }
-    
-    return results;
-  };
-  
-  // Calculate all dimension reliability stats
-  const dimensionReliability = DIMENSION_ORDER.map(dim => {
-    const { alpha, itemCount, validN } = calculateCronbachAlpha(dim);
-    const scores = filteredCompanies.map(c => c.dimensions[dim]?.blendedScore ?? 0);
-    const mean = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-    const variance = scores.length > 0 ? scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / scores.length : 0;
-    const std = Math.sqrt(variance);
-    
-    return {
-      dim,
-      name: DIMENSION_NAMES[dim],
-      alpha: Math.round(alpha * 100) / 100,
-      itemCount,
-      validN,
-      mean: Math.round(mean * 10) / 10,
-      std: Math.round(std * 10) / 10,
-    };
-  });
-  
-  // Calculate average alpha
-  const avgAlpha = dimensionReliability.reduce((sum, d) => sum + d.alpha, 0) / dimensionReliability.length;
-  
-  // Get alpha quality label
-  const getAlphaQuality = (alpha: number): { label: string; color: string } => {
-    if (alpha >= 0.9) return { label: 'Excellent', color: 'text-green-600 bg-green-50' };
-    if (alpha >= 0.8) return { label: 'Good', color: 'text-blue-600 bg-blue-50' };
-    if (alpha >= 0.7) return { label: 'Acceptable', color: 'text-cyan-600 bg-cyan-50' };
-    if (alpha >= 0.5) return { label: 'Moderate', color: 'text-amber-600 bg-amber-50' };
-    return { label: 'Poor', color: 'text-red-600 bg-red-50' };
-  };
-  
-  // Calculate average inter-dimension correlation
-  let totalCorr = 0;
-  let corrCount = 0;
-  for (let i = 0; i < DIMENSION_ORDER.length; i++) {
-    for (let j = i + 1; j < DIMENSION_ORDER.length; j++) {
-      const scores1 = filteredCompanies.map(c => c.dimensions[DIMENSION_ORDER[i]]?.blendedScore ?? 0);
-      const scores2 = filteredCompanies.map(c => c.dimensions[DIMENSION_ORDER[j]]?.blendedScore ?? 0);
-      const n = scores1.length;
-      if (n >= 3) {
-        const mean1 = scores1.reduce((a, b) => a + b, 0) / n;
-        const mean2 = scores2.reduce((a, b) => a + b, 0) / n;
-        let num = 0, d1 = 0, d2 = 0;
-        for (let k = 0; k < n; k++) {
-          const x1 = scores1[k] - mean1;
-          const x2 = scores2[k] - mean2;
-          num += x1 * x2;
-          d1 += x1 * x1;
-          d2 += x2 * x2;
-        }
-        if (d1 > 0 && d2 > 0) {
-          totalCorr += num / Math.sqrt(d1 * d2);
-          corrCount++;
-        }
-      }
-    }
-  }
-  const avgInterCorrelation = corrCount > 0 ? totalCorr / corrCount : 0;
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-cyan-600 to-blue-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Reliability Diagnostics</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          {/* Tabs */}
-          <div className="flex gap-2 mt-3">
-            {[
-              { id: 'executive', label: 'Executive Summary' },
-              { id: 'detailed', label: 'Detailed Stats' },
-              { id: 'items', label: 'Item Analysis' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-cyan-700' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-          {/* EXECUTIVE SUMMARY TAB */}
-          {activeTab === 'executive' && (
-            <div className="space-y-6">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-4 gap-4">
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 text-center">
-                  <div className="text-3xl font-bold text-blue-900">{filteredCompanies.length}</div>
-                  <div className="text-sm text-blue-600">Companies Analyzed</div>
-                </div>
-                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-center">
-                  <div className="text-3xl font-bold text-slate-700">{filteredAssessments.length}</div>
-                  <div className="text-sm text-slate-500">Assessments w/ Data</div>
-                </div>
-                <div className={`rounded-xl p-4 border text-center ${getAlphaQuality(avgAlpha).color.replace('text-', 'border-').replace('bg-', 'bg-')}`}>
-                  <div className="text-3xl font-bold">{avgAlpha.toFixed(2)}</div>
-                  <div className="text-sm">Avg Cronbach's α</div>
-                  <div className="text-xs mt-1 font-medium">{getAlphaQuality(avgAlpha).label}</div>
-                </div>
-                <div className={`rounded-xl p-4 border text-center ${
-                  avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 
-                    ? 'bg-green-50 border-green-200 text-green-700' 
-                    : 'bg-amber-50 border-amber-200 text-amber-700'
-                }`}>
-                  <div className="text-3xl font-bold">{avgInterCorrelation.toFixed(2)}</div>
-                  <div className="text-sm">Avg Inter-Dimension Correlation</div>
-                  <div className="text-xs mt-1 font-medium">
-                    {avgInterCorrelation >= 0.3 && avgInterCorrelation <= 0.7 ? 'Optimal Range' : 'Review Needed'}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Executive Reliability Table */}
-              <section>
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Dimension Reliability Summary
-                </h3>
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left py-3 px-4 font-semibold">Dimension</th>
-                        <th className="text-center py-3 px-3 font-semibold">Items</th>
-                        <th className="text-center py-3 px-3 font-semibold">Valid N</th>
-                        <th className="text-center py-3 px-3 font-semibold">Cronbach's α</th>
-                        <th className="text-center py-3 px-3 font-semibold">Quality</th>
-                        <th className="text-center py-3 px-3 font-semibold" title="Average dimension score across companies">Score Mean</th>
-                        <th className="text-center py-3 px-3 font-semibold" title="Standard deviation of dimension scores">Score SD</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {dimensionReliability.map((stat, idx) => {
-                        const quality = getAlphaQuality(stat.alpha);
-                        return (
-                          <tr key={stat.dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                            <td className="py-2 px-4 font-medium">
-                              <span className="text-cyan-600 font-bold">D{stat.dim}:</span>{' '}
-                              {stat.name.length > 20 ? stat.name.substring(0, 20) + '...' : stat.name}
-                            </td>
-                            <td className="py-2 px-3 text-center">{stat.itemCount}</td>
-                            <td className="py-2 px-3 text-center text-gray-500">{stat.validN}</td>
-                            <td className="py-2 px-3 text-center font-bold text-lg">{stat.alpha.toFixed(2)}</td>
-                            <td className="py-2 px-3 text-center">
-                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${quality.color}`}>
-                                {quality.label}
-                              </span>
-                            </td>
-                            <td className="py-2 px-3 text-center">{stat.mean}</td>
-                            <td className="py-2 px-3 text-center text-gray-500">{stat.std}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-              
-              {/* Interpretation */}
-              <div className="bg-gray-50 rounded-lg p-4 text-sm text-gray-600 space-y-2">
-                <p className="font-semibold text-gray-800">Interpretation Guide:</p>
-                <p><strong>Cronbach's α:</strong> ≥0.70 acceptable, ≥0.80 good, ≥0.90 excellent for research purposes.</p>
-                <p><strong>Inter-Dimension Correlation:</strong> 0.3-0.7 suggests related but distinct constructs; &gt;0.8 may indicate redundancy.</p>
-                <p><strong>Note:</strong> Alpha calculated on item-level scores where available. Valid N = companies with ≥50% items scored (excluding "Unsure").</p>
-                <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="font-semibold text-amber-800">About D1 & D5 Lower Reliability:</p>
-                  <p className="text-amber-700 mt-1">
-                    D1 (Medical Leave) and D5 (Workplace Accommodations) show lower α values. This is <em>expected</em> for <strong>formative policy indices</strong> that aggregate diverse workplace mechanisms. 
-                    These dimensions capture <em>breadth of support</em> (leave policies, scheduling, physical accommodations) rather than a single latent trait—items need not correlate to be valid. 
-                    Alpha is reported as a diagnostic to identify mis-keyed items, not as a validity requirement.
-                  </p>
-                </div>
-                {dimensionReliability.every(d => d.validN === 0) && (
-                  <p className="text-amber-600 font-medium">
-                    ⚠️ No companies have sufficient item-level data for reliability analysis. This may occur if most responses are "Unsure" or if data format issues exist.
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-          
-          {/* DETAILED STATS TAB */}
-          {activeTab === 'detailed' && (
-            <div className="space-y-6">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <div className="flex items-center justify-between">
-                  <span className="text-blue-900 font-medium">Companies Analyzed:</span>
-                  <span className="text-2xl font-bold text-blue-900">{filteredCompanies.length}</span>
-                </div>
-              </div>
-              
-              <section>
-                <h3 className="font-bold text-gray-900 mb-3">Dimension Score Distributions</h3>
-                <div className="overflow-x-auto rounded-lg border border-gray-200">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="text-left py-2 px-3 font-semibold">Dimension</th>
-                        <th className="text-center py-2 px-2 font-semibold">Mean</th>
-                        <th className="text-center py-2 px-2 font-semibold">SD</th>
-                        <th className="text-center py-2 px-2 font-semibold">Min</th>
-                        <th className="text-center py-2 px-2 font-semibold">Max</th>
-                        <th className="text-center py-2 px-2 font-semibold">Floor (≤10)</th>
-                        <th className="text-center py-2 px-2 font-semibold">Ceiling (≥90)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {DIMENSION_ORDER.map((dim, idx) => {
-                        const scores = filteredCompanies.map(c => c.dimensions[dim]?.blendedScore ?? 0);
-                        const n = scores.length;
-                        const mean = n > 0 ? scores.reduce((a, b) => a + b, 0) / n : 0;
-                        const std = n > 0 ? Math.sqrt(scores.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / n) : 0;
-                        const min = n > 0 ? Math.min(...scores) : 0;
-                        const max = n > 0 ? Math.max(...scores) : 0;
-                        const floor = scores.filter(s => s <= 10).length;
-                        const ceiling = scores.filter(s => s >= 90).length;
-                        
-                        return (
-                          <tr key={dim} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                            <td className="py-2 px-3 font-medium">
-                              <span className="text-cyan-600">D{dim}:</span> {DIMENSION_NAMES[dim].split(' ')[0]}
-                            </td>
-                            <td className="py-2 px-2 text-center font-bold">{mean.toFixed(1)}</td>
-                            <td className="py-2 px-2 text-center">{std.toFixed(1)}</td>
-                            <td className="py-2 px-2 text-center text-red-600">{Math.round(min)}</td>
-                            <td className="py-2 px-2 text-center text-green-600">{Math.round(max)}</td>
-                            <td className={`py-2 px-2 text-center ${floor > 0 ? 'text-red-600 font-bold' : 'text-gray-400'}`}>
-                              {floor > 0 ? `${floor} (${Math.round(floor / n * 100)}%)` : '0'}
-                            </td>
-                            <td className={`py-2 px-2 text-center ${ceiling > n * 0.3 ? 'text-amber-600 font-bold' : 'text-gray-400'}`}>
-                              {ceiling > 0 ? `${ceiling} (${Math.round(ceiling / n * 100)}%)` : '0'}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-              
-              <div className="bg-gray-100 rounded-lg p-4 text-xs text-gray-600 space-y-2">
-                <p><strong>Floor/Ceiling Effects:</strong> High percentages indicate poor differentiation at score extremes. Floor &gt;10% or Ceiling &gt;30% may warrant item review.</p>
-                <p><strong>Standard Deviation:</strong> Low SD suggests limited variability (potential measurement issue).</p>
-              </div>
-            </div>
-          )}
-          
-          {/* ITEM ANALYSIS TAB */}
-          {activeTab === 'items' && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <label className="text-sm font-medium text-gray-700">Select Dimension:</label>
-                <select 
-                  value={selectedDim}
-                  onChange={(e) => setSelectedDim(Number(e.target.value))}
-                  className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm"
-                >
-                  {DIMENSION_ORDER.map(dim => (
-                    <option key={dim} value={dim}>D{dim}: {DIMENSION_NAMES[dim]}</option>
-                  ))}
-                </select>
-              </div>
-              
-              {(() => {
-                const reliability = dimensionReliability.find(d => d.dim === selectedDim);
-                const itemCorrelations = calculateItemTotalCorrelations(selectedDim);
-                const quality = reliability ? getAlphaQuality(reliability.alpha) : { label: 'N/A', color: 'text-gray-500 bg-gray-50' };
-                
-                return (
-                  <div className="space-y-4">
-                    {/* Dimension Summary */}
-                    <div className="bg-cyan-50 rounded-lg p-4 border border-cyan-200">
-                      <div className="grid grid-cols-4 gap-4 text-center">
-                        <div>
-                          <div className="text-2xl font-bold text-cyan-900">{reliability?.alpha.toFixed(2) || 'N/A'}</div>
-                          <div className="text-xs text-cyan-600">Cronbach's α</div>
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold text-cyan-900">{reliability?.itemCount || 0}</div>
-                          <div className="text-xs text-cyan-600">Items</div>
-                        </div>
-                        <div>
-                          <div className="text-2xl font-bold text-cyan-900">{reliability?.validN || 0}</div>
-                          <div className="text-xs text-cyan-600">Valid N</div>
-                        </div>
-                        <div>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${quality.color}`}>
-                            {quality.label}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Item-Total Correlations */}
-                    {itemCorrelations.length > 0 ? (
-                      <section>
-                        <h3 className="font-bold text-gray-900 mb-3">Item-Rest Correlations & Alpha-if-Dropped</h3>
-                        <div className="overflow-x-auto rounded-lg border border-gray-200 max-h-[400px] overflow-y-auto">
-                          <table className="w-full text-sm">
-                            <thead className="sticky top-0 bg-gray-50">
-                              <tr className="border-b border-gray-200">
-                                <th className="text-left py-2 px-3 font-semibold">Item</th>
-                                <th className="text-center py-2 px-3 font-semibold">Item-Rest r</th>
-                                <th className="text-center py-2 px-3 font-semibold">α if Dropped</th>
-                                <th className="text-center py-2 px-3 font-semibold">Action</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {itemCorrelations.map((item, idx) => {
-                                const currentAlpha = reliability?.alpha || 0;
-                                const wouldImprove = item.alphaIfDropped > currentAlpha + 0.02;
-                                const lowCorrelation = item.correlation < 0.3;
-                                
-                                return (
-                                  <tr key={idx} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} ${wouldImprove ? 'bg-amber-50' : ''}`}>
-                                    <td className="py-2 px-3 text-xs max-w-[300px]">
-                                      {item.itemName.length > 50 ? item.itemName.substring(0, 50) + '...' : item.itemName}
-                                    </td>
-                                    <td className={`py-2 px-3 text-center font-mono ${
-                                      lowCorrelation ? 'text-red-600 font-bold' : 'text-gray-700'
-                                    }`}>
-                                      {item.correlation.toFixed(2)}
-                                    </td>
-                                    <td className={`py-2 px-3 text-center font-mono ${
-                                      wouldImprove ? 'text-amber-600 font-bold' : 'text-gray-700'
-                                    }`}>
-                                      {item.alphaIfDropped.toFixed(2)}
-                                    </td>
-                                    <td className="py-2 px-3 text-center">
-                                      {wouldImprove && (
-                                        <span className="text-xs text-amber-600 font-medium">Weak correlation</span>
-                                      )}
-                                      {lowCorrelation && !wouldImprove && (
-                                        <span className="text-xs text-red-600 font-medium">Low correlation</span>
-                                      )}
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          Items with low item-rest correlation (&lt;0.30) or where α-if-dropped exceeds current α may be candidates for review.
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1 italic">
-                          Low correlations may reflect restricted variance (rare benefits most companies don't offer) rather than poor item fit. Items measuring advanced practices are valuable for differentiating leaders even if statistically uncommon.
-                        </p>
-                      </section>
-                    ) : (
-                      <div className="bg-gray-100 rounded-lg p-8 text-center text-gray-500">
-                        <p>Insufficient data for item-level analysis.</p>
-                        <p className="text-sm mt-1">Need at least 3 complete responses with all items scored.</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================
-// SCORE CELL COMPONENT
-// ============================================
-
-function ScoreCell({ 
-  score, 
-  isComplete, 
-  isProvisional, 
-  size = 'normal',
-  viewMode = 'score',
-  benchmark = null
-}: { 
-  score: number | null; 
-  isComplete: boolean; 
-  isProvisional?: boolean;
-  size?: 'normal' | 'large';
-  viewMode?: 'score' | 'index';
-  benchmark?: number | null;
-}) {
-  if (score === null || score === undefined || isNaN(score)) {
-    return <span className="text-gray-300 text-xs">—</span>;
-  }
-  
-  const safeScore = isNaN(score) ? 0 : score;
-  const safeBenchmark = benchmark !== null && !isNaN(benchmark) ? benchmark : null;
-  
-  let displayValue: number | string;
-  if (viewMode === 'index' && safeBenchmark !== null && safeBenchmark > 0) {
-    displayValue = Math.round((safeScore / safeBenchmark) * 100);
   } else {
-    displayValue = safeScore;
+    result.blendedEqual = result.equalScore;
+    result.blendedWeighted = result.weightedScore;
   }
   
-  const color = getScoreColor(safeScore);
-  const isHighUnsure = isProvisional;
-  
-  return (
-    <span 
-      className={`font-bold ${size === 'large' ? 'text-xl' : 'text-sm'} ${isHighUnsure ? 'ring-2 ring-amber-400 ring-offset-1 rounded px-1' : ''}`}
-      style={{ color }}
-      title={isHighUnsure ? 'High % of "Unsure" responses - Provisional' : undefined}
-    >
-      {displayValue}
-    </span>
-  );
+  return result;
 }
 
-// ============================================
-// TIER BADGE COMPONENT - FIXED to show Provisional
-// ============================================
-
-function TierBadge({ score, isComplete, isProvisional, size = 'normal' }: { 
-  score: number | null; 
+interface CompanyComparison {
+  companyName: string;
+  surveyId: string;
   isComplete: boolean;
-  isProvisional?: boolean;
-  size?: 'normal' | 'small';
-}) {
-  if (score === null || !isComplete || isNaN(score)) {
-    return <span className="text-gray-300 text-xs">—</span>;
-  }
-  
-  const tier = getPerformanceTier(score);
-  
-  // FIXED: Show provisional indicator
-  if (isProvisional) {
-    return (
-      <span 
-        className={`inline-flex items-center gap-1 font-bold border-2 border-dashed rounded-full ${
-          size === 'small' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'
-        }`}
-        style={{ 
-          backgroundColor: '#FEF3C7',
-          color: '#92400E',
-          borderColor: '#F59E0B',
-        }}
-        title="Provisional - Over 40% Unsure responses in 4+ dimensions"
-      >
-        {tier.name}
-        <span className="text-amber-600">*</span>
-      </span>
-    );
-  }
-  
-  return (
-    <span 
-      className={`inline-block font-bold border rounded-full ${
-        size === 'small' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-xs'
-      }`}
-      style={{ 
-        backgroundColor: tier.bg, 
-        color: tier.color,
-        borderColor: tier.border,
-      }}
-    >
-      {tier.name}
-    </span>
-  );
+  isPanel: boolean;
+  isFoundingPartner: boolean;
+  dims: Record<number, { eq: number; wt: number }>;
+  eqComposite: number;
+  wtComposite: number;
+  maturityScore: number;
+  breadthScore: number;
 }
 
-// ============================================
-// TECHNICAL METHODOLOGY MODAL
-// ============================================
-
-function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'scoring' | 'reliability' | 'sensitivity'>('overview');
+function calculateCompanyComparison(assessment: Record<string, any>): CompanyComparison {
+  const dims: Record<number, { eq: number; wt: number }> = {};
+  let completedDimCount = 0;
   
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-white">Technical Scoring Methodology</h2>
-            <button onClick={onClose} className="text-white/80 hover:text-white p-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <p className="text-indigo-100 text-sm mt-1">Best Companies for Working with Cancer Index | Year 1</p>
-          {/* Tabs */}
-          <div className="flex gap-2 mt-3">
-            {[
-              { id: 'overview', label: 'Overview' },
-              { id: 'scoring', label: 'Scoring Framework' },
-              { id: 'reliability', label: 'Reliability' },
-              { id: 'sensitivity', label: 'Sensitivity' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === tab.id 
-                    ? 'bg-white text-indigo-700' 
-                    : 'bg-white/20 text-white hover:bg-white/30'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        
-        <div className="p-6 overflow-y-auto max-h-[calc(92vh-140px)]">
-          {/* OVERVIEW TAB */}
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div className="bg-indigo-50 rounded-lg p-5 border border-indigo-200">
-                <h3 className="font-bold text-indigo-900 text-lg mb-3">Executive Summary</h3>
-                <p className="text-indigo-800 mb-3">
-                  This document details the scoring methodology for the Best Companies for Working with Cancer Index, 
-                  including statistical validation of reliability and sensitivity analyses demonstrating robustness to methodological variations.
-                </p>
-                <div className="grid grid-cols-3 gap-4 mt-4">
-                  <div className="bg-white rounded-lg p-3 text-center border border-indigo-200">
-                    <div className="text-2xl font-bold text-indigo-700">0.78</div>
-                    <div className="text-xs text-indigo-600">Avg Cronbach's α</div>
-                    <div className="text-xs text-green-600 font-medium">Acceptable</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 text-center border border-indigo-200">
-                    <div className="text-2xl font-bold text-indigo-700">0.999</div>
-                    <div className="text-xs text-indigo-600">Spearman Correlation</div>
-                    <div className="text-xs text-green-600 font-medium">Under ±10% Weight Change</div>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 text-center border border-indigo-200">
-                    <div className="text-2xl font-bold text-indigo-700">4/6</div>
-                    <div className="text-xs text-indigo-600">Stable Scenarios</div>
-                    <div className="text-xs text-green-600 font-medium">Robust Methodology</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-6">
-                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                  <h4 className="font-bold text-green-900 mb-2">Key Strengths</h4>
-                  <ul className="text-sm text-green-800 space-y-1">
-                    <li>• Near-perfect rank stability (r = 0.999) under weight perturbation</li>
-                    <li>• Zero tier changes from random weight variations</li>
-                    <li>• Strong average reliability (α = 0.78)</li>
-                    <li>• D10 Caregiver shows excellent consistency (α = 0.90)</li>
-                    <li>• Optimal inter-dimension correlation (r = 0.58)</li>
-                  </ul>
-                </div>
-                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                  <h4 className="font-bold text-amber-900 mb-2">Documented Limitations</h4>
-                  <ul className="text-sm text-amber-800 space-y-1">
-                    <li>• D1 & D5 lower reliability (formative indices - expected)</li>
-                    <li>• Status point sensitivity affects tier assignments</li>
-                    <li>• Year 1 sample size (N=38) limits CI precision</li>
-                    <li>• Bootstrap CIs planned for Year 2</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* SCORING FRAMEWORK TAB */}
-          {activeTab === 'scoring' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">13 Dimensions Assessed</h3>
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {[
-                    { num: 4, name: 'Cancer Support Resources', weight: '14%' },
-                    { num: 8, name: 'Work Continuation & Reintegration', weight: '13%' },
-                    { num: 3, name: 'Manager Preparedness', weight: '12%' },
-                    { num: 2, name: 'Insurance & Financial Protection', weight: '11%' },
-                    { num: 13, name: 'Communication & Awareness', weight: '10%' },
-                    { num: 6, name: 'Culture & Psychological Safety', weight: '8%' },
-                    { num: 1, name: 'Medical Leave & Flexibility', weight: '7%' },
-                    { num: 5, name: 'Workplace Accommodations', weight: '7%' },
-                    { num: 7, name: 'Career Continuity & Growth', weight: '4%' },
-                    { num: 9, name: 'Executive Commitment', weight: '4%' },
-                    { num: 10, name: 'Caregiver & Family Support', weight: '4%' },
-                    { num: 11, name: 'Prevention & Wellness', weight: '3%' },
-                    { num: 12, name: 'Continuous Improvement', weight: '3%' },
-                  ].map(d => (
-                    <div key={d.num} className="flex items-center justify-between bg-gray-50 rounded px-3 py-2">
-                      <span><span className="text-indigo-600 font-medium">D{d.num}:</span> {d.name}</span>
-                      <span className="text-gray-500 font-mono">{d.weight}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">Item-Level Scoring (4-Point Scale)</h3>
-                <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                  <thead className="bg-indigo-600 text-white">
-                    <tr>
-                      <th className="py-2 px-4 text-left">Response</th>
-                      <th className="py-2 px-3 text-center">Points</th>
-                      <th className="py-2 px-4 text-left">Interpretation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b"><td className="py-2 px-4">Currently offer/use this</td><td className="py-2 px-3 text-center font-bold text-green-600">5</td><td className="py-2 px-4">Implemented</td></tr>
-                    <tr className="border-b bg-gray-50"><td className="py-2 px-4">In active planning/development</td><td className="py-2 px-3 text-center font-bold text-blue-600">3</td><td className="py-2 px-4">Planning</td></tr>
-                    <tr className="border-b"><td className="py-2 px-4">Assessing feasibility</td><td className="py-2 px-3 text-center font-bold text-amber-600">2</td><td className="py-2 px-4">Exploring</td></tr>
-                    <tr className="border-b bg-gray-50"><td className="py-2 px-4">Not able to offer at this time</td><td className="py-2 px-3 text-center font-bold text-red-600">0</td><td className="py-2 px-4">Not Available</td></tr>
-                    <tr><td className="py-2 px-4">Unsure</td><td className="py-2 px-3 text-center font-bold text-gray-400">0</td><td className="py-2 px-4">Unknown (flagged)</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">Composite Score Formula</h3>
-                <div className="bg-gray-100 rounded-lg p-4 text-center">
-                  <span className="text-gray-700">Composite = </span>
-                  <span className="font-bold text-blue-600">(Weighted Dim × 90%)</span>
-                  <span className="text-gray-700"> + </span>
-                  <span className="font-bold text-purple-600">(Maturity × 5%)</span>
-                  <span className="text-gray-700"> + </span>
-                  <span className="font-bold text-violet-600">(Breadth × 5%)</span>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">Tier Classification</h3>
-                <div className="grid grid-cols-5 gap-2 text-center text-sm">
-                  <div className="bg-emerald-100 rounded-lg p-3 border border-emerald-300">
-                    <div className="font-bold text-emerald-700">Exemplary</div>
-                    <div className="text-emerald-600">90+</div>
-                  </div>
-                  <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
-                    <div className="font-bold text-blue-700">Leading</div>
-                    <div className="text-blue-600">75-89</div>
-                  </div>
-                  <div className="bg-amber-100 rounded-lg p-3 border border-amber-300">
-                    <div className="font-bold text-amber-700">Progressing</div>
-                    <div className="text-amber-600">60-74</div>
-                  </div>
-                  <div className="bg-orange-100 rounded-lg p-3 border border-orange-300">
-                    <div className="font-bold text-orange-700">Emerging</div>
-                    <div className="text-orange-600">40-59</div>
-                  </div>
-                  <div className="bg-red-100 rounded-lg p-3 border border-red-300">
-                    <div className="font-bold text-red-700">Developing</div>
-                    <div className="text-red-600">&lt;40</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* RELIABILITY TAB */}
-          {activeTab === 'reliability' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                  <div className="text-4xl font-bold text-green-700">0.78</div>
-                  <div className="text-sm text-green-600">Average Cronbach's α</div>
-                  <div className="text-xs text-green-500 font-medium">Acceptable</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                  <div className="text-4xl font-bold text-green-700">0.58</div>
-                  <div className="text-sm text-green-600">Avg Inter-Dimension Correlation</div>
-                  <div className="text-xs text-green-500 font-medium">Optimal Range (0.3-0.7)</div>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">Dimension-Level Reliability</h3>
-                <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                  <thead className="bg-cyan-600 text-white">
-                    <tr>
-                      <th className="py-2 px-3 text-left">Dimension</th>
-                      <th className="py-2 px-2 text-center">Items</th>
-                      <th className="py-2 px-2 text-center">Valid N</th>
-                      <th className="py-2 px-2 text-center">α</th>
-                      <th className="py-2 px-3 text-center">Quality</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { dim: 'D10: Caregiver & Family', items: 19, n: 35, alpha: 0.90, quality: 'Excellent', color: 'text-green-600' },
-                      { dim: 'D8: Work Continuation', items: 12, n: 35, alpha: 0.87, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D4: Cancer Support', items: 10, n: 36, alpha: 0.83, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D7: Career Continuity', items: 9, n: 34, alpha: 0.82, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D11: Prevention & Wellness', items: 13, n: 36, alpha: 0.81, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D2: Insurance & Financial', items: 17, n: 35, alpha: 0.80, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D9: Executive Commitment', items: 12, n: 33, alpha: 0.80, quality: 'Good', color: 'text-blue-600' },
-                      { dim: 'D6: Culture & Psych Safety', items: 12, n: 35, alpha: 0.78, quality: 'Acceptable', color: 'text-cyan-600' },
-                      { dim: 'D12: Continuous Improvement', items: 9, n: 36, alpha: 0.76, quality: 'Acceptable', color: 'text-cyan-600' },
-                      { dim: 'D13: Communication', items: 11, n: 36, alpha: 0.75, quality: 'Acceptable', color: 'text-cyan-600' },
-                      { dim: 'D3: Manager Preparedness', items: 10, n: 34, alpha: 0.74, quality: 'Acceptable', color: 'text-cyan-600' },
-                      { dim: 'D5: Workplace Accommodations', items: 11, n: 36, alpha: 0.66, quality: 'Moderate', color: 'text-amber-600', highlight: true },
-                      { dim: 'D1: Medical Leave & Flexibility', items: 13, n: 36, alpha: 0.59, quality: 'Moderate', color: 'text-amber-600', highlight: true },
-                    ].map((row, idx) => (
-                      <tr key={idx} className={row.highlight ? 'bg-amber-50' : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="py-2 px-3">{row.dim}</td>
-                        <td className="py-2 px-2 text-center">{row.items}</td>
-                        <td className="py-2 px-2 text-center">{row.n}</td>
-                        <td className={`py-2 px-2 text-center font-bold ${row.color}`}>{row.alpha.toFixed(2)}</td>
-                        <td className={`py-2 px-3 text-center ${row.color}`}>{row.quality}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                <h4 className="font-bold text-amber-900 mb-2">About D1 & D5 Lower Reliability (Formative Policy Indices)</h4>
-                <p className="text-sm text-amber-800 mb-2">
-                  Dimensions D1 (Medical Leave) and D5 (Workplace Accommodations) show lower α values. This is <strong>expected</strong> and does not indicate measurement failure.
-                </p>
-                <p className="text-sm text-amber-800 mb-2">
-                  These dimensions function as <em>formative policy indices</em> rather than reflective scales:
-                </p>
-                <ul className="text-sm text-amber-800 ml-4 space-y-1">
-                  <li>• <strong>Reflective scales:</strong> Items manifest one latent trait and should co-vary (high α expected)</li>
-                  <li>• <strong>Formative indices:</strong> Items are distinct components of support that do not need to correlate to be valid</li>
-                </ul>
-                <p className="text-sm text-amber-800 mt-2 italic">
-                  D1 aggregates diverse mechanisms (leave length, intermittent leave, PTO accrual, job protection). D5 combines physical accommodations, scheduling flexibility, and technology supports. 
-                  Alpha is reported as a diagnostic to identify mis-keyed items, not as a validity requirement.
-                </p>
-              </div>
-            </div>
-          )}
-          
-          {/* SENSITIVITY TAB */}
-          {activeTab === 'sensitivity' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">Weight Perturbation Analysis</h3>
-                <p className="text-sm text-gray-600 mb-3">Dimension weights randomly perturbed by ±10% across 50 simulations.</p>
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                    <div className="text-3xl font-bold text-green-700">0.999</div>
-                    <div className="text-sm text-green-600">Spearman Correlation</div>
-                    <div className="text-xs text-gray-500">Target: ≥0.95</div>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                    <div className="text-3xl font-bold text-green-700">0%</div>
-                    <div className="text-sm text-green-600">Tier Change Rate</div>
-                    <div className="text-xs text-gray-500">Target: ≤10-15%</div>
-                  </div>
-                  <div className="bg-green-50 rounded-lg p-4 text-center border border-green-200">
-                    <div className="text-3xl font-bold text-green-700">38/38</div>
-                    <div className="text-sm text-green-600">Tier-Stable Companies</div>
-                    <div className="text-xs text-gray-500">100% stability</div>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 italic mt-2">
-                  Rankings are essentially invariant to ±10% weight changes—neutralizes "arbitrary weights" criticism.
-                </p>
-              </div>
-              
-              <div>
-                <h3 className="font-bold text-gray-900 text-lg mb-3">Scenario Analysis</h3>
-                <p className="text-sm text-gray-600 mb-3">Named scenarios test stability under alternative methodological choices.</p>
-                <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
-                  <thead className="bg-orange-600 text-white">
-                    <tr>
-                      <th className="py-2 px-3 text-left">Scenario</th>
-                      <th className="py-2 px-2 text-center">Rank Corr.</th>
-                      <th className="py-2 px-2 text-center">Tier Changes</th>
-                      <th className="py-2 px-2 text-center">Avg Δ</th>
-                      <th className="py-2 px-3 text-center">Stability</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      { name: 'Follow-up blend 90/10', corr: 1.000, changes: '0/38', delta: '±0.2', stable: true },
-                      { name: 'Follow-up blend 80/20', corr: 0.999, changes: '1/38', delta: '±0.4', stable: true },
-                      { name: 'Geo multiplier 0.95/0.80', corr: 0.995, changes: '2/38', delta: '±0.9', stable: true },
-                      { name: 'Composite 95/3/2', corr: 0.994, changes: '2/38', delta: '±1.1', stable: true },
-                      { name: 'Planning = 2 pts (not 3)', corr: 0.999, changes: '11/38', delta: '±5', stable: false },
-                      { name: 'Assessing = 1 pt (not 2)', corr: 0.999, changes: '11/38', delta: '±5', stable: false },
-                    ].map((row, idx) => (
-                      <tr key={idx} className={row.stable ? (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50') : 'bg-amber-50'}>
-                        <td className="py-2 px-3">{row.name}</td>
-                        <td className="py-2 px-2 text-center font-bold text-green-600">{row.corr.toFixed(3)}</td>
-                        <td className={`py-2 px-2 text-center font-bold ${row.stable ? '' : 'text-red-600'}`}>{row.changes}</td>
-                        <td className="py-2 px-2 text-center text-gray-600">{row.delta} pts</td>
-                        <td className="py-2 px-3 text-center">
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${row.stable ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                            {row.stable ? 'Stable' : 'Sensitive'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-green-50 rounded-lg p-3 text-center border border-green-200">
-                  <div className="text-2xl font-bold text-green-700">4</div>
-                  <div className="text-xs text-green-600">Stable Scenarios</div>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-3 text-center border border-gray-200">
-                  <div className="text-2xl font-bold text-gray-500">0</div>
-                  <div className="text-xs text-gray-500">Marginal Scenarios</div>
-                </div>
-                <div className="bg-red-50 rounded-lg p-3 text-center border border-red-200">
-                  <div className="text-2xl font-bold text-red-700">2</div>
-                  <div className="text-xs text-red-600">Sensitive Scenarios</div>
-                </div>
-              </div>
-              
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <h4 className="font-bold text-blue-900 mb-2">Interpretation of "Sensitive" Scenarios</h4>
-                <p className="text-sm text-blue-800 mb-2">
-                  The two "sensitive" scenarios (Planning = 2 pts, Assessing = 1 pt) show high tier changes but maintain exceptional rank correlation (0.999). This indicates:
-                </p>
-                <ol className="text-sm text-blue-800 ml-4 space-y-1 list-decimal">
-                  <li><strong>Rankings are robust</strong> — the same companies rank highly regardless of point values</li>
-                  <li><strong>Tier thresholds are crossing points</strong> — companies near boundaries shift tiers when scores compress</li>
-                  <li><strong>Status point values reflect design intent</strong> — the index deliberately values companies actively planning or assessing improvements</li>
-                </ol>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`];
+    const scores = calculateElementWeightedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS);
+    dims[i] = { eq: scores.blendedEqual, wt: scores.blendedWeighted };
+    if (dimData) {
+      const grid = dimData[`d${i}a`];
+      if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) completedDimCount++;
+    }
+  }
+  
+  const isComplete = completedDimCount === 13;
+  const appId = assessment.app_id || assessment.survey_id || '';
+  const isFoundingPartner = appId.startsWith('FP-') || assessment.is_founding_partner === true;
+  const isPanel = appId.startsWith('PANEL-');
+  
+  let eqWeightedDim = 0;
+  let wtWeightedDim = 0;
+  
+  if (isComplete) {
+    const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
+    for (let i = 1; i <= 13; i++) {
+      const w = DEFAULT_DIMENSION_WEIGHTS[i] || 0;
+      eqWeightedDim += dims[i].eq * (w / totalWeight);
+      wtWeightedDim += dims[i].wt * (w / totalWeight);
+    }
+  }
+  
+  const maturityScore = calculateMaturityScore(assessment);
+  const breadthScore = calculateBreadthScore(assessment);
+  
+  const eqComposite = isComplete ? Math.round(
+    (Math.round(eqWeightedDim) * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+    (maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+    (breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+  ) : 0;
+  
+  const wtComposite = isComplete ? Math.round(
+    (Math.round(wtWeightedDim) * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+    (maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+    (breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+  ) : 0;
+  
+  return {
+    companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
+    surveyId: appId,
+    isComplete, isPanel, isFoundingPartner,
+    dims, eqComposite, wtComposite, maturityScore, breadthScore,
+  };
 }
 
+
 // ============================================
-// BENCHMARK COMPARISON CHART - Single Dimension View
+// ELEMENT WEIGHTS — v6.1 (Authoritative)
 // ============================================
 
-const BENCHMARK_TIERS = [
-  { name: 'Exemplary', min: 90, max: 100, color: '#059669', bgColor: '#D1FAE5' },
-  { name: 'Leading', min: 70, max: 89, color: '#0891B2', bgColor: '#CFFAFE' },
-  { name: 'Progressing', min: 50, max: 69, color: '#CA8A04', bgColor: '#FEF9C3' },
-  { name: 'Emerging', min: 30, max: 49, color: '#EA580C', bgColor: '#FFEDD5' },
-  { name: 'Developing', min: 0, max: 29, color: '#DC2626', bgColor: '#FEE2E2' },
-];
-
-const getBenchmarkTier = (score: number) => {
-  return BENCHMARK_TIERS.find(t => score >= t.min && score <= t.max) || BENCHMARK_TIERS[4];
+const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
+  1: {
+    'Emergency leave within 24 hours': 0.160744,
+    'Remote work options for on-site employees': 0.122696,
+    'Intermittent leave beyond local / legal requirements': 0.105572,
+    'Paid micro-breaks for side effects': 0.091662,
+    'Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)': 0.088447,
+    'Job protection beyond local / legal requirements': 0.066177,
+    'Paid medical leave beyond local / legal requirements': 0.058219,
+    'Reduced schedule/part-time with full benefits': 0.056838,
+    'Disability pay top-up (employer adds to disability insurance)': 0.051819,
+    'Full salary (100%) continuation during cancer-related short-term disability leave': 0.05172,
+    'PTO accrual during leave': 0.049594,
+    'Leave donation bank (employees can donate PTO to colleagues)': 0.048417,
+    'Paid micro-breaks for medical-related side effects': 0.048096,
+  },
+  2: {
+    'Accelerated life insurance benefits (partial payout for terminal / critical illness)': 0.154645,
+    'Tax/estate planning assistance': 0.118162,
+    'Real-time cost estimator tools': 0.073349,
+    'Insurance advocacy/pre-authorization support': 0.072306,
+    '$0 copay for specialty drugs': 0.056197,
+    'Short-term disability covering 60%+ of salary': 0.055313,
+    'Long-term disability covering 60%+ of salary': 0.048299,
+    'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance': 0.04694,
+    'Financial counseling services': 0.046897,
+    'Paid time off for clinical trial participation': 0.043348,
+    'Coverage for clinical trials and experimental treatments not covered by standard health insurance': 0.043113,
+    'Employer-paid disability insurance supplements': 0.04241,
+    'Guaranteed job protection': 0.04096,
+    'Travel/lodging reimbursement for specialized care beyond insurance coverage': 0.039906,
+    'Hardship grants program funded by employer': 0.039768,
+    'Voluntary supplemental illness insurance (with employer contribution)': 0.039559,
+    'Set out-of-pocket maximums (for in-network single coverage)': 0.038828,
+  },
+  3: {
+    'Manager peer support / community building': 0.174725,
+    'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams': 0.154583,
+    'Empathy/communication skills training': 0.140133,
+    'Dedicated manager resource hub': 0.09982,
+    'Manager evaluations include how well they support impacted employees': 0.080495,
+    'Clear escalation protocol for manager response': 0.077347,
+    'Legal compliance training': 0.071002,
+    'AI-powered guidance tools': 0.069294,
+    'Privacy protection and confidentiality management': 0.067211,
+    'Senior leader coaching on supporting impacted employees': 0.065389,
+  },
+  4: {
+    'Physical rehabilitation support': 0.200073,
+    'Nutrition coaching': 0.133196,
+    'Insurance advocacy/appeals support': 0.102184,
+    'Dedicated navigation support to help employees understand benefits and access medical care': 0.089426,
+    'Online tools, apps, or portals for health/benefits support': 0.087604,
+    'Occupational therapy/vocational rehabilitation': 0.081315,
+    'Care coordination concierge': 0.078595,
+    'Survivorship planning assistance': 0.07731,
+    'Benefits optimization assistance (maximizing coverage, minimizing costs)': 0.076675,
+    'Clinical trial matching service': 0.073622,
+  },
+  5: {
+    'Flexible scheduling options': 0.134067,
+    'Ergonomic equipment funding': 0.126183,
+    'Rest areas / quiet spaces': 0.115475,
+    'Temporary role redesigns': 0.109129,
+    'Assistive technology catalog': 0.108836,
+    'Priority parking': 0.079852,
+    'Cognitive / fatigue support tools': 0.074978,
+    'Policy accommodations (e.g., dress code flexibility, headphone use)': 0.070501,
+    'Remote work capability': 0.064075,
+    'Transportation reimbursement': 0.059231,
+    'Physical workspace modifications': 0.057672,
+  },
+  6: {
+    'Employee peer support groups (internal employees with shared experience)': 0.193109,
+    'Stigma-reduction initiatives': 0.130256,
+    'Anonymous benefits navigation tool or website (no login required)': 0.090308,
+    'Specialized emotional counseling': 0.079909,
+    'Inclusive communication guidelines': 0.071169,
+    'Manager training on handling sensitive health information': 0.070972,
+    'Professional-led support groups (external facilitator/counselor)': 0.066748,
+    'Written anti-retaliation policies for health disclosures': 0.06513,
+    'Strong anti-discrimination policies specific to health conditions': 0.063864,
+    'Clear process for confidential health disclosures': 0.059082,
+    'Confidential HR channel for health benefits, policies and insurance-related questions': 0.057287,
+    'Optional open health dialogue forums': 0.052165,
+  },
+  7: {
+    'Peer mentorship program (employees who had similar condition mentoring current employees)': 0.200033,
+    'Continued access to training/development': 0.143486,
+    'Adjusted performance goals/deliverables during treatment and recovery': 0.10585,
+    'Succession planning protections': 0.104257,
+    'Structured reintegration programs': 0.101907,
+    'Optional stay-connected program': 0.101429,
+    'Career coaching for employees managing cancer or other serious health conditions': 0.084242,
+    'Professional coach/mentor for employees managing cancer or other serious health conditions': 0.081518,
+    'Project continuity protocols': 0.07728,
+  },
+  8: {
+    'Flexibility for medical setbacks': 0.154687,
+    'Manager training on supporting team members during treatment/return': 0.124079,
+    'Long-term success tracking': 0.102334,
+    'Workload adjustments during treatment': 0.089721,
+    'Access to occupational therapy/vocational rehabilitation': 0.081946,
+    'Structured progress reviews': 0.072191,
+    'Buddy/mentor pairing for support': 0.069346,
+    'Flexible work arrangements during treatment': 0.068431,
+    'Online peer support forums': 0.068325,
+    'Phased return-to-work plans': 0.05902,
+    'Contingency planning for treatment schedules': 0.056143,
+    'Access to specialized work resumption professionals': 0.053777,
+  },
+  9: {
+    'Executive sponsors communicate regularly about workplace support programs': 0.177838,
+    'ESG/CSR reporting inclusion': 0.122962,
+    'Public success story celebrations': 0.101589,
+    'Executive-led town halls focused on health benefits and employee support': 0.078106,
+    'Year-over-year budget growth': 0.077801,
+    'Support programs included in investor/stakeholder communications': 0.076953,
+    'Compensation tied to support outcomes': 0.067727,
+    'C-suite executive serves as program champion/sponsor': 0.063951,
+    'Cross-functional executive steering committee for workplace support programs': 0.060213,
+    'Support metrics included in annual report/sustainability reporting': 0.058149,
+    'Executive accountability metrics': 0.05755,
+    'Dedicated budget allocation for serious illness support programs': 0.057162,
+  },
+  10: {
+    'Practical support for managing caregiving and work': 0.114708,
+    'Family navigation support': 0.080451,
+    'Eldercare consultation and referral services': 0.080031,
+    'Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)': 0.057402,
+    'Caregiver resource navigator/concierge': 0.052119,
+    'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)': 0.048148,
+    'Paid caregiver leave with expanded eligibility (beyond local legal requirements)': 0.046638,
+    'Flexible work arrangements for caregivers': 0.045747,
+    'Paid time off for care coordination appointments': 0.043873,
+    'Respite care funding/reimbursement': 0.04304,
+    'Emergency dependent care when regular arrangements unavailable': 0.042999,
+    'Unpaid leave job protection beyond local / legal requirements': 0.042978,
+    'Legal/financial planning assistance for caregivers': 0.041332,
+    'Mental health support specifically for caregivers': 0.04129,
+    'Manager training for supervising caregivers': 0.039363,
+    'Dependent care account matching/contributions': 0.038215,
+    'Caregiver peer support groups': 0.03714,
+    'Dependent care subsidies': 0.034974,
+    'Emergency caregiver funds': 0.034931,
+    'Modified job duties during peak caregiving periods': 0.034619,
+  },
+  11: {
+    'Legal protections beyond requirements': 0.1154,
+    'Individual health assessments (online or in-person)': 0.112016,
+    'Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)': 0.104588,
+    'Genetic screening/counseling': 0.096957,
+    'At least 70% coverage for regionally / locally recommended screenings': 0.072063,
+    'Full or partial coverage for annual health screenings/checkups': 0.070034,
+    'On-site vaccinations': 0.069652,
+    'Risk factor tracking/reporting': 0.06601,
+    'Regular health education sessions': 0.063478,
+    'Targeted risk-reduction programs': 0.061622,
+    'Paid time off for preventive care appointments': 0.061405,
+    'Workplace safety assessments to minimize health risks': 0.054855,
+    'Lifestyle coaching programs': 0.05192,
+  },
+  12: {
+    'Regular program enhancements': 0.200034,
+    'Employee confidence in employer support': 0.145168,
+    'Innovation pilots': 0.111299,
+    'External benchmarking': 0.111196,
+    'Return-to-work success metrics': 0.101878,
+    'Program utilization analytics': 0.100793,
+    'Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)': 0.077227,
+    'Business impact/ROI assessment': 0.076737,
+    'Employee satisfaction tracking': 0.075667,
+  },
+  13: {
+    'Family/caregiver communication inclusion': 0.176781,
+    'Employee testimonials/success stories': 0.120722,
+    'Proactive communication at point of diagnosis disclosure': 0.114617,
+    'Anonymous information access options': 0.107793,
+    'Multi-channel communication strategy': 0.104833,
+    'Ability to access program information and resources anonymously': 0.07692,
+    'Dedicated program website or portal': 0.072307,
+    'New hire orientation coverage': 0.058091,
+    'Regular company-wide awareness campaigns (at least quarterly)': 0.056844,
+    'Manager toolkit for cascade communications': 0.056627,
+    'Cancer awareness month campaigns with resources': 0.054464,
+  },
+};
+const DIMENSIONS: Record<number, DimensionData> = {
+  1: {
+    name: "Medical Leave & Flexible Work",
+    weight: 7,
+    elements: 13,
+    cvR2: -0.131,
+    alpha: 0.3,
+    n: 41,
+    topElements: [
+      "Emergency leave within 24 hours",
+      "Remote work options for on-site employees",
+      "Intermittent leave beyond local / legal requirements"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Emergency leave within 24 hours",
+        weight: 0.160744,
+        equal: 0.076923,
+        delta: 0.083821,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Remote work options for on-site employees",
+        weight: 0.122696,
+        equal: 0.076923,
+        delta: 0.045773,
+        stability: 1.0
+      },
+      {
+        rank: 3,
+        name: "Intermittent leave beyond local / legal requirements",
+        weight: 0.105572,
+        equal: 0.076923,
+        delta: 0.028649,
+        stability: 0.99
+      },
+      {
+        rank: 4,
+        name: "Paid micro-breaks for side effects",
+        weight: 0.091662,
+        equal: 0.076923,
+        delta: 0.014739,
+        stability: 0.995
+      },
+      {
+        rank: 5,
+        name: "Flexible work hours during treatment (e.g., varying start/end times...",
+        weight: 0.088447,
+        equal: 0.076923,
+        delta: 0.011524,
+        stability: 0.995
+      },
+      {
+        rank: 6,
+        name: "Job protection beyond local / legal requirements",
+        weight: 0.066177,
+        equal: 0.076923,
+        delta: -0.010746,
+        stability: 0.965
+      },
+      {
+        rank: 7,
+        name: "Paid medical leave beyond local / legal requirements",
+        weight: 0.058219,
+        equal: 0.076923,
+        delta: -0.018704,
+        stability: 0.97
+      },
+      {
+        rank: 8,
+        name: "Reduced schedule/part-time with full benefits",
+        weight: 0.056838,
+        equal: 0.076923,
+        delta: -0.020085,
+        stability: 0.97
+      },
+      {
+        rank: 9,
+        name: "Disability pay top-up (employer adds to disability insurance)",
+        weight: 0.051819,
+        equal: 0.076923,
+        delta: -0.025104,
+        stability: 0.97
+      },
+      {
+        rank: 10,
+        name: "Full salary (100%) continuation during cancer-related short-term di...",
+        weight: 0.05172,
+        equal: 0.076923,
+        delta: -0.025203,
+        stability: 0.965
+      },
+      {
+        rank: 11,
+        name: "PTO accrual during leave",
+        weight: 0.049594,
+        equal: 0.076923,
+        delta: -0.027329,
+        stability: 0.98
+      },
+      {
+        rank: 12,
+        name: "Leave donation bank (employees can donate PTO to colleagues)",
+        weight: 0.048417,
+        equal: 0.076923,
+        delta: -0.028506,
+        stability: 0.94
+      },
+      {
+        rank: 13,
+        name: "Paid micro-breaks for medical-related side effects",
+        weight: 0.048096,
+        equal: 0.076923,
+        delta: -0.028828,
+        stability: 0.95
+      }
+    ]
+  },
+  2: {
+    name: "Insurance & Financial Protection",
+    weight: 11,
+    elements: 17,
+    cvR2: 0.018,
+    alpha: 0.4,
+    n: 36,
+    topElements: [
+      "Accelerated life insurance benefits",
+      "Tax/estate planning assistance",
+      "Real-time cost estimator tools"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Accelerated life insurance benefits (partial payout for terminal / ...",
+        weight: 0.154645,
+        equal: 0.058824,
+        delta: 0.095821,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Tax/estate planning assistance",
+        weight: 0.118162,
+        equal: 0.058824,
+        delta: 0.059339,
+        stability: 0.995
+      },
+      {
+        rank: 3,
+        name: "Real-time cost estimator tools",
+        weight: 0.073349,
+        equal: 0.058824,
+        delta: 0.014526,
+        stability: 0.985
+      },
+      {
+        rank: 4,
+        name: "Insurance advocacy/pre-authorization support",
+        weight: 0.072306,
+        equal: 0.058824,
+        delta: 0.013483,
+        stability: 1.0
+      },
+      {
+        rank: 5,
+        name: "$0 copay for specialty drugs",
+        weight: 0.056197,
+        equal: 0.058824,
+        delta: -0.002626,
+        stability: 0.995
+      },
+      {
+        rank: 6,
+        name: "Short-term disability covering 60%+ of salary",
+        weight: 0.055313,
+        equal: 0.058824,
+        delta: -0.00351,
+        stability: 0.99
+      },
+      {
+        rank: 7,
+        name: "Long-term disability covering 60%+ of salary",
+        weight: 0.048299,
+        equal: 0.058824,
+        delta: -0.010525,
+        stability: 0.99
+      },
+      {
+        rank: 8,
+        name: "Coverage for advanced therapies (CAR-T, proton therapy, immunothera...",
+        weight: 0.04694,
+        equal: 0.058824,
+        delta: -0.011884,
+        stability: 0.995
+      },
+      {
+        rank: 9,
+        name: "Financial counseling services",
+        weight: 0.046897,
+        equal: 0.058824,
+        delta: -0.011926,
+        stability: 0.965
+      },
+      {
+        rank: 10,
+        name: "Paid time off for clinical trial participation",
+        weight: 0.043348,
+        equal: 0.058824,
+        delta: -0.015476,
+        stability: 0.98
+      },
+      {
+        rank: 11,
+        name: "Coverage for clinical trials and experimental treatments not covere...",
+        weight: 0.043113,
+        equal: 0.058824,
+        delta: -0.01571,
+        stability: 0.975
+      },
+      {
+        rank: 12,
+        name: "Employer-paid disability insurance supplements",
+        weight: 0.04241,
+        equal: 0.058824,
+        delta: -0.016413,
+        stability: 0.98
+      },
+      {
+        rank: 13,
+        name: "Guaranteed job protection",
+        weight: 0.04096,
+        equal: 0.058824,
+        delta: -0.017863,
+        stability: 0.99
+      },
+      {
+        rank: 14,
+        name: "Travel/lodging reimbursement for specialized care beyond insurance ...",
+        weight: 0.039906,
+        equal: 0.058824,
+        delta: -0.018917,
+        stability: 0.985
+      },
+      {
+        rank: 15,
+        name: "Hardship grants program funded by employer",
+        weight: 0.039768,
+        equal: 0.058824,
+        delta: -0.019056,
+        stability: 0.975
+      },
+      {
+        rank: 16,
+        name: "Voluntary supplemental illness insurance (with employer contribution)",
+        weight: 0.039559,
+        equal: 0.058824,
+        delta: -0.019264,
+        stability: 0.975
+      },
+      {
+        rank: 17,
+        name: "Set out-of-pocket maximums (for in-network single coverage)",
+        weight: 0.038828,
+        equal: 0.058824,
+        delta: -0.019996,
+        stability: 0.975
+      }
+    ]
+  },
+  3: {
+    name: "Manager Preparedness",
+    weight: 12,
+    elements: 10,
+    cvR2: 0.156,
+    alpha: 0.5,
+    n: 38,
+    topElements: [
+      "Manager peer support / community building",
+      "Manager training on supporting employees managing cance",
+      "Empathy/communication skills training"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Manager peer support / community building",
+        weight: 0.174725,
+        equal: 0.1,
+        delta: 0.074725,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Manager training on supporting employees managing cancer or other s...",
+        weight: 0.154583,
+        equal: 0.1,
+        delta: 0.054583,
+        stability: 1.0
+      },
+      {
+        rank: 3,
+        name: "Empathy/communication skills training",
+        weight: 0.140133,
+        equal: 0.1,
+        delta: 0.040133,
+        stability: 0.995
+      },
+      {
+        rank: 4,
+        name: "Dedicated manager resource hub",
+        weight: 0.09982,
+        equal: 0.1,
+        delta: -0.00018,
+        stability: 0.995
+      },
+      {
+        rank: 5,
+        name: "Manager evaluations include how well they support impacted employees",
+        weight: 0.080495,
+        equal: 0.1,
+        delta: -0.019505,
+        stability: 0.965
+      },
+      {
+        rank: 6,
+        name: "Clear escalation protocol for manager response",
+        weight: 0.077347,
+        equal: 0.1,
+        delta: -0.022653,
+        stability: 0.975
+      },
+      {
+        rank: 7,
+        name: "Legal compliance training",
+        weight: 0.071002,
+        equal: 0.1,
+        delta: -0.028998,
+        stability: 0.97
+      },
+      {
+        rank: 8,
+        name: "AI-powered guidance tools",
+        weight: 0.069294,
+        equal: 0.1,
+        delta: -0.030706,
+        stability: 0.97
+      },
+      {
+        rank: 9,
+        name: "Privacy protection and confidentiality management",
+        weight: 0.067211,
+        equal: 0.1,
+        delta: -0.032789,
+        stability: 0.98
+      },
+      {
+        rank: 10,
+        name: "Senior leader coaching on supporting impacted employees",
+        weight: 0.065389,
+        equal: 0.1,
+        delta: -0.034611,
+        stability: 0.96
+      }
+    ]
+  },
+  4: {
+    name: "Treatment & Navigation",
+    weight: 14,
+    elements: 10,
+    cvR2: 0.419,
+    alpha: 0.5,
+    n: 40,
+    topElements: [
+      "Physical rehabilitation support",
+      "Nutrition coaching",
+      "Insurance advocacy/appeals support"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Physical rehabilitation support",
+        weight: 0.200073,
+        equal: 0.1,
+        delta: 0.100073,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Nutrition coaching",
+        weight: 0.133196,
+        equal: 0.1,
+        delta: 0.033196,
+        stability: 1.0
+      },
+      {
+        rank: 3,
+        name: "Insurance advocacy/appeals support",
+        weight: 0.102184,
+        equal: 0.1,
+        delta: 0.002184,
+        stability: 0.965
+      },
+      {
+        rank: 4,
+        name: "Dedicated navigation support to help employees understand benefits ...",
+        weight: 0.089426,
+        equal: 0.1,
+        delta: -0.010574,
+        stability: 0.975
+      },
+      {
+        rank: 5,
+        name: "Online tools, apps, or portals for health/benefits support",
+        weight: 0.087604,
+        equal: 0.1,
+        delta: -0.012396,
+        stability: 0.965
+      },
+      {
+        rank: 6,
+        name: "Occupational therapy/vocational rehabilitation",
+        weight: 0.081315,
+        equal: 0.1,
+        delta: -0.018685,
+        stability: 0.945
+      },
+      {
+        rank: 7,
+        name: "Care coordination concierge",
+        weight: 0.078595,
+        equal: 0.1,
+        delta: -0.021405,
+        stability: 0.95
+      },
+      {
+        rank: 8,
+        name: "Survivorship planning assistance",
+        weight: 0.07731,
+        equal: 0.1,
+        delta: -0.02269,
+        stability: 0.94
+      },
+      {
+        rank: 9,
+        name: "Benefits optimization assistance (maximizing coverage, minimizing c...",
+        weight: 0.076675,
+        equal: 0.1,
+        delta: -0.023325,
+        stability: 0.945
+      },
+      {
+        rank: 10,
+        name: "Clinical trial matching service",
+        weight: 0.073622,
+        equal: 0.1,
+        delta: -0.026378,
+        stability: 0.955
+      }
+    ]
+  },
+  5: {
+    name: "Workplace Accommodations",
+    weight: 7,
+    elements: 11,
+    cvR2: 0.412,
+    alpha: 0.5,
+    n: 39,
+    topElements: [
+      "Flexible scheduling options",
+      "Ergonomic equipment funding",
+      "Rest areas / quiet spaces"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Flexible scheduling options",
+        weight: 0.134067,
+        equal: 0.090909,
+        delta: 0.043158,
+        stability: 0.98
+      },
+      {
+        rank: 2,
+        name: "Ergonomic equipment funding",
+        weight: 0.126183,
+        equal: 0.090909,
+        delta: 0.035274,
+        stability: 1.0
+      },
+      {
+        rank: 3,
+        name: "Rest areas / quiet spaces",
+        weight: 0.115475,
+        equal: 0.090909,
+        delta: 0.024566,
+        stability: 0.995
+      },
+      {
+        rank: 4,
+        name: "Temporary role redesigns",
+        weight: 0.109129,
+        equal: 0.090909,
+        delta: 0.01822,
+        stability: 0.99
+      },
+      {
+        rank: 5,
+        name: "Assistive technology catalog",
+        weight: 0.108836,
+        equal: 0.090909,
+        delta: 0.017927,
+        stability: 0.99
+      },
+      {
+        rank: 6,
+        name: "Priority parking",
+        weight: 0.079852,
+        equal: 0.090909,
+        delta: -0.011057,
+        stability: 0.975
+      },
+      {
+        rank: 7,
+        name: "Cognitive / fatigue support tools",
+        weight: 0.074978,
+        equal: 0.090909,
+        delta: -0.015931,
+        stability: 0.99
+      },
+      {
+        rank: 8,
+        name: "Policy accommodations (e.g., dress code flexibility, headphone use)",
+        weight: 0.070501,
+        equal: 0.090909,
+        delta: -0.020408,
+        stability: 0.98
+      },
+      {
+        rank: 9,
+        name: "Remote work capability",
+        weight: 0.064075,
+        equal: 0.090909,
+        delta: -0.026834,
+        stability: 0.98
+      },
+      {
+        rank: 10,
+        name: "Transportation reimbursement",
+        weight: 0.059231,
+        equal: 0.090909,
+        delta: -0.031678,
+        stability: 0.965
+      },
+      {
+        rank: 11,
+        name: "Physical workspace modifications",
+        weight: 0.057672,
+        equal: 0.090909,
+        delta: -0.033237,
+        stability: 0.96
+      }
+    ]
+  },
+  6: {
+    name: "Culture & Stigma",
+    weight: 8,
+    elements: 12,
+    cvR2: 0.361,
+    alpha: 0.5,
+    n: 38,
+    topElements: [
+      "Employee peer support groups",
+      "Stigma-reduction initiatives",
+      "Anonymous benefits navigation tool or website"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Employee peer support groups (internal employees with shared experi...",
+        weight: 0.193109,
+        equal: 0.083333,
+        delta: 0.109775,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Stigma-reduction initiatives",
+        weight: 0.130256,
+        equal: 0.083333,
+        delta: 0.046922,
+        stability: 0.99
+      },
+      {
+        rank: 3,
+        name: "Anonymous benefits navigation tool or website (no login required)",
+        weight: 0.090308,
+        equal: 0.083333,
+        delta: 0.006975,
+        stability: 0.995
+      },
+      {
+        rank: 4,
+        name: "Specialized emotional counseling",
+        weight: 0.079909,
+        equal: 0.083333,
+        delta: -0.003424,
+        stability: 0.965
+      },
+      {
+        rank: 5,
+        name: "Inclusive communication guidelines",
+        weight: 0.071169,
+        equal: 0.083333,
+        delta: -0.012164,
+        stability: 0.95
+      },
+      {
+        rank: 6,
+        name: "Manager training on handling sensitive health information",
+        weight: 0.070972,
+        equal: 0.083333,
+        delta: -0.012361,
+        stability: 0.975
+      },
+      {
+        rank: 7,
+        name: "Professional-led support groups (external facilitator/counselor)",
+        weight: 0.066748,
+        equal: 0.083333,
+        delta: -0.016585,
+        stability: 0.99
+      },
+      {
+        rank: 8,
+        name: "Written anti-retaliation policies for health disclosures",
+        weight: 0.06513,
+        equal: 0.083333,
+        delta: -0.018204,
+        stability: 0.975
+      },
+      {
+        rank: 9,
+        name: "Strong anti-discrimination policies specific to health conditions",
+        weight: 0.063864,
+        equal: 0.083333,
+        delta: -0.01947,
+        stability: 0.99
+      },
+      {
+        rank: 10,
+        name: "Clear process for confidential health disclosures",
+        weight: 0.059082,
+        equal: 0.083333,
+        delta: -0.024251,
+        stability: 0.985
+      },
+      {
+        rank: 11,
+        name: "Confidential HR channel for health benefits, policies and insurance...",
+        weight: 0.057287,
+        equal: 0.083333,
+        delta: -0.026046,
+        stability: 0.995
+      },
+      {
+        rank: 12,
+        name: "Optional open health dialogue forums",
+        weight: 0.052165,
+        equal: 0.083333,
+        delta: -0.031168,
+        stability: 0.96
+      }
+    ]
+  },
+  7: {
+    name: "Career Continuity",
+    weight: 4,
+    elements: 9,
+    cvR2: 0.33,
+    alpha: 0.5,
+    n: 34,
+    topElements: [
+      "Peer mentorship program",
+      "Continued access to training/development",
+      "Adjusted performance goals/deliverables during treatmen"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Peer mentorship program (employees who had similar condition mentor...",
+        weight: 0.200033,
+        equal: 0.111111,
+        delta: 0.088922,
+        stability: 0.99
+      },
+      {
+        rank: 2,
+        name: "Continued access to training/development",
+        weight: 0.143486,
+        equal: 0.111111,
+        delta: 0.032374,
+        stability: 0.995
+      },
+      {
+        rank: 3,
+        name: "Adjusted performance goals/deliverables during treatment and recovery",
+        weight: 0.10585,
+        equal: 0.111111,
+        delta: -0.005261,
+        stability: 0.985
+      },
+      {
+        rank: 4,
+        name: "Succession planning protections",
+        weight: 0.104257,
+        equal: 0.111111,
+        delta: -0.006854,
+        stability: 0.995
+      },
+      {
+        rank: 5,
+        name: "Structured reintegration programs",
+        weight: 0.101907,
+        equal: 0.111111,
+        delta: -0.009205,
+        stability: 0.985
+      },
+      {
+        rank: 6,
+        name: "Optional stay-connected program",
+        weight: 0.101429,
+        equal: 0.111111,
+        delta: -0.009682,
+        stability: 0.975
+      },
+      {
+        rank: 7,
+        name: "Career coaching for employees managing cancer or other serious heal...",
+        weight: 0.084242,
+        equal: 0.111111,
+        delta: -0.026869,
+        stability: 0.98
+      },
+      {
+        rank: 8,
+        name: "Professional coach/mentor for employees managing cancer or other se...",
+        weight: 0.081518,
+        equal: 0.111111,
+        delta: -0.029594,
+        stability: 0.965
+      },
+      {
+        rank: 9,
+        name: "Project continuity protocols",
+        weight: 0.07728,
+        equal: 0.111111,
+        delta: -0.033831,
+        stability: 0.965
+      }
+    ]
+  },
+  8: {
+    name: "Treatment Support & Reintegration",
+    weight: 13,
+    elements: 12,
+    cvR2: 0.53,
+    alpha: 0.5,
+    n: 38,
+    topElements: [
+      "Flexibility for medical setbacks",
+      "Manager training on supporting team members during trea",
+      "Long-term success tracking"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Flexibility for medical setbacks",
+        weight: 0.154687,
+        equal: 0.083333,
+        delta: 0.071354,
+        stability: 0.995
+      },
+      {
+        rank: 2,
+        name: "Manager training on supporting team members during treatment/return",
+        weight: 0.124079,
+        equal: 0.083333,
+        delta: 0.040746,
+        stability: 1.0
+      },
+      {
+        rank: 3,
+        name: "Long-term success tracking",
+        weight: 0.102334,
+        equal: 0.083333,
+        delta: 0.019,
+        stability: 1.0
+      },
+      {
+        rank: 4,
+        name: "Workload adjustments during treatment",
+        weight: 0.089721,
+        equal: 0.083333,
+        delta: 0.006388,
+        stability: 0.99
+      },
+      {
+        rank: 5,
+        name: "Access to occupational therapy/vocational rehabilitation",
+        weight: 0.081946,
+        equal: 0.083333,
+        delta: -0.001388,
+        stability: 1.0
+      },
+      {
+        rank: 6,
+        name: "Structured progress reviews",
+        weight: 0.072191,
+        equal: 0.083333,
+        delta: -0.011142,
+        stability: 0.96
+      },
+      {
+        rank: 7,
+        name: "Buddy/mentor pairing for support",
+        weight: 0.069346,
+        equal: 0.083333,
+        delta: -0.013988,
+        stability: 0.975
+      },
+      {
+        rank: 8,
+        name: "Flexible work arrangements during treatment",
+        weight: 0.068431,
+        equal: 0.083333,
+        delta: -0.014902,
+        stability: 0.98
+      },
+      {
+        rank: 9,
+        name: "Online peer support forums",
+        weight: 0.068325,
+        equal: 0.083333,
+        delta: -0.015008,
+        stability: 0.995
+      },
+      {
+        rank: 10,
+        name: "Phased return-to-work plans",
+        weight: 0.05902,
+        equal: 0.083333,
+        delta: -0.024314,
+        stability: 0.965
+      },
+      {
+        rank: 11,
+        name: "Contingency planning for treatment schedules",
+        weight: 0.056143,
+        equal: 0.083333,
+        delta: -0.02719,
+        stability: 0.975
+      },
+      {
+        rank: 12,
+        name: "Access to specialized work resumption professionals",
+        weight: 0.053777,
+        equal: 0.083333,
+        delta: -0.029556,
+        stability: 0.965
+      }
+    ]
+  },
+  9: {
+    name: "Leadership & Accountability",
+    weight: 4,
+    elements: 12,
+    cvR2: 0.136,
+    alpha: 0.5,
+    n: 34,
+    topElements: [
+      "Executive sponsors communicate regularly about workplac",
+      "ESG/CSR reporting inclusion",
+      "Public success story celebrations"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Executive sponsors communicate regularly about workplace support pr...",
+        weight: 0.177838,
+        equal: 0.083333,
+        delta: 0.094505,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "ESG/CSR reporting inclusion",
+        weight: 0.122962,
+        equal: 0.083333,
+        delta: 0.039629,
+        stability: 0.99
+      },
+      {
+        rank: 3,
+        name: "Public success story celebrations",
+        weight: 0.101589,
+        equal: 0.083333,
+        delta: 0.018256,
+        stability: 0.995
+      },
+      {
+        rank: 4,
+        name: "Executive-led town halls focused on health benefits and employee su...",
+        weight: 0.078106,
+        equal: 0.083333,
+        delta: -0.005227,
+        stability: 0.985
+      },
+      {
+        rank: 5,
+        name: "Year-over-year budget growth",
+        weight: 0.077801,
+        equal: 0.083333,
+        delta: -0.005532,
+        stability: 0.975
+      },
+      {
+        rank: 6,
+        name: "Support programs included in investor/stakeholder communications",
+        weight: 0.076953,
+        equal: 0.083333,
+        delta: -0.00638,
+        stability: 0.965
+      },
+      {
+        rank: 7,
+        name: "Compensation tied to support outcomes",
+        weight: 0.067727,
+        equal: 0.083333,
+        delta: -0.015606,
+        stability: 0.99
+      },
+      {
+        rank: 8,
+        name: "C-suite executive serves as program champion/sponsor",
+        weight: 0.063951,
+        equal: 0.083333,
+        delta: -0.019383,
+        stability: 0.99
+      },
+      {
+        rank: 9,
+        name: "Cross-functional executive steering committee for workplace support...",
+        weight: 0.060213,
+        equal: 0.083333,
+        delta: -0.023121,
+        stability: 0.955
+      },
+      {
+        rank: 10,
+        name: "Support metrics included in annual report/sustainability reporting",
+        weight: 0.058149,
+        equal: 0.083333,
+        delta: -0.025185,
+        stability: 0.98
+      },
+      {
+        rank: 11,
+        name: "Executive accountability metrics",
+        weight: 0.05755,
+        equal: 0.083333,
+        delta: -0.025784,
+        stability: 0.97
+      },
+      {
+        rank: 12,
+        name: "Dedicated budget allocation for serious illness support programs",
+        weight: 0.057162,
+        equal: 0.083333,
+        delta: -0.026172,
+        stability: 0.985
+      }
+    ]
+  },
+  10: {
+    name: "Caregiver Support",
+    weight: 4,
+    elements: 20,
+    cvR2: -0.063,
+    alpha: 0.3,
+    n: 40,
+    topElements: [
+      "Practical support for managing caregiving and work",
+      "Family navigation support",
+      "Eldercare consultation and referral services"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Practical support for managing caregiving and work",
+        weight: 0.114708,
+        equal: 0.05,
+        delta: 0.064708,
+        stability: 0.995
+      },
+      {
+        rank: 2,
+        name: "Family navigation support",
+        weight: 0.080451,
+        equal: 0.05,
+        delta: 0.030451,
+        stability: 0.995
+      },
+      {
+        rank: 3,
+        name: "Eldercare consultation and referral services",
+        weight: 0.080031,
+        equal: 0.05,
+        delta: 0.030031,
+        stability: 0.99
+      },
+      {
+        rank: 4,
+        name: "Expanded caregiver leave eligibility beyond legal definitions (e.g....",
+        weight: 0.057402,
+        equal: 0.05,
+        delta: 0.007402,
+        stability: 1.0
+      },
+      {
+        rank: 5,
+        name: "Caregiver resource navigator/concierge",
+        weight: 0.052119,
+        equal: 0.05,
+        delta: 0.002119,
+        stability: 0.99
+      },
+      {
+        rank: 6,
+        name: "Concierge services to coordinate caregiving logistics (e.g., schedu...",
+        weight: 0.048148,
+        equal: 0.05,
+        delta: -0.001852,
+        stability: 0.975
+      },
+      {
+        rank: 7,
+        name: "Paid caregiver leave with expanded eligibility (beyond local legal ...",
+        weight: 0.046638,
+        equal: 0.05,
+        delta: -0.003362,
+        stability: 0.97
+      },
+      {
+        rank: 8,
+        name: "Flexible work arrangements for caregivers",
+        weight: 0.045747,
+        equal: 0.05,
+        delta: -0.004253,
+        stability: 0.975
+      },
+      {
+        rank: 9,
+        name: "Paid time off for care coordination appointments",
+        weight: 0.043873,
+        equal: 0.05,
+        delta: -0.006127,
+        stability: 0.99
+      },
+      {
+        rank: 10,
+        name: "Respite care funding/reimbursement",
+        weight: 0.04304,
+        equal: 0.05,
+        delta: -0.00696,
+        stability: 0.98
+      },
+      {
+        rank: 11,
+        name: "Emergency dependent care when regular arrangements unavailable",
+        weight: 0.042999,
+        equal: 0.05,
+        delta: -0.007001,
+        stability: 0.965
+      },
+      {
+        rank: 12,
+        name: "Unpaid leave job protection beyond local / legal requirements",
+        weight: 0.042978,
+        equal: 0.05,
+        delta: -0.007022,
+        stability: 0.985
+      },
+      {
+        rank: 13,
+        name: "Legal/financial planning assistance for caregivers",
+        weight: 0.041332,
+        equal: 0.05,
+        delta: -0.008668,
+        stability: 1.0
+      },
+      {
+        rank: 14,
+        name: "Mental health support specifically for caregivers",
+        weight: 0.04129,
+        equal: 0.05,
+        delta: -0.00871,
+        stability: 0.97
+      },
+      {
+        rank: 15,
+        name: "Manager training for supervising caregivers",
+        weight: 0.039363,
+        equal: 0.05,
+        delta: -0.010637,
+        stability: 0.975
+      },
+      {
+        rank: 16,
+        name: "Dependent care account matching/contributions",
+        weight: 0.038215,
+        equal: 0.05,
+        delta: -0.011785,
+        stability: 0.985
+      },
+      {
+        rank: 17,
+        name: "Caregiver peer support groups",
+        weight: 0.03714,
+        equal: 0.05,
+        delta: -0.01286,
+        stability: 0.99
+      },
+      {
+        rank: 18,
+        name: "Dependent care subsidies",
+        weight: 0.034974,
+        equal: 0.05,
+        delta: -0.015026,
+        stability: 0.975
+      },
+      {
+        rank: 19,
+        name: "Emergency caregiver funds",
+        weight: 0.034931,
+        equal: 0.05,
+        delta: -0.015069,
+        stability: 0.99
+      },
+      {
+        rank: 20,
+        name: "Modified job duties during peak caregiving periods",
+        weight: 0.034619,
+        equal: 0.05,
+        delta: -0.015381,
+        stability: 0.96
+      }
+    ]
+  },
+  11: {
+    name: "Prevention & Early Detection",
+    weight: 3,
+    elements: 13,
+    cvR2: 0.473,
+    alpha: 0.5,
+    n: 40,
+    topElements: [
+      "Legal protections beyond requirements",
+      "Individual health assessments",
+      "Policies to support immuno-compromised colleagues"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Legal protections beyond requirements",
+        weight: 0.1154,
+        equal: 0.076923,
+        delta: 0.038477,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Individual health assessments (online or in-person)",
+        weight: 0.112016,
+        equal: 0.076923,
+        delta: 0.035093,
+        stability: 0.995
+      },
+      {
+        rank: 3,
+        name: "Policies to support immuno-compromised colleagues (e.g., mask proto...",
+        weight: 0.104588,
+        equal: 0.076923,
+        delta: 0.027665,
+        stability: 1.0
+      },
+      {
+        rank: 4,
+        name: "Genetic screening/counseling",
+        weight: 0.096957,
+        equal: 0.076923,
+        delta: 0.020034,
+        stability: 0.995
+      },
+      {
+        rank: 5,
+        name: "At least 70% coverage for regionally / locally recommended screenings",
+        weight: 0.072063,
+        equal: 0.076923,
+        delta: -0.00486,
+        stability: 0.995
+      },
+      {
+        rank: 6,
+        name: "Full or partial coverage for annual health screenings/checkups",
+        weight: 0.070034,
+        equal: 0.076923,
+        delta: -0.006889,
+        stability: 1.0
+      },
+      {
+        rank: 7,
+        name: "On-site vaccinations",
+        weight: 0.069652,
+        equal: 0.076923,
+        delta: -0.007271,
+        stability: 0.99
+      },
+      {
+        rank: 8,
+        name: "Risk factor tracking/reporting",
+        weight: 0.06601,
+        equal: 0.076923,
+        delta: -0.010913,
+        stability: 0.995
+      },
+      {
+        rank: 9,
+        name: "Regular health education sessions",
+        weight: 0.063478,
+        equal: 0.076923,
+        delta: -0.013445,
+        stability: 0.985
+      },
+      {
+        rank: 10,
+        name: "Targeted risk-reduction programs",
+        weight: 0.061622,
+        equal: 0.076923,
+        delta: -0.015301,
+        stability: 0.99
+      },
+      {
+        rank: 11,
+        name: "Paid time off for preventive care appointments",
+        weight: 0.061405,
+        equal: 0.076923,
+        delta: -0.015518,
+        stability: 1.0
+      },
+      {
+        rank: 12,
+        name: "Workplace safety assessments to minimize health risks",
+        weight: 0.054855,
+        equal: 0.076923,
+        delta: -0.022068,
+        stability: 0.98
+      },
+      {
+        rank: 13,
+        name: "Lifestyle coaching programs",
+        weight: 0.05192,
+        equal: 0.076923,
+        delta: -0.025003,
+        stability: 0.965
+      }
+    ]
+  },
+  12: {
+    name: "Measurement & Outcomes",
+    weight: 3,
+    elements: 9,
+    cvR2: 0.12,
+    alpha: 0.5,
+    n: 40,
+    topElements: [
+      "Regular program enhancements",
+      "Employee confidence in employer support",
+      "Innovation pilots"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Regular program enhancements",
+        weight: 0.200034,
+        equal: 0.111111,
+        delta: 0.088923,
+        stability: 0.985
+      },
+      {
+        rank: 2,
+        name: "Employee confidence in employer support",
+        weight: 0.145168,
+        equal: 0.111111,
+        delta: 0.034057,
+        stability: 0.99
+      },
+      {
+        rank: 3,
+        name: "Innovation pilots",
+        weight: 0.111299,
+        equal: 0.111111,
+        delta: 0.000188,
+        stability: 0.995
+      },
+      {
+        rank: 4,
+        name: "External benchmarking",
+        weight: 0.111196,
+        equal: 0.111111,
+        delta: 8.5e-05,
+        stability: 0.98
+      },
+      {
+        rank: 5,
+        name: "Return-to-work success metrics",
+        weight: 0.101878,
+        equal: 0.111111,
+        delta: -0.009233,
+        stability: 0.975
+      },
+      {
+        rank: 6,
+        name: "Program utilization analytics",
+        weight: 0.100793,
+        equal: 0.111111,
+        delta: -0.010318,
+        stability: 0.98
+      },
+      {
+        rank: 7,
+        name: "Measure screening campaign ROI (e.g. participation rates, inquiries...",
+        weight: 0.077227,
+        equal: 0.111111,
+        delta: -0.033884,
+        stability: 0.945
+      },
+      {
+        rank: 8,
+        name: "Business impact/ROI assessment",
+        weight: 0.076737,
+        equal: 0.111111,
+        delta: -0.034374,
+        stability: 0.96
+      },
+      {
+        rank: 9,
+        name: "Employee satisfaction tracking",
+        weight: 0.075667,
+        equal: 0.111111,
+        delta: -0.035444,
+        stability: 0.955
+      }
+    ]
+  },
+  13: {
+    name: "Communication & Awareness",
+    weight: 10,
+    elements: 11,
+    cvR2: 0.642,
+    alpha: 0.5,
+    n: 40,
+    topElements: [
+      "Family/caregiver communication inclusion",
+      "Employee testimonials/success stories",
+      "Proactive communication at point of diagnosis disclosur"
+    ],
+    items: [
+      {
+        rank: 1,
+        name: "Family/caregiver communication inclusion",
+        weight: 0.176781,
+        equal: 0.090909,
+        delta: 0.085872,
+        stability: 1.0
+      },
+      {
+        rank: 2,
+        name: "Employee testimonials/success stories",
+        weight: 0.120722,
+        equal: 0.090909,
+        delta: 0.029813,
+        stability: 1.0
+      },
+      {
+        rank: 3,
+        name: "Proactive communication at point of diagnosis disclosure",
+        weight: 0.114617,
+        equal: 0.090909,
+        delta: 0.023708,
+        stability: 1.0
+      },
+      {
+        rank: 4,
+        name: "Anonymous information access options",
+        weight: 0.107793,
+        equal: 0.090909,
+        delta: 0.016884,
+        stability: 0.995
+      },
+      {
+        rank: 5,
+        name: "Multi-channel communication strategy",
+        weight: 0.104833,
+        equal: 0.090909,
+        delta: 0.013924,
+        stability: 0.985
+      },
+      {
+        rank: 6,
+        name: "Ability to access program information and resources anonymously",
+        weight: 0.07692,
+        equal: 0.090909,
+        delta: -0.013989,
+        stability: 0.99
+      },
+      {
+        rank: 7,
+        name: "Dedicated program website or portal",
+        weight: 0.072307,
+        equal: 0.090909,
+        delta: -0.018602,
+        stability: 0.985
+      },
+      {
+        rank: 8,
+        name: "New hire orientation coverage",
+        weight: 0.058091,
+        equal: 0.090909,
+        delta: -0.032818,
+        stability: 0.98
+      },
+      {
+        rank: 9,
+        name: "Regular company-wide awareness campaigns (at least quarterly)",
+        weight: 0.056844,
+        equal: 0.090909,
+        delta: -0.034065,
+        stability: 0.945
+      },
+      {
+        rank: 10,
+        name: "Manager toolkit for cascade communications",
+        weight: 0.056627,
+        equal: 0.090909,
+        delta: -0.034282,
+        stability: 0.97
+      },
+      {
+        rank: 11,
+        name: "Cancer awareness month campaigns with resources",
+        weight: 0.054464,
+        equal: 0.090909,
+        delta: -0.036445,
+        stability: 0.965
+      }
+    ]
+  }
 };
 
-// Custom SVG badges for rankings
-const GoldBadge = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-    <circle cx="14" cy="14" r="13" fill="#FCD34D" stroke="#F59E0B" strokeWidth="2"/>
-    <text x="14" y="18" textAnchor="middle" fill="#92400E" fontSize="12" fontWeight="bold" fontFamily="system-ui">1</text>
-  </svg>
-);
+// ============================================
+// HELPERS & ICONS
+// ============================================
 
-const SilverBadge = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-    <circle cx="14" cy="14" r="13" fill="#E5E7EB" stroke="#9CA3AF" strokeWidth="2"/>
-    <text x="14" y="18" textAnchor="middle" fill="#4B5563" fontSize="12" fontWeight="bold" fontFamily="system-ui">2</text>
-  </svg>
-);
-
-const BronzeBadge = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-    <circle cx="14" cy="14" r="13" fill="#FDBA74" stroke="#EA580C" strokeWidth="2"/>
-    <text x="14" y="18" textAnchor="middle" fill="#9A3412" fontSize="12" fontWeight="bold" fontFamily="system-ui">3</text>
-  </svg>
-);
-
-const RankBadge = ({ rank }: { rank: number }) => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-    <circle cx="14" cy="14" r="12" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="1"/>
-    <text x="14" y="18" textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="600" fontFamily="system-ui">{rank}</text>
-  </svg>
-);
-
-const BenchmarkIcon = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-    <rect x="4" y="8" width="20" height="12" rx="2" fill="#F97316" stroke="#EA580C" strokeWidth="1.5"/>
-    <path d="M14 6L17 10H11L14 6Z" fill="#F97316" stroke="#EA580C" strokeWidth="1"/>
-    <text x="14" y="17" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold" fontFamily="system-ui">AVG</text>
-  </svg>
-);
-
-function BenchmarkComparisonChart({ 
-  companyScores, 
-  averages,
-  includePanel,
-  currentSurveyId,
-  onClose 
-}: { 
-  companyScores: CompanyScores[];
-  averages: {
-    dimensions: Record<number, { total: number | null }>;
-  };
-  includePanel: boolean;
-  currentSurveyId?: string;
-  onClose: () => void;
-}) {
-  // Sort dimensions by weight for dropdown
-  const sortedDimensions = useMemo(() => 
-    Object.entries(DEFAULT_DIMENSION_WEIGHTS)
-      .map(([dim, weight]) => ({ dim: parseInt(dim), weight, name: DIMENSION_NAMES[parseInt(dim)] }))
-      .sort((a, b) => b.weight - a.weight),
-    []
-  );
-  
-  const [selectedDim, setSelectedDim] = useState(sortedDimensions[0].dim);
-  
-  // Get data for selected dimension - exclude Panel from display but include in benchmarks
-  const dimensionData = useMemo(() => {
-    const benchmark = averages.dimensions[selectedDim]?.total ?? 0;
-    
-    // Get complete, non-panel companies for display
-    const displayCompanies = companyScores
-      .filter(c => c.isComplete && !c.isPanel) // Always exclude Panel from dots
-      .map(c => ({
-        name: c.companyName,
-        surveyId: c.surveyId,
-        score: c.dimensions[selectedDim]?.blendedScore ?? 0,
-        isCurrent: c.surveyId === currentSurveyId,
-      }))
-      .filter(c => c.score !== null && c.score !== undefined)
-      .sort((a, b) => b.score - a.score);
-    
-    return { benchmark, companyScores: displayCompanies };
-  }, [selectedDim, companyScores, averages, currentSurveyId]);
-  
-  const { benchmark, companyScores: sortedCompanies } = dimensionData;
-  const maxScore = 100;
-  const benchmarkTier = getBenchmarkTier(benchmark);
-  
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={onClose}>
-      <div 
-        className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="bg-slate-800 px-6 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-white">Benchmark Comparison</h2>
-            <p className="text-slate-400 text-sm mt-1">{sortedCompanies.length} companies • Select a dimension to compare</p>
-          </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-          >
-            <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        {/* Dimension Selector */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-slate-600">Dimension:</label>
-            <select
-              value={selectedDim}
-              onChange={(e) => setSelectedDim(parseInt(e.target.value))}
-              className="flex-1 max-w-md px-4 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {sortedDimensions.map(d => (
-                <option key={d.dim} value={d.dim}>
-                  {d.name} ({d.weight}% weight)
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          {/* Tier Legend */}
-          <div className="flex items-center gap-4 mt-3 flex-wrap">
-            <span className="text-xs text-slate-500 font-medium">TIERS:</span>
-            {BENCHMARK_TIERS.map(tier => (
-              <div key={tier.name} className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: tier.color }} />
-                <span className="text-xs text-slate-600">{tier.name} ({tier.min}-{tier.max})</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Chart Area */}
-        <div className="flex-1 overflow-auto px-6 py-4">
-          {/* Company Bars */}
-          <div className="space-y-2">
-            {/* Benchmark Row - Always First */}
-            <div className="relative flex items-center gap-4 p-3 rounded-lg bg-orange-50 border-2 border-orange-200">
-              {/* Benchmark Icon */}
-              <div className="flex-shrink-0">
-                <BenchmarkIcon />
-              </div>
-              
-              {/* Label */}
-              <div className="w-48 flex-shrink-0">
-                <p className="text-sm font-bold text-orange-700">Benchmark Average</p>
-                <p className="text-xs text-orange-500">All complete assessments</p>
-              </div>
-              
-              {/* Bar */}
-              <div className="flex-1 relative h-8">
-                <div className="absolute inset-0 bg-slate-200 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full rounded-full transition-all duration-500 ease-out"
-                    style={{ 
-                      width: `${(benchmark / maxScore) * 100}%`,
-                      backgroundColor: '#F97316',
-                    }}
-                  />
-                </div>
-                <div className="absolute inset-0 flex items-center px-3">
-                  <span className={`text-sm font-bold ${benchmark > 15 ? 'text-white' : 'text-slate-700 ml-auto'}`}>
-                    {benchmark}
-                  </span>
-                </div>
-              </div>
-              
-              {/* Empty diff column for alignment */}
-              <div className="w-20 text-center text-sm font-semibold text-orange-500">
-                baseline
-              </div>
-              
-              {/* Tier badge */}
-              <div 
-                className="w-24 text-center text-xs font-semibold py-1 px-2 rounded"
-                style={{ backgroundColor: benchmarkTier.bgColor, color: benchmarkTier.color }}
-              >
-                {benchmarkTier.name}
-              </div>
-            </div>
-            
-            {/* Divider */}
-            <div className="border-t border-slate-200 my-3" />
-            
-            {/* Company Rows */}
-            {sortedCompanies.map((company, idx) => {
-              const tier = getBenchmarkTier(company.score);
-              const barWidth = (company.score / maxScore) * 100;
-              const diff = company.score - benchmark;
-              
-              return (
-                <div 
-                  key={company.surveyId} 
-                  className={`relative flex items-center gap-4 p-3 rounded-lg transition-all ${
-                    company.isCurrent 
-                      ? 'bg-indigo-50 ring-2 ring-indigo-400' 
-                      : idx % 2 === 0 ? 'bg-slate-50' : 'bg-white'
-                  }`}
-                >
-                  {/* Rank Badge */}
-                  <div className="flex-shrink-0">
-                    {idx === 0 ? <GoldBadge /> :
-                     idx === 1 ? <SilverBadge /> :
-                     idx === 2 ? <BronzeBadge /> :
-                     <RankBadge rank={idx + 1} />}
-                  </div>
-                  
-                  {/* Company Name */}
-                  <div className="w-48 flex-shrink-0">
-                    <p className={`text-sm font-medium truncate ${company.isCurrent ? 'text-indigo-700' : 'text-slate-700'}`}>
-                      {company.name}
-                    </p>
-                    {company.isCurrent && <p className="text-xs text-indigo-500">(current company)</p>}
-                  </div>
-                  
-                  {/* Bar */}
-                  <div className="flex-1 relative h-8">
-                    <div className="absolute inset-0 bg-slate-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-500 ease-out"
-                        style={{ 
-                          width: `${barWidth}%`,
-                          backgroundColor: tier.color,
-                        }}
-                      />
-                    </div>
-                    <div className="absolute inset-0 flex items-center px-3">
-                      <span className={`text-sm font-bold ${barWidth > 15 ? 'text-white' : 'text-slate-700 ml-auto'}`}>
-                        {company.score}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  {/* Diff from benchmark */}
-                  <div className={`w-20 text-right text-sm font-semibold ${
-                    diff > 0 ? 'text-emerald-600' : diff < 0 ? 'text-red-500' : 'text-slate-500'
-                  }`}>
-                    {diff > 0 ? '+' : ''}{diff} vs avg
-                  </div>
-                  
-                  {/* Tier badge */}
-                  <div 
-                    className="w-24 text-center text-xs font-semibold py-1 px-2 rounded"
-                    style={{ backgroundColor: tier.bgColor, color: tier.color }}
-                  >
-                    {tier.name}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          
-          {sortedCompanies.length === 0 && (
-            <div className="text-center py-12 text-slate-500">
-              No company data available for this dimension
-            </div>
-          )}
-        </div>
-        
-        {/* Footer */}
-        <div className="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-          <p className="text-xs text-slate-500">
-            Benchmark includes all complete assessments (Panel data included in average calculation)
-          </p>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+function getSig(c: number): { label: string; color: string; bg: string; border: string } {
+  if (c < 0) return { label: 'Emerging', color: '#92400E', bg: 'bg-amber-50', border: 'border-amber-200' };
+  if (c < 0.10) return { label: 'Developing', color: '#3730A3', bg: 'bg-indigo-50', border: 'border-indigo-200' };
+  if (c < 0.30) return { label: 'Moderate', color: '#075985', bg: 'bg-sky-50', border: 'border-sky-200' };
+  return { label: 'Strong', color: '#065F46', bg: 'bg-emerald-50', border: 'border-emerald-200' };
 }
 
+function stabColor(s: number): string {
+  if (s >= 0.99) return '#065F46';
+  if (s >= 0.97) return '#047857';
+  if (s >= 0.95) return '#059669';
+  return '#6B7280';
+}
+
+// getScoreColor defined in scoring functions above
+
+function IconScale() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><path d="M3 7l4-4h10l4 4"/><circle cx="7" cy="14" r="3"/><circle cx="17" cy="14" r="3"/><path d="M7 11V7"/><path d="M17 11V7"/></svg>); }
+function IconTarget() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>); }
+function IconShield() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>); }
+function IconChart() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/></svg>); }
+function IconLayers() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>); }
+function IconRefresh() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>); }
+function IconGrid() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>); }
+function IconTrendUp() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>); }
+function IconCheck() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>); }
+function IconChevron({ open }: { open: boolean }) { return (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>); }
+function PipelineArrow() { return (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 flex-shrink-0 mx-1"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>); }
+
 // ============================================
-// MAIN COMPONENT
+// PAGE COMPONENT
 // ============================================
 
-export default function AggregateScoringReport() {
-  const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
-  const [assessments, setAssessments] = useState<Record<string, any>[]>([]);
+export default function ElementWeightingPage() {
+  const [activeTab, setActiveTab] = useState<'overview' | 'statistical' | 'weights' | 'scoring'>('overview');
+  const [expandedDim, setExpandedDim] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [weights, setWeights] = useState<Record<number, number>>({ ...DEFAULT_DIMENSION_WEIGHTS });
-  const [blendWeights, setBlendWeights] = useState({ ...DEFAULT_BLEND_WEIGHTS });
-  const [showBlendSettings, setShowBlendSettings] = useState(false);
-  const [showDimensionModal, setShowDimensionModal] = useState(false);
-  const [showCompositeModal, setShowCompositeModal] = useState(false);
-  const [showTierStatsModal, setShowTierStatsModal] = useState(false);
-  const [showSensitivityModal, setShowSensitivityModal] = useState(false);
-  const [showReliabilityModal, setShowReliabilityModal] = useState(false);
-  const [showMethodologyModal, setShowMethodologyModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [showBenchmarkModal, setShowBenchmarkModal] = useState(false);
-  const [sortBy, setSortBy] = useState<'name' | 'weighted' | 'composite' | `dim${number}`>('composite');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-  const [filterType, setFilterType] = useState<'all' | 'fp' | 'standard' | 'panel'>('all');
-  const [filterComplete, setFilterComplete] = useState(false);
-  const [viewMode, setViewMode] = useState<'score' | 'index'>('score');
-  const [includePanel, setIncludePanel] = useState(true);
-  
-  const weightsSum = Object.values(weights).reduce((a, b) => a + b, 0);
-  const weightsValid = weightsSum === 100;
-  const weightsDiff = 100 - weightsSum;
-  
-  const [compositeWeights, setCompositeWeights] = useState({ ...DEFAULT_COMPOSITE_WEIGHTS });
-  const compositeWeightsSum = compositeWeights.weightedDim + compositeWeights.maturity + compositeWeights.breadth;
-  const compositeWeightsValid = compositeWeightsSum === 100;
+  const [companies, setCompanies] = useState<CompanyComparison[]>([]);
+  const [includePanel, setIncludePanel] = useState(false);
 
+  // Load assessments from Supabase
   useEffect(() => {
-    const loadAssessments = async () => {
+    const load = async () => {
       try {
         const { data, error } = await supabase
           .from('assessments')
           .select('*')
           .order('company_name', { ascending: true });
-
         if (error) throw error;
-        
-        const assessmentsWithData = (data || []).filter(a => {
+        const valid = (data || []).filter(a => {
           for (let i = 1; i <= 13; i++) {
-            const dimData = a[`dimension${i}_data`];
-            if (dimData && typeof dimData === 'object') {
-              const gridData = dimData[`d${i}a`];
-              if (gridData && Object.keys(gridData).length > 0) return true;
+            const dd = a[`dimension${i}_data`];
+            if (dd && typeof dd === 'object') {
+              const grid = dd[`d${i}a`];
+              if (grid && Object.keys(grid).length > 0) return true;
             }
           }
           return false;
         });
-        
-        setAssessments(assessmentsWithData);
+        setCompanies(valid.map(a => calculateCompanyComparison(a)));
       } catch (err) {
         console.error('Error loading assessments:', err);
       } finally {
         setLoading(false);
       }
     };
-    loadAssessments();
+    load();
   }, []);
 
-  const companyScores = useMemo(() => {
-    return assessments.map(a => calculateCompanyScores(a, weights, compositeWeights, blendWeights));
-  }, [assessments, weights, compositeWeights, blendWeights]);
+  const filteredCompanies = useMemo(() => {
+    let list = companies.filter(c => c.isComplete);
+    if (!includePanel) list = list.filter(c => !c.isPanel);
+    return list.sort((a, b) => b.eqComposite - a.eqComposite);
+  }, [companies, includePanel]);
 
-  const sortedCompanies = useMemo(() => {
-    let filtered = companyScores;
-    
-    if (!includePanel) {
-      filtered = filtered.filter(c => !c.isPanel);
+  const benchmark = useMemo(() => {
+    if (filteredCompanies.length === 0) return null;
+    const dims: Record<number, { eq: number; wt: number }> = {};
+    for (let i = 1; i <= 13; i++) {
+      const eqs = filteredCompanies.map(c => c.dims[i]?.eq || 0);
+      const wts = filteredCompanies.map(c => c.dims[i]?.wt || 0);
+      dims[i] = { eq: Math.round(eqs.reduce((a, b) => a + b, 0) / eqs.length), wt: Math.round(wts.reduce((a, b) => a + b, 0) / wts.length) };
     }
-    
-    if (filterType === 'fp') filtered = filtered.filter(c => c.isFoundingPartner && !c.isPanel);
-    else if (filterType === 'standard') filtered = filtered.filter(c => !c.isFoundingPartner && !c.isPanel);
-    else if (filterType === 'panel') filtered = filtered.filter(c => c.isPanel);
-    
-    if (filterComplete) filtered = filtered.filter(c => c.isComplete);
-    
-    return [...filtered].sort((a, b) => {
-      let comparison = 0;
-      if (sortBy === 'name') comparison = a.companyName.localeCompare(b.companyName);
-      else if (sortBy === 'weighted') comparison = a.weightedScore - b.weightedScore;
-      else if (sortBy === 'composite') comparison = a.compositeScore - b.compositeScore;
-      else if (sortBy.startsWith('dim')) {
-        const dimNum = parseInt(sortBy.replace('dim', ''));
-        const scoreA = a.dimensions[dimNum]?.blendedScore ?? -1;
-        const scoreB = b.dimensions[dimNum]?.blendedScore ?? -1;
-        comparison = scoreA - scoreB;
-      }
-      return sortDir === 'desc' ? -comparison : comparison;
-    });
-  }, [companyScores, sortBy, sortDir, filterType, filterComplete, includePanel]);
+    const eqC = Math.round(filteredCompanies.reduce((s, c) => s + c.eqComposite, 0) / filteredCompanies.length);
+    const wtC = Math.round(filteredCompanies.reduce((s, c) => s + c.wtComposite, 0) / filteredCompanies.length);
+    return { dims, eqC, wtC };
+  }, [filteredCompanies]);
 
-  const averages = useMemo(() => {
-    const baseComplete = companyScores.filter(c => c.isComplete);
-    const complete = includePanel ? baseComplete : baseComplete.filter(c => !c.isPanel);
-    const fp = complete.filter(c => c.isFoundingPartner && !c.isPanel);
-    const std = complete.filter(c => !c.isFoundingPartner && !c.isPanel);
-    const panel = baseComplete.filter(c => c.isPanel);
-    // Geographic footprint filters
-    const single = complete.filter(c => c.globalFootprint.segment === 'Single');
-    const regional = complete.filter(c => c.globalFootprint.segment === 'Regional');
-    const global = complete.filter(c => c.globalFootprint.segment === 'Global');
-    
-    const calcAvg = (arr: CompanyScores[], key: keyof CompanyScores) => 
-      arr.length > 0 ? Math.round(arr.reduce((s, c) => s + ((c[key] as number) || 0), 0) / arr.length) : null;
-    
-    const dimAvg = (dim: number, arr: CompanyScores[]) => 
-      arr.length > 0 ? Math.round(arr.reduce((s, c) => s + (c.dimensions[dim]?.blendedScore || 0), 0) / arr.length) : null;
-    
-    return {
-      dimensions: Object.fromEntries(DIMENSION_ORDER.map(d => [d, {
-        total: dimAvg(d, complete),
-        fp: dimAvg(d, fp),
-        std: dimAvg(d, std),
-        panel: dimAvg(d, panel),
-        single: dimAvg(d, single),
-        regional: dimAvg(d, regional),
-        global: dimAvg(d, global),
-      }])),
-      unweighted: { total: calcAvg(complete, 'unweightedScore'), fp: calcAvg(fp, 'unweightedScore'), std: calcAvg(std, 'unweightedScore'), panel: calcAvg(panel, 'unweightedScore'), single: calcAvg(single, 'unweightedScore'), regional: calcAvg(regional, 'unweightedScore'), global: calcAvg(global, 'unweightedScore') },
-      weighted: { total: calcAvg(complete, 'weightedScore'), fp: calcAvg(fp, 'weightedScore'), std: calcAvg(std, 'weightedScore'), panel: calcAvg(panel, 'weightedScore'), single: calcAvg(single, 'weightedScore'), regional: calcAvg(regional, 'weightedScore'), global: calcAvg(global, 'weightedScore') },
-      maturity: { total: calcAvg(complete, 'maturityScore'), fp: calcAvg(fp, 'maturityScore'), std: calcAvg(std, 'maturityScore'), panel: calcAvg(panel, 'maturityScore'), single: calcAvg(single, 'maturityScore'), regional: calcAvg(regional, 'maturityScore'), global: calcAvg(global, 'maturityScore') },
-      breadth: { total: calcAvg(complete, 'breadthScore'), fp: calcAvg(fp, 'breadthScore'), std: calcAvg(std, 'breadthScore'), panel: calcAvg(panel, 'breadthScore'), single: calcAvg(single, 'breadthScore'), regional: calcAvg(regional, 'breadthScore'), global: calcAvg(global, 'breadthScore') },
-      composite: { total: calcAvg(complete, 'compositeScore'), fp: calcAvg(fp, 'compositeScore'), std: calcAvg(std, 'compositeScore'), panel: calcAvg(panel, 'compositeScore'), single: calcAvg(single, 'compositeScore'), regional: calcAvg(regional, 'compositeScore'), global: calcAvg(global, 'compositeScore') },
-      counts: { total: complete.length, fp: fp.length, std: std.length, panel: panel.length, single: single.length, regional: regional.length, global: global.length },
-    };
-  }, [companyScores, includePanel]);
-
-  const handleSort = (column: 'name' | 'weighted' | 'composite' | `dim${number}`) => {
-    if (sortBy === column) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
-    else { setSortBy(column); setSortDir(column === 'name' ? 'asc' : 'desc'); }
-  };
-
-  const scrollLeft = () => tableRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
-  const scrollRight = () => tableRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin h-12 w-12 border-4 border-indigo-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-gray-600">Loading assessments...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const STICKY_LEFT_1 = 0;
-  const STICKY_LEFT_2 = COL1_WIDTH;
-  const STICKY_LEFT_3 = COL1_WIDTH + COL2_WIDTH;
-  const STICKY_LEFT_4 = COL1_WIDTH + COL2_WIDTH + COL_AVG_WIDTH;
-  const STICKY_LEFT_5 = COL1_WIDTH + COL2_WIDTH + (2 * COL_AVG_WIDTH);
-  const STICKY_LEFT_6 = COL1_WIDTH + COL2_WIDTH + (3 * COL_AVG_WIDTH);
-  const STICKY_LEFT_7 = COL1_WIDTH + COL2_WIDTH + (4 * COL_AVG_WIDTH);  // Single Country
-  const STICKY_LEFT_8 = COL1_WIDTH + COL2_WIDTH + (5 * COL_AVG_WIDTH);  // Regional
-  const STICKY_LEFT_9 = COL1_WIDTH + COL2_WIDTH + (6 * COL_AVG_WIDTH);  // Global
-  
-  // Row heights for sticky top offsets (fixed pixel values)
-  const H_ROW1 = 36;   // METRICS/BENCHMARKS/COMPANIES row
-  const H_ROW2 = 52;   // Column labels row (includes company names + 13/13 indicator)
-  const H_ROW3 = 36;   // Global Footprint row
-  const H_ROW4 = 36;   // Data Confidence row
-  
-  // Sticky top positions (cumulative)
-  const TOP_ROW1 = 0;
-  const TOP_ROW2 = 36;   // After row 1
-  const TOP_ROW3 = 88;   // After rows 1+2
-  const TOP_ROW4 = 124;  // After rows 1+2+3
-  
-  const COMPANY_COL_WIDTH = 90; // Slightly wider for better score visibility
+  const tabs = [
+    { key: 'overview' as const, label: 'Executive Overview', icon: <IconTarget /> },
+    { key: 'statistical' as const, label: 'Statistical Overview', icon: <IconChart /> },
+    { key: 'weights' as const, label: 'Element Weights', icon: <IconScale /> },
+    { key: 'scoring' as const, label: 'Score Comparison', icon: <IconGrid /> },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
-      {showCompositeModal && <CompositeModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
-      {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
-      {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
-      {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
-      {showMethodologyModal && <TechnicalMethodologyModal onClose={() => setShowMethodologyModal(false)} />}
-      {showBenchmarkModal && (
-        <BenchmarkComparisonChart 
-          companyScores={companyScores} 
-          averages={averages}
-          includePanel={includePanel}
-          onClose={() => setShowBenchmarkModal(false)} 
-        />
-      )}
-      
-      {/* Report Generator Modal */}
-      {showReportModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[200] p-4" onClick={() => setShowReportModal(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-[600px] max-w-[95vw] max-h-[80vh] overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold text-white">Generate Custom Report</h2>
-                    <p className="text-orange-100 text-sm">Select a company to create their personalized report</p>
-                  </div>
-                </div>
-                <button onClick={() => setShowReportModal(false)} className="text-white/80 hover:text-white p-1">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+    <div className="min-h-screen bg-slate-50">
+      {/* Header */}
+      <div className="bg-slate-900 border-b border-slate-800">
+        <div className="max-w-[1400px] mx-auto px-8 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="bg-white rounded-lg px-3 py-2"><img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-9" /></div>
+              <div className="border-l border-slate-700 pl-6">
+                <h1 className="text-lg font-semibold text-white">Element Weighting</h1>
+                <p className="text-sm text-slate-400">Best Companies for Working with Cancer Index — 2026</p>
               </div>
             </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-100px)]">
-              <p className="text-gray-600 mb-4">Select a company from the list below to generate their custom performance report:</p>
-              <div className="space-y-2">
-                {sortedCompanies
-                  .filter(c => c.isComplete && !c.isPanel)
-                  .map(company => {
-                    const tier = company.compositeScore >= 90 ? 'Exemplary' : 
-                                 company.compositeScore >= 75 ? 'Leading' : 
-                                 company.compositeScore >= 60 ? 'Progressing' : 
-                                 company.compositeScore >= 40 ? 'Emerging' : 'Developing';
-                    const tierColor = company.compositeScore >= 90 ? 'bg-purple-100 text-purple-700' : 
-                                      company.compositeScore >= 75 ? 'bg-green-100 text-green-700' : 
-                                      company.compositeScore >= 60 ? 'bg-blue-100 text-blue-700' : 
-                                      company.compositeScore >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
-                    return (
-                      <button
-                        key={company.surveyId}
-                        onClick={() => {
-                          router.push(`/admin/reports/${company.surveyId}`);
-                          setShowReportModal(false);
-                        }}
-                        className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-orange-50 rounded-xl border border-gray-200 hover:border-orange-300 transition-all group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-amber-400 rounded-lg flex items-center justify-center text-white font-bold text-sm">
-                            {company.companyName.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div className="text-left">
-                            <p className="font-semibold text-gray-900 group-hover:text-orange-700">{company.companyName}</p>
-                            <p className="text-xs text-gray-500">{company.isFoundingPartner ? 'Founding Partner' : 'Standard'} • {company.completedDimCount}/13 dimensions</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <p className="text-2xl font-bold" style={{ color: company.compositeScore >= 80 ? '#059669' : company.compositeScore >= 60 ? '#0284C7' : company.compositeScore >= 40 ? '#D97706' : '#DC2626' }}>
-                              {company.compositeScore}
-                            </p>
-                          </div>
-                          <span className={`px-2 py-1 rounded-lg text-xs font-medium ${tierColor}`}>
-                            {tier}
-                          </span>
-                          <svg className="w-5 h-5 text-gray-400 group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </button>
-                    );
-                  })}
-              </div>
-              {sortedCompanies.filter(c => c.isComplete && !c.isPanel).length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No complete assessments found.</p>
-                  <p className="text-sm mt-1">Companies need to complete at least 10 dimensions to generate a report.</p>
-                </div>
-              )}
+            <div className="flex items-center gap-3">
+              <Link href="/admin/scoring" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Scoring</Link>
+              <Link href="/admin" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Dashboard</Link>
             </div>
           </div>
         </div>
-      )}
-      
-      {/* Blend Weight Settings Modal */}
-      {showBlendSettings && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200]">
-          <div className="bg-white rounded-xl shadow-2xl w-[600px] max-w-[90vw]">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-purple-50 rounded-t-xl">
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">S</span>
+      </div>
+
+      {/* Tab Bar */}
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div className="max-w-[1400px] mx-auto px-8">
+          <div className="flex">
+            {tabs.map((tab) => (
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+                className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
+                  activeTab === tab.key ? 'border-violet-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                }`}>
+                <span className={activeTab === tab.key ? 'text-violet-600' : 'text-slate-400'}>{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className={`mx-auto py-8 ${activeTab === 'scoring' ? 'max-w-[1800px] px-4' : 'max-w-[1400px] px-8'}`}>
+
+        {/* ===== TAB 1: EXECUTIVE OVERVIEW ===== */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Why Weight Support Elements?</h2>
+              <p className="text-slate-600 text-sm">A data-driven calibration of the Cancer and Careers assessment framework</p>
+            </div>
+
+            {/* The Question */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconTarget /></span>
+                <h3 className="font-bold text-slate-900 text-lg">The Question</h3>
+              </div>
+              <div className="px-8 py-6 text-slate-700 leading-relaxed space-y-4">
+                <p>The Index assesses workplace cancer support across 13 dimensions, with each dimension containing between 9 and 20 individual support elements. In the first version of the scoring, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as offering an employee assistance program.</p>
+                <p>That is a reasonable starting point, but it does not reflect reality. Some elements are table-stakes practices that most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs from the rest. The question is whether the scoring should reflect that distinction.</p>
+              </div>
+            </section>
+
+            {/* Our Answer */}
+            <section className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg overflow-hidden">
+              <div className="px-8 py-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <span className="w-8 h-8 rounded-lg bg-white/15 text-white flex items-center justify-center"><IconCheck /></span>
+                  <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Our Answer</p>
+                </div>
+                <p className="text-white text-lg leading-relaxed">
+                  <strong>Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em className="text-slate-300">calibrates</em> the scoring rather than rewrites it.
+                </p>
+              </div>
+              <div className="px-8 py-4 bg-black/20 border-t border-white/10">
+                <p className="text-slate-300 text-sm">The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.</p>
+              </div>
+            </section>
+
+            {/* How We Did It (8 Steps) */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><IconLayers /></span>
                 <div>
-                  <h3 className="font-semibold text-purple-900">Blend Weight Settings</h3>
-                  <p className="text-purple-600 text-xs">D1, D3, D12, D13 use Grid + Follow-up blend</p>
+                  <h3 className="font-bold text-slate-900 text-lg">How We Did It</h3>
+                  <p className="text-sm text-slate-600 mt-0.5">A transparent, reproducible process designed to withstand peer review</p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowBlendSettings(false)}
-                className="text-gray-400 hover:text-gray-600 p-1"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6">
-              <div className="grid grid-cols-2 gap-4">
-                {(['d1', 'd3', 'd12', 'd13'] as const).map((key) => {
-                  const dimNum = parseInt(key.substring(1));
-                  return (
-                    <div key={key} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                      <div className="font-semibold text-gray-800 mb-3">
-                        D{dimNum}: {DIMENSION_NAMES[dimNum].split(' ')[0]}
-                      </div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <label className="text-sm text-gray-600 w-16">Grid:</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={blendWeights[key].grid}
-                          onChange={(e) => {
-                            const newGrid = Math.max(0, Math.min(100, parseInt(e.target.value) || 0));
-                            setBlendWeights(prev => ({
-                              ...prev,
-                              [key]: { grid: newGrid, followUp: 100 - newGrid }
-                            }));
-                          }}
-                          className="w-16 px-2 py-1.5 text-center border border-gray-300 rounded focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                        />
-                        <span className="text-sm text-gray-500">%</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <label className="text-sm text-gray-600 w-16">Follow-up:</label>
-                        <span className="w-16 px-2 py-1.5 text-center bg-gray-200 rounded text-gray-700">
-                          {blendWeights[key].followUp}
-                        </span>
-                        <span className="text-sm text-gray-500">%</span>
+              <div className="px-8 py-6">
+                <div className="space-y-5">
+                  {[
+                    { t: 'Preserved the full response scale', d: 'Each element is scored on four levels: Currently Offer, Planning, Assessing, and Not Offered. Collapsing this to a binary would discard the progression signal the survey was designed to capture.' },
+                    { t: 'Used only clean data', d: 'If a company reported \u201cUnsure\u201d on a significant proportion of elements in a dimension, that company was excluded from weight estimation for that dimension. This prevents the analysis from learning patterns in incomplete data. Those companies still receive scored reports using the final weights.' },
+                    { t: 'Built a model that predicts overall program strength', d: 'For each dimension, we asked: which elements in this dimension best predict a company\u2019s composite score across all the other 12 dimensions? Elements that predict overall strength are the true differentiators. They signal depth and maturity that extends beyond a single area.' },
+                    { t: 'Avoided circularity by design', d: 'We deliberately did not predict the dimension\u2019s own score. If we had, the model would reward elements simply for being part of the formula, not for predicting anything meaningful. By looking outward to the composite, an element earns higher weight only if companies that score well on it also tend to score well everywhere else.' },
+                    { t: 'Measured each element\u2019s contribution by disruption', d: 'If we temporarily scramble an element\u2019s data across companies, how much does the model\u2019s ability to predict composite strength decline? Elements that cause a larger decline when scrambled are stronger differentiators. This approach produces importance scores that are always positive and intuitive to interpret.' },
+                    { t: 'Tested stability through resampling', d: 'The analysis was repeated 200 times on different random samples of companies. Elements that consistently appeared as important across all samples received their full weight. Elements whose importance fluctuated were dampened proportionally. This protects against any single company driving an element\u2019s weight.' },
+                    { t: 'Blended the results back toward equal weights', d: 'The final weight for each element is a blend of what the data suggests and what equal weighting would produce. This ensures that even where the empirical signal is strong, the expert framework still anchors the result. As participation grows in future years, the empirical share can increase.' },
+                    { t: 'Capped the maximum weight', d: 'No single element can exceed 20% of its dimension\u2019s total weight, regardless of what the data suggests. Any excess is redistributed proportionally among the other elements. This prevents any one program from dominating a dimension\u2019s score.' }
+                  ].map((step, i) => (
+                    <div key={i} className="flex gap-4">
+                      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-violet-700 text-white text-sm font-bold flex items-center justify-center shadow-sm">{i + 1}</div>
+                      <div className="pt-1">
+                        <p className="font-semibold text-slate-900">{step.t}</p>
+                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">{step.d}</p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-              <div className="mt-6 flex justify-between items-center">
-                <button
-                  onClick={() => setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS })}
-                  className="px-4 py-2 text-sm text-purple-600 hover:text-purple-800 border border-purple-300 rounded-lg hover:bg-purple-50"
-                >
-                  Reset All to 85/15
-                </button>
-                <button
-                  onClick={() => setShowBlendSettings(false)}
-                  className="px-6 py-2 text-sm bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Header */}
-      <header className="bg-gradient-to-r from-slate-900 via-indigo-900 to-slate-900 text-white py-4 px-4 lg:px-8 shadow-xl sticky top-0 z-40">
-        <div className="max-w-full mx-auto">
-          {/* Top row - Title and main controls */}
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex-shrink-0">
-              <h1 className="text-xl lg:text-2xl font-bold flex items-center gap-3">
-                <span className="p-2 bg-white/10 rounded-xl">
-                  <svg className="w-5 h-5 lg:w-6 lg:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </span>
-                Best Companies Scoring Report
-              </h1>
-              <p className="text-indigo-200 text-xs lg:text-sm mt-1">Workplace Support Excellence Index</p>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
-                <button onClick={scrollLeft} className="p-1.5 lg:p-2 hover:bg-white/20 rounded transition-colors" title="Scroll Left">
-                  <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <span className="text-xs px-1 hidden sm:inline">Scroll</span>
-                <button onClick={scrollRight} className="p-1.5 lg:p-2 hover:bg-white/20 rounded transition-colors" title="Scroll Right">
-                  <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-              <button onClick={() => window.print()} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs lg:text-sm font-medium transition-colors">
-                Print
-              </button>
-              <button onClick={() => router.push('/admin')} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-xs lg:text-sm font-medium transition-colors">
-                ← Back
-              </button>
-            </div>
-          </div>
-          
-          {/* Stats Row */}
-          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 bg-white/5 rounded-xl px-4 py-2.5 text-xs lg:text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-indigo-300">Total:</span>
-              <span className="font-bold text-lg lg:text-xl">{companyScores.filter(c => includePanel || !c.isPanel).length}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold">FP</span>
-              <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner && !c.isPanel).length}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full bg-slate-500/30 border border-slate-400/50 text-slate-200 text-xs font-bold">STD</span>
-              <span className="font-bold">{companyScores.filter(c => !c.isFoundingPartner && !c.isPanel).length}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2 py-0.5 rounded-full bg-amber-500/30 border border-amber-400/50 text-amber-200 text-xs font-bold">PANEL</span>
-              <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
-            </div>
-            <div className="border-l border-white/20 pl-3 flex items-center gap-2">
-              <span className="text-green-300">Complete:</span>
-              <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
-            </div>
-            <div className="border-l border-white/20 pl-3 flex items-center gap-2 text-xs">
-              <span className="text-gray-400">Footprint:</span>
-              <span className="px-1.5 py-0.5 rounded bg-slate-500 text-white flex items-center gap-1" title="Single country">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-                1
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-blue-500 to-cyan-500 text-white flex items-center gap-1" title="Regional (2-10 countries)">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
-                2-10
-              </span>
-              <span className="px-1.5 py-0.5 rounded bg-gradient-to-r from-indigo-500 to-purple-500 text-white flex items-center gap-1" title="Global (11+ countries)">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
-                11+
-              </span>
-            </div>
-            
-            {/* Filters */}
-            <div className="flex items-center gap-3 flex-wrap">
-              <label className="flex items-center gap-2 text-xs cursor-pointer bg-amber-500/20 px-2.5 py-1.5 rounded-lg border border-amber-400/30">
-                <input
-                  type="checkbox"
-                  checked={includePanel}
-                  onChange={(e) => setIncludePanel(e.target.checked)}
-                  className="rounded border-amber-400/50 bg-white/10 text-amber-400 w-3.5 h-3.5"
-                />
-                <span className="text-amber-200">Include Panel</span>
-              </label>
-              
-              <select
-                value={filterType}
-                onChange={(e) => setFilterType(e.target.value as any)}
-                className="bg-white/10 text-white border-0 rounded-lg px-2.5 py-1.5 text-xs"
-              >
-                <option value="all" className="text-gray-900">All</option>
-                <option value="fp" className="text-gray-900">FP Only</option>
-                <option value="standard" className="text-gray-900">Standard Only</option>
-                <option value="panel" className="text-gray-900">Panel Only</option>
-              </select>
-              
-              <label className="flex items-center gap-2 text-xs cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filterComplete}
-                  onChange={(e) => setFilterComplete(e.target.checked)}
-                  className="rounded border-white/30 bg-white/10 text-indigo-400 w-3.5 h-3.5"
-                />
-                <span>Complete Only</span>
-              </label>
-            </div>
-          </div>
-          
-          {/* Toolbar Row - Buttons */}
-          <div className="mt-2 flex flex-wrap items-center gap-2 bg-white/5 rounded-xl px-4 py-2">
-            <div className="flex bg-white/10 rounded-lg p-0.5">
-              <button
-                onClick={() => setViewMode('score')}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${viewMode === 'score' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'}`}
-              >
-                Scores
-              </button>
-              <button
-                onClick={() => setViewMode('index')}
-                className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${viewMode === 'index' ? 'bg-white text-indigo-900' : 'text-white hover:bg-white/10'}`}
-              >
-                Index
-              </button>
-            </div>
-            
-            <div className="h-5 w-px bg-white/20 mx-1"></div>
-            
-            <button 
-              onClick={() => setShowCompositeModal(true)}
-              className="px-2.5 py-1 bg-purple-500 hover:bg-purple-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Composite Scoring
-            </button>
-            <button 
-              onClick={() => setShowDimensionModal(true)}
-              className="px-2.5 py-1 bg-blue-500 hover:bg-blue-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Dimension Scoring
-            </button>
-            <button 
-              onClick={() => setShowTierStatsModal(true)}
-              className="px-2.5 py-1 bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Tier Stats
-            </button>
-            <button 
-              onClick={() => setShowBenchmarkModal(true)}
-              className="px-2.5 py-1 bg-rose-500 hover:bg-rose-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Benchmark
-            </button>
-            <button 
-              onClick={() => setShowSensitivityModal(true)}
-              className="px-2.5 py-1 bg-orange-500 hover:bg-orange-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Sensitivity
-            </button>
-            <button 
-              onClick={() => setShowReliabilityModal(true)}
-              className="px-2.5 py-1 bg-cyan-500 hover:bg-cyan-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Reliability
-            </button>
-            <button 
-              onClick={() => setShowBlendSettings(true)}
-              className="px-2.5 py-1 bg-fuchsia-500 hover:bg-fuchsia-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Blend Weights
-            </button>
-            <button 
-              onClick={() => setShowMethodologyModal(true)}
-              className="px-2.5 py-1 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Methodology
-            </button>
-            
-            <div className="h-5 w-px bg-white/20 mx-1"></div>
-            
-            <button 
-              onClick={() => setShowReportModal(true)}
-              className="px-3 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 shadow-md"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Generate Report
-            </button>
-            <button 
-              onClick={() => {
-                setCompositeWeights({ ...DEFAULT_COMPOSITE_WEIGHTS });
-                setBlendWeights({ ...DEFAULT_BLEND_WEIGHTS });
-                setWeights({ ...DEFAULT_DIMENSION_WEIGHTS });
-              }}
-              className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-lg transition-colors"
-            >
-              Reset All Weights
-            </button>
-          </div>
-          
-          {/* Legend Row - Compact */}
-          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 bg-white/5 rounded-xl px-4 py-2 text-xs">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-400 font-medium">Score Colors:</span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }} /><span className="text-gray-300">80-100</span></span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#0284C7' }} /><span className="text-gray-300">60-79</span></span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }} /><span className="text-gray-300">40-59</span></span>
-              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#DC2626' }} /><span className="text-gray-300">0-39</span></span>
-            </div>
-            <div className="flex items-center gap-2 border-l border-white/20 pl-4">
-              <span className="text-gray-400 font-medium">Data Quality:</span>
-              <span className="ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900 rounded px-1.5 py-0.5 font-bold text-amber-300 bg-white/10 text-[11px]">42</span>
-              <span className="text-gray-400">= Over 40% "Unsure"</span>
-            </div>
-            <div className="flex items-center gap-2 border-l border-white/20 pl-4">
-              <span className="text-gray-400 font-medium">Provisional:</span>
-              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 border-2 border-dashed border-amber-400 bg-amber-500/20 rounded-full text-amber-300 font-bold text-[11px]">
-                Leading<span className="text-amber-400">*</span>
-              </span>
-              <span className="text-gray-400">= 4+ dims have high Unsure</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="p-4 lg:p-6">
-
-        {sortedCompanies.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Assessments Found</h3>
-            <p className="text-gray-500">No companies match your current filters.</p>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl shadow-lg">
-            <div
-              ref={tableRef}
-              className="overflow-auto max-h-[calc(100vh-300px)]"
-            >
-              <table
-                className="text-sm border-separate border-spacing-0"
-                style={{ width: 'max-content', minWidth: '100%', tableLayout: 'fixed' }}
-              >
-                <colgroup>
-                  <col style={{ width: COL1_WIDTH }} />
-                  <col style={{ width: COL2_WIDTH }} />
-                  {/* 7 benchmark columns */}
-                  {Array.from({ length: 7 }).map((_, i) => (
-                    <col key={`bench-col-${i}`} style={{ width: COL_AVG_WIDTH }} />
                   ))}
-                  {/* company columns */}
-                  {sortedCompanies.map((c) => (
-                    <col key={`co-col-${c.surveyId}`} style={{ width: COMPANY_COL_WIDTH }} />
+                </div>
+              </div>
+            </section>
+
+            {/* What the Calibration Produces */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconTrendUp /></span>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">What the Calibration Produces</h3>
+                  <p className="text-sm text-slate-600 mt-0.5">The adjustment is deliberately modest</p>
+                </div>
+              </div>
+              <div className="px-8 py-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+                  {[
+                    { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Most companies move by fewer than 3 points.', color: 'from-slate-700 to-slate-800' },
+                    { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Highest-weighted element vs lowest within a dimension.', color: 'from-slate-600 to-slate-700' },
+                    { v: 'Preserved', l: 'Rankings', d: 'Where reordering occurs, it is among companies with similar scores.', color: 'from-slate-700 to-slate-800' },
+                    { v: '3 elements', l: '20% Cap Hit', d: 'The data would have given them even higher weight.', color: 'from-slate-600 to-slate-700' }
+                  ].map((m, i) => (
+                    <div key={i} className="rounded-xl overflow-hidden shadow-sm">
+                      <div className={`bg-gradient-to-br ${m.color} px-5 py-4`}>
+                        <p className="text-2xl font-bold text-white">{m.v}</p>
+                        <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{m.l}</p>
+                      </div>
+                      <div className="bg-white border border-slate-200 border-t-0 px-5 py-3">
+                        <p className="text-xs text-slate-600 leading-relaxed">{m.d}</p>
+                      </div>
+                    </div>
                   ))}
-                </colgroup>
-                <thead style={{ backgroundColor: '#1E293B' }}>
-                  {/* ROW 1: METRICS / BENCHMARKS / COMPANIES */}
-                  <tr className="text-white">
-                    <th colSpan={2} className="px-4 py-2 text-left text-xs font-medium border-r border-slate-600 text-white"
-                        style={{ position: 'sticky', top: 0, zIndex: 120, backgroundColor: '#1E293B', height: 36 }}>
-                      METRICS
-                    </th>
-                    <th colSpan={7} className="px-4 py-2 text-center text-xs font-medium border-r border-indigo-500 text-white"
-                        style={{ position: 'sticky', top: 0, zIndex: 120, backgroundColor: '#4338CA', height: 36 }}>
-                      BENCHMARKS
-                    </th>
-                    <th colSpan={sortedCompanies.length} className="px-4 py-2 text-center text-xs font-medium text-white"
-                        style={{ position: 'sticky', top: 0, zIndex: 120, backgroundColor: '#334155', height: 36 }}>
-                      COMPANIES ({sortedCompanies.length})
-                    </th>
-                  </tr>
-                  
-                  {/* ROW 2: Column labels */}
-                  <tr className="text-white">
-                    <th className="px-4 py-3 text-left font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_1, zIndex: 110, backgroundColor: '#334155' }}>
-                      <button onClick={() => handleSort('name')} className="hover:text-indigo-300 flex items-center gap-1">
-                        Metric {sortBy === 'name' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
-                      </button>
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-slate-600"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_2, zIndex: 110, backgroundColor: '#334155' }}>
-                      Wt %
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-indigo-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_3, zIndex: 110, backgroundColor: '#4F46E5' }}>
-                      ALL
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-violet-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_4, zIndex: 110, backgroundColor: '#7C3AED' }}>
-                      FP
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-slate-400"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_5, zIndex: 110, backgroundColor: '#64748B' }}>
-                      STD
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-amber-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_6, zIndex: 110, backgroundColor: '#D97706' }}>
-                      PANEL
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-slate-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_7, zIndex: 110, backgroundColor: '#475569' }}
-                        title="Single Country">
-                      1🌍
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-blue-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#2563EB' }}
-                        title="Regional (2-10 countries)">
-                      REG
-                    </th>
-                    <th className="px-2 py-3 text-center font-semibold border-r border-purple-500"
-                        style={{ position: 'sticky', top: 36, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#9333EA' }}
-                        title="Global (10+ countries)">
-                      GLB
-                    </th>
-                    {sortedCompanies.map(company => (
-                      <th key={company.surveyId} 
-                          className="px-2 py-2 text-center font-medium border-r last:border-r-0 text-white relative group/header"
-                          style={{ position: 'sticky', top: 36, zIndex: 100, backgroundColor: company.isPanel ? '#D97706' : company.isFoundingPartner ? '#7C3AED' : '#475569', minWidth: '80px' }}>
-                        <Link href={`/admin/profile/${company.surveyId}`} className="text-xs hover:underline block truncate text-white" title={company.companyName}>
-                          {company.companyName.length > 12 ? company.companyName.substring(0, 11) + '…' : company.companyName}
-                        </Link>
-                        <div className="flex items-center justify-center gap-1 mt-0.5">
-                          <span className="text-[10px] opacity-70">{company.completedDimCount}/13</span>
-                        </div>
-                        {/* Tooltip on hover */}
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap opacity-0 group-hover/header:opacity-100 transition-opacity pointer-events-none z-[200]">
-                          {company.companyName}
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                  {/* ROW 3: Global Footprint */}
-                  <tr>
-                    <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_1, zIndex: 110, backgroundColor: '#334155' }}>
-                      Global Footprint
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_2, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_3, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_4, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_5, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_6, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_7, zIndex: 110, backgroundColor: '#334155' }}>
-                      <span className="text-[10px] text-slate-400">n={averages.counts.single}</span>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#334155' }}>
-                      <span className="text-[10px] text-slate-400">n={averages.counts.regional}</span>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 88, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
-                      <span className="text-[10px] text-slate-400">n={averages.counts.global}</span>
-                    </th>
-                    {sortedCompanies.map(company => (
-                      <th key={`footprint-${company.surveyId}`} 
-                          className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
-                          style={{ position: 'sticky', top: 88, zIndex: 100, backgroundColor: '#334155' }}>
-                        <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
-                          company.globalFootprint.segment === 'Global' 
-                            ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md' 
-                            : company.globalFootprint.segment === 'Regional' 
-                            ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-md' 
-                            : 'bg-slate-500 text-white'
-                        }`}>
-                          {company.globalFootprint.segment === 'Global' && (
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                            </svg>
-                          )}
-                          {company.globalFootprint.segment === 'Regional' && (
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
-                            </svg>
-                          )}
-                          {company.globalFootprint.segment === 'Single' && (
-                            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                            </svg>
-                          )}
-                          <span>{company.globalFootprint.countryCount}</span>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                  {/* ROW 4: Data Confidence */}
-                  <tr>
-                    <th className="px-4 py-1.5 text-left text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_1, zIndex: 110, backgroundColor: '#334155' }}>
-                      Data Confidence
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_2, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_3, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_4, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_5, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_6, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_7, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_8, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-slate-300 border-r border-slate-600"
-                        style={{ position: 'sticky', top: 124, left: STICKY_LEFT_9, zIndex: 110, backgroundColor: '#334155' }}>
-                    </th>
-                    {sortedCompanies.map(company => {
-                      const conf = company.dataConfidence.percent;
-                      const confColor = conf >= 95 ? 'bg-green-500' : conf >= 85 ? 'bg-teal-500' : conf >= 70 ? 'bg-amber-500' : 'bg-red-500';
+                </div>
+                <div className="p-4 bg-slate-800 rounded-lg">
+                  <p className="text-slate-200 text-sm text-center">This is the expected behavior of a well-calibrated adjustment: <span className="text-white font-semibold">meaningful differentiation without disruption.</span></p>
+                </div>
+              </div>
+            </section>
+
+            {/* How the Blend Adapts */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><IconRefresh /></span>
+                <h3 className="font-bold text-slate-900 text-lg">How the Blend Adapts</h3>
+              </div>
+              <div className="px-8 py-6 text-slate-700 leading-relaxed space-y-4">
+                <p>The blend between data-driven weights and equal weights adapts by dimension based on the strength of the empirical signal. In dimensions where the data clearly identifies which elements differentiate stronger programs, the blend leans more toward the empirical finding. Where the signal is emerging, the blend anchors more heavily toward the expert framework.</p>
+                <p>This is a Year 1 calibration. The adaptive blend is conservative by design. As participation grows, the empirical signal strengthens across all dimensions, and the blend can shift further toward data-driven weights.</p>
+                <p>No dimension is excluded. The same methodology is applied across all 13 dimensions, with the blend adapting to the strength of evidence in each.</p>
+              </div>
+            </section>
+
+            {/* Top Differentiators Table */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><IconScale /></span>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Top Differentiating Elements by Dimension</h3>
+                  <p className="text-sm text-slate-600 mt-0.5">Programs that most consistently predict stronger overall performance across the Index</p>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left font-semibold w-56">Dimension</th>
+                      <th className="px-4 py-3 text-left font-semibold">Top Element</th>
+                      <th className="px-4 py-3 text-left font-semibold">Second</th>
+                      <th className="px-4 py-3 text-left font-semibold">Third</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {DIMENSION_ORDER.map((d, i) => {
+                      const dim = DIMENSIONS[d];
                       return (
-                        <th key={`conf-${company.surveyId}`} 
-                            className="px-2 py-1.5 text-center border-r border-slate-600 last:border-r-0"
-                            style={{ position: 'sticky', top: 124, zIndex: 100, backgroundColor: '#334155' }}>
-                          <div 
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold text-white ${confColor}`}
-                            title={`${company.dataConfidence.verifiedItems}/${company.dataConfidence.totalItems} items verified (${company.dataConfidence.unsureCount} unsure)`}
-                          >
-                            {conf}%
-                          </div>
-                        </th>
+                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-violet-50/40 transition-colors`}>
+                          <td className="px-6 py-3">
+                            <span className="inline-flex items-center gap-2">
+                              <span className="w-6 h-6 rounded bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">{d}</span>
+                              <span className="text-slate-800 font-medium">{dim.name}</span>
+                            </span>
+                          </td>
+                          {dim.items.slice(0, 3).map((item, j) => (
+                            <td key={j} className="px-4 py-3 text-slate-700">
+                              {item.name.length > 45 ? item.name.slice(0, 42) + '...' : item.name}
+                              <span className="ml-1.5 text-xs font-semibold text-violet-600">{(item.weight * 100).toFixed(1)}%</span>
+                            </td>
+                          ))}
+                        </tr>
                       );
                     })}
-                  </tr>
-                </thead>
-                
-                <tbody>
-                  {/* ============================================ */}
-                  {/* SECTION 1: COMPOSITE SCORE */}
-                  {/* ============================================ */}
-                  
-                  <tr>
-                    <td colSpan={9 + sortedCompanies.length} className="bg-gradient-to-r from-purple-100 to-indigo-100 border-y-2 border-purple-300">
-                      <div className="px-4 py-2 flex items-center gap-3">
-                        <span className="w-8 h-8 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">★</span>
-                        <div>
-                          <span className="font-bold text-purple-900 text-lg">Composite Score</span>
-                          <span className="text-purple-600 text-sm ml-2">(Overall Ranking)</span>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Composite Score Row */}
-                  <tr className={`${compositeWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50 hover:from-purple-100 hover:to-indigo-100' : 'bg-red-50'} transition-colors group/row`}>
-                    <td className={`px-4 py-3 border-r ${compositeWeightsValid && weightsValid ? 'bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <button onClick={() => handleSort('composite')} className={`font-bold flex items-center gap-2 ${compositeWeightsValid && weightsValid ? 'text-purple-900 hover:text-purple-700' : 'text-red-700'}`}>
-                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${compositeWeightsValid && weightsValid ? 'bg-gradient-to-br from-purple-600 to-indigo-600' : 'bg-red-500'}`}>★</span>
-                        Composite Score
-                        {sortBy === 'composite' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
-                      </button>
-                    </td>
-                    <td className={`px-2 py-3 text-center text-xs border-r ${compositeWeightsValid && weightsValid ? 'text-purple-600 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                      {compositeWeightsValid && weightsValid ? '100%' : <span className="text-red-600 font-bold">{compositeWeightsSum}%</span>}
-                    </td>
-                    {compositeWeightsValid && weightsValid ? (
-                      <>
-                        <td className="px-2 py-3 text-center bg-purple-200 border-r border-purple-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.composite.total ?? 0) }}>
-                          {averages.composite.total ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.composite.fp ?? 0) }}>
-                          {averages.composite.fp ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.composite.std ?? 0) }}>
-                          {averages.composite.std ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-2xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.composite.panel ?? 0) }}>
-                          {averages.composite.panel ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-slate-100 border-r border-slate-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.composite.single ?? 0) }}>
-                          {averages.composite.single ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-blue-100 border-r border-blue-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.composite.regional ?? 0) }}>
-                          {averages.composite.regional ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.composite.global ?? 0) }}>
-                          {averages.composite.global ?? '—'}
-                        </td>
-                        {sortedCompanies.map(company => (
-                          <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-purple-200 last:border-r-0 ${
-                            company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-purple-50'
-                          }`}>
-                            <ScoreCell score={company.compositeScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="large" viewMode={viewMode} benchmark={averages.composite.total} />
-                          </td>
-                        ))}
-                      </>
-                    ) : (
-                      <td colSpan={7 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
-                        <div className="flex items-center gap-2 text-red-700">
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          <span className="font-medium">Weights must sum to 100%</span>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                  
-                  {/* Composite Tier Row */}
-                  {compositeWeightsValid && weightsValid && (
-                    <tr className="bg-white border-b-2 border-purple-200">
-                      <td className="px-4 py-2 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                        <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
-                          Composite Tier
-                        </span>
-                      </td>
-                      <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}></td>
-                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                        {averages.composite.total !== null && <TierBadge score={averages.composite.total} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                        {averages.composite.fp !== null && <TierBadge score={averages.composite.fp} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                        {averages.composite.std !== null && <TierBadge score={averages.composite.std} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                        {averages.composite.panel !== null && <TierBadge score={averages.composite.panel} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                        {averages.composite.single !== null && <TierBadge score={averages.composite.single} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                        {averages.composite.regional !== null && <TierBadge score={averages.composite.regional} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                        {averages.composite.global !== null && <TierBadge score={averages.composite.global} isComplete={true} size="small" />}
-                      </td>
-                      {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                          company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                        }`}>
-                          <TierBadge score={company.compositeScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
-                        </td>
-                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 space-y-2">
+                <p className="text-xs text-slate-600"><strong className="text-slate-700">Important:</strong> Every element contributes to the score. Lower-weighted elements still matter. The elements that receive higher weight tend to be rarer commitments that signal deeper organizational investment.</p>
+              </div>
+            </section>
+
+            {/* What We Chose Not to Do */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </span>
+                <h3 className="font-bold text-slate-900 text-lg">What We Chose Not to Do</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left font-semibold w-56">Alternative</th>
+                      <th className="px-6 py-3 text-left font-semibold">Why We Moved On</th>
                     </tr>
-                  )}
-                  
-                  {/* Composite Components */}
-                  <tr>
-                    <td colSpan={9 + sortedCompanies.length} className="bg-purple-50/50 border-b border-purple-100">
-                      <div className="px-4 py-1.5 flex items-center gap-2 text-xs text-purple-700">
-                        <span className="font-semibold">Composite =</span>
-                        <span>W-{compositeWeights.weightedDim}% + M-{compositeWeights.maturity}% + B-{compositeWeights.breadth}%</span>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[
+                      ['Expert judgment weighting', 'Subjective and difficult to defend. Different experts produce different weights, with no way to adjudicate.'],
+                      ['Simple yes/no encoding', 'Discards the distinction between Assessing, Planning, and Currently Offer. The ordinal scale captures progression that a binary cannot.'],
+                      ['Raw model outputs as weights', 'Some outputs are negative due to overlapping elements. We used permutation importance, which produces only positive weights.'],
+                      ['Treating co-occurring elements independently', 'If two programs tend to be offered together, a simple approach gives both full credit for what may be a shared underlying capability. Our approach distributes weight among related elements.'],
+                      ['Dropping low-stability elements', 'Hard cutoffs create cliff effects. Instead, we dampen unstable elements proportionally. Every element still contributes.']
+                    ].map(([alt, why], i) => (
+                      <tr key={i} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-slate-50 transition-colors`}>
+                        <td className="px-6 py-3 font-semibold text-slate-800">{alt}</td>
+                        <td className="px-6 py-3 text-slate-700">{why}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* How This Evolves */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center"><IconRefresh /></span>
+                <h3 className="font-bold text-slate-900 text-lg">How This Evolves</h3>
+              </div>
+              <div className="px-8 py-6 text-slate-700 leading-relaxed space-y-4">
+                <p>This is a Year 1 calibration. The methodology is designed to scale naturally as participation grows. With more organizations completing the assessment each year, the empirical signal strengthens across all dimensions, the stability of element weights increases, and the blend can shift further toward data-driven weights with greater confidence.</p>
+                <p>Weights are recalibrated annually using the latest data and published alongside each Index release.</p>
+              </div>
+              <div className="px-8 py-4 bg-slate-50 border-t border-slate-200">
+                <div className="grid grid-cols-4 gap-4 text-xs">
+                  {[
+                    { m: 'Year 1 (Current)', a: 'Conservative blend. Equal weights substantial.', color: 'bg-violet-600' },
+                    { m: '75+ Organizations', a: 'Re-run analysis. Consider increasing empirical share.', color: 'bg-blue-600' },
+                    { m: '100+ Organizations', a: 'Full recalibration with high confidence.', color: 'bg-emerald-600' },
+                    { m: 'Annually', a: 'Recalibrate and publish updated weights.', color: 'bg-slate-600' }
+                  ].map((s, i) => (
+                    <div key={i} className="flex gap-2">
+                      <div className={`w-1.5 rounded-full ${s.color} flex-shrink-0`} />
+                      <div>
+                        <p className="font-semibold text-slate-800">{s.m}</p>
+                        <p className="text-slate-600 mt-0.5">{s.a}</p>
                       </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Weighted Score Component */}
-                  <tr className="bg-white hover:bg-blue-50/30 transition-colors group/row">
-                    <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <span className="font-medium text-gray-800 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center text-blue-600 text-xs font-bold">W</span>
-                        Weighted Dimension Score
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-center bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.weightedDim}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, weightedDim: parseInt(e.target.value) || 0 }))}
-                        className="w-14 px-1 py-0.5 text-xs text-center border border-gray-300 rounded"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.panel} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.single} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.regional} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                      <ScoreCell score={averages.weighted.global} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                      }`}>
-                        <ScoreCell score={company.weightedScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.weighted.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Maturity Score Component */}
-                  <tr className="bg-gray-50 hover:bg-indigo-50/30 transition-colors group/row">
-                    <td className="px-4 py-2 bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <span className="font-medium text-gray-800 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-indigo-100 rounded flex items-center justify-center text-indigo-600 text-xs font-bold">M</span>
-                        Maturity Score
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-center bg-gray-50 border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.maturity}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, maturity: parseInt(e.target.value) || 0 }))}
-                        className="w-14 px-1 py-0.5 text-xs text-center border border-gray-300 rounded"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.panel} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.single} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.regional} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                      <ScoreCell score={averages.maturity.global} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : 'bg-gray-50'
-                      }`}>
-                        <ScoreCell score={company.maturityScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.maturity.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Breadth Score Component */}
-                  <tr className="bg-white hover:bg-violet-50/30 transition-colors group/row">
-                    <td className="px-4 py-2 bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <span className="font-medium text-gray-800 flex items-center gap-2">
-                        <span className="w-5 h-5 bg-violet-100 rounded flex items-center justify-center text-violet-600 text-xs font-bold">B</span>
-                        Breadth Score
-                      </span>
-                    </td>
-                    <td className="px-1 py-2 text-center bg-white border-r border-gray-200"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                      <input
-                        type="number" min="0" max="100"
-                        value={compositeWeights.breadth}
-                        onChange={(e) => setCompositeWeights(prev => ({ ...prev, breadth: parseInt(e.target.value) || 0 }))}
-                        className="w-14 px-1 py-0.5 text-xs text-center border border-gray-300 rounded"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.total} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.fp} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.std} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.panel} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.single} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.regional} isComplete={true} />
-                    </td>
-                    <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                      <ScoreCell score={averages.breadth.global} isComplete={true} />
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                      }`}>
-                        <ScoreCell score={company.breadthScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.breadth.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* ============================================ */}
-                  {/* SECTION 2: DIMENSION SCORES */}
-                  {/* ============================================ */}
-                  
-                  <tr>
-                    <td colSpan={9 + sortedCompanies.length} className="bg-gradient-to-r from-blue-100 to-indigo-100 border-y-2 border-blue-300">
-                      <div className="px-4 py-2 flex items-center gap-3">
-                        <span className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">D</span>
-                        <div>
-                          <span className="font-bold text-blue-900 text-lg">Dimension Scores</span>
-                          <span className="text-blue-600 text-sm ml-2">(13 Assessment Areas)</span>
-                          <span className="text-blue-500 text-xs ml-3 opacity-70">Click dimension name to sort</span>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  {/* Dimension Rows */}
-                  {DIMENSION_ORDER.map((dim, idx) => (
-                    <tr key={dim} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} hover:bg-blue-50/50 transition-colors group/row`}>
-                      <td className={`px-4 py-2 border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} group-hover/row:bg-blue-50/50 transition-colors`}
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                        <button 
-                          onClick={() => handleSort(`dim${dim}` as `dim${number}`)}
-                          className="font-medium text-gray-900 hover:text-blue-700 flex items-center gap-1 w-full text-left"
-                          title={`Click to sort by D${dim}`}
-                        >
-                          <span className="text-blue-600 font-bold">D{dim}:</span> {DIMENSION_NAMES[dim]}
-                          {[1, 3, 12, 13].includes(dim) && (
-                            <span className="text-purple-500 text-xs ml-1" title="Uses blend with follow-up">*</span>
-                          )}
-                          {sortBy === `dim${dim}` && (
-                            <span className="text-xs text-blue-500 ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
-                          )}
-                        </button>
-                      </td>
-                      <td className={`px-1 py-1 text-center border-r border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/70'} group-hover/row:bg-blue-50/50 transition-colors`}
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={weights[dim]}
-                          onChange={(e) => setWeights(prev => ({ ...prev, [dim]: parseInt(e.target.value) || 0 }))}
-                          className={`w-14 px-1 py-0.5 text-xs text-center border rounded focus:ring-1 focus:ring-blue-400 bg-white ${
-                            !weightsValid ? 'border-red-300' : 'border-gray-300'
-                          }`}
-                        />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.total ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.fp ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.std ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.panel ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.single ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.regional ?? null} isComplete={true} />
-                      </td>
-                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                        <ScoreCell score={averages.dimensions[dim]?.global ?? null} isComplete={true} />
-                      </td>
-                      {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 group-hover/row:bg-blue-50/30 transition-colors ${
-                          company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                        }`}>
-                          <ScoreCell 
-                            score={company.dimensions[dim].blendedScore} 
-                            isComplete={company.dimensions[dim].totalItems > 0}
-                            isProvisional={company.dimensions[dim].isInsufficientData}
-                            viewMode={viewMode}
-                            benchmark={averages.dimensions[dim]?.total}
-                           
-                          />
-                        </td>
-                      ))}
-                    </tr>
+                    </div>
                   ))}
-                  
-                  {/* WEIGHTS TOTAL ROW */}
-                  <tr className={`${weightsValid ? 'bg-blue-100' : 'bg-red-100'} border-t-2 ${weightsValid ? 'border-blue-300' : 'border-red-300'}`}>
-                    <td className={`px-4 py-2 border-r ${weightsValid ? 'bg-blue-100 border-blue-200' : 'bg-red-100 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <div className="flex items-center justify-between">
-                        <span className={`font-semibold ${weightsValid ? 'text-blue-800' : 'text-red-800'}`}>
-                          Total Dimension Weights
-                        </span>
-                        {!weightsValid && (
-                          <span className="text-xs text-red-600 font-medium">
-                            {weightsDiff > 0 ? `Add ${weightsDiff}%` : `Remove ${Math.abs(weightsDiff)}%`}
-                          </span>
-                        )}
+                </div>
+              </div>
+            </section>
+
+            {/* Key Principles */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconShield /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Key Principles</h3>
+              </div>
+              <div className="px-8 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { t: 'The framework comes first.', d: 'Dimensions are not reweighted. Elements are not moved between dimensions. The Cancer and Careers framework is the foundation.' },
+                    { t: 'Calibration, not reinvention.', d: 'Score shifts of 1\u20133 points confirm the adjustment is proportionate to the evidence.' },
+                    { t: 'Data-driven, not opinion-driven.', d: 'Every weight traces to observed patterns across participating organizations.' },
+                    { t: 'Conservative by design.', d: 'Substantial equal-weight component in every blend. 20% cap provides an additional safety net.' },
+                    { t: 'All elements contribute.', d: 'No element is removed or zeroed out. The weighting adjusts relative emphasis, not inclusion.' },
+                    { t: 'Every dimension uses the same method.', d: 'The blend adapts to signal strength, but the process is identical across all 13 dimensions.' },
+                    { t: 'Transparent and reproducible.', d: 'Fully documented methodology. Available for peer review and Advisory Committee vetting.' }
+                  ].map((p, i) => (
+                    <div key={i} className="flex gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
+                      <span className="text-emerald-500 mt-0.5 flex-shrink-0"><IconCheck /></span>
+                      <div>
+                        <p className="font-semibold text-slate-900 text-sm">{p.t}</p>
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{p.d}</p>
                       </div>
-                    </td>
-                    <td className={`px-1 py-2 text-center border-r font-bold text-base ${weightsValid ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-red-100 border-red-200 text-red-800'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                      {weightsSum}%
-                    </td>
-                    <td colSpan={7 + sortedCompanies.length} className={`px-4 py-2 ${weightsValid ? 'bg-blue-50' : 'bg-red-50'}`}>
-                      {weightsValid ? (
-                        <span className="text-blue-600 text-sm flex items-center gap-2">
-                          <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                          Weights valid
-                        </span>
-                      ) : (
-                        <span className="text-red-600 text-sm">Adjust weights to equal 100%</span>
-                      )}
-                    </td>
-                  </tr>
-                  
-                  {/* Unweighted Average Row */}
-                  <tr className="bg-blue-50 border-t-2 border-blue-200 hover:bg-blue-100/70 transition-colors group/row">
-                    <td className="px-4 py-2 border-r border-blue-200 bg-blue-50"
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <span className="font-semibold text-blue-800">Unweighted Dimension Score</span>
-                    </td>
-                    <td className="px-2 py-2 text-center text-xs text-blue-600 border-r border-blue-200 bg-blue-50"
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>avg</td>
-                    <td className="px-2 py-2 text-center bg-indigo-100 border-r border-indigo-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.unweighted.total ?? 0) }}>
-                      {averages.unweighted.total ?? '—'}
-                    </td>
-                    <td className="px-2 py-2 text-center bg-violet-100 border-r border-violet-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.unweighted.fp ?? 0) }}>
-                      {averages.unweighted.fp ?? '—'}
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-100 border-r border-slate-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.unweighted.std ?? 0) }}>
-                      {averages.unweighted.std ?? '—'}
-                    </td>
-                    <td className="px-2 py-2 text-center bg-amber-100 border-r border-amber-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.unweighted.panel ?? 0) }}>
-                      {averages.unweighted.panel ?? '—'}
-                    </td>
-                    <td className="px-2 py-2 text-center bg-slate-100 border-r border-slate-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.unweighted.single ?? 0) }}>
-                      {averages.unweighted.single ?? '—'}
-                    </td>
-                    <td className="px-2 py-2 text-center bg-blue-100 border-r border-blue-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.unweighted.regional ?? 0) }}>
-                      {averages.unweighted.regional ?? '—'}
-                    </td>
-                    <td className="px-2 py-2 text-center bg-purple-100 border-r border-purple-200 font-bold"
-                        style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.unweighted.global ?? 0) }}>
-                      {averages.unweighted.global ?? '—'}
-                    </td>
-                    {sortedCompanies.map(company => (
-                      <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-blue-100 last:border-r-0 ${
-                        company.isPanel ? 'bg-amber-100/50' : company.isFoundingPartner ? 'bg-violet-100/50' : 'bg-blue-50'
-                      }`}>
-                        <ScoreCell score={company.unweightedScore} isComplete={company.isComplete} viewMode={viewMode} benchmark={averages.unweighted.total} />
-                      </td>
-                    ))}
-                  </tr>
-                  
-                  {/* Weighted Score Row */}
-                  <tr className={`${weightsValid ? 'bg-blue-100' : 'bg-red-50'}`}>
-                    <td className={`px-4 py-3 border-r ${weightsValid ? 'bg-blue-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                      <button onClick={() => handleSort('weighted')} className={`font-bold flex items-center gap-2 ${weightsValid ? 'text-blue-900 hover:text-blue-700' : 'text-red-700'}`}>
-                        <span className={`w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold ${weightsValid ? 'bg-blue-600' : 'bg-red-500'}`}>Î£</span>
-                        Weighted Dimension Score
-                        {sortBy === 'weighted' && <span className="text-xs">{sortDir === 'asc' ? '^' : 'v'}</span>}
-                      </button>
-                    </td>
-                    <td className={`px-2 py-3 text-center text-xs border-r ${weightsValid ? 'text-blue-600 bg-blue-100 border-blue-200' : 'bg-red-50 border-red-200'}`}
-                        style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}>
-                      {weightsValid ? '100%' : <span className="text-red-600 font-bold">{weightsSum}%</span>}
-                    </td>
-                    {weightsValid ? (
-                      <>
-                        <td className="px-2 py-3 text-center bg-indigo-200 border-r border-indigo-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5, color: getScoreColor(averages.weighted.total ?? 0) }}>
-                          {averages.weighted.total ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-violet-200 border-r border-violet-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5, color: getScoreColor(averages.weighted.fp ?? 0) }}>
-                          {averages.weighted.fp ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-slate-200 border-r border-slate-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5, color: getScoreColor(averages.weighted.std ?? 0) }}>
-                          {averages.weighted.std ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-amber-200 border-r border-amber-300 font-black text-xl"
-                            style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5, color: getScoreColor(averages.weighted.panel ?? 0) }}>
-                          {averages.weighted.panel ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-slate-100 border-r border-slate-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5, color: getScoreColor(averages.weighted.single ?? 0) }}>
-                          {averages.weighted.single ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-blue-100 border-r border-blue-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5, color: getScoreColor(averages.weighted.regional ?? 0) }}>
-                          {averages.weighted.regional ?? '—'}
-                        </td>
-                        <td className="px-2 py-3 text-center bg-purple-100 border-r border-purple-200 font-bold text-lg"
-                            style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5, color: getScoreColor(averages.weighted.global ?? 0) }}>
-                          {averages.weighted.global ?? '—'}
-                        </td>
-                        {sortedCompanies.map(company => (
-                          <td key={company.surveyId} className={`px-2 py-3 text-center border-r border-blue-200 last:border-r-0 ${
-                            company.isPanel ? 'bg-amber-100/70' : company.isFoundingPartner ? 'bg-violet-100/70' : 'bg-blue-100'
-                          }`}>
-                            <ScoreCell score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="large" viewMode={viewMode} benchmark={averages.weighted.total} />
-                          </td>
-                        ))}
-                      </>
-                    ) : (
-                      <td colSpan={7 + sortedCompanies.length} className="px-4 py-3 bg-red-50 border-r border-red-200">
-                        <span className="text-red-700 font-medium">Dimension weights must sum to 100%</span>
-                      </td>
-                    )}
-                  </tr>
-                  
-                  {/* Dimension Tier Row */}
-                  {weightsValid && (
-                    <tr className="bg-white hover:bg-gray-50/70 transition-colors group/row">
-                      <td className="px-4 py-2 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_1, zIndex: 5 }}>
-                        <span className="font-semibold text-gray-700 flex items-center gap-2 ml-8">
-                          Dimension Tier
-                        </span>
-                      </td>
-                      <td className="px-2 py-2 text-center text-xs text-gray-500 bg-white border-r border-gray-200"
-                          style={{ position: 'sticky', left: STICKY_LEFT_2, zIndex: 5 }}></td>
-                      <td className="px-2 py-2 text-center bg-indigo-50 border-r border-indigo-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_3, zIndex: 5 }}>
-                        {averages.weighted.total !== null && <TierBadge score={averages.weighted.total} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-violet-50 border-r border-violet-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_4, zIndex: 5 }}>
-                        {averages.weighted.fp !== null && <TierBadge score={averages.weighted.fp} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_5, zIndex: 5 }}>
-                        {averages.weighted.std !== null && <TierBadge score={averages.weighted.std} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-amber-50 border-r border-amber-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_6, zIndex: 5 }}>
-                        {averages.weighted.panel !== null && <TierBadge score={averages.weighted.panel} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-slate-50 border-r border-slate-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_7, zIndex: 5 }}>
-                        {averages.weighted.single !== null && <TierBadge score={averages.weighted.single} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-blue-50 border-r border-blue-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_8, zIndex: 5 }}>
-                        {averages.weighted.regional !== null && <TierBadge score={averages.weighted.regional} isComplete={true} size="small" />}
-                      </td>
-                      <td className="px-2 py-2 text-center bg-purple-50 border-r border-purple-100"
-                          style={{ position: 'sticky', left: STICKY_LEFT_9, zIndex: 5 }}>
-                        {averages.weighted.global !== null && <TierBadge score={averages.weighted.global} isComplete={true} size="small" />}
-                      </td>
-                      {sortedCompanies.map(company => (
-                        <td key={company.surveyId} className={`px-2 py-2 text-center border-r border-gray-100 last:border-r-0 ${
-                          company.isPanel ? 'bg-amber-50/30' : company.isFoundingPartner ? 'bg-violet-50/30' : ''
-                        }`}>
-                          <TierBadge score={company.weightedScore} isComplete={company.isComplete} isProvisional={company.isProvisional} size="small" />
-                        </td>
-                      ))}
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
           </div>
         )}
-        
-      </main>
+
+        {/* ===== TAB 2: STATISTICAL OVERVIEW ===== */}
+        {activeTab === 'statistical' && (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Statistical Overview</h2>
+              <p className="text-slate-600 text-sm">Dimension-level model performance, blend parameters, and pipeline specification</p>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-4 gap-4">
+              {[
+                { v: '159', l: 'Elements', d: 'Across 13 dimensions', color: 'from-slate-600 to-slate-700', icon: <IconLayers /> },
+                { v: '13', l: 'Dimensions', d: 'All with adaptive blend', color: 'from-slate-700 to-slate-800', icon: <IconGrid /> },
+                { v: '5-fold', l: 'Cross-Validation', d: 'Out-of-sample R\u00b2', color: 'from-slate-600 to-slate-800', icon: <IconChart /> },
+                { v: '200', l: 'Bootstrap Resamples', d: 'For stability testing', color: 'from-slate-700 to-slate-900', icon: <IconRefresh /> }
+              ].map((c, i) => (
+                <div key={i} className={`bg-gradient-to-br ${c.color} rounded-xl p-5 text-white shadow-sm`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-white/60">{c.icon}</span>
+                  </div>
+                  <p className="text-3xl font-bold">{c.v}</p>
+                  <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{c.l}</p>
+                  <p className="text-xs text-white/60 mt-1">{c.d}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Scoring Pipeline */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconLayers /></span>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-lg">Scoring Pipeline Integration</h3>
+                  <p className="text-sm text-slate-600 mt-0.5">Element weighting applies at Stage 4</p>
+                </div>
+              </div>
+              <div className="px-8 py-5">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase w-24">Stage</th>
+                      <th className="text-left py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase w-56">Step</th>
+                      <th className="text-left py-2.5 px-3 text-xs font-semibold text-slate-500 uppercase">Detail</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[
+                      ['1', 'Element scoring + unsure handling', 'Score confirmed elements (5/3/2/0). Apply (1\u2212r)\u00b2 substitution for Unsure.', false],
+                      ['2', 'Geographic multiplier', 'Applied based on multi-country response (\u00d71.0, \u00d70.90, or \u00d70.85).', false],
+                      ['3', 'Follow-up blending', 'For D1, D3, D12, D13: blend 85% grid score + 15% follow-up score.', false],
+                      ['4', 'Element weighting', 'Apply within-dimension support element weights. Produces weighted dimension scores.', true],
+                      ['5', 'Dimension weighting', 'Apply dimension weights to produce weighted dimension score.', false],
+                      ['6', 'Composite', 'Composite = (Weighted Dimensions \u00d7 90%) + (Maturity \u00d7 5%) + (Breadth \u00d7 5%).', false]
+                    ].map(([stage, step, detail, highlight], i) => (
+                      <tr key={i} className={`${highlight ? 'bg-violet-50 border-l-4 border-l-violet-600' : ''}`}>
+                        <td className={`py-2.5 px-3 text-xs font-mono ${highlight ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>Stage {stage}</td>
+                        <td className={`py-2.5 px-3 ${highlight ? 'text-violet-800 font-semibold' : 'text-slate-800'}`}>{step}</td>
+                        <td className={`py-2.5 px-3 text-sm ${highlight ? 'text-violet-700' : 'text-slate-600'}`}>{detail}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Weight Estimation Pipeline — clean horizontal flow */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><IconChart /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Weight Estimation Pipeline</h3>
+              </div>
+              <div className="px-8 py-6">
+                <div className="grid grid-cols-4 gap-3 mb-3">
+                  {[
+                    { title: 'Ordinal Encoding', detail: '0 / 2 / 3 / 5', color: 'bg-slate-700' },
+                    { title: 'Company Filtering', detail: '\u226560% observed', color: 'bg-slate-700' },
+                    { title: 'Ridge Regression', detail: '\u03b1 = 1.0, z-scored', color: 'bg-slate-700' },
+                    { title: 'Permutation Importance', detail: '100 repetitions', color: 'bg-slate-700' },
+                  ].map((s, i) => (
+                    <div key={i} className="relative">
+                      <div className={`${s.color} text-white rounded-lg px-4 py-3.5 text-center`}>
+                        <p className="text-sm font-bold">{s.title}</p>
+                        <p className="text-xs text-white/70 mt-0.5">{s.detail}</p>
+                      </div>
+                      {i < 3 && (
+                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                          <PipelineArrow />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-center my-2 text-slate-300">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {[
+                    { title: 'Bootstrap Stability', detail: '200 resamples', color: 'bg-slate-700' },
+                    { title: 'Soft Attenuation', detail: 'w \u00d7 s(j)^1.5', color: 'bg-slate-600' },
+                    { title: 'Adaptive \u03b1 Blend', detail: 'CV R\u00b2 \u2192 \u03b1', color: 'bg-slate-600' },
+                    { title: '20% Hard Cap', detail: 'Redistribute excess', color: 'bg-slate-800' },
+                  ].map((s, i) => (
+                    <div key={i} className="relative">
+                      <div className={`${s.color} text-white rounded-lg px-4 py-3.5 text-center`}>
+                        <p className="text-sm font-bold">{s.title}</p>
+                        <p className="text-xs text-white/70 mt-0.5">{s.detail}</p>
+                      </div>
+                      {i < 3 && (
+                        <div className="absolute -right-3 top-1/2 -translate-y-1/2 z-10">
+                          <PipelineArrow />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Feature Encoding */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconGrid /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Feature Encoding</h3>
+              </div>
+              <div className="px-8 py-5">
+                <div className="grid grid-cols-5 gap-3">
+                  {[
+                    { resp: 'Currently Offer', score: '5', bg: 'bg-emerald-600', desc: 'Full credit' },
+                    { resp: 'Planning', score: '3', bg: 'bg-blue-600', desc: 'Active intent' },
+                    { resp: 'Assessing', score: '2', bg: 'bg-amber-600', desc: 'Exploring' },
+                    { resp: 'Not Offered', score: '0', bg: 'bg-slate-500', desc: 'Confirmed absence' },
+                    { resp: 'Unsure', score: '\u2014', bg: 'bg-slate-300', desc: 'Excluded from fit' },
+                  ].map((r, i) => (
+                    <div key={i} className="text-center">
+                      <div className={`${r.bg} text-white rounded-lg py-3 mb-2`}>
+                        <p className="text-2xl font-bold">{r.score}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-slate-800">{r.resp}</p>
+                      <p className="text-xs text-slate-500">{r.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            {/* Adaptive Shrinkage — proper formula + colored cards */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><IconScale /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Adaptive Shrinkage Toward Equal Weights</h3>
+              </div>
+              <div className="px-8 py-6">
+                {/* Formula — styled properly */}
+                <div className="bg-slate-800 rounded-lg px-6 py-4 mb-6">
+                  <p className="text-white font-mono text-center text-base tracking-wide">
+                    w<sub className="text-xs">final</sub>(j)
+                    <span className="mx-3">=</span>
+                    <span className="font-bold">\u03b1</span>
+                    <span className="mx-1">\u00d7</span>
+                    w<sub className="text-xs">empirical</sub>(j)
+                    <span className="mx-3">+</span>
+                    (1 \u2212 <span className="font-bold">\u03b1</span>)
+                    <span className="mx-1">\u00d7</span>
+                    w<sub className="text-xs">equal</sub>
+                  </p>
+                </div>
+
+                {/* Three cards with color fills */}
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="rounded-xl overflow-hidden border border-amber-200">
+                    <div className="bg-amber-50 px-5 py-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Emerging Signal</span>
+                        <span className="text-xl font-bold text-amber-800">\u03b1 = 0.30</span>
+                      </div>
+                      <p className="text-sm font-mono text-amber-700 mb-2">CV R\u00b2 &lt; 0</p>
+                      <p className="text-sm text-amber-800 leading-relaxed">30% empirical, 70% equal. Anchor heavily toward the expert framework while allowing modest differentiation.</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-indigo-200">
+                    <div className="bg-indigo-50 px-5 py-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Developing Signal</span>
+                        <span className="text-xl font-bold text-indigo-800">\u03b1 = 0.40</span>
+                      </div>
+                      <p className="text-sm font-mono text-indigo-700 mb-2">0 \u2264 CV R\u00b2 &lt; 0.10</p>
+                      <p className="text-sm text-indigo-800 leading-relaxed">40% empirical, 60% equal. Lean toward equal but allow more differentiation.</p>
+                    </div>
+                  </div>
+                  <div className="rounded-xl overflow-hidden border border-emerald-200">
+                    <div className="bg-emerald-50 px-5 py-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Established Signal</span>
+                        <span className="text-xl font-bold text-emerald-800">\u03b1 = 0.50</span>
+                      </div>
+                      <p className="text-sm font-mono text-emerald-700 mb-2">CV R\u00b2 \u2265 0.10</p>
+                      <p className="text-sm text-emerald-800 leading-relaxed">50% empirical, 50% equal. Balanced blend of empirical and equal.</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-700">Hard cap: No single element can exceed 20% of its dimension&apos;s total weight. Any excess is redistributed proportionally. Final weights normalize to 1.000 within each dimension.</p>
+              </div>
+            </section>
+
+            {/* Dimension Results Table — no n column */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconTrendUp /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Dimension-Level Results</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                      <th className="px-5 py-3 text-left font-semibold">Dimension</th>
+                      <th className="px-4 py-3 text-center font-semibold w-16">Wt</th>
+                      <th className="px-4 py-3 text-center font-semibold w-16">Elem</th>
+                      <th className="px-4 py-3 text-center font-semibold w-24">CV R\u00b2</th>
+                      <th className="px-4 py-3 text-center font-semibold w-24">Signal</th>
+                      <th className="px-4 py-3 text-center font-semibold w-14">\u03b1</th>
+                      <th className="px-4 py-3 text-left font-semibold">Top 3 Elements</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {DIMENSION_ORDER.map((d, i) => {
+                      const dim = DIMENSIONS[d];
+                      const sig = getSig(dim.cvR2);
+                      return (
+                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-violet-50/30 transition-colors`}>
+                          <td className="px-5 py-3 font-semibold text-slate-800">
+                            <span className="inline-flex items-center gap-2">
+                              <span className="w-6 h-6 rounded bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">{d}</span>
+                              {dim.name}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center text-slate-700 font-medium">{dim.weight}%</td>
+                          <td className="px-4 py-3 text-center text-slate-600">{dim.elements}</td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`font-mono font-bold ${dim.cvR2 < 0 ? 'text-amber-700' : dim.cvR2 >= 0.30 ? 'text-emerald-700' : 'text-slate-700'}`}>
+                              {dim.cvR2 >= 0 ? '+' : ''}{dim.cvR2.toFixed(3)}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${sig.bg} border ${sig.border}`} style={{ color: sig.color }}>{sig.label}</span>
+                          </td>
+                          <td className="px-4 py-3 text-center font-bold text-slate-700">{dim.alpha.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{dim.topElements.join(' \u00b7 ')}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
+                <div className="flex items-center gap-6 text-xs text-slate-600">
+                  <span><strong className="text-slate-700">CV R\u00b2</strong> = 5-fold cross-validated R\u00b2 (out-of-sample predictive power)</span>
+                  <span><strong className="text-slate-700">\u03b1</strong> = empirical share in final blend (1 \u2212 \u03b1 = equal weight share)</span>
+                </div>
+              </div>
+            </section>
+
+            {/* Alternatives */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100">
+                <h3 className="font-bold text-slate-900 text-lg">Alternatives Explored and Rejected</h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                      <th className="px-6 py-3 text-left font-semibold w-64">Approach</th>
+                      <th className="px-6 py-3 text-left font-semibold">Why Rejected</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {[
+                      ['Bivariate correlation', 'Treats co-occurring elements independently, giving both full credit for what may be shared capability.'],
+                      ['Raw ridge coefficients', 'Can be negative due to multicollinearity. Permutation importance produces only positive weights.'],
+                      ['Binary encoding', 'Discards the distinction between Assessing, Planning, and Currently Offer.'],
+                      ['Expert judgment', 'Subjective and difficult to defend. No adjudication mechanism.'],
+                      ['Hard stability cutoffs', 'Cliff effects. Soft attenuation is more principled.']
+                    ].map(([a, w], i) => (
+                      <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}>
+                        <td className="px-6 py-3 font-semibold text-slate-800">{a}</td>
+                        <td className="px-6 py-3 text-slate-700">{w}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* ===== TAB 3: ELEMENT WEIGHTS ===== */}
+        {activeTab === 'weights' && (
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Element-Level Weights</h2>
+              <p className="text-slate-600 text-sm">All 159 support elements across 13 dimensions. Click a dimension to expand.</p>
+            </div>
+
+            {DIMENSION_ORDER.map((d) => {
+              const dim = DIMENSIONS[d];
+              const isExpanded = expandedDim === d;
+              const sig = getSig(dim.cvR2);
+
+              return (
+                <div key={d} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <button onClick={() => setExpandedDim(isExpanded ? null : d)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <span className="w-10 h-10 rounded-lg bg-slate-800 text-white text-sm font-bold flex items-center justify-center">{d}</span>
+                      <div className="text-left">
+                        <span className="font-bold text-slate-900">{dim.name}</span>
+                        <div className="flex items-center gap-3 mt-0.5 text-xs">
+                          <span className="text-slate-600 font-medium">{dim.elements} elements</span>
+                          <span className="text-slate-600 font-medium">{dim.weight}% dim wt</span>
+                          <span className={`font-bold px-2 py-0.5 rounded-full ${sig.bg} border ${sig.border}`} style={{ color: sig.color }}>
+                            CV R² = {dim.cvR2 >= 0 ? '+' : ''}{dim.cvR2.toFixed(3)}
+                          </span>
+                          <span className="text-slate-600 font-medium">α = {dim.alpha.toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-slate-500"><IconChevron open={isExpanded} /></div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="border-t border-slate-200">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                            <th className="pl-6 pr-2 py-2.5 text-left font-semibold w-10">#</th>
+                            <th className="px-3 py-2.5 text-left font-semibold">Support Element</th>
+                            <th className="px-3 py-2.5 text-right font-semibold w-20">Equal</th>
+                            <th className="px-3 py-2.5 text-right font-semibold w-24">Weight</th>
+                            <th className="px-3 py-2.5 text-right font-semibold w-20">vs Equal</th>
+                            <th className="px-3 py-2.5 text-center font-semibold w-32">Stability</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {dim.items.map((item, i) => (
+                            <tr key={item.rank} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                              <td className="pl-6 pr-2 py-2.5 text-slate-500 text-xs font-medium">{item.rank}</td>
+                              <td className="px-3 py-2.5 text-slate-800">{item.name}</td>
+                              <td className="px-3 py-2.5 text-right text-slate-500 tabular-nums">{(item.equal * 100).toFixed(1)}%</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums"><span className="font-bold text-slate-900">{(item.weight * 100).toFixed(1)}%</span></td>
+                              <td className="px-3 py-2.5 text-right tabular-nums">
+                                <span className={`text-xs font-bold ${item.delta >= 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
+                                  {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}%
+                                </span>
+                              </td>
+                              <td className="px-3 py-2.5">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="w-16 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                    <div className="h-full rounded-full" style={{ width: `${item.stability * 100}%`, backgroundColor: stabColor(item.stability) }} />
+                                  </div>
+                                  <span className="text-xs text-slate-600 w-10 text-right tabular-nums font-medium">{(item.stability * 100).toFixed(0)}%</span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                        <tfoot>
+                          <tr className="bg-slate-100 border-t border-slate-200">
+                            <td colSpan={2} className="pl-6 pr-3 py-2 text-xs text-slate-700 font-semibold">Dimension Total</td>
+                            <td className="px-3 py-2 text-right text-xs text-slate-600 tabular-nums font-medium">100.0%</td>
+                            <td className="px-3 py-2 text-right text-xs text-slate-900 font-bold tabular-nums">100.0%</td>
+                            <td colSpan={2} />
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ===== TAB 4: SCORE COMPARISON — LIVE FROM SUPABASE ===== */}
+        {activeTab === 'scoring' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
+                <p className="text-slate-600 text-sm">Equal-weight vs. element-weighted scores calculated live from assessment data. Only within-dimension element weighting differs.</p>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
+                Include Panel
+              </label>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-20 text-slate-500">Loading assessment data...</div>
+            ) : filteredCompanies.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">No complete assessments found.</div>
+            ) : (
+              <>
+                {/* Legend + Stats */}
+                <div className="flex items-center gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-white border-2 border-slate-300" />
+                    <span className="text-slate-700 text-sm font-medium">Equal Weight</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-emerald-600" />
+                    <span className="text-slate-700 text-sm font-medium">Element-Weighted</span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-6">
+                    <div>
+                      <span className="text-2xl font-bold text-emerald-700">{filteredCompanies.filter(c => c.wtComposite > c.eqComposite).length}</span>
+                      <span className="text-sm text-slate-600 ml-1">score higher</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-bold text-slate-800">
+                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.wtComposite - c.eqComposite), 0) / filteredCompanies.length).toFixed(1)}
+                      </span>
+                      <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-slate-700">{filteredCompanies.length}</span>
+                      <span className="text-sm text-slate-600 ml-1">companies</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Score Table */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="bg-slate-800 text-white">
+                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-28 min-w-[112px]" />
+                          <th className="px-2 py-3 text-center font-bold text-[10px] bg-slate-700 border-r border-slate-600 min-w-[50px]">Benchmark</th>
+                          {filteredCompanies.map((c, i) => (
+                            <th key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-[9px] leading-tight min-w-[44px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
+                              {c.companyName.length > 14
+                                ? c.companyName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
+                                : c.companyName}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Composite */}
+                        <tr className="bg-slate-200 border-y-2 border-slate-400">
+                          <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-[10px] tracking-wider">Composite Score</td>
+                        </tr>
+                        <tr className="border-b border-slate-200">
+                          <td className="sticky left-0 z-10 bg-white px-3 py-2.5 text-slate-800 font-semibold text-xs border-r border-slate-100">Equal</td>
+                          <td className="px-2 py-2.5 text-center font-bold text-slate-800 bg-slate-50 border-r border-slate-100">{benchmark?.eqC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-2.5 text-center font-medium text-slate-700 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.eqComposite}</td>
+                          ))}
+                        </tr>
+                        <tr className="border-b border-slate-200 bg-emerald-50">
+                          <td className="sticky left-0 z-10 bg-emerald-50 px-3 py-2.5 text-emerald-800 font-bold text-xs border-r border-emerald-100">Weighted</td>
+                          <td className="px-2 py-2.5 text-center font-bold bg-emerald-100 border-r border-emerald-100" style={{ color: getScoreColor(benchmark?.wtC || 0) }}>{benchmark?.wtC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/50'}`} style={{ color: getScoreColor(c.wtComposite) }}>{c.wtComposite}</td>
+                          ))}
+                        </tr>
+                        <tr className="border-b-2 border-slate-400 bg-slate-100">
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-[10px] font-bold border-r border-slate-200">Δ</td>
+                          <td className="px-2 py-1.5 text-center text-[10px] font-bold bg-slate-100 border-r border-slate-200">
+                            {benchmark && <span className={(benchmark.wtC - benchmark.eqC) >= 0 ? 'text-emerald-700' : 'text-red-700'}>{(benchmark.wtC - benchmark.eqC) >= 0 ? '+' : ''}{benchmark.wtC - benchmark.eqC}</span>}
+                          </td>
+                          {filteredCompanies.map((c) => {
+                            const d = c.wtComposite - c.eqComposite;
+                            return (
+                              <td key={c.surveyId} className="px-1 py-1.5 text-center text-[10px] font-bold">
+                                <span className={d > 0 ? 'text-emerald-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
+                                  {d > 0 ? '+' : ''}{d}
+                                </span>
+                              </td>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Dimension Rows */}
+                        {DIMENSION_ORDER.map((dim, idx) => (
+                          <React.Fragment key={dim}>
+                            <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
+                              <td colSpan={2 + filteredCompanies.length} className="px-3 py-1 text-[10px] font-bold text-slate-800">
+                                D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
+                              </td>
+                            </tr>
+                            <tr className="border-b border-slate-100">
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-[10px] font-medium border-r border-slate-100">Equal</td>
+                              <td className="px-2 py-1 text-center text-slate-600 text-[10px] bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.eq}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-1 text-center text-slate-600 text-[10px] ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
+                              ))}
+                            </tr>
+                            <tr className="border-b border-slate-100 bg-emerald-50/30">
+                              <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-800 font-semibold pl-4 text-[10px] border-r border-emerald-100/50">Wt</td>
+                              <td className="px-2 py-1 text-center font-semibold text-[10px] bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.wt || 0) }}>{benchmark?.dims[dim]?.wt}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-1 text-center text-[10px] font-semibold ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.wt || 0) }}>
+                                  {c.dims[dim]?.wt}
+                                </td>
+                              ))}
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
