@@ -1049,7 +1049,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
       { rank: 1, name: "Emergency leave within 24 hours", weight: 0.164705, equal: 0.083333, delta: 0.081372 },
       { rank: 2, name: "Remote work options for on-site employees", weight: 0.125719, equal: 0.083333, delta: 0.042386 },
       { rank: 3, name: "Intermittent leave beyond local / legal requirements", weight: 0.110911, equal: 0.083333, delta: 0.027578 },
-      { rank: 4, name: "Paid micro-breaks for medical-related side effects", weight: 0.093921, equal: 0.083333, delta: 0.010588 },
+      { rank: 4, name: "Paid micro-breaks for medical-related side effects (merged)", weight: 0.093921, equal: 0.083333, delta: 0.010588 },
       { rank: 5, name: "Flexible work hours during treatment (e.g., varying start/end times...", weight: 0.093364, equal: 0.083333, delta: 0.010031 },
       { rank: 6, name: "Job protection beyond local / legal requirements", weight: 0.070545, equal: 0.083333, delta: -0.012788 },
       { rank: 7, name: "Paid medical leave beyond local / legal requirements", weight: 0.062391, equal: 0.083333, delta: -0.020942 },
@@ -1369,7 +1369,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     n: 40,
     topElements: [
       "Family/caregiver communication inclusion",
-      "Ability to access program information",
+      "Ability to access program information (merged)",
       "Employee testimonials/success stories",
     ],
     items: [
@@ -1739,6 +1739,20 @@ export default function ElementWeightingPage() {
               <p className="text-slate-700 leading-relaxed mb-3">We avoided approaches that are hard to defend or unstable at small sample sizes: subjective expert weighting, binary recoding that discards maturity progression, raw coefficients that can produce misleading negatives, and hard cutoffs that create cliff effects. Instead, we use stable importance measures, proportional damping, and conservative blending to keep the framework intact.</p>
               <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration. As participation grows, the empirical signal strengthens and weights can become more data-driven while maintaining the same guardrails. Weights are recalibrated annually and published alongside each Index release.</p>
             </section>
+
+            {/* Quick Navigation */}
+            <div className="flex flex-wrap gap-4">
+              <button onClick={() => setActiveTab('weights')} className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-violet-600 to-violet-700 text-white font-semibold rounded-xl shadow-sm hover:from-violet-700 hover:to-violet-800 transition-all">
+                <IconScale />
+                <span>View Element Weights</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              </button>
+              <a href="/admin/scoring/unsure-methodology" className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl shadow-sm hover:from-amber-600 hover:to-amber-700 transition-all">
+                <IconShield />
+                <span>Unsure Substitutions</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+              </a>
+            </div>
           </div>
         )}
 
