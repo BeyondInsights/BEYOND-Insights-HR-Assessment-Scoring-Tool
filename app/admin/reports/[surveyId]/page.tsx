@@ -5058,7 +5058,7 @@ export default function ExportReportPage() {
                         </svg>
                       </div>
                       <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
-                        <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">#workingwithcancer</span></p>
+                        <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">Working with Cancer</span></p>
                         <p className="text-sm font-semibold text-slate-800">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
                       </div>
                     </div>
@@ -8787,7 +8787,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="border-l-2 pl-4" style={{ borderColor: '#e5e5e5' }}>
                     <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#888' }}>The</p>
-                    <p className="text-xl font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                    <p className="text-xl font-bold" style={{ color: '#434345' }}>Working with Cancer</p>
                     <p className="text-base font-medium" style={{ color: '#434345' }}>Pledge</p>
                   </div>
                 </div>
@@ -8815,37 +8815,44 @@ export default function ExportReportPage() {
                   </svg>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 text-lg mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                  <h4 className="font-bold text-slate-900 text-lg mb-1">A Public Commitment to Support Employees Impacted by Cancer</h4>
                   <p className="text-slate-600 text-sm leading-relaxed">
-                    Launched at Davos in January 2023 by the Publicis Foundation, the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
+                    The Working with Cancer pledge rallies companies around the world to erase the stigma of cancer in the workplace and create an environment where people impacted by cancer feel supported because of their workplace, not in spite of it. The pledge is a signal of the company&apos;s commitment, so an employee expects support before they even need it.
                   </p>
                 </div>
               </div>
               
-              {/* Three Commitments - Compact Cards */}
+              {/* Four Commitment Areas */}
               <div className="rounded-xl p-4 mb-5" style={{ background: 'linear-gradient(135deg, #fff8f7 0%, #ffffff 100%)', border: '2px solid #ff353c' }}>
-                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
-                <div className="grid grid-cols-3 gap-4">
+                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#ff353c' }}>A Company&apos;s Pledge May Include Elements Like</p>
+                <div className="grid grid-cols-4 gap-3">
                   <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                     </div>
-                    <p className="font-bold text-slate-900 text-base mb-1">Job Security</p>
-                    <p className="text-slate-600 text-xs leading-relaxed">Secure jobs, salary, and benefits so employees can focus on treatment</p>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Corporate Policies and Benefits</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">To ensure those diagnosed with cancer and other chronic illness can confidently secure and make space for the treatment they need</p>
                   </div>
                   <div className="rounded-lg p-4 shadow-md" style={{ backgroundColor: '#ff353c' }}>
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-white/20">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                     </div>
-                    <p className="font-bold text-white text-base mb-1">Open Culture</p>
-                    <p className="text-white/90 text-xs leading-relaxed">Foster stigma-free environments where employees feel safe to disclose</p>
+                    <p className="font-bold text-white text-sm mb-1">Community</p>
+                    <p className="text-white/90 text-xs leading-relaxed">To create connectivity across impacted individuals and encourage a culture of empathy and understanding across the workforce</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    </div>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Coaching</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">To ensure that impacted individuals have access to support that can help integrate work with treatment and its effects</p>
                   </div>
                   <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                     <div className="w-8 h-8 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: '#ff353c' }}>
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                     </div>
-                    <p className="font-bold text-slate-900 text-base mb-1">Recovery Support</p>
-                    <p className="text-slate-600 text-xs leading-relaxed">Provide flexible working, phased return, and personalized accommodations</p>
+                    <p className="font-bold text-slate-900 text-sm mb-1">Caregivers</p>
+                    <p className="text-slate-600 text-xs leading-relaxed">To support with practical tools and resources to help balance work with personal obligations</p>
                   </div>
                 </div>
               </div>
@@ -8927,6 +8934,9 @@ export default function ExportReportPage() {
                 <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong>
                 <span className="mx-2 text-slate-500">•</span>
                 <span className="text-slate-300">Together, they demonstrate genuine commitment.</span>
+              </p>
+              <p className="text-xs text-center mt-1.5 text-slate-400">
+                To learn more about the Working with Cancer Pledge, visit <a href="https://workingwithcancerpledge.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300 hover:text-white">workingwithcancerpledge.com</a>
               </p>
             </div>
           </div>
@@ -9842,7 +9852,7 @@ export default function ExportReportPage() {
                                 </svg>
                               </div>
                               <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
-                                <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">#workingwithcancer</span></p>
+                                <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">Working with Cancer</span></p>
                                 <p className="text-sm font-semibold text-slate-800">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
                               </div>
                             </div>
@@ -12248,7 +12258,7 @@ export default function ExportReportPage() {
                           </div>
                           <div className="border-l-2 pl-5" style={{ borderColor: '#e5e5e5' }}>
                             <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#888' }}>The</p>
-                            <p className="text-lg font-bold" style={{ color: '#434345' }}>#workingwithcancer</p>
+                            <p className="text-lg font-bold" style={{ color: '#434345' }}>Working with Cancer</p>
                             <p className="text-base font-medium" style={{ color: '#434345' }}>Pledge</p>
                           </div>
                         </div>
@@ -12275,37 +12285,44 @@ export default function ExportReportPage() {
                           </svg>
                         </div>
                         <div>
-                          <h4 className="font-bold text-slate-900 text-base mb-1">A Public Commitment to Support Employees Managing Cancer</h4>
+                          <h4 className="font-bold text-slate-900 text-base mb-1">A Public Commitment to Support Employees Impacted by Cancer</h4>
                           <p className="text-slate-600 text-sm leading-relaxed">
-                            Launched at Davos in January 2023 by the Publicis Foundation, the Working with Cancer Pledge asks organizations to make specific, public commitments to employees facing cancer.
+                            The Working with Cancer pledge rallies companies around the world to erase the stigma of cancer in the workplace and create an environment where people impacted by cancer feel supported because of their workplace, not in spite of it. The pledge is a signal of the company&apos;s commitment, so an employee expects support before they even need it.
                           </p>
                         </div>
                       </div>
                       
                       {/* Commitments */}
                       <div className="rounded-xl p-5 mb-5" style={{ background: 'linear-gradient(135deg, #fff8f7 0%, #ffffff 100%)', border: '2px solid #ff353c' }}>
-                        <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#ff353c' }}>Pledge Signatories Commit To:</p>
-                        <div className="grid grid-cols-3 gap-4">
+                        <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#ff353c' }}>A Company&apos;s Pledge May Include Elements Like</p>
+                        <div className="grid grid-cols-4 gap-3">
                           <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                             </div>
-                            <p className="font-bold text-slate-900 text-sm">Job Security</p>
-                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">Secure jobs, salary, and benefits so employees can focus on treatment</p>
+                            <p className="font-bold text-slate-900 text-sm">Corporate Policies and Benefits</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">To ensure those diagnosed with cancer and other chronic illness can confidently secure and make space for the treatment they need</p>
                           </div>
                           <div className="rounded-lg p-4 shadow-lg" style={{ backgroundColor: '#ff353c' }}>
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3 bg-white/20">
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                             </div>
-                            <p className="font-bold text-white text-sm">Open Culture</p>
-                            <p className="text-white/90 text-xs mt-1 leading-relaxed">Foster stigma-free environments where employees feel safe to disclose</p>
+                            <p className="font-bold text-white text-sm">Community</p>
+                            <p className="text-white/90 text-xs mt-1 leading-relaxed">To create connectivity across impacted individuals and encourage a culture of empathy and understanding across the workforce</p>
+                          </div>
+                          <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
+                            <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
+                              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                            </div>
+                            <p className="font-bold text-slate-900 text-sm">Coaching</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">To ensure that impacted individuals have access to support that can help integrate work with treatment and its effects</p>
                           </div>
                           <div className="bg-white rounded-lg p-4 border border-slate-200 shadow-sm">
                             <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-3" style={{ backgroundColor: '#ff353c' }}>
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
                             </div>
-                            <p className="font-bold text-slate-900 text-sm">Recovery Support</p>
-                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">Provide flexible working, phased return, and personalized accommodations</p>
+                            <p className="font-bold text-slate-900 text-sm">Caregivers</p>
+                            <p className="text-slate-500 text-xs mt-1 leading-relaxed">To support with practical tools and resources to help balance work with personal obligations</p>
                           </div>
                         </div>
                       </div>
@@ -12381,6 +12398,7 @@ export default function ExportReportPage() {
                     {/* Footer */}
                     <div className="px-12 py-4 text-center" style={{ backgroundColor: '#434345' }}>
                       <p className="text-sm"><strong className="text-white">The Pledge signals intent.</strong> <span className="mx-2 text-slate-500">•</span> <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong> <span className="mx-2 text-slate-500">•</span> <span className="text-slate-300">Together, they demonstrate genuine commitment.</span></p>
+                      <p className="text-xs mt-1.5 text-slate-400">To learn more about the Working with Cancer Pledge, visit <a href="https://workingwithcancerpledge.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300 hover:text-white">workingwithcancerpledge.com</a></p>
                     </div>
                   </div>
                 )}
