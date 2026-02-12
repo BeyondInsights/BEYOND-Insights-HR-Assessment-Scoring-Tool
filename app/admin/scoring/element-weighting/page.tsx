@@ -660,9 +660,10 @@ interface CombinedCompanyResult {
   surveyId: string;
   isComplete: boolean;
   isPanel: boolean;
-  dims: Record<number, { eq: number; wt: number; combined: number }>;
+  dims: Record<number, { eq: number; wt: number; unsure: number; combined: number }>;
   eqComposite: number;      // Equal-weight, unsure=0
   wtComposite: number;      // Element-weighted, unsure=0
+  unsureComposite: number;  // Equal-weight + unsure substitution
   combinedComposite: number; // Element-weighted + unsure substitution
   maturityScore: number;
   breadthScore: number;
@@ -675,7 +676,7 @@ function calculateCombinedScore(
   // Get baseline scores
   const eqScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
 
-  const dims: Record<number, { eq: number; wt: number; combined: number }> = {};
+  const dims: Record<number, { eq: number; wt: number; unsure: number; combined: number }> = {};
 
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
@@ -686,6 +687,43 @@ function calculateCombinedScore(
     // Element-weighted score (unsure=0)
     const wtResult = calculateElementWeightedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS);
     const wtScore = wtResult.blendedWeighted;
+
+    // Unsure-only: Equal-weight base + unsure substitution (no element weighting)
+    let unsureScore = eqScore;
+    if (dimData) {
+      const uGrid = dimData[`d${i}a`];
+      if (uGrid && typeof uGrid === 'object') {
+        let uEarned = 0;
+        let uUnsure = 0;
+        let uAnswered = 0;
+        Object.entries(uGrid).forEach(([key, status]: [string, any]) => {
+          if (i === 10 && D10_EXCLUDED_ITEMS.includes(key)) return;
+          const { points, isUnsure } = statusToPoints(status);
+          if (isUnsure) { uUnsure++; uAnswered++; }
+          else if (points !== null) { uEarned += points; uAnswered++; }
+        });
+        if (uAnswered > 0) {
+          const uMax = uAnswered * POINTS.CURRENTLY_OFFER;
+          const r = uUnsure / uAnswered;
+          const mu = populationMeans[i] || 3.09;
+          let uCredit = uUnsure * mu * Math.pow(1 - r, 2);
+          const uCap = 0.10 * uMax;
+          if (uCredit > uCap) uCredit = uCap;
+          unsureScore = Math.round(((uEarned + uCredit) / uMax) * 100);
+          // Geo multiplier
+          const geoR = dimData[`d${i}aa`] || dimData[`D${i}aa`];
+          unsureScore = Math.round(unsureScore * getGeoMultiplier(geoR));
+          // Follow-up blend
+          if ([1, 3, 12, 13].includes(i)) {
+            const fuScore = calculateFollowUpScore(i, assessment);
+            if (fuScore !== null) {
+              const key2 = `d${i}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+              unsureScore = Math.round((unsureScore * (DEFAULT_BLEND_WEIGHTS[key2]?.grid ?? 85) / 100) + (fuScore * (DEFAULT_BLEND_WEIGHTS[key2]?.followUp ?? 15) / 100));
+            }
+          }
+        }
+      }
+    }
 
     // Combined: Element-weighted base + unsure substitution
     // Recalculate with element weights AND unsure credit
@@ -759,18 +797,20 @@ function calculateCombinedScore(
       }
     }
 
-    dims[i] = { eq: eqScore, wt: wtScore, combined: combinedScore };
+    dims[i] = { eq: eqScore, wt: wtScore, unsure: unsureScore, combined: combinedScore };
   }
 
   // Composites
   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
 
   let wtWeightedDim = 0;
+  let unsureWeightedDim = 0;
   let combinedWeightedDim = 0;
   if (eqScores.isComplete && totalWeight > 0) {
     for (let d = 1; d <= 13; d++) {
       const w = DEFAULT_DIMENSION_WEIGHTS[d] || 0;
       wtWeightedDim += dims[d].wt * (w / totalWeight);
+      unsureWeightedDim += dims[d].unsure * (w / totalWeight);
       combinedWeightedDim += dims[d].combined * (w / totalWeight);
     }
   }
@@ -789,6 +829,7 @@ function calculateCombinedScore(
     dims,
     eqComposite: eqScores.compositeScore,
     wtComposite: calcComposite(wtWeightedDim),
+    unsureComposite: calcComposite(unsureWeightedDim),
     combinedComposite: calcComposite(combinedWeightedDim),
     maturityScore: eqScores.maturityScore,
     breadthScore: eqScores.breadthScore,
@@ -2587,7 +2628,7 @@ export default function ElementWeightingPage() {
 
   const combinedBenchmark = useMemo(() => {
     if (filteredCombined.length === 0) return null;
-    const dims: Record<number, { eq: number; wt: number; combined: number }> = {};
+    const dims: Record<number, { eq: number; wt: number; unsure: number; combined: number }> = {};
     for (let i = 1; i <= 13; i++) {
       const eqs = filteredCombined.map(c => c.dims[i]?.eq || 0);
       const wts = filteredCombined.map(c => c.dims[i]?.wt || 0);
@@ -2600,8 +2641,9 @@ export default function ElementWeightingPage() {
     }
     const eqC = Math.round(filteredCombined.reduce((s, c) => s + c.eqComposite, 0) / filteredCombined.length);
     const wtC = Math.round(filteredCombined.reduce((s, c) => s + c.wtComposite, 0) / filteredCombined.length);
+    const unC = Math.round(filteredCombined.reduce((s, c) => s + c.unsureComposite, 0) / filteredCombined.length);
     const cbC = Math.round(filteredCombined.reduce((s, c) => s + c.combinedComposite, 0) / filteredCombined.length);
-    return { dims, eqC, wtC, cbC };
+    return { dims, eqC, wtC, unC, cbC };
   }, [filteredCombined]);
 
   const tabs = [
@@ -3371,8 +3413,12 @@ export default function ElementWeightingPage() {
                     <span className="text-slate-700 text-sm font-medium">Element-Weighted</span>
                   </div>
                   <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-amber-500" />
+                    <span className="text-slate-700 text-sm font-medium">Unsure Sub</span>
+                  </div>
+                  <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-violet-600" />
-                    <span className="text-slate-700 text-sm font-medium">Combined (EW + Unsure)</span>
+                    <span className="text-slate-700 text-sm font-medium">Weighted + Unsure</span>
                   </div>
                   <div className="ml-auto flex items-center gap-6">
                     <div>
@@ -3456,9 +3502,17 @@ export default function ElementWeightingPage() {
                             <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/50'}`} style={{ color: getScoreColor(c.wtComposite) }}>{c.wtComposite}</td>
                           ))}
                         </tr>
-                        {/* Combined */}
+                        {/* Unsure Sub */}
+                        <tr className="border-b border-slate-200 bg-amber-50">
+                          <td className="sticky left-0 z-10 bg-amber-50 px-3 py-2.5 text-amber-800 font-bold text-sm border-r border-amber-100">Unsure Sub</td>
+                          <td className="px-2 py-2.5 text-center font-bold bg-amber-100 border-r border-amber-100" style={{ color: getScoreColor(combinedBenchmark?.unC || 0) }}>{combinedBenchmark?.unC}</td>
+                          {filteredCombined.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-amber-50' : 'bg-amber-50/50'}`} style={{ color: getScoreColor(c.unsureComposite) }}>{c.unsureComposite}</td>
+                          ))}
+                        </tr>
+                        {/* Weighted + Unsure */}
                         <tr className="border-b border-slate-200 bg-violet-50">
-                          <td className="sticky left-0 z-10 bg-violet-50 px-3 py-2.5 text-violet-800 font-bold text-sm border-r border-violet-100">Combined</td>
+                          <td className="sticky left-0 z-10 bg-violet-50 px-3 py-2.5 text-violet-800 font-bold text-sm border-r border-violet-100">Wt + Unsure</td>
                           <td className="px-2 py-2.5 text-center font-bold bg-violet-100 border-r border-violet-100" style={{ color: getScoreColor(combinedBenchmark?.cbC || 0) }}>{combinedBenchmark?.cbC}</td>
                           {filteredCombined.map((c, i) => (
                             <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-violet-50' : 'bg-violet-50/50'}`} style={{ color: getScoreColor(c.combinedComposite) }}>{c.combinedComposite}</td>
@@ -3508,9 +3562,19 @@ export default function ElementWeightingPage() {
                                 </td>
                               ))}
                             </tr>
-                            {/* Combined */}
+                            {/* Unsure Sub */}
+                            <tr className="border-b border-slate-100 bg-amber-50/30">
+                              <td className="sticky left-0 z-10 bg-amber-50/30 px-3 py-1 text-amber-800 font-semibold pl-4 text-xs border-r border-amber-100/50">Unsure</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-amber-100/30 border-r border-amber-100/50" style={{ color: getScoreColor(combinedBenchmark?.dims[dim]?.unsure || 0) }}>{combinedBenchmark?.dims[dim]?.unsure}</td>
+                              {filteredCombined.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-amber-50/40' : 'bg-amber-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.unsure || 0) }}>
+                                  {c.dims[dim]?.unsure}
+                                </td>
+                              ))}
+                            </tr>
+                            {/* Weighted + Unsure */}
                             <tr className="border-b border-slate-100 bg-violet-50/30">
-                              <td className="sticky left-0 z-10 bg-violet-50/30 px-3 py-1 text-violet-800 font-semibold pl-4 text-xs border-r border-violet-100/50">Comb</td>
+                              <td className="sticky left-0 z-10 bg-violet-50/30 px-3 py-1 text-violet-800 font-semibold pl-4 text-xs border-r border-violet-100/50">Wt+Un</td>
                               <td className="px-2 py-2 text-center font-semibold text-xs bg-violet-100/30 border-r border-violet-100/50" style={{ color: getScoreColor(combinedBenchmark?.dims[dim]?.combined || 0) }}>{combinedBenchmark?.dims[dim]?.combined}</td>
                               {filteredCombined.map((c, i) => (
                                 <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-violet-50/40' : 'bg-violet-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.combined || 0) }}>
