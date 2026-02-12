@@ -774,7 +774,7 @@ function IconShield() { return (<svg width="20" height="20" viewBox="0 0 24 24" 
 function IconTarget() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>); }
 function IconChart() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/></svg>); }
 function IconGrid() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>); }
-function IconAlertTriangle() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>); }
+function IconClipboard() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>); }
 
 // ============================================
 // PAGE COMPONENT
@@ -882,10 +882,10 @@ export default function UnsureMethodologyPage() {
   const DIMENSION_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   const tabs = [
-    { key: 'overview' as const, label: 'Executive Overview', icon: <IconTarget /> },
+    { key: 'overview' as const, label: 'Overview', icon: <IconTarget /> },
     { key: 'technical' as const, label: 'Technical Methodology', icon: <IconChart /> },
     { key: 'impact' as const, label: 'Company Impact', icon: <IconGrid /> },
-    { key: 'alternatives' as const, label: 'Alternatives Explored', icon: <IconAlertTriangle /> },
+    { key: 'alternatives' as const, label: 'Alternatives Explored', icon: <IconClipboard /> },
   ];
 
   return (
@@ -939,11 +939,12 @@ export default function UnsureMethodologyPage() {
       {!loading && (
       <div className={`mx-auto py-8 ${activeTab === 'impact' ? 'max-w-[1600px] px-4' : 'max-w-[1400px] px-8'}`}>
 
-        {/* ===== TAB 1: EXECUTIVE OVERVIEW ===== */}
+
+        {/* ===== TAB 1: OVERVIEW ===== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Executive Overview</h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Overview</h2>
               <p className="text-slate-600 text-sm">How the Index handles &ldquo;Unsure&rdquo; survey responses fairly and transparently</p>
             </div>
 
@@ -969,15 +970,44 @@ export default function UnsureMethodologyPage() {
                 <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconShield /></span>
                 <h3 className="font-bold text-slate-900 text-lg">The Challenge</h3>
               </div>
-              <p className="text-slate-700 leading-relaxed mb-4">The Index survey asks HR leaders about 152 workplace support programs across 13 dimensions. For each program, respondents indicate whether their organization currently offers it, is planning or assessing it, does not offer it, or is unsure. &ldquo;Unsure&rdquo; is an honest and valuable response &mdash; it tells us the respondent does not have visibility into that particular program.</p>
+              <p className="text-slate-700 leading-relaxed mb-4">The Index survey asks HR leaders about 152 workplace support programs across 13 dimensions. For each program, respondents indicate whether their organization currently offers it, is planning or assessing it, does not offer it, or is unsure. &ldquo;Unsure&rdquo; is an honest and valuable response &mdash; it tells us the respondent does not have visibility into that particular program. This is common in large organizations where benefits, accommodations, and policies span multiple departments.</p>
               <p className="text-slate-700 leading-relaxed">The question: how should we treat these responses when calculating a company&apos;s score?</p>
+            </section>
+
+            {/* Two Types of Unsure */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+              <div className="flex items-center gap-3 mb-5">
+                <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><IconGrid /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Two Types of &ldquo;Unsure&rdquo; Responses</h3>
+              </div>
+              <p className="text-slate-700 leading-relaxed mb-5">In practice, &ldquo;Unsure&rdquo; responses fall into two distinct patterns, and the implications for each are different.</p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
+                  <h4 className="font-bold text-emerald-900 mb-3">Genuine Uncertainty</h4>
+                  <p className="text-sm text-emerald-800 leading-relaxed">Most participating organizations have a handful of elements across a few dimensions where the HR respondent simply did not have visibility. This is entirely normal. No single respondent is expected to know every program, especially in large organizations where benefits span multiple departments. For these companies, a few unsure responses represent a minor data gap &mdash; not a data quality concern. These respondents put the effort into the survey and answered honestly where they could.</p>
+                </div>
+                <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
+                  <h4 className="font-bold text-orange-900 mb-3">Pervasive Uncertainty</h4>
+                  <p className="text-sm text-orange-800 leading-relaxed">A smaller number of organizations have a much larger proportion of unsure responses, sometimes concentrated in specific dimensions. This raises a different concern: at higher unsure rates, the score becomes less reliable because it is based on a narrower slice of confirmed data. Whether a respondent rushed through the survey or genuinely lacked broad visibility, the result is the same &mdash; we have less to work with, and the score must reflect that.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* Resolve Before Scoring */}
+            <section className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg text-white p-8">
+              <h3 className="font-bold text-xl mb-4">Step 1: Resolve Before Scoring</h3>
+              <p className="text-slate-200 leading-relaxed mb-4">Before any scoring adjustments are applied, Cancer and Careers contacts every company with unresolved &ldquo;Unsure&rdquo; responses. The outreach strongly encourages each company to revisit its unsure responses and confirm the maturity status of as many elements as possible. Companies receive a specific list of their unresolved items, organized by dimension, along with guidance on how to verify each one.</p>
+              <p className="text-slate-200 leading-relaxed mb-4">This step is critical. The goal is to convert as many unsure responses into confirmed answers as possible before the scoring methodology needs to handle them. Every unsure that gets resolved improves the quality of both the company&apos;s individual score and the benchmark that all participants are measured against.</p>
+              <div className="bg-white/10 rounded-lg p-4 border border-white/10 mt-4">
+                <p className="text-sm text-slate-200 italic">The scoring adjustments described here are applied only after the outreach effort is complete and remaining unsures are genuinely unresolvable. They are a last resort, not a first response.</p>
+              </div>
             </section>
 
             {/* Why Simple Approaches Fail */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center"><IconAlertTriangle /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Why Simple Approaches Fail</h3>
+                <span className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center"><IconClipboard /></span>
+                <h3 className="font-bold text-slate-900 text-lg">Why Simple Approaches Fall Short</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -988,29 +1018,29 @@ export default function UnsureMethodologyPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Score &ldquo;Unsure&rdquo; as zero</td><td className="px-6 py-4 text-slate-700">We punish honesty. A respondent who admits uncertainty is treated the same as one who confirms the program does not exist.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Ignore &ldquo;Unsure&rdquo; entirely</td><td className="px-6 py-4 text-slate-700">We reward ignorance. A company confirming 2 of 10 programs and saying &ldquo;Unsure&rdquo; on the rest could score 100%.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Give &ldquo;Unsure&rdquo; full credit</td><td className="px-6 py-4 text-slate-700">We fabricate data. Assuming unknown programs exist at the same rate as known ones inflates scores and compresses differences.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Score &ldquo;Unsure&rdquo; as zero</td><td className="px-6 py-4 text-slate-700">We penalize honest respondents who invested time in the survey but lacked visibility into specific programs. They&apos;re treated the same as confirming a program doesn&apos;t exist.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Ignore &ldquo;Unsure&rdquo; entirely</td><td className="px-6 py-4 text-slate-700">We make it easy for those who answered &ldquo;Unsure&rdquo; throughout. A company confirming 2 of 10 programs and marking the rest unsure could score 100%.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Give &ldquo;Unsure&rdquo; full credit</td><td className="px-6 py-4 text-slate-700">We assume unknown programs exist at the same rate as known ones, inflating scores and compressing differences between companies.</td></tr>
                   </tbody>
                 </table>
               </div>
             </section>
 
             {/* Our Approach - 5 steps */}
-            <section className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg overflow-hidden text-white p-8">
-              <h3 className="font-bold text-xl mb-5">Our Approach</h3>
-              <p className="text-slate-200 leading-relaxed mb-6">We give each &ldquo;Unsure&rdquo; response a small amount of partial credit, calibrated to what other companies actually scored on that type of program, and how many unknowns the company has in that area.</p>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+              <h3 className="font-bold text-slate-900 text-xl mb-2">Our Approach</h3>
+              <p className="text-slate-600 leading-relaxed mb-6">We needed something that gives companies a reasonable benefit of the doubt for a few unknowns &mdash; acknowledging that genuine gaps in visibility are normal &mdash; while progressively reducing that benefit as the number of unknowns increases.</p>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {[
-                  { step: '1', text: 'Start with the population average for that dimension \u2014 our best estimate of a typical program.' },
-                  { step: '2', text: 'Use that average as a starting point for partial credit. Higher adoption areas get slightly more credit.' },
-                  { step: '3', text: 'Discount that credit based on how many \u201cUnsure\u201d responses in that dimension.' },
-                  { step: '4', text: 'The discount accelerates as unknowns accumulate \u2014 the more you don\u2019t know, the less we assume.' },
-                  { step: '5', text: 'Cap total credit from \u201cUnsure\u201d at 10% of the dimension maximum. A structural guardrail.' },
+                  { step: '1', text: 'Start with the population average for that dimension \u2014 our best estimate of what a typical program looks like in that area.' },
+                  { step: '2', text: 'Use that average as a starting point for partial credit. Dimensions where most companies offer programs get slightly more credit.' },
+                  { step: '3', text: 'Discount that credit based on how many \u201cUnsure\u201d responses the company has in that dimension.' },
+                  { step: '4', text: 'The discount accelerates as unknowns accumulate. The more a company can\u2019t confirm, the less we assume on their behalf.' },
+                  { step: '5', text: 'Cap the total credit from \u201cUnsure\u201d at 10% of the dimension maximum. A structural guardrail against edge cases.' },
                 ].map((s) => (
-                  <div key={s.step} className="bg-white/10 rounded-lg p-4 border border-white/10">
-                    <div className="w-8 h-8 rounded-full bg-violet-500 text-white text-sm font-bold flex items-center justify-center mb-3">{s.step}</div>
-                    <p className="text-sm text-slate-200 leading-relaxed">{s.text}</p>
+                  <div key={s.step} className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                    <div className="w-8 h-8 rounded-full bg-violet-600 text-white text-sm font-bold flex items-center justify-center mb-3">{s.step}</div>
+                    <p className="text-sm text-slate-700 leading-relaxed">{s.text}</p>
                   </div>
                 ))}
               </div>
@@ -1031,10 +1061,10 @@ export default function UnsureMethodologyPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Zero &ldquo;Unsure&rdquo; responses</td><td className="px-6 py-4 text-slate-700">Score reflects confirmed answers only. No adjustment needed.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">1&ndash;2 unknowns in a dimension</td><td className="px-6 py-4 text-slate-700">Receives nearly full benefit of the doubt. Minimal impact. A few gaps are normal.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Half a dimension unknown</td><td className="px-6 py-4 text-slate-700">Credit significantly reduced. Some partial credit, but score reflects substantial gaps.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Most of a dimension unknown</td><td className="px-6 py-4 text-slate-700">Credit approaches zero. Score reflects only what was confirmed.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">100% &ldquo;Unsure&rdquo; in a dimension</td><td className="px-6 py-4 text-slate-700">Receives zero credit. Identical to confirming nothing is offered.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">1&ndash;2 unknowns in a dimension</td><td className="px-6 py-4 text-slate-700">Nearly full benefit of the doubt. Minimal impact. A few gaps are normal and these respondents are not penalized for their honesty.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Half a dimension unknown</td><td className="px-6 py-4 text-slate-700">Credit significantly reduced. Some partial credit remains, but the score reflects the substantial gaps in confirmed data.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Most of a dimension unknown</td><td className="px-6 py-4 text-slate-700">Credit approaches zero. The score effectively reflects only what was confirmed. Broad use of &ldquo;Unsure&rdquo; does not provide a shortcut to a higher score.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">100% &ldquo;Unsure&rdquo; in a dimension</td><td className="px-6 py-4 text-slate-700">Zero credit. Identical to confirming nothing is offered.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -1054,18 +1084,17 @@ export default function UnsureMethodologyPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Everyone gets a score</td><td className="px-6 py-4 text-slate-700">No company is excluded from scoring. Only ICBC-AXA Life is excluded from ranking due to 81% unsure rate.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Honesty is not punished</td><td className="px-6 py-4 text-slate-700">Saying &ldquo;Unsure&rdquo; is always better than saying &ldquo;Not Offered&rdquo; if the company genuinely does not know.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Ignorance is not rewarded</td><td className="px-6 py-4 text-slate-700">Credit drops sharply as unsures accumulate. Companies cannot benefit from leaving large portions unresolved.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Every number is traceable</td><td className="px-6 py-4 text-slate-700">Population averages, discount rates, and cap are all derived from or directly observable in the dataset.</td></tr>
-                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Company and benchmark treated identically</td><td className="px-6 py-4 text-slate-700">Same methodology applied to individual scores and benchmarks. Always apples-to-apples.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Everyone gets a score</td><td className="px-6 py-4 text-slate-700">No company is excluded from scoring. Only ICBC-AXA Life is excluded from ranking due to an extreme 81% unsure rate.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Honesty is not penalized</td><td className="px-6 py-4 text-slate-700">A company that genuinely doesn&apos;t know receives modest partial credit. Saying &ldquo;Unsure&rdquo; is always better than guessing &ldquo;Not Offered&rdquo; when the respondent genuinely lacks visibility.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Broad uncertainty is not rewarded</td><td className="px-6 py-4 text-slate-700">Credit drops sharply as unsures accumulate. Companies cannot benefit from leaving large portions of the survey unresolved, whether through rushing or lack of preparation.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Every number is traceable</td><td className="px-6 py-4 text-slate-700">Population averages, discount rates, and the cap are all derived from or directly observable in the dataset. No arbitrary constants.</td></tr>
+                    <tr className="hover:bg-slate-50"><td className="px-6 py-4 font-semibold text-slate-800">Company and benchmark treated identically</td><td className="px-6 py-4 text-slate-700">Same methodology applied to individual scores and benchmarks. Comparisons are always apples-to-apples.</td></tr>
                   </tbody>
                 </table>
               </div>
             </section>
           </div>
         )}
-
         {/* ===== TAB 2: TECHNICAL METHODOLOGY ===== */}
         {activeTab === 'technical' && (
           <div className="space-y-8">
@@ -1463,7 +1492,7 @@ export default function UnsureMethodologyPage() {
             {/* Disclosure Language */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
               <div className="flex items-center gap-3 mb-5">
-                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><IconAlertTriangle /></span>
+                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><IconClipboard /></span>
                 <h3 className="font-bold text-slate-900 text-lg">Disclosure Language</h3>
               </div>
               <div className="bg-slate-50 rounded-lg p-5 border border-slate-200 mb-5">
