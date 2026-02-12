@@ -2412,21 +2412,30 @@ export default function ElementWeightingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-100">
+      <style jsx global>{`
+        .methodology-page { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+        .methodology-page h1, .methodology-page h2, .methodology-page h3, .methodology-page h4 { 
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
+          letter-spacing: -0.01em; 
+        }
+      `}</style>
+
+      <div className="methodology-page">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800">
-        <div className="max-w-[1400px] mx-auto px-8 py-5">
+      <div className="bg-gradient-to-r from-slate-900 to-slate-800">
+        <div className="max-w-7xl mx-auto px-10 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="bg-white rounded-lg px-3 py-2"><img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-9" /></div>
+              <div className="bg-white rounded-lg px-3 py-2 shadow-sm"><img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-9" /></div>
               <div className="border-l border-slate-700 pl-6">
-                <h1 className="text-lg font-semibold text-white">Element Weighting</h1>
-                <p className="text-sm text-slate-400">Best Companies for Working with Cancer Index — 2026</p>
+                <h1 className="text-xl font-bold text-white tracking-tight">Element Weighting Methodology</h1>
+                <p className="text-sm text-slate-400 mt-0.5">Best Companies for Working with Cancer Index — 2026</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Link href="/admin/scoring" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Scoring</Link>
-              <Link href="/admin" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Dashboard</Link>
+            <div className="flex items-center gap-2">
+              <Link href="/admin/scoring" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Scoring</Link>
+              <Link href="/admin" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Dashboard</Link>
             </div>
           </div>
         </div>
@@ -2434,14 +2443,14 @@ export default function ElementWeightingPage() {
 
       {/* Tab Bar */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-8">
+        <div className="max-w-7xl mx-auto px-10">
           <div className="flex">
             {tabs.map((tab) => (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
-                  activeTab === tab.key ? 'border-violet-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                className={`flex items-center gap-2.5 px-6 py-4 text-sm font-semibold border-b-2 transition-colors ${
+                  activeTab === tab.key ? 'border-slate-900 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
                 }`}>
-                <span className={activeTab === tab.key ? 'text-violet-600' : 'text-slate-400'}>{tab.icon}</span>
+                <span className={activeTab === tab.key ? 'text-slate-700' : 'text-slate-400'}>{tab.icon}</span>
                 {tab.label}
               </button>
             ))}
@@ -2450,55 +2459,55 @@ export default function ElementWeightingPage() {
       </div>
 
       {/* Content */}
-      <div className={`mx-auto py-8 ${activeTab === 'scoring' ? 'max-w-[1800px] px-4' : 'max-w-[1400px] px-8'}`}>
+      <div className={`mx-auto py-10 ${activeTab === 'scoring' ? 'max-w-[1800px] px-6' : 'max-w-7xl px-10'}`}>
 
         {/* ===== TAB 1: EXECUTIVE OVERVIEW ===== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Why Weight Support Elements?</h2>
-              <p className="text-slate-600 text-sm">A data-driven calibration of the Cancer and Careers assessment framework</p>
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Why Weight Support Elements?</h2>
+              <p className="text-slate-500 mt-1">A data-driven calibration of the Cancer and Careers assessment framework</p>
             </div>
 
             {/* The Question */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconTarget /></span>
-                <h3 className="font-bold text-slate-900 text-lg">The Question</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconTarget /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">The Question</h3>
               </div>
-              <div className="px-8 py-6 text-slate-700 leading-relaxed space-y-4">
+              <div className="px-10 py-7 text-slate-700 leading-relaxed space-y-4 text-[15px]">
                 <p>The Index assesses workplace cancer support across 13 dimensions, with each dimension containing between 9 and 20 individual support elements. In the first version of the scoring, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as offering an employee assistance program.</p>
                 <p>That is a reasonable starting point, but it does not reflect reality. Some elements are table-stakes practices that most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs from the rest. The question is whether the scoring should reflect that distinction.</p>
               </div>
             </section>
 
             {/* Our Answer */}
-            <section className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg overflow-hidden">
-              <div className="px-8 py-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="w-8 h-8 rounded-lg bg-white/15 text-white flex items-center justify-center"><IconCheck /></span>
-                  <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">Our Answer</p>
+            <section className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl shadow-lg overflow-hidden">
+              <div className="px-10 py-8">
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="w-9 h-9 rounded-lg bg-white/15 text-white flex items-center justify-center"><IconCheck /></span>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Our Answer</p>
                 </div>
                 <p className="text-white text-lg leading-relaxed">
                   <strong>Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em className="text-slate-300">calibrates</em> the scoring rather than rewrites it.
                 </p>
               </div>
-              <div className="px-8 py-4 bg-black/20 border-t border-white/10">
+              <div className="px-10 py-5 bg-black/20 border-t border-white/10">
                 <p className="text-slate-300 text-sm">The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.</p>
               </div>
             </section>
 
             {/* How We Did It (8 Steps) */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><IconLayers /></span>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconLayers /></span>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">How We Did It</h3>
-                  <p className="text-sm text-slate-600 mt-0.5">A transparent, reproducible process designed to withstand peer review</p>
+                  <h3 className="font-bold text-slate-900 text-lg tracking-tight">How We Did It</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">A transparent, reproducible process designed to withstand peer review</p>
                 </div>
               </div>
-              <div className="px-8 py-6">
-                <div className="space-y-5">
+              <div className="px-10 py-7">
+                <div className="space-y-6">
                   {[
                     { t: 'Preserved the full response scale', d: 'Each element is scored on four levels: Currently Offer, Planning, Assessing, and Not Offered. Collapsing this to a binary would discard the progression signal the survey was designed to capture.' },
                     { t: 'Used only clean data', d: 'If a company reported \u201cUnsure\u201d on a significant proportion of elements in a dimension, that company was excluded from weight estimation for that dimension. This prevents the analysis from learning patterns in incomplete data. Those companies still receive scored reports using the final weights.' },
@@ -2510,7 +2519,7 @@ export default function ElementWeightingPage() {
                     { t: 'Capped the maximum weight', d: 'No single element can exceed 20% of its dimension\u2019s total weight, regardless of what the data suggests. Any excess is redistributed proportionally among the other elements. This prevents any one program from dominating a dimension\u2019s score.' }
                   ].map((step, i) => (
                     <div key={i} className="flex gap-4">
-                      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-violet-600 to-violet-700 text-white text-sm font-bold flex items-center justify-center shadow-sm">{i + 1}</div>
+                      <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 text-white text-sm font-bold flex items-center justify-center shadow-sm">{i + 1}</div>
                       <div className="pt-1">
                         <p className="font-semibold text-slate-900">{step.t}</p>
                         <p className="text-sm text-slate-600 mt-1 leading-relaxed">{step.d}</p>
@@ -2523,14 +2532,14 @@ export default function ElementWeightingPage() {
 
             {/* What the Calibration Produces */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconTrendUp /></span>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconTrendUp /></span>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">What the Calibration Produces</h3>
-                  <p className="text-sm text-slate-600 mt-0.5">The adjustment is deliberately modest</p>
+                  <h3 className="font-bold text-slate-900 text-lg tracking-tight">What the Calibration Produces</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">The adjustment is deliberately modest</p>
                 </div>
               </div>
-              <div className="px-8 py-6">
+              <div className="px-10 py-7">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                   {[
                     { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Most companies move by fewer than 3 points.', color: 'from-slate-700 to-slate-800' },
@@ -2557,11 +2566,11 @@ export default function ElementWeightingPage() {
 
             {/* How the Blend Adapts */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><IconRefresh /></span>
-                <h3 className="font-bold text-slate-900 text-lg">How the Blend Adapts</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center"><IconRefresh /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">How the Blend Adapts</h3>
               </div>
-              <div className="px-8 py-6 text-slate-700 leading-relaxed space-y-4">
+              <div className="px-10 py-7 text-slate-700 leading-relaxed space-y-4 text-[15px]">
                 <p>The blend between data-driven weights and equal weights adapts by dimension based on the strength of the empirical signal. In dimensions where the data clearly identifies which elements differentiate stronger programs, the blend leans more toward the empirical finding. Where the signal is emerging, the blend anchors more heavily toward the expert framework.</p>
                 <p>This is a Year 1 calibration. The adaptive blend is conservative by design. As participation grows, the empirical signal strengthens across all dimensions, and the blend can shift further toward data-driven weights.</p>
                 <p>No dimension is excluded. The same methodology is applied across all 13 dimensions, with the blend adapting to the strength of evidence in each.</p>
@@ -2570,11 +2579,11 @@ export default function ElementWeightingPage() {
 
             {/* Top Differentiators Table */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><IconScale /></span>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center"><IconScale /></span>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Top Differentiating Elements by Dimension</h3>
-                  <p className="text-sm text-slate-600 mt-0.5">Programs that most consistently predict stronger overall performance across the Index</p>
+                  <h3 className="font-bold text-slate-900 text-lg tracking-tight">Top Differentiating Elements by Dimension</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">Programs that most consistently predict stronger overall performance across the Index</p>
                 </div>
               </div>
               <div className="overflow-x-auto">
@@ -2591,17 +2600,17 @@ export default function ElementWeightingPage() {
                     {DIMENSION_ORDER.map((d, i) => {
                       const dim = DIMENSIONS[d];
                       return (
-                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-violet-50/40 transition-colors`}>
+                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-slate-50 transition-colors`}>
                           <td className="px-6 py-3">
                             <span className="inline-flex items-center gap-2">
                               <span className="w-6 h-6 rounded bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">{d}</span>
-                              <span className="text-slate-800 font-medium">{dim.name}</span>
+                              <span className="text-slate-800 font-semibold">{dim.name}</span>
                             </span>
                           </td>
                           {dim.items.slice(0, 3).map((item, j) => (
                             <td key={j} className="px-4 py-3 text-slate-700">
                               {item.name.length > 45 ? item.name.slice(0, 42) + '...' : item.name}
-                              <span className="ml-1.5 text-xs font-semibold text-violet-600">{(item.weight * 100).toFixed(1)}%</span>
+                              <span className="ml-1.5 text-xs font-semibold text-slate-500">{(item.weight * 100).toFixed(1)}%</span>
                             </td>
                           ))}
                         </tr>
@@ -2610,18 +2619,18 @@ export default function ElementWeightingPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 space-y-2">
+              <div className="px-10 py-4 bg-slate-50 border-t border-slate-200 space-y-2">
                 <p className="text-xs text-slate-600"><strong className="text-slate-700">Important:</strong> Every element contributes to the score. Lower-weighted elements still matter. The elements that receive higher weight tend to be rarer commitments that signal deeper organizational investment.</p>
               </div>
             </section>
 
             {/* What We Chose Not to Do */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center">
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-red-50 text-red-500 flex items-center justify-center">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </span>
-                <h3 className="font-bold text-slate-900 text-lg">What We Chose Not to Do</h3>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">What We Chose Not to Do</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -2651,21 +2660,21 @@ export default function ElementWeightingPage() {
 
             {/* How This Evolves */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center"><IconRefresh /></span>
-                <h3 className="font-bold text-slate-900 text-lg">How This Evolves</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center"><IconRefresh /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">How This Evolves</h3>
               </div>
-              <div className="px-8 py-6 text-slate-700 leading-relaxed space-y-4">
+              <div className="px-10 py-7 text-slate-700 leading-relaxed space-y-4 text-[15px]">
                 <p>This is a Year 1 calibration. The methodology is designed to scale naturally as participation grows. With more organizations completing the assessment each year, the empirical signal strengthens across all dimensions, the stability of element weights increases, and the blend can shift further toward data-driven weights with greater confidence.</p>
                 <p>Weights are recalibrated annually using the latest data and published alongside each Index release.</p>
               </div>
-              <div className="px-8 py-4 bg-slate-50 border-t border-slate-200">
-                <div className="grid grid-cols-4 gap-4 text-xs">
+              <div className="px-10 py-5 bg-slate-50 border-t border-slate-200">
+                <div className="grid grid-cols-4 gap-5 text-xs">
                   {[
-                    { m: 'Year 1 (Current)', a: 'Conservative blend. Equal weights substantial.', color: 'bg-violet-600' },
-                    { m: '75+ Organizations', a: 'Re-run analysis. Consider increasing empirical share.', color: 'bg-blue-600' },
+                    { m: 'Year 1 (Current)', a: 'Conservative blend. Equal weights substantial.', color: 'bg-slate-700' },
+                    { m: '75+ Organizations', a: 'Re-run analysis. Consider increasing empirical share.', color: 'bg-slate-600' },
                     { m: '100+ Organizations', a: 'Full recalibration with high confidence.', color: 'bg-emerald-600' },
-                    { m: 'Annually', a: 'Recalibrate and publish updated weights.', color: 'bg-slate-600' }
+                    { m: 'Annually', a: 'Recalibrate and publish updated weights.', color: 'bg-slate-500' }
                   ].map((s, i) => (
                     <div key={i} className="flex gap-2">
                       <div className={`w-1.5 rounded-full ${s.color} flex-shrink-0`} />
@@ -2681,11 +2690,11 @@ export default function ElementWeightingPage() {
 
             {/* Key Principles */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconShield /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Key Principles</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconShield /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">Key Principles</h3>
               </div>
-              <div className="px-8 py-6">
+              <div className="px-10 py-7">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {[
                     { t: 'The framework comes first.', d: 'Dimensions are not reweighted. Elements are not moved between dimensions. The Cancer and Careers framework is the foundation.' },
@@ -2714,39 +2723,39 @@ export default function ElementWeightingPage() {
         {activeTab === 'statistical' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Statistical Overview</h2>
-              <p className="text-slate-600 text-sm">Dimension-level model performance, blend parameters, and pipeline specification</p>
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Statistical Overview</h2>
+              <p className="text-slate-500 mt-1">Dimension-level model performance, blend parameters, and pipeline specification</p>
             </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-5">
               {[
-                { v: '159', l: 'Elements', d: 'Across 13 dimensions', color: 'from-slate-600 to-slate-700', icon: <IconLayers /> },
-                { v: '13', l: 'Dimensions', d: 'All with adaptive blend', color: 'from-slate-700 to-slate-800', icon: <IconGrid /> },
-                { v: '5-fold', l: 'Cross-Validation', d: 'Out-of-sample R\u00b2', color: 'from-slate-600 to-slate-800', icon: <IconChart /> },
-                { v: '200', l: 'Bootstrap Resamples', d: 'For stability testing', color: 'from-slate-700 to-slate-900', icon: <IconRefresh /> }
+                { v: '159', l: 'Elements', d: 'Across 13 dimensions', color: 'from-slate-700 to-slate-800', icon: <IconLayers /> },
+                { v: '13', l: 'Dimensions', d: 'All with adaptive blend', color: 'from-slate-800 to-slate-900', icon: <IconGrid /> },
+                { v: '5-fold', l: 'Cross-Validation', d: 'Out-of-sample R\u00b2', color: 'from-slate-700 to-slate-800', icon: <IconChart /> },
+                { v: '200', l: 'Bootstrap Resamples', d: 'For stability testing', color: 'from-slate-800 to-slate-900', icon: <IconRefresh /> }
               ].map((c, i) => (
-                <div key={i} className={`bg-gradient-to-br ${c.color} rounded-xl p-5 text-white shadow-sm`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white/60">{c.icon}</span>
+                <div key={i} className={`bg-gradient-to-br ${c.color} rounded-xl p-6 text-white shadow-sm`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-white/50">{c.icon}</span>
                   </div>
-                  <p className="text-3xl font-bold">{c.v}</p>
-                  <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{c.l}</p>
-                  <p className="text-xs text-white/60 mt-1">{c.d}</p>
+                  <p className="text-3xl font-bold tracking-tight">{c.v}</p>
+                  <p className="text-xs font-semibold text-white/80 uppercase tracking-widest mt-1.5">{c.l}</p>
+                  <p className="text-xs text-white/50 mt-1">{c.d}</p>
                 </div>
               ))}
             </div>
 
             {/* Scoring Pipeline */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconLayers /></span>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconLayers /></span>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">Scoring Pipeline Integration</h3>
-                  <p className="text-sm text-slate-600 mt-0.5">Element weighting applies at Stage 4</p>
+                  <h3 className="font-bold text-slate-900 text-lg tracking-tight">Scoring Pipeline Integration</h3>
+                  <p className="text-sm text-slate-500 mt-0.5">Element weighting applies at Stage 4</p>
                 </div>
               </div>
-              <div className="px-8 py-5">
+              <div className="px-10 py-6">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-slate-200">
@@ -2764,10 +2773,10 @@ export default function ElementWeightingPage() {
                       ['5', 'Dimension weighting', 'Apply dimension weights to produce weighted dimension score.', false],
                       ['6', 'Composite', 'Composite = (Weighted Dimensions \u00d7 90%) + (Maturity \u00d7 5%) + (Breadth \u00d7 5%).', false]
                     ].map(([stage, step, detail, highlight], i) => (
-                      <tr key={i} className={`${highlight ? 'bg-violet-50 border-l-4 border-l-violet-600' : ''}`}>
-                        <td className={`py-2.5 px-3 text-xs font-mono ${highlight ? 'text-violet-700 font-bold' : 'text-slate-500'}`}>Stage {stage}</td>
-                        <td className={`py-2.5 px-3 ${highlight ? 'text-violet-800 font-semibold' : 'text-slate-800'}`}>{step}</td>
-                        <td className={`py-2.5 px-3 text-sm ${highlight ? 'text-violet-700' : 'text-slate-600'}`}>{detail}</td>
+                      <tr key={i} className={`${highlight ? 'bg-slate-50 border-l-4 border-l-slate-800' : ''}`}>
+                        <td className={`py-2.5 px-3 text-xs font-mono ${highlight ? 'text-slate-800 font-bold' : 'text-slate-500'}`}>Stage {stage}</td>
+                        <td className={`py-2.5 px-3 ${highlight ? 'text-slate-900 font-semibold' : 'text-slate-800'}`}>{step}</td>
+                        <td className={`py-2.5 px-3 text-sm ${highlight ? 'text-slate-700' : 'text-slate-600'}`}>{detail}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -2777,11 +2786,11 @@ export default function ElementWeightingPage() {
 
             {/* Weight Estimation Pipeline — clean horizontal flow */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><IconChart /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Weight Estimation Pipeline</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center"><IconChart /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">Weight Estimation Pipeline</h3>
               </div>
-              <div className="px-8 py-6">
+              <div className="px-10 py-7">
                 <div className="grid grid-cols-4 gap-3 mb-3">
                   {[
                     { title: 'Ordinal Encoding', detail: '0 / 2 / 3 / 5', color: 'bg-slate-700' },
@@ -2830,11 +2839,11 @@ export default function ElementWeightingPage() {
 
             {/* Feature Encoding */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconGrid /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Feature Encoding</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconGrid /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">Feature Encoding</h3>
               </div>
-              <div className="px-8 py-5">
+              <div className="px-10 py-6">
                 <div className="grid grid-cols-5 gap-3">
                   {[
                     { resp: 'Currently Offer', score: '5', bg: 'bg-emerald-600', desc: 'Full credit' },
@@ -2857,13 +2866,13 @@ export default function ElementWeightingPage() {
 
             {/* Adaptive Shrinkage — proper formula + colored cards */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-600 flex items-center justify-center"><IconScale /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Adaptive Shrinkage Toward Equal Weights</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center"><IconScale /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">Adaptive Shrinkage Toward Equal Weights</h3>
               </div>
-              <div className="px-8 py-6">
-                {/* Formula — styled properly */}
-                <div className="bg-slate-800 rounded-lg px-6 py-4 mb-6">
+              <div className="px-10 py-7">
+                {/* Formula */}
+                <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-lg px-6 py-5 mb-7">
                   <p className="text-white font-mono text-center text-base tracking-wide">
                     w<sub className="text-xs">final</sub>(j)
                     <span className="mx-3">=</span>
@@ -2878,34 +2887,34 @@ export default function ElementWeightingPage() {
                 </div>
 
                 {/* Three cards with color fills */}
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-3 gap-5 mb-5">
                   <div className="rounded-xl overflow-hidden border border-amber-200">
-                    <div className="bg-amber-50 px-5 py-4">
+                    <div className="bg-amber-50 px-5 py-5">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Emerging Signal</span>
+                        <span className="text-xs font-bold text-amber-700 uppercase tracking-widest">Emerging Signal</span>
                         <span className="text-xl font-bold text-amber-800">\u03b1 = 0.30</span>
                       </div>
-                      <p className="text-sm font-mono text-amber-700 mb-2">Emerging signal</p>
+                      <p className="text-xs font-mono text-amber-600 mb-2">CV R\u00b2 \u2264 0</p>
                       <p className="text-sm text-amber-800 leading-relaxed">30% empirical, 70% equal. Anchor heavily toward the expert framework while allowing modest differentiation.</p>
                     </div>
                   </div>
                   <div className="rounded-xl overflow-hidden border border-indigo-200">
-                    <div className="bg-indigo-50 px-5 py-4">
+                    <div className="bg-indigo-50 px-5 py-5">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Developing Signal</span>
+                        <span className="text-xs font-bold text-indigo-700 uppercase tracking-widest">Developing Signal</span>
                         <span className="text-xl font-bold text-indigo-800">\u03b1 = 0.40</span>
                       </div>
-                      <p className="text-sm font-mono text-indigo-700 mb-2">0 \u2264 Emerging signal.10</p>
+                      <p className="text-xs font-mono text-indigo-600 mb-2">0 &lt; CV R\u00b2 &lt; 0.05</p>
                       <p className="text-sm text-indigo-800 leading-relaxed">40% empirical, 60% equal. Lean toward equal but allow more differentiation.</p>
                     </div>
                   </div>
                   <div className="rounded-xl overflow-hidden border border-emerald-200">
-                    <div className="bg-emerald-50 px-5 py-4">
+                    <div className="bg-emerald-50 px-5 py-5">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Established Signal</span>
+                        <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">Established Signal</span>
                         <span className="text-xl font-bold text-emerald-800">\u03b1 = 0.50</span>
                       </div>
-                      <p className="text-sm font-mono text-emerald-700 mb-2">Established signal</p>
+                      <p className="text-xs font-mono text-emerald-600 mb-2">CV R\u00b2 \u2265 0.05</p>
                       <p className="text-sm text-emerald-800 leading-relaxed">50% empirical, 50% equal. Balanced blend of empirical and equal.</p>
                     </div>
                   </div>
@@ -2916,9 +2925,9 @@ export default function ElementWeightingPage() {
 
             {/* Dimension Results Table — no n column */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100 flex items-center gap-3">
-                <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconTrendUp /></span>
-                <h3 className="font-bold text-slate-900 text-lg">Dimension-Level Results</h3>
+              <div className="px-10 py-5 border-b border-slate-100 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center"><IconTrendUp /></span>
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">Dimension-Level Results</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -2927,7 +2936,8 @@ export default function ElementWeightingPage() {
                       <th className="px-5 py-3 text-left font-semibold">Dimension</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Wt</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Elem</th>
-                      <th className="px-4 py-3 text-center font-semibold w-14">\u03b1</th>
+                      <th className="px-4 py-3 text-center font-semibold w-28">Signal</th>
+                      <th className="px-4 py-3 text-center font-semibold w-16">\u03b1</th>
                       <th className="px-4 py-3 text-left font-semibold">Top 3 Elements</th>
                     </tr>
                   </thead>
@@ -2936,7 +2946,7 @@ export default function ElementWeightingPage() {
                       const dim = DIMENSIONS[d];
                       const sig = getSig(dim.cvR2);
                       return (
-                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-violet-50/30 transition-colors`}>
+                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-slate-50 transition-colors`}>
                           <td className="px-5 py-3 font-semibold text-slate-800">
                             <span className="inline-flex items-center gap-2">
                               <span className="w-6 h-6 rounded bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">{d}</span>
@@ -2956,7 +2966,7 @@ export default function ElementWeightingPage() {
                   </tbody>
                 </table>
               </div>
-              <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
+              <div className="px-10 py-3 bg-slate-50 border-t border-slate-200">
                 <div className="flex items-center gap-6 text-xs text-slate-600">
                   <span><strong className="text-slate-700">\u03b1</strong> = empirical share in final blend (1 \u2212 \u03b1 = equal weight share)</span>
                 </div>
@@ -2965,8 +2975,8 @@ export default function ElementWeightingPage() {
 
             {/* Alternatives */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-lg">Alternatives Explored and Rejected</h3>
+              <div className="px-10 py-5 border-b border-slate-100">
+                <h3 className="font-bold text-slate-900 text-lg tracking-tight">Alternatives Explored and Rejected</h3>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -3000,8 +3010,8 @@ export default function ElementWeightingPage() {
         {activeTab === 'weights' && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Element-Level Weights</h2>
-              <p className="text-slate-600 text-sm">All 159 support elements across 13 dimensions. Click a dimension to expand.</p>
+              <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Element-Level Weights</h2>
+              <p className="text-slate-500 mt-1">All 159 support elements across 13 dimensions. Click a dimension to expand.</p>
             </div>
 
             {DIMENSION_ORDER.map((d) => {
@@ -3087,8 +3097,8 @@ export default function ElementWeightingPage() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
-                <p className="text-slate-600 text-sm">Equal-weight vs. element-weighted scores calculated live from assessment data. Only within-dimension element weighting differs.</p>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Score Comparison</h2>
+                <p className="text-slate-500 mt-1">Equal-weight vs. element-weighted scores calculated live from assessment data. Only within-dimension element weighting differs.</p>
               </div>
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                 <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
@@ -3217,6 +3227,7 @@ export default function ElementWeightingPage() {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );
