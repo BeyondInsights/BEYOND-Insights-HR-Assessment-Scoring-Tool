@@ -2470,71 +2470,79 @@ export default function ElementWeightingPage() {
 
 
 
+
         {/* ===== TAB 1: OVERVIEW ===== */}
         {activeTab === 'overview' && (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-1">Element Weighting: Calibration, Not Reinvention</h2>
-              <p className="text-slate-600 text-sm">A modest, evidence-based refinement to improve differentiation within each dimension</p>
+              <p className="text-slate-600">A modest, evidence-based refinement to improve differentiation within each dimension</p>
             </div>
 
-            {/* Bottom Line Callout */}
-            <div className="bg-violet-50 border-l-4 border-violet-500 rounded-r-xl px-6 py-4">
-              <p className="text-violet-900 text-sm font-medium leading-relaxed"><strong>Bottom line:</strong> We preserve the CAC framework and apply a conservative calibration so rarer, maturity-signaling elements carry modestly more weight&mdash;without destabilizing rankings.</p>
+            {/* Key Takeaway */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl px-8 py-6 shadow-sm">
+              <p className="text-lg text-white leading-relaxed">Not every support element tells us the same thing about an organization. Some are standard practices most companies already provide. Others are rarer commitments that consistently signal deeper, more mature programs. Element weighting gives those stronger signals modestly more influence in the score&mdash;while keeping the Cancer and Careers framework as the anchor.</p>
             </div>
 
             {/* The Question + Our Answer */}
-            <section className="rounded-2xl shadow-lg overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-10 py-8">
-                <p className="text-white text-lg leading-relaxed mb-4">The Index measures 13 dimensions, each made up of individual support elements. In the original scoring, every element inside a dimension counted equally&mdash;regardless of whether it was a table-stakes practice or a rarer signal of program maturity.</p>
-                <p className="text-white text-lg leading-relaxed">We introduced element weighting to reflect that reality: elements that more consistently differentiate stronger overall programs receive modestly higher weight, while the Cancer and Careers framework remains the anchor. This is a calibration&mdash;not a rewrite&mdash;and it is designed to be stable and defensible.</p>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+              <h3 className="font-bold text-slate-900 text-lg mb-3">What Changed and What Didn&apos;t</h3>
+              <p className="text-slate-700 leading-relaxed mb-3">In the original scoring, every element inside a dimension counted equally. We introduced element weighting so that elements which more consistently differentiate stronger overall programs receive modestly higher weight. This is a calibration&mdash;not a rewrite&mdash;and it is designed to be stable and defensible.</p>
+              <p className="text-slate-700 leading-relaxed">The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting only adjusts how much each item contributes within its own dimension.</p>
+            </section>
+
+            {/* Visual Pipeline */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-violet-500 to-violet-600 px-8 py-5">
+                <h3 className="font-bold text-white text-lg">How We Determined the Weights</h3>
+                <p className="text-violet-100 mt-1">A six-step process designed to be transparent, reproducible, and conservative</p>
               </div>
-              <div className="bg-slate-900 px-10 py-4 border-t border-white/10">
-                <p className="text-slate-300 text-sm">The 13 dimensions, their relative weights, and the response scale are unchanged. Element weighting only adjusts how much each item contributes within its dimension.</p>
+              <div className="p-8">
+                <div className="space-y-4">
+                  {[
+                    { step: '1', title: 'Start with clean, confirmed data', desc: 'Companies with too many \u201cUnsure\u201d responses in a dimension are excluded from weight estimation for that dimension. Weights are learned only from confirmed answers.', accent: 'bg-slate-600' },
+                    { step: '2', title: 'Build a predictive model for each dimension', desc: 'For each of the 13 dimensions, we ask: which elements in this dimension best predict how well a company performs across the other 12? An element earns higher weight only if companies that score well on it also tend to score well everywhere else.', accent: 'bg-violet-500' },
+                    { step: '3', title: 'Measure each element\u2019s contribution', desc: 'We temporarily scramble each element\u2019s data one at a time. If the model\u2019s accuracy drops significantly when an element is scrambled, that element is a strong differentiator. If accuracy barely changes, it contributes less signal.', accent: 'bg-violet-500' },
+                    { step: '4', title: 'Test stability across 200 rounds', desc: 'We repeat the entire analysis 200 times on different random samples of companies. Elements that consistently appear as important keep their weight. Elements whose importance fluctuates are pulled back toward equal weighting\u2014proportionally, not as a hard cutoff.', accent: 'bg-violet-500' },
+                    { step: '5', title: 'Blend with equal weights', desc: 'The final weight for each element is a blend of what the data suggests and what equal weighting would produce. The blend adapts by dimension based on signal strength, so the expert framework always anchors the result.', accent: 'bg-violet-500' },
+                    { step: '6', title: 'Cap at 20%', desc: 'No single element can exceed 20% of its dimension\u2019s total weight. Any excess is redistributed proportionally among the remaining elements.', accent: 'bg-slate-600' },
+                  ].map((s) => (
+                    <div key={s.step} className="flex items-start gap-5">
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-full ${s.accent} text-white font-bold flex items-center justify-center text-sm shadow-sm`}>{s.step}</div>
+                      <div className="pt-1">
+                        <p className="font-semibold text-slate-900">{s.title}</p>
+                        <p className="text-slate-600 mt-1 leading-relaxed">{s.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 
-            {/* How We Did It */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-              <h3 className="font-bold text-slate-900 text-xl mb-4">How We Did It</h3>
-              <p className="text-slate-700 leading-relaxed mb-5">For each dimension, we asked a simple question: which elements are most consistently associated with stronger overall performance across the rest of the Index? We quantify each element&apos;s contribution by measuring how much predictive accuracy drops when that element is scrambled. We repeat this many times to confirm stability, then blend results back toward equal weighting so the adjustment remains conservative.</p>
-              <div className="space-y-2 mb-6">
-                {[
-                  'Uses the full maturity scale (0/2/3/5), not yes/no.',
-                  'Excludes high-Unsure responses from weight estimation (weights are learned from confirmed data).',
-                  'Uses a conservative model (ridge) and permutation importance (non-negative).',
-                  'Applies stability damping, adaptive blending toward equal weights, and a 20% cap.',
-                ].map((item, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0" />
-                    <p className="text-slate-600 text-sm leading-relaxed">{item}</p>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Typically 1\u20133 points; larger moves are rare.', color: 'from-violet-500 to-violet-600' },
+                { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Typical highest-to-lowest within a dimension.', color: 'from-indigo-500 to-indigo-600' },
+                { v: 'Preserved', l: 'Rankings', d: 'Changes occur among closely scored companies.', color: 'from-sky-500 to-sky-600' },
+                { v: '3 elements', l: '20% Cap Hit', d: 'Would otherwise dominate their dimension.', color: 'from-emerald-500 to-emerald-600' }
+              ].map((m, i) => (
+                <div key={i} className="rounded-xl overflow-hidden shadow-sm">
+                  <div className={`bg-gradient-to-br ${m.color} px-5 py-4`}>
+                    <p className="text-2xl font-bold text-white">{m.v}</p>
+                    <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{m.l}</p>
                   </div>
-                ))}
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[
-                  { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Typically 1\u20133 points; larger moves are rare.', color: 'from-violet-600 to-purple-700' },
-                  { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Typical highest-to-lowest within a dimension.', color: 'from-indigo-600 to-blue-700' },
-                  { v: 'Preserved', l: 'Rankings', d: 'Changes occur among closely scored companies.', color: 'from-sky-600 to-cyan-700' },
-                  { v: '3 elements', l: '20% Cap Hit', d: 'Would otherwise dominate their dimension.', color: 'from-emerald-600 to-teal-700' }
-                ].map((m, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden shadow-sm">
-                    <div className={`bg-gradient-to-br ${m.color} px-5 py-4`}>
-                      <p className="text-2xl font-bold text-white">{m.v}</p>
-                      <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{m.l}</p>
-                    </div>
-                    <div className="bg-white border border-slate-200 border-t-0 px-5 py-3">
-                      <p className="text-xs text-slate-600 leading-relaxed">{m.d}</p>
-                    </div>
+                  <div className="bg-white border border-slate-200 border-t-0 px-5 py-3">
+                    <p className="text-sm text-slate-600 leading-relaxed">{m.d}</p>
                   </div>
-                ))}
-              </div>
-            </section>
+                </div>
+              ))}
+            </div>
 
             {/* Top Differentiators Table */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 px-10 py-5">
-                <h3 className="font-bold text-white text-xl">Top Differentiating Elements by Dimension</h3>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 px-8 py-5">
+                <h3 className="font-bold text-white text-lg">Top Differentiating Elements by Dimension</h3>
                 <p className="text-sm text-slate-400 mt-1">Programs that most consistently predict stronger overall performance across the Index</p>
               </div>
               <div className="overflow-x-auto">
@@ -2572,15 +2580,15 @@ export default function ElementWeightingPage() {
                 </table>
               </div>
               <div className="px-8 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-t border-violet-100">
-                <p className="text-sm text-slate-700"><strong className="text-violet-700">Every element contributes.</strong> Lower-weighted elements still matter. Higher-weighted elements tend to be rarer commitments signaling deeper organizational investment.</p>
+                <p className="text-slate-700"><strong className="text-violet-700">Every element contributes.</strong> Lower-weighted elements still matter. Higher-weighted elements tend to be rarer commitments signaling deeper organizational investment.</p>
               </div>
             </section>
 
             {/* Design Decisions + Future */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
-              <h3 className="font-bold text-slate-900 text-lg mb-4">Design Decisions and Future Direction</h3>
-              <p className="text-slate-700 leading-relaxed mb-4">We avoided approaches that are hard to defend or unstable at small sample sizes: subjective expert weighting, binary recoding that discards maturity progression, raw coefficients that can produce misleading negatives, and hard cutoffs that create cliff effects. Instead, we use stable importance measures, proportional damping, and conservative blending to keep the framework intact.</p>
-              <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration. As participation grows, weights can become more data-driven while maintaining the same guardrails and annual recalibration.</p>
+            <section className="bg-slate-50 rounded-xl border border-slate-200 p-8">
+              <h3 className="font-bold text-slate-900 text-lg mb-3">Design Decisions and Future Direction</h3>
+              <p className="text-slate-700 leading-relaxed mb-3">We avoided approaches that are hard to defend or unstable at small sample sizes: subjective expert weighting, binary recoding that discards maturity progression, raw coefficients that can produce misleading negatives, and hard cutoffs that create cliff effects. Instead, we use stable importance measures, proportional damping, and conservative blending to keep the framework intact.</p>
+              <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration. As participation grows, the empirical signal strengthens and weights can become more data-driven while maintaining the same guardrails. Weights are recalibrated annually and published alongside each Index release.</p>
             </section>
           </div>
         )}
