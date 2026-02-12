@@ -2469,36 +2469,54 @@ export default function ElementWeightingPage() {
       <div className={`mx-auto py-10 ${activeTab === 'scoring' ? 'max-w-[1800px] px-6' : 'max-w-7xl px-12'}`}>
 
 
+
         {/* ===== TAB 1: OVERVIEW ===== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Why Weight Support Elements?</h2>
-              <p className="text-slate-600 text-sm">A data-driven calibration of the Cancer and Careers assessment framework</p>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Element Weighting: Calibration, Not Reinvention</h2>
+              <p className="text-slate-600 text-sm">A modest, evidence-based refinement to improve differentiation within each dimension</p>
+            </div>
+
+            {/* Bottom Line Callout */}
+            <div className="bg-violet-50 border-l-4 border-violet-500 rounded-r-xl px-6 py-4">
+              <p className="text-violet-900 text-sm font-medium leading-relaxed"><strong>Bottom line:</strong> We preserve the CAC framework and apply a conservative calibration so rarer, maturity-signaling elements carry modestly more weight&mdash;without destabilizing rankings.</p>
             </div>
 
             {/* The Question + Our Answer */}
             <section className="rounded-2xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-10 py-8">
-                <p className="text-white text-lg leading-relaxed mb-4">The Index scores 13 dimensions of workplace cancer support, each containing 9 to 20 individual elements. In the first version, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as an employee assistance program.</p>
-                <p className="text-white text-lg leading-relaxed">Some elements are table-stakes practices most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs. <strong>We adjusted element weights so that programs which more consistently distinguish stronger overall performers receive modestly higher weight</strong>, using the data itself rather than subjective judgment, and blending back toward equal weighting to ensure the adjustment calibrates the scoring rather than rewrites it.</p>
+                <p className="text-white text-lg leading-relaxed mb-4">The Index measures 13 dimensions, each made up of individual support elements. In the original scoring, every element inside a dimension counted equally&mdash;regardless of whether it was a table-stakes practice or a rarer signal of program maturity.</p>
+                <p className="text-white text-lg leading-relaxed">We introduced element weighting to reflect that reality: elements that more consistently differentiate stronger overall programs receive modestly higher weight, while the Cancer and Careers framework remains the anchor. This is a calibration&mdash;not a rewrite&mdash;and it is designed to be stable and defensible.</p>
               </div>
               <div className="bg-slate-900 px-10 py-4 border-t border-white/10">
-                <p className="text-slate-300 text-sm">The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.</p>
+                <p className="text-slate-300 text-sm">The 13 dimensions, their relative weights, and the response scale are unchanged. Element weighting only adjusts how much each item contributes within its dimension.</p>
               </div>
             </section>
 
-            {/* How We Did It - prose with stat cards */}
+            {/* How We Did It */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
               <h3 className="font-bold text-slate-900 text-xl mb-4">How We Did It</h3>
-              <p className="text-slate-700 leading-relaxed mb-4">For each dimension, we built a model asking which elements best predict a company&apos;s composite score across the other 12 dimensions. This avoids circularity: an element earns higher weight only if companies that score well on it also tend to score well everywhere else. We measured each element&apos;s contribution by temporarily scrambling its data and observing how much predictive accuracy declined. The analysis was repeated 200 times on different random samples to ensure stability, and unstable signals were dampened proportionally.</p>
-              <p className="text-slate-700 leading-relaxed mb-6">The final weights blend the empirical findings with equal weighting, adapting by dimension based on signal strength. No element is removed or zeroed out, and a 20% cap prevents any single element from dominating its dimension. Only clean data was used: companies with high unsure rates were excluded from weight estimation but still receive scored reports.</p>
+              <p className="text-slate-700 leading-relaxed mb-5">For each dimension, we asked a simple question: which elements are most consistently associated with stronger overall performance across the rest of the Index? We quantify each element&apos;s contribution by measuring how much predictive accuracy drops when that element is scrambled. We repeat this many times to confirm stability, then blend results back toward equal weighting so the adjustment remains conservative.</p>
+              <div className="space-y-2 mb-6">
+                {[
+                  'Uses the full maturity scale (0/2/3/5), not yes/no.',
+                  'Excludes high-Unsure responses from weight estimation (weights are learned from confirmed data).',
+                  'Uses a conservative model (ridge) and permutation importance (non-negative).',
+                  'Applies stability damping, adaptive blending toward equal weights, and a 20% cap.',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0" />
+                    <p className="text-slate-600 text-sm leading-relaxed">{item}</p>
+                  </div>
+                ))}
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Most companies move by fewer than 3 points.', color: 'from-violet-600 to-purple-700' },
-                  { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Highest-weighted vs lowest within a dimension.', color: 'from-indigo-600 to-blue-700' },
-                  { v: 'Preserved', l: 'Rankings', d: 'Any reordering is among companies with similar scores.', color: 'from-sky-600 to-cyan-700' },
-                  { v: '3 elements', l: '20% Cap Hit', d: 'The data suggested even higher weight for these.', color: 'from-emerald-600 to-teal-700' }
+                  { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Typically 1\u20133 points; larger moves are rare.', color: 'from-violet-600 to-purple-700' },
+                  { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Typical highest-to-lowest within a dimension.', color: 'from-indigo-600 to-blue-700' },
+                  { v: 'Preserved', l: 'Rankings', d: 'Changes occur among closely scored companies.', color: 'from-sky-600 to-cyan-700' },
+                  { v: '3 elements', l: '20% Cap Hit', d: 'Would otherwise dominate their dimension.', color: 'from-emerald-600 to-teal-700' }
                 ].map((m, i) => (
                   <div key={i} className="rounded-xl overflow-hidden shadow-sm">
                     <div className={`bg-gradient-to-br ${m.color} px-5 py-4`}>
@@ -2554,15 +2572,15 @@ export default function ElementWeightingPage() {
                 </table>
               </div>
               <div className="px-8 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-t border-violet-100">
-                <p className="text-sm text-slate-700"><strong className="text-violet-700">Every element contributes.</strong> Lower-weighted elements still matter. Higher-weighted elements tend to be rarer commitments that signal deeper organizational investment.</p>
+                <p className="text-sm text-slate-700"><strong className="text-violet-700">Every element contributes.</strong> Lower-weighted elements still matter. Higher-weighted elements tend to be rarer commitments signaling deeper organizational investment.</p>
               </div>
             </section>
 
-            {/* What We Chose Not to Do + How This Evolves - combined prose */}
+            {/* Design Decisions + Future */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
               <h3 className="font-bold text-slate-900 text-lg mb-4">Design Decisions and Future Direction</h3>
-              <p className="text-slate-700 leading-relaxed mb-4">We chose against expert judgment weighting (subjective, difficult to defend), simple binary encoding (discards the ordinal progression), raw model outputs (can produce negatives), and hard cutoffs for low-stability elements (cliff effects). Instead, unstable signals are dampened proportionally, co-occurring elements share credit, and the blend adapts to signal strength in each dimension.</p>
-              <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration, conservative by design. As participation grows, the empirical signal strengthens and the blend can shift further toward data-driven weights. Weights are recalibrated annually and published alongside each Index release.</p>
+              <p className="text-slate-700 leading-relaxed mb-4">We avoided approaches that are hard to defend or unstable at small sample sizes: subjective expert weighting, binary recoding that discards maturity progression, raw coefficients that can produce misleading negatives, and hard cutoffs that create cliff effects. Instead, we use stable importance measures, proportional damping, and conservative blending to keep the framework intact.</p>
+              <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration. As participation grows, weights can become more data-driven while maintaining the same guardrails and annual recalibration.</p>
             </section>
           </div>
         )}
@@ -2642,8 +2660,8 @@ export default function ElementWeightingPage() {
                 <div className="grid grid-cols-4 gap-3 mb-3">
                   {[
                     { title: 'Ordinal Encoding', detail: '0 / 2 / 3 / 5', color: 'bg-violet-700' },
-                    { title: 'Company Filtering', detail: '\u226560% observed', color: 'bg-indigo-700' },
-                    { title: 'Ridge Regression', detail: '\u03b1 = 1.0, z-scored', color: 'bg-blue-700' },
+                    { title: 'Company Filtering', detail: '226560% observed', color: 'bg-indigo-700' },
+                    { title: 'Ridge Regression', detail: '03b1 = 1.0, z-scored', color: 'bg-blue-700' },
                     { title: 'Permutation Importance', detail: '100 repetitions', color: 'bg-sky-700' },
                   ].map((s, i) => (
                     <div key={i} className="relative">
@@ -2665,8 +2683,8 @@ export default function ElementWeightingPage() {
                 <div className="grid grid-cols-4 gap-3">
                   {[
                     { title: 'Bootstrap Stability', detail: '200 resamples', color: 'bg-emerald-700' },
-                    { title: 'Soft Attenuation', detail: 'w \u00d7 s(j)^1.5', color: 'bg-amber-700' },
-                    { title: 'Adaptive \u03b1 Blend', detail: 'Signal 2192 03b1', color: 'bg-orange-700' },
+                    { title: 'Soft Attenuation', detail: 'w 00d7 s(j)^1.5', color: 'bg-amber-700' },
+                    { title: 'Adaptive 03b1 Blend', detail: 'Signal → α', color: 'bg-orange-700' },
                     { title: '20% Hard Cap', detail: 'Redistribute excess', color: 'bg-red-700' },
                   ].map((s, i) => (
                     <div key={i} className="relative">
@@ -2724,12 +2742,12 @@ export default function ElementWeightingPage() {
                   <p className="text-white font-mono text-center text-base tracking-wide">
                     w<sub className="text-xs">final</sub>(j)
                     <span className="mx-3">=</span>
-                    <span className="font-bold">\u03b1</span>
-                    <span className="mx-1">\u00d7</span>
+                    <span className="font-bold">&alpha;</span>
+                    <span className="mx-1">&times;</span>
                     w<sub className="text-xs">empirical</sub>(j)
                     <span className="mx-3">+</span>
-                    (1 \u2212 <span className="font-bold">\u03b1</span>)
-                    <span className="mx-1">\u00d7</span>
+                    (1 &minus; <span className="font-bold">&alpha;</span>)
+                    <span className="mx-1">&times;</span>
                     w<sub className="text-xs">equal</sub>
                   </p>
                 </div>
@@ -2740,7 +2758,7 @@ export default function ElementWeightingPage() {
                     <div className="bg-amber-50 px-5 py-4">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Emerging Signal</span>
-                        <span className="text-xl font-bold text-amber-800">\u03b1 = 0.30</span>
+                        <span className="text-xl font-bold text-amber-800">&alpha; = 0.30</span>
                       </div>
                       <p className="text-sm font-mono text-amber-700 mb-2">CV R² ≤ 0</p>
                       <p className="text-sm text-amber-800 leading-relaxed">30% empirical, 70% equal. Anchor heavily toward the expert framework while allowing modest differentiation.</p>
@@ -2750,7 +2768,7 @@ export default function ElementWeightingPage() {
                     <div className="bg-indigo-50 px-5 py-4">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Developing Signal</span>
-                        <span className="text-xl font-bold text-indigo-800">\u03b1 = 0.40</span>
+                        <span className="text-xl font-bold text-indigo-800">&alpha; = 0.40</span>
                       </div>
                       <p className="text-sm font-mono text-indigo-700 mb-2">0 &lt; CV R² &lt; 0.05</p>
                       <p className="text-sm text-indigo-800 leading-relaxed">40% empirical, 60% equal. Lean toward equal but allow more differentiation.</p>
@@ -2760,7 +2778,7 @@ export default function ElementWeightingPage() {
                     <div className="bg-emerald-50 px-5 py-4">
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Established Signal</span>
-                        <span className="text-xl font-bold text-emerald-800">\u03b1 = 0.50</span>
+                        <span className="text-xl font-bold text-emerald-800">&alpha; = 0.50</span>
                       </div>
                       <p className="text-sm font-mono text-emerald-700 mb-2">CV R² ≥ 0.05</p>
                       <p className="text-sm text-emerald-800 leading-relaxed">50% empirical, 50% equal. Balanced blend of empirical and equal.</p>
@@ -2785,7 +2803,7 @@ export default function ElementWeightingPage() {
                       <th className="px-4 py-3 text-center font-semibold w-16">Wt</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Elem</th>
                       <th className="px-4 py-3 text-center font-semibold w-28">Signal</th>
-                      <th className="px-4 py-3 text-center font-semibold w-16">\u03b1</th>
+                      <th className="px-4 py-3 text-center font-semibold w-16">&alpha;</th>
                       <th className="px-4 py-3 text-left font-semibold">Top 3 Elements</th>
                     </tr>
                   </thead>
@@ -2816,7 +2834,7 @@ export default function ElementWeightingPage() {
               </div>
               <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
                 <div className="flex items-center gap-6 text-xs text-slate-600">
-                  <span><strong className="text-slate-700">\u03b1</strong> = empirical share in final blend (1 \u2212 \u03b1 = equal weight share)</span>
+                  <span><strong className="text-slate-700">&alpha;</strong> = empirical share in final blend (1 &minus; &alpha; = equal weight share)</span>
                 </div>
               </div>
             </section>
