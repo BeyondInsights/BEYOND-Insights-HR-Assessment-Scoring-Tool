@@ -4,7 +4,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 
-// Constants
+// ============================================
+// CONSTANTS - EXACT MATCH TO AGGREGATE SCORING
+// ============================================
 const DW: Record<number, number> = { 4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3 };
 const DO = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
 const DN: Record<number, string> = {
@@ -15,6 +17,7 @@ const DN: Record<number, string> = {
 };
 const PTS = { OFFER: 5, PLAN: 3, ASSESS: 2, NOT: 0 };
 const D10X = ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'];
+const BLEND_WEIGHTS = { d1: { grid: 85, followUp: 15 }, d3: { grid: 85, followUp: 15 }, d12: { grid: 85, followUp: 15 }, d13: { grid: 85, followUp: 15 } };
 
 const DM: Record<number, { cvR2: number; alpha: number; n: number; elems: number }> = {
   1: { cvR2: -0.135, alpha: 0.3, n: 41, elems: 13 }, 2: { cvR2: 0.018, alpha: 0.4, n: 36, elems: 17 },
@@ -26,6 +29,9 @@ const DM: Record<number, { cvR2: number; alpha: number; n: number; elems: number
   13: { cvR2: 0.642, alpha: 0.5, n: 40, elems: 11 }
 };
 
+// ============================================
+// ELEMENT WEIGHTS BY DIMENSION
+// ============================================
 const EW: Record<number, Array<{ e: string; w: number; eq: number; s: number }>> = {
   1: [
     { e: 'Emergency leave within 24 hours', w: 0.1431, eq: 0.0769, s: 0.92 },
@@ -214,15 +220,19 @@ const EW: Record<number, Array<{ e: string; w: number; eq: number; s: number }>>
   ]
 };
 
-// Scoring helpers
+// Build element weight lookup
 function norm(t: string): string { return t.toLowerCase().trim().replace(/\s+/g, ' '); }
-function buildLookup(d: number): Map<string, { w: number; eq: number; s: number }> {
+function buildLookup(d: number): Map<string, number> {
   const m = new Map();
-  for (const i of EW[d] || []) m.set(norm(i.e), { w: i.w, eq: i.eq, s: i.s });
+  for (const i of EW[d] || []) m.set(norm(i.e), i.w);
   return m;
 }
 
-function stp(status: string | number): { points: number | null; isUnsure: boolean } {
+// ============================================
+// SCORING FUNCTIONS - EXACT MATCH TO AGGREGATE SCORING
+// ============================================
+
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
   if (typeof status === 'number') {
     switch (status) {
       case 4: return { points: PTS.OFFER, isUnsure: false };
@@ -233,112 +243,321 @@ function stp(status: string | number): { points: number | null; isUnsure: boolea
       default: return { points: null, isUnsure: false };
     }
   }
-  const s = String(status).toLowerCase().trim();
-  if (s.includes('not able') || s.includes('not currently') || s.includes('do not')) return { points: PTS.NOT, isUnsure: false };
-  if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
-  if (s.includes('assessing') || s.includes('feasibility')) return { points: PTS.ASSESS, isUnsure: false };
-  if (s.includes('planning') || s.includes('development')) return { points: PTS.PLAN, isUnsure: false };
-  if (s.includes('currently offer') || s.includes('currently provide') || s.includes('we offer')) return { points: PTS.OFFER, isUnsure: false };
-  if (s.length > 0) return { points: PTS.NOT, isUnsure: false };
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
+    if (s.includes('not able')) return { points: PTS.NOT, isUnsure: false };
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) return { points: PTS.OFFER, isUnsure: false };
+    if (s.includes('planning') || s.includes('development')) return { points: PTS.PLAN, isUnsure: false };
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: PTS.ASSESS, isUnsure: false };
+    if (s.length > 0) return { points: PTS.NOT, isUnsure: false };
+  }
   return { points: null, isUnsure: false };
 }
 
-function getGeo(g: any): number {
-  if (!g) return 1.0;
-  const s = String(g).toLowerCase();
-  return s.includes('select locations') ? 0.75 : s.includes('varies') ? 0.90 : 1.0;
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) { case 1: return 0.75; case 2: return 0.90; case 3: return 1.0; default: return 1.0; }
+  }
+  const s = String(geoResponse).toLowerCase();
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
+  if (s.includes('vary') || s.includes('varies')) return 0.90;
+  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  return 1.0;
 }
 
-function calcFU(dim: number, a: Record<string, any>): number | null {
-  const d = a[`dimension${dim}_data`]; if (!d) return null;
-  const sc: number[] = [];
-  const add = (v: string | undefined, fn: (s: string) => number) => { if (v) sc.push(fn(v)); };
-  if (dim === 1) add(d.d1_1_usa || d.d1_1, s => { const l = s.toLowerCase(); return l.includes('100%') ? 100 : l.includes('80') || l.includes('75') ? 80 : l.includes('60') || l.includes('50') ? 50 : l.includes('legal') ? 0 : 30; });
-  else if (dim === 3) add(d.d3_1, s => { const l = s.toLowerCase(); return l.includes('required') || l.includes('mandatory') ? 100 : l.includes('available') ? 60 : l.includes('planning') ? 30 : 0; });
-  else if (dim === 12) { add(d.d12_1, s => { const l = s.toLowerCase(); return l.includes('quarterly') || l.includes('regular') ? 100 : l.includes('annual') ? 60 : l.includes('ad hoc') ? 30 : 0; }); add(d.d12_2, s => { const l = s.toLowerCase(); return l.includes('regularly') || l.includes('systematic') ? 100 : l.includes('occasionally') ? 50 : 0; }); }
-  else if (dim === 13) add(d.d13_1, s => { const l = s.toLowerCase(); return l.includes('proactive') || l.includes('at diagnosis') ? 100 : l.includes('upon request') ? 50 : l.includes('general') ? 30 : 0; });
-  return sc.length > 0 ? Math.round(sc.reduce((a, b) => a + b, 0) / sc.length) : null;
-}
-
-function calcMat(a: Record<string, any>): number {
-  const s = (a.current_support_data?.or1 || '').toLowerCase();
-  if (s.includes('comprehensive') || s.includes('well-established')) return 100;
-  if (s.includes('enhanced') || s.includes('developed')) return 80;
-  if (s.includes('moderate') || s.includes('growing')) return 50;
-  if (s.includes('developing') || s.includes('early')) return 20;
+// Follow-up scoring - EXACT MATCH
+function scoreD1PaidLeave(v: string): number {
+  const s = v.toLowerCase();
+  if (s.includes('does not apply')) return 0;
+  if (s.includes('13 or more') || s.includes('13 weeks or more') || s.includes('13+ weeks') || s.includes('more than 13')) return 100;
+  if ((s.includes('9 to') && s.includes('13')) || s.includes('9-13')) return 70;
+  if ((s.includes('5 to') && s.includes('9')) || s.includes('5-9')) return 40;
+  if ((s.includes('3 to') && s.includes('5')) || s.includes('3-5')) return 20;
+  if ((s.includes('1 to') && s.includes('3')) || s.includes('1-3')) return 10;
   return 0;
 }
 
-function calcBrd(a: Record<string, any>): number {
-  const cs = a.current_support_data; if (!cs) return 0;
-  let sc = 0, ct = 0;
-  for (const f of ['cb3a', 'cb3b', 'cb3c']) { const v = cs[f]; if (v) { ct++; const s = String(v).toLowerCase(); sc += s.includes('beyond') || s.includes('exceed') ? 100 : s.includes('meet') || s.includes('comply') ? 50 : 0; } }
-  return ct > 0 ? Math.round(sc / ct) : 0;
+function scoreD1PartTime(v: string): number {
+  const s = v.toLowerCase();
+  if (s.includes('no additional')) return 0;
+  if (s.includes('medically necessary') || s.includes('healthcare provider')) return 100;
+  if (s.includes('26 weeks or more') || s.includes('26+ weeks') || s.includes('26 or more')) return 80;
+  if ((s.includes('12 to') || s.includes('13 to')) && s.includes('26')) return 50;
+  if ((s.includes('5 to') && s.includes('12')) || (s.includes('5 to') && s.includes('13'))) return 30;
+  if (s.includes('case-by-case')) return 40;
+  if (s.includes('4 weeks') || s.includes('up to 4')) return 10;
+  return 0;
 }
 
-interface DR { eqB: number; wtB: number; uns: number; tot: number; matched: number; unmatched: string[] }
+function scoreD3Training(v: string): number {
+  const s = v.toLowerCase();
+  if (s.includes('less than 10%') || s === 'less than 10' || s.includes('less than 10 percent')) return 0;
+  if (s === '100%' || s === '100' || s.includes('100% of') || (s.includes('100') && !s.includes('less than'))) return 100;
+  if (s.includes('75') && s.includes('100')) return 80;
+  if (s.includes('50') && s.includes('75')) return 50;
+  if (s.includes('25') && s.includes('50')) return 30;
+  if (s.includes('10') && s.includes('25')) return 10;
+  return 0;
+}
 
-function scoreDim(dim: number, a: Record<string, any>): DR {
-  const r: DR = { eqB: 0, wtB: 0, uns: 0, tot: 0, matched: 0, unmatched: [] };
-  const dd = a[`dimension${dim}_data`]; if (!dd) return r;
-  const grid = dd[`d${dim}a`]; if (!grid || typeof grid !== 'object') return r;
-  const lookup = buildLookup(dim);
-  let earned = 0, answered = 0;
-  const es: Array<{ k: string; p: number; w: number }> = [];
+function scoreD12CaseReview(v: string): number {
+  const s = v.toLowerCase();
+  if (s.includes('systematic')) return 100;
+  if (s.includes('ad hoc')) return 50;
+  if (s.includes('aggregate') || s.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+function scoreD12PolicyChanges(v: string): number {
+  const s = v.toLowerCase();
+  if (s.includes('several') || s.includes('significant') || s.includes('major')) return 100;
+  if (s.includes('few') || s.includes('some') || s.includes('minor') || s.includes('adjustments')) return 60;
+  if (s === 'no' || s.includes('no change') || s.includes('not yet')) return 20;
+  return 0;
+}
+
+function scoreD13Communication(v: string): number {
+  const s = v.toLowerCase();
+  if (s.includes('monthly')) return 100;
+  if (s.includes('quarterly')) return 70;
+  if (s.includes('twice')) return 40;
+  if (s.includes('annually') || s.includes('world cancer day')) return 20;
+  if (s.includes('only when asked')) return 0;
+  if (s.includes('do not actively') || s.includes('no regular')) return 0;
+  return 0;
+}
+
+function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  if (!dimData) return null;
   
-  Object.entries(grid).forEach(([k, v]: [string, any]) => {
-    if (dim === 10 && D10X.some(ex => norm(ex) === norm(k))) return;
-    r.tot++;
-    const { points, isUnsure } = stp(v);
-    if (isUnsure) { r.uns++; answered++; }
-    else if (points !== null) {
-      answered++; earned += points;
-      const wInfo = lookup.get(norm(k));
-      if (wInfo) { r.matched++; es.push({ k, p: points, w: wInfo.w }); }
-      else { r.unmatched.push(k); es.push({ k, p: points, w: 1 / r.tot }); }
+  switch (dimNum) {
+    case 1: {
+      const scores: number[] = [];
+      if (dimData.d1_1_usa) scores.push(scoreD1PaidLeave(dimData.d1_1_usa));
+      if (dimData.d1_1_non_usa) scores.push(scoreD1PaidLeave(dimData.d1_1_non_usa));
+      if (dimData.d1_4b) scores.push(scoreD1PartTime(dimData.d1_4b));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      const d31 = dimData.d31 ?? dimData.d3_1;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      const scores: number[] = [];
+      if (dimData.d12_1) scores.push(scoreD12CaseReview(dimData.d12_1));
+      if (dimData.d12_2) scores.push(scoreD12PolicyChanges(dimData.d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 13: {
+      return dimData.d13_1 ? scoreD13Communication(dimData.d13_1) : null;
+    }
+    default: return null;
+  }
+}
+
+// Maturity - EXACT MATCH
+function calculateMaturityScore(assessment: Record<string, any>): number {
+  const cs = assessment.current_support_data || {};
+  const or1 = cs.or1;
+  if (or1 === 6 || or1 === '6') return 100;
+  if (or1 === 5 || or1 === '5') return 80;
+  if (or1 === 4 || or1 === '4') return 50;
+  if (or1 === 3 || or1 === '3') return 20;
+  if (or1 === 2 || or1 === '2') return 0;
+  if (or1 === 1 || or1 === '1') return 0;
+  const v = String(or1 || '').toLowerCase();
+  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
+  if (v.includes('comprehensive')) return 100;
+  if (v.includes('enhanced') || v.includes('strong')) return 80;
+  if (v.includes('moderate')) return 50;
+  if (v.includes('basic') || v.includes('developing')) return 20;
+  if (v.includes('legal minimum') || v.includes('no formal')) return 0;
+  return 0;
+}
+
+// Breadth - EXACT MATCH
+function calculateBreadthScore(assessment: Record<string, any>): number {
+  const cs = assessment.current_support_data || {};
+  const gb = assessment.general_benefits_data || {};
+  const scores: number[] = [];
+  
+  const cb3a = cs.cb3a ?? gb.cb3a;
+  if (cb3a === 3 || cb3a === '3') scores.push(100);
+  else if (cb3a === 2 || cb3a === '2') scores.push(50);
+  else if (cb3a === 1 || cb3a === '1') scores.push(0);
+  else if (cb3a !== undefined && cb3a !== null) {
+    const v = String(cb3a).toLowerCase();
+    if (v.includes('yes') && v.includes('additional support')) scores.push(100);
+    else if (v.includes('developing') || v.includes('currently developing')) scores.push(50);
+    else scores.push(0);
+  } else scores.push(0);
+  
+  const cb3b = cs.cb3b || gb.cb3b;
+  if (cb3b && Array.isArray(cb3b)) scores.push(Math.min(100, Math.round((cb3b.length / 6) * 100)));
+  else scores.push(0);
+  
+  const cb3c = cs.cb3c || gb.cb3c;
+  if (cb3c && Array.isArray(cb3c)) scores.push(Math.min(100, Math.round((cb3c.length / 13) * 100)));
+  else scores.push(0);
+  
+  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+}
+
+// ============================================
+// DIMENSION SCORING - Equal vs Weighted
+// ============================================
+
+interface DimScore {
+  rawScore: number;
+  adjustedScore: number;
+  geoMultiplier: number;
+  followUpScore: number | null;
+  blendedScore: number;
+}
+
+function calculateDimensionScore(dimNum: number, assessment: Record<string, any>, useElementWeights: boolean): DimScore {
+  const result: DimScore = { rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, followUpScore: null, blendedScore: 0 };
+  const dimData = assessment[`dimension${dimNum}_data`];
+  if (!dimData) return result;
+  
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
+  
+  const lookup = useElementWeights ? buildLookup(dimNum) : null;
+  let earnedPoints = 0;
+  let totalItems = 0;
+  let answeredItems = 0;
+  
+  // For element weighting
+  let weightedSum = 0;
+  let weightTotal = 0;
+  
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    if (dimNum === 10 && D10X.includes(itemKey)) return;
+    
+    totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
+    
+    if (isUnsure) {
+      answeredItems++;
+      // For element weighting, unsure counts with 0 points
+      if (useElementWeights && lookup) {
+        const wt = lookup.get(norm(itemKey)) ?? (1 / totalItems);
+        weightTotal += wt;
+      }
+    } else if (points !== null) {
+      answeredItems++;
+      earnedPoints += points;
+      
+      if (useElementWeights && lookup) {
+        const wt = lookup.get(norm(itemKey)) ?? (1 / totalItems);
+        weightedSum += (points / PTS.OFFER) * wt;
+        weightTotal += wt;
+      }
     }
   });
   
-  const maxP = answered * PTS.OFFER;
-  const eqRaw = maxP > 0 ? Math.round((earned / maxP) * 100) : 0;
-  let wtRaw = eqRaw;
-  if (es.length > 0) {
-    let wS = 0, wT = 0;
-    for (const e of es) { wS += (e.p / PTS.OFFER) * e.w; wT += e.w; }
-    Object.entries(grid).forEach(([k, v]: [string, any]) => {
-      if (dim === 10 && D10X.some(ex => norm(ex) === norm(k))) return;
-      const { isUnsure } = stp(v);
-      if (isUnsure) { const wInfo = lookup.get(norm(k)); wT += wInfo ? wInfo.w : (1 / r.tot); }
-    });
-    if (wT > 0) wtRaw = Math.round((wS / wT) * 100);
+  // Calculate raw score
+  const maxPoints = answeredItems * PTS.OFFER;
+  if (useElementWeights && weightTotal > 0) {
+    result.rawScore = Math.round((weightedSum / weightTotal) * 100);
+  } else if (maxPoints > 0) {
+    result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
   }
   
-  const geo = getGeo(dd[`d${dim}aa`]);
-  const eqA = Math.round(eqRaw * geo), wtA = Math.round(wtRaw * geo);
-  if ([1, 3, 12, 13].includes(dim)) {
-    const fu = calcFU(dim, a);
-    r.eqB = fu !== null ? Math.round(eqA * 0.85 + fu * 0.15) : eqA;
-    r.wtB = fu !== null ? Math.round(wtA * 0.85 + fu * 0.15) : wtA;
-  } else { r.eqB = eqA; r.wtB = wtA; }
-  return r;
+  // Apply geo multiplier
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  result.geoMultiplier = getGeoMultiplier(geoResponse);
+  result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
+  
+  // Apply follow-up blend for D1, D3, D12, D13
+  if ([1, 3, 12, 13].includes(dimNum)) {
+    result.followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (result.followUpScore !== null) {
+      const key = `d${dimNum}` as keyof typeof BLEND_WEIGHTS;
+      const gridPct = BLEND_WEIGHTS[key].grid;
+      const followUpPct = BLEND_WEIGHTS[key].followUp;
+      result.blendedScore = Math.round((result.adjustedScore * (gridPct / 100)) + (result.followUpScore * (followUpPct / 100)));
+    } else {
+      result.blendedScore = result.adjustedScore;
+    }
+  } else {
+    result.blendedScore = result.adjustedScore;
+  }
+  
+  return result;
 }
 
-interface CR { name: string; sid: string; isPanel: boolean; ok: boolean; dims: Record<number, DR>; eqC: number; wtC: number; mat: number; brd: number; matchPct: number; unsPct: number }
+// ============================================
+// COMPANY SCORING
+// ============================================
 
-function scoreCo(a: Record<string, any>): CR {
-  const id = a.app_id || a.survey_id || '';
-  const isP = id.startsWith('PANEL-');
-  const dims: Record<number, DR> = {};
-  let nd = 0, tI = 0, tU = 0, tM = 0;
-  for (let d = 1; d <= 13; d++) { dims[d] = scoreDim(d, a); if (dims[d].tot > 0) nd++; tI += dims[d].tot; tU += dims[d].uns; tM += dims[d].matched; }
-  const ok = nd === 13;
-  const mat = calcMat(a), brd = calcBrd(a);
-  let eqWD = 0, wtWD = 0;
-  if (ok) { const totW = Object.values(DW).reduce((a, b) => a + b, 0); for (let d = 1; d <= 13; d++) { const dw = (DW[d] || 0) / totW; eqWD += dims[d].eqB * dw; wtWD += dims[d].wtB * dw; } }
-  const eqC = ok ? Math.round(eqWD * 0.90 + mat * 0.05 + brd * 0.05) : 0;
-  const wtC = ok ? Math.round(wtWD * 0.90 + mat * 0.05 + brd * 0.05) : 0;
-  return { name: a.company_name || a.firmographics_data?.company_name || id || 'Unknown', sid: a.survey_id || id, isPanel: isP, ok, dims, eqC, wtC, mat, brd, matchPct: tI > 0 ? tM / tI : 0, unsPct: tI > 0 ? tU / tI : 0 };
+interface CR {
+  name: string;
+  sid: string;
+  isPanel: boolean;
+  ok: boolean;
+  eqDims: Record<number, DimScore>;
+  wtDims: Record<number, DimScore>;
+  maturity: number;
+  breadth: number;
+  eqComposite: number;
+  wtComposite: number;
 }
+
+function scoreCompany(assessment: Record<string, any>): CR {
+  const id = assessment.app_id || assessment.survey_id || '';
+  const isPanel = id.startsWith('PANEL-');
+  
+  const eqDims: Record<number, DimScore> = {};
+  const wtDims: Record<number, DimScore> = {};
+  let completeDims = 0;
+  
+  for (let d = 1; d <= 13; d++) {
+    eqDims[d] = calculateDimensionScore(d, assessment, false);
+    wtDims[d] = calculateDimensionScore(d, assessment, true);
+    if (eqDims[d].blendedScore > 0 || assessment[`dimension${d}_data`]?.[`d${d}a`]) completeDims++;
+  }
+  
+  const ok = completeDims >= 13;
+  const maturity = calculateMaturityScore(assessment);
+  const breadth = calculateBreadthScore(assessment);
+  
+  // Calculate weighted dimension scores using dimension weights
+  let eqWeightedDim = 0;
+  let wtWeightedDim = 0;
+  const totalDimWeight = Object.values(DW).reduce((a, b) => a + b, 0);
+  
+  for (let d = 1; d <= 13; d++) {
+    const dimWeight = (DW[d] || 0) / totalDimWeight;
+    eqWeightedDim += eqDims[d].blendedScore * dimWeight;
+    wtWeightedDim += wtDims[d].blendedScore * dimWeight;
+  }
+  
+  // Composite = 90% weighted dims + 5% maturity + 5% breadth
+  const eqComposite = ok ? Math.round(eqWeightedDim * 0.90 + maturity * 0.05 + breadth * 0.05) : 0;
+  const wtComposite = ok ? Math.round(wtWeightedDim * 0.90 + maturity * 0.05 + breadth * 0.05) : 0;
+  
+  return {
+    name: assessment.company_name || assessment.firmographics_data?.company_name || id || 'Unknown',
+    sid: assessment.survey_id || id,
+    isPanel,
+    ok,
+    eqDims,
+    wtDims,
+    maturity,
+    breadth,
+    eqComposite,
+    wtComposite
+  };
+}
+
+// ============================================
+// MAIN PAGE
+// ============================================
 
 export default function ElementWeightingPage() {
   const [tab, setTab] = useState<'method' | 'compare'>('method');
@@ -349,26 +568,41 @@ export default function ElementWeightingPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: d } = await supabase.from('assessments').select('id, app_id, survey_id, company_name, firmographics_data, current_support_data, dimension1_data, dimension2_data, dimension3_data, dimension4_data, dimension5_data, dimension6_data, dimension7_data, dimension8_data, dimension9_data, dimension10_data, dimension11_data, dimension12_data, dimension13_data').order('company_name');
+      const { data: d } = await supabase.from('assessments').select('id, app_id, survey_id, company_name, firmographics_data, current_support_data, general_benefits_data, dimension1_data, dimension2_data, dimension3_data, dimension4_data, dimension5_data, dimension6_data, dimension7_data, dimension8_data, dimension9_data, dimension10_data, dimension11_data, dimension12_data, dimension13_data').order('company_name');
       if (d) setData(d);
       setLoading(false);
     })();
   }, []);
 
   const results = useMemo(() => {
-    if (!data.length) return { cos: [] as CR[], bench: null as CR | null };
-    const all = data.filter((a: any) => { const id = a.app_id || a.survey_id || ''; return !id.startsWith('TEST') && a.dimension1_data; }).map(scoreCo);
+    if (!data.length) return { cos: [] as CR[], bench: null as { eqC: number; wtC: number; eqDims: Record<number, number>; wtDims: Record<number, number> } | null };
+    
+    const all = data.filter((a: any) => {
+      const id = a.app_id || a.survey_id || '';
+      return !id.startsWith('TEST') && a.dimension1_data;
+    }).map(scoreCompany);
+    
     const complete = all.filter(c => c.ok);
+    // Table shows ONLY index companies
+    const index = complete.filter(c => !c.isPanel).sort((a, b) => b.wtComposite - a.wtComposite);
+    
     // Benchmark uses ALL complete (index + panel)
-    const pool = complete;
-    // Table shows ONLY index companies (no panel)
-    const index = complete.filter(c => !c.isPanel).sort((a, b) => b.wtC - a.wtC);
-    let bench: CR | null = null;
-    if (pool.length > 0) {
-      const avgDims: Record<number, DR> = {};
-      for (let d = 1; d <= 13; d++) { const dr = pool.filter(c => c.dims[d]?.tot > 0); avgDims[d] = { eqB: dr.length > 0 ? Math.round(dr.reduce((s, c) => s + c.dims[d].eqB, 0) / dr.length) : 0, wtB: dr.length > 0 ? Math.round(dr.reduce((s, c) => s + c.dims[d].wtB, 0) / dr.length) : 0, uns: 0, tot: 0, matched: 0, unmatched: [] }; }
-      bench = { name: 'Benchmark', sid: 'BENCH', isPanel: false, ok: true, dims: avgDims, eqC: Math.round(pool.reduce((s, c) => s + c.eqC, 0) / pool.length), wtC: Math.round(pool.reduce((s, c) => s + c.wtC, 0) / pool.length), mat: 0, brd: 0, matchPct: 1, unsPct: 0 };
+    let bench = null;
+    if (complete.length > 0) {
+      const eqDims: Record<number, number> = {};
+      const wtDims: Record<number, number> = {};
+      for (let d = 1; d <= 13; d++) {
+        eqDims[d] = Math.round(complete.reduce((s, c) => s + c.eqDims[d].blendedScore, 0) / complete.length);
+        wtDims[d] = Math.round(complete.reduce((s, c) => s + c.wtDims[d].blendedScore, 0) / complete.length);
+      }
+      bench = {
+        eqC: Math.round(complete.reduce((s, c) => s + c.eqComposite, 0) / complete.length),
+        wtC: Math.round(complete.reduce((s, c) => s + c.wtComposite, 0) / complete.length),
+        eqDims,
+        wtDims
+      };
     }
+    
     return { cos: index, bench };
   }, [data]);
 
@@ -378,14 +612,12 @@ export default function ElementWeightingPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Hero Header - matches company report */}
+      {/* Hero Header */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800">
         <div className="max-w-7xl mx-auto px-10 py-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <div className="bg-white rounded-xl p-4 shadow-lg">
-                <img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-14" />
-              </div>
+              <div className="bg-white rounded-xl p-4 shadow-lg"><img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-14" /></div>
               <div>
                 <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Scoring Calibration</p>
                 <h1 className="text-3xl font-bold text-white mt-2">Element Weighting Analysis</h1>
@@ -411,27 +643,17 @@ export default function ElementWeightingPage() {
         </div>
       </div>
 
-      {/* Content - Full width for comparison tab */}
+      {/* Content */}
       <div className={`mx-auto px-10 py-10 ${tab === 'compare' ? 'max-w-none' : 'max-w-7xl'}`}>
         {tab === 'method' ? (
           <div className="max-w-4xl space-y-8">
             {/* Main Card */}
             <div className="bg-gradient-to-br from-violet-50/80 via-white to-slate-50 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8">
-                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-3">
-                  <span className="w-1.5 h-8 bg-violet-500 rounded-full"></span>
-                  What We Did and Why
-                </h2>
-                <p className="text-slate-700 leading-relaxed mb-6">
-                  <strong className="text-slate-900">Not all survey elements carry equal weight in differentiating program quality.</strong> Some elements represent table-stakes practices that most organizations offer. Others are rarer commitments that signal a genuinely mature, comprehensive program. Element weighting lets the scoring reflect that distinction without overreacting to sample-specific patterns or undermining the conceptual framework.
-                </p>
-                <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6">
-                  <p className="text-slate-600 italic leading-relaxed">"We kept the CAC framework intact. We used the full maturity scale for each element, identified which items most consistently differentiate stronger programs using only high-quality responses, and then blended those findings back toward equal weighting so that we calibrate the scoring rather than overhaul it."</p>
-                </div>
-                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-3">
-                  <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                  The approach, step by step
-                </h3>
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-3"><span className="w-1.5 h-8 bg-violet-500 rounded-full"></span>What We Did and Why</h2>
+                <p className="text-slate-700 leading-relaxed mb-6"><strong className="text-slate-900">Not all survey elements carry equal weight in differentiating program quality.</strong> Some elements represent table-stakes practices that most organizations offer. Others are rarer commitments that signal a genuinely mature, comprehensive program. Element weighting lets the scoring reflect that distinction without overreacting to sample-specific patterns or undermining the conceptual framework.</p>
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6"><p className="text-slate-600 italic leading-relaxed">"We kept the CAC framework intact. We used the full maturity scale for each element, identified which items most consistently differentiate stronger programs using only high-quality responses, and then blended those findings back toward equal weighting so that we calibrate the scoring rather than overhaul it."</p></div>
+                <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-3"><span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>The approach, step by step</h3>
                 <div className="space-y-4">
                   {[
                     { n: 1, t: 'Start with the existing framework', b: 'The 13 dimensions, the element response options (Not Offered, Assessing, Planning, Currently Offer), and the dimension weights all remain unchanged. Element weighting adjusts how much each item contributes within its dimension.' },
@@ -442,31 +664,17 @@ export default function ElementWeightingPage() {
                     { n: 6, t: 'Measure importance through prediction impact', b: "For each element, values are shuffled and the resulting R-squared drop is measured. Elements that cause a larger drop when scrambled are stronger differentiators." },
                     { n: 7, t: 'Test stability through bootstrapping', b: 'The importance calculation is repeated 200 times on different resamples of companies. Elements that consistently appear as important across resamples receive full weight.' },
                     { n: 8, t: 'Blend toward equal weights', b: "The final weight blends empirical importance (50%) with equal weighting (50%). No single element can exceed 20% of its dimension's total weight." }
-                  ].map(s => (
-                    <div key={s.n} className="flex gap-4">
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-600 text-white text-sm font-bold flex items-center justify-center">{s.n}</div>
-                      <div><p className="font-semibold text-slate-800">{s.t}</p><p className="text-slate-600 mt-1">{s.b}</p></div>
-                    </div>
-                  ))}
+                  ].map(s => (<div key={s.n} className="flex gap-4"><div className="flex-shrink-0 w-8 h-8 rounded-full bg-violet-600 text-white text-sm font-bold flex items-center justify-center">{s.n}</div><div><p className="font-semibold text-slate-800">{s.t}</p><p className="text-slate-600 mt-1">{s.b}</p></div></div>))}
                 </div>
               </div>
-              <div className="px-8 py-5 bg-gradient-to-r from-violet-700 to-purple-700">
-                <p className="text-violet-100 text-sm leading-relaxed">
-                  <strong className="text-white">Result:</strong> Across all scored companies, element weighting shifts composite scores by approximately 1 to 3 points. Within each dimension, the highest-weighted element is typically 2 to 3 times the lowest. Rankings are largely preserved, with modest reordering among companies with similar scores.
-                </p>
-              </div>
+              <div className="px-8 py-5 bg-gradient-to-r from-violet-700 to-purple-700"><p className="text-violet-100 text-sm leading-relaxed"><strong className="text-white">Result:</strong> Across all scored companies, element weighting shifts composite scores by approximately 1 to 3 points. Within each dimension, the highest-weighted element is typically 2 to 3 times the lowest. Rankings are largely preserved, with modest reordering among companies with similar scores.</p></div>
             </div>
 
             {/* Technical Section */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <button onClick={() => setShowTech(!showTech)} className="w-full px-8 py-5 flex items-center justify-between text-left hover:bg-slate-50 transition-colors">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-800">Full Statistical Methodology</h3>
-                  <p className="text-slate-500 mt-0.5">Technical specification for peer review and validation</p>
-                </div>
-                <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform ${showTech ? 'rotate-180' : ''}`}>
-                  <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                </div>
+                <div><h3 className="text-lg font-bold text-slate-800">Full Statistical Methodology</h3><p className="text-slate-500 mt-0.5">Technical specification for peer review and validation</p></div>
+                <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform ${showTech ? 'rotate-180' : ''}`}><svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg></div>
               </button>
               {showTech && (
                 <div className="px-8 py-6 border-t border-slate-200 space-y-5 text-sm text-slate-700">
@@ -488,12 +696,12 @@ export default function ElementWeightingPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Score Table - Full width with horizontal scroll, INDEX COMPANIES ONLY */}
+            {/* Score Table */}
             {bench && cos.length > 0 && (
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-gradient-to-r from-violet-700 to-purple-700 px-8 py-5">
                   <h2 className="text-lg font-bold text-white">Score Comparison: Equal Weight vs. Element-Weighted</h2>
-                  <p className="text-violet-200 text-sm mt-1">All pipeline components are identical. The only difference is element weighting within dimensions.</p>
+                  <p className="text-violet-200 text-sm mt-1">All pipeline components (dimension weights, geo multiplier, follow-up blend, maturity, breadth) are identical. The only difference is element weighting within each dimension's grid calculation.</p>
                 </div>
                 <div className="overflow-x-auto max-h-[70vh]">
                   <table className="text-xs border-collapse">
@@ -513,17 +721,17 @@ export default function ElementWeightingPage() {
                       <tr className="border-b border-slate-100">
                         <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 font-medium border-r border-slate-200">Equal Weight</td>
                         <td className="px-4 py-2 text-center font-semibold text-slate-700 bg-violet-50 border-r border-slate-200">{bench.eqC}</td>
-                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqC}</td>)}
+                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqComposite}</td>)}
                       </tr>
                       <tr className="border-b border-slate-100 bg-emerald-50/50">
                         <td className="sticky left-0 bg-emerald-50/50 z-10 px-4 py-2 text-emerald-800 font-medium border-r border-slate-200">Element-Weighted</td>
                         <td className="px-4 py-2 text-center font-bold text-emerald-700 bg-emerald-100/50 border-r border-slate-200">{bench.wtC}</td>
-                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700 font-semibold">{c.wtC}</td>)}
+                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700 font-semibold">{c.wtComposite}</td>)}
                       </tr>
                       <tr className="border-b border-slate-200">
                         <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-500 border-r border-slate-200">Delta</td>
                         <td className="px-4 py-2 text-center text-slate-500 bg-violet-50 border-r border-slate-200">{(bench.wtC - bench.eqC >= 0 ? '+' : '') + (bench.wtC - bench.eqC)}</td>
-                        {cos.map(c => { const delta = c.wtC - c.eqC; return <td key={c.sid} className="px-3 py-2 text-center"><span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{(delta >= 0 ? '+' : '') + delta}</span></td>; })}
+                        {cos.map(c => { const delta = c.wtComposite - c.eqComposite; return <td key={c.sid} className="px-3 py-2 text-center"><span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{(delta >= 0 ? '+' : '') + delta}</span></td>; })}
                       </tr>
                       {DO.map(d => (
                         <React.Fragment key={d}>
@@ -534,13 +742,13 @@ export default function ElementWeightingPage() {
                           </tr>
                           <tr className="border-b border-slate-100">
                             <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 pl-8 border-r border-slate-200">Equal</td>
-                            <td className="px-4 py-2 text-center text-slate-600 bg-violet-50 border-r border-slate-200">{bench.dims[d]?.eqB ?? '-'}</td>
-                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.dims[d]?.eqB ?? '-'}</td>)}
+                            <td className="px-4 py-2 text-center text-slate-600 bg-violet-50 border-r border-slate-200">{bench.eqDims[d]}</td>
+                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqDims[d].blendedScore}</td>)}
                           </tr>
                           <tr className="border-b border-slate-100 bg-emerald-50/30">
                             <td className="sticky left-0 bg-emerald-50/30 z-10 px-4 py-2 text-emerald-700 pl-8 border-r border-slate-200">Weighted</td>
-                            <td className="px-4 py-2 text-center text-emerald-700 bg-emerald-50/50 border-r border-slate-200">{bench.dims[d]?.wtB ?? '-'}</td>
-                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700">{c.dims[d]?.wtB ?? '-'}</td>)}
+                            <td className="px-4 py-2 text-center text-emerald-700 bg-emerald-50/50 border-r border-slate-200">{bench.wtDims[d]}</td>
+                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700">{c.wtDims[d].blendedScore}</td>)}
                           </tr>
                         </React.Fragment>
                       ))}
