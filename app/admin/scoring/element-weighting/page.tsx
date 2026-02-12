@@ -23,7 +23,7 @@ const DIMENSIONS: Record<number, {
     name: 'Medical Leave & Flexible Work',
     weight: 7,
     elements: 13,
-    cvR2: -0.135,
+    cvR2: -0.131,
     alpha: 0.3,
     n: 41,
     topElements: ['Emergency leave within 24 hours', 'Remote work options for on-site employees', 'Intermittent leave beyond legal requirements'],
@@ -47,7 +47,7 @@ const DIMENSIONS: Record<number, {
     name: 'Insurance & Financial Protection',
     weight: 11,
     elements: 17,
-    cvR2: 0.018,
+    cvR2: 0.022,
     alpha: 0.4,
     n: 36,
     topElements: ['Accelerated life insurance benefits', 'Tax/estate planning assistance', 'Real-time cost estimator tools'],
@@ -75,7 +75,7 @@ const DIMENSIONS: Record<number, {
     name: 'Manager Preparedness',
     weight: 12,
     elements: 10,
-    cvR2: 0.156,
+    cvR2: 0.167,
     alpha: 0.5,
     n: 38,
     topElements: ['Manager peer support/community building', 'Manager training on supporting employees', 'Empathy/communication skills training'],
@@ -96,7 +96,7 @@ const DIMENSIONS: Record<number, {
     name: 'Treatment & Navigation',
     weight: 14,
     elements: 10,
-    cvR2: 0.419,
+    cvR2: 0.413,
     alpha: 0.5,
     n: 40,
     topElements: ['Physical rehabilitation support', 'Nutrition coaching', 'Insurance advocacy/appeals support'],
@@ -117,7 +117,7 @@ const DIMENSIONS: Record<number, {
     name: 'Workplace Accommodations',
     weight: 7,
     elements: 11,
-    cvR2: 0.412,
+    cvR2: 0.453,
     alpha: 0.5,
     n: 39,
     topElements: ['Flexible scheduling options', 'Ergonomic equipment funding', 'Temporary role redesigns'],
@@ -136,7 +136,7 @@ const DIMENSIONS: Record<number, {
     ]
   },
   6: {
-    name: 'Culture & Psychological Safety',
+    name: 'Culture & Stigma',
     weight: 8,
     elements: 12,
     cvR2: 0.361,
@@ -159,7 +159,7 @@ const DIMENSIONS: Record<number, {
     ]
   },
   7: {
-    name: 'Career Continuity & Advancement',
+    name: 'Career Continuity',
     weight: 4,
     elements: 9,
     cvR2: 0.330,
@@ -179,7 +179,7 @@ const DIMENSIONS: Record<number, {
     ]
   },
   8: {
-    name: 'Work Continuation & Resumption',
+    name: 'Treatment Support & Reintegration',
     weight: 13,
     elements: 12,
     cvR2: 0.530,
@@ -202,7 +202,7 @@ const DIMENSIONS: Record<number, {
     ]
   },
   9: {
-    name: 'Executive Commitment & Resources',
+    name: 'Leadership & Accountability',
     weight: 4,
     elements: 12,
     cvR2: 0.136,
@@ -228,7 +228,7 @@ const DIMENSIONS: Record<number, {
     name: 'Caregiver & Family Support',
     weight: 4,
     elements: 20,
-    cvR2: -0.063,
+    cvR2: 0.025,
     alpha: 0.3,
     n: 40,
     topElements: ['Practical caregiving/work support', 'Eldercare consultation/referral', 'Family navigation support'],
@@ -256,10 +256,10 @@ const DIMENSIONS: Record<number, {
     ]
   },
   11: {
-    name: 'Prevention & Wellness',
+    name: 'Prevention & Early Detection',
     weight: 3,
     elements: 13,
-    cvR2: 0.473,
+    cvR2: 0.376,
     alpha: 0.5,
     n: 40,
     topElements: ['Legal protections beyond requirements', 'Individual health assessments', 'Immuno-compromised colleague policies'],
@@ -280,10 +280,10 @@ const DIMENSIONS: Record<number, {
     ]
   },
   12: {
-    name: 'Continuous Improvement',
+    name: 'Measurement & Outcomes',
     weight: 3,
     elements: 9,
-    cvR2: 0.120,
+    cvR2: 0.131,
     alpha: 0.5,
     n: 40,
     topElements: ['Regular program enhancements', 'Employee confidence in support', 'Innovation pilots'],
@@ -303,7 +303,7 @@ const DIMENSIONS: Record<number, {
     name: 'Communication & Awareness',
     weight: 10,
     elements: 11,
-    cvR2: 0.642,
+    cvR2: 0.644,
     alpha: 0.5,
     n: 40,
     topElements: ['Family/caregiver communication inclusion', 'Employee testimonials/success stories', 'Proactive diagnosis disclosure communication'],
@@ -851,10 +851,10 @@ export default function ElementWeightingPage() {
                 <table className="w-full text-[11px]">
                   <thead>
                     <tr className="bg-slate-800 text-white">
-                      <th className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-left font-semibold min-w-[180px] border-r border-slate-700"></th>
-                      <th className="px-3 py-3 text-center font-semibold min-w-[65px] bg-violet-700 border-r border-violet-600">Benchmark</th>
+                      <th className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-left font-semibold w-[180px] min-w-[180px] max-w-[180px] border-r border-slate-700"></th>
+                      <th className="px-2 py-3 text-center font-semibold w-[60px] min-w-[60px] max-w-[60px] bg-violet-700 border-r border-violet-600">Benchmark</th>
                       {COMPANIES.map((c, i) => (
-                        <th key={c} className={`px-2 py-3 text-center font-medium min-w-[58px] whitespace-nowrap ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>{c}</th>
+                        <th key={c} className={`px-1 py-3 text-center font-medium w-[58px] min-w-[58px] max-w-[58px] text-[10px] leading-tight ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>{c}</th>
                       ))}
                     </tr>
                   </thead>
