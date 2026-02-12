@@ -784,7 +784,7 @@ export default function UnsureMethodologyPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'technical' | 'impact' | 'alternatives'>('overview');
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<UnsureCompanyResult[]>([]);
-  const [includePanel, setIncludePanel] = useState(false);
+  
 
   // Load assessments from Supabase and compute live scores
   useEffect(() => {
@@ -842,10 +842,10 @@ export default function UnsureMethodologyPage() {
   }, []);
 
   const filteredCompanies = useMemo(() => {
-    let list = companies.filter(c => c.isComplete);
-    if (!includePanel) list = list.filter(c => !c.isPanel);
+    let list = companies.filter(c => c.isComplete && !c.isPanel);
+    
     return list.sort((a, b) => b.adjustedComposite - a.adjustedComposite);
-  }, [companies, includePanel]);
+  }, [companies]);
 
   const confirmedCount = filteredCompanies.filter(c => c.status.includes('Confirmed')).length;
   const verifyCount = filteredCompanies.filter(c => c.status.includes('verify')).length;
@@ -951,10 +951,10 @@ export default function UnsureMethodologyPage() {
             {/* Status Summary Cards */}
             <div className="grid grid-cols-4 gap-4">
               {[
-                { v: confirmedCount.toString(), l: 'Confirmed', d: 'Score is final, rank-eligible', color: 'from-emerald-700 to-emerald-800' },
-                { v: verifyCount.toString(), l: 'Provisional \u2014 Verify', d: 'Specific dimensions to confirm', color: 'from-amber-600 to-amber-700' },
-                { v: resolutionCount.toString(), l: 'Provisional \u2014 Resolve', d: 'Action items before ranking', color: 'from-orange-600 to-orange-700' },
-                { v: excludedCount.toString(), l: 'Excluded from Ranking', d: 'Insufficient confirmed data', color: 'from-red-600 to-red-700' },
+                { v: confirmedCount.toString(), l: 'Confirmed', d: 'Score is final, rank-eligible', color: 'from-slate-700 to-slate-800' },
+                { v: verifyCount.toString(), l: 'Provisional \u2014 Verify', d: 'Specific dimensions to confirm', color: 'from-slate-600 to-slate-700' },
+                { v: resolutionCount.toString(), l: 'Provisional \u2014 Resolve', d: 'Action items before ranking', color: 'from-slate-500 to-slate-600' },
+                { v: excludedCount.toString(), l: 'Excluded from Ranking', d: 'Insufficient confirmed data', color: 'from-slate-400 to-slate-500' },
               ].map((card, i) => (
                 <div key={i} className={`bg-gradient-to-br ${card.color} rounded-xl p-5 text-white shadow-sm`}>
                   <div className="text-3xl font-bold mb-1">{card.v}</div>
@@ -1291,10 +1291,6 @@ export default function UnsureMethodologyPage() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
                 <p className="text-slate-600 text-sm">Current scores vs. unsure-adjusted scores calculated live from assessment data. The adjustment applies (1&minus;r)&sup2; substitution + 10% cap.</p>
               </div>
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
-                Include Panel
-              </label>
             </div>
 
             {filteredCompanies.length === 0 ? (
@@ -1309,7 +1305,7 @@ export default function UnsureMethodologyPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-violet-600" />
-                    <span className="text-slate-700 text-sm font-medium">Unsure-Adjusted</span>
+                    <span className="text-slate-700 text-sm font-medium">Unsure Substitution</span>
                   </div>
                   <div className="ml-auto flex items-center gap-6">
                     <div>
@@ -1359,7 +1355,7 @@ export default function UnsureMethodologyPage() {
                           ))}
                         </tr>
                         <tr className="border-b border-slate-200 bg-violet-50">
-                          <td className="sticky left-0 z-10 bg-violet-50 px-3 py-3 text-violet-800 font-bold text-sm border-r border-violet-100">Adjusted</td>
+                          <td className="sticky left-0 z-10 bg-violet-50 px-3 py-3 text-violet-800 font-bold text-sm border-r border-violet-100">Unsure Sub</td>
                           <td className="px-2 py-2.5 text-center font-bold bg-violet-100 border-r border-violet-100" style={{ color: getScoreColor(benchmark?.adjC || 0) }}>{benchmark?.adjC}</td>
                           {filteredCompanies.map((c, i) => (
                             <td key={c.surveyId || c.companyName} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-violet-50' : 'bg-violet-50/50'}`} style={{ color: getScoreColor(c.adjustedComposite) }}>{c.adjustedComposite}</td>
@@ -1409,7 +1405,7 @@ export default function UnsureMethodologyPage() {
                               ))}
                             </tr>
                             <tr className="border-b border-slate-100 bg-violet-50/30">
-                              <td className="sticky left-0 z-10 bg-violet-50/30 px-3 py-1 text-violet-800 font-semibold pl-4 text-xs border-r border-violet-100/50">Adj</td>
+                              <td className="sticky left-0 z-10 bg-violet-50/30 px-3 py-1 text-violet-800 font-semibold pl-4 text-xs border-r border-violet-100/50">Unsure Sub</td>
                               <td className="px-2 py-2 text-center font-semibold text-xs bg-violet-100/30 border-r border-violet-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.adj || 0) }}>{benchmark?.dims[dim]?.adj}</td>
                               {filteredCompanies.map((c, i) => (
                                 <td key={c.surveyId || c.companyName} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-violet-50/40' : 'bg-violet-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.adjustedScore || 0) }}>
@@ -1417,12 +1413,78 @@ export default function UnsureMethodologyPage() {
                                 </td>
                               ))}
                             </tr>
+                            <tr className="border-b border-slate-200 bg-slate-50/50">
+                              <td className="sticky left-0 z-10 bg-slate-50/50 px-3 py-0.5 text-slate-500 pl-4 text-[10px] font-bold border-r border-slate-100">&Delta;</td>
+                              <td className="px-2 py-0.5 text-center text-[10px] font-bold bg-slate-50/50 border-r border-slate-100">
+                                {benchmark && (() => { const dd = (benchmark.dims[dim]?.adj || 0) - (benchmark.dims[dim]?.raw || 0); return <span className={dd > 0 ? 'text-violet-700' : dd < 0 ? 'text-red-700' : 'text-slate-400'}>{dd > 0 ? '+' : ''}{dd}</span>; })()}
+                              </td>
+                              {filteredCompanies.map((c) => {
+                                const dd = (c.dims[dim]?.adjustedScore || 0) - (c.dims[dim]?.rawScore || 0);
+                                return (
+                                  <td key={c.surveyId || c.companyName} className="px-1 py-0.5 text-center text-[10px] font-bold">
+                                    <span className={dd > 0 ? 'text-violet-700' : dd < 0 ? 'text-red-700' : 'text-slate-400'}>
+                                      {dd > 0 ? '+' : ''}{dd}
+                                    </span>
+                                  </td>
+                                );
+                              })}
+                            </tr>
                           </React.Fragment>
                         ))}
                       </tbody>
                     </table>
                   </div>
                 </div>
+
+                {/* Score Status Thresholds */}
+                <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-8 py-5 border-b border-slate-100">
+                    <h3 className="font-bold text-slate-900 text-lg">Score Status and Rank Eligibility</h3>
+                    <p className="text-slate-500 text-sm mt-1">Determined by overall unsure rate and highest single-dimension unsure rate</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                          <th className="px-5 py-3 text-left font-semibold w-64">Status</th>
+                          <th className="px-5 py-3 text-left font-semibold">Criteria</th>
+                          <th className="px-5 py-3 text-left font-semibold w-48">Rank Eligibility</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">Scored (Confirmed)</span></td><td className="px-5 py-3 text-slate-700">Overall unsure &le; 25% AND max dimension &le; 40%</td><td className="px-5 py-3 text-emerald-700 font-semibold">Eligible</td></tr>
+                        <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">Provisional &mdash; Verify</span></td><td className="px-5 py-3 text-slate-700">Overall unsure &le; 25% AND max dimension 40&ndash;50%</td><td className="px-5 py-3 text-amber-700 font-semibold">Pending verification</td></tr>
+                        <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-800 border border-orange-200">Provisional &mdash; Resolution</span></td><td className="px-5 py-3 text-slate-700">Overall &le; 25% AND max dim &gt; 50%, OR overall &gt; 25%</td><td className="px-5 py-3 text-orange-700 font-semibold">Pending resolution</td></tr>
+                        <tr className="hover:bg-slate-50"><td className="px-5 py-3"><span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-800 border border-red-200">Excluded from Ranking</span></td><td className="px-5 py-3 text-slate-700">Overall &gt; 50% OR any dimension = 100% unsure</td><td className="px-5 py-3 text-red-700 font-semibold">Excluded</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                {/* Dimension-Level Flags */}
+                <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="px-8 py-5 border-b border-slate-100">
+                    <h3 className="font-bold text-slate-900 text-lg">Dimension-Level Flags</h3>
+                    <p className="text-slate-500 text-sm mt-1">Individual dimensions may be flagged as provisional even when the overall score is confirmed</p>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
+                          <th className="px-5 py-3 text-left font-semibold">Dimension Unsure Rate</th>
+                          <th className="px-5 py-3 text-center font-semibold">Flag Level</th>
+                          <th className="px-5 py-3 text-left font-semibold">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        <tr><td className="px-5 py-3 text-slate-700">&le; 25%</td><td className="px-5 py-3 text-center text-emerald-700 font-semibold">No flag</td><td className="px-5 py-3 text-slate-700">Dimension scored normally.</td></tr>
+                        <tr><td className="px-5 py-3 text-slate-700">&gt; 25&ndash;40%</td><td className="px-5 py-3 text-center text-amber-700 font-semibold">Note</td><td className="px-5 py-3 text-slate-700">Noted in company report. No immediate action required.</td></tr>
+                        <tr><td className="px-5 py-3 text-slate-700">&gt; 40&ndash;50%</td><td className="px-5 py-3 text-center text-orange-700 font-semibold">Elevated</td><td className="px-5 py-3 text-slate-700">Company contacted for verification of this specific dimension.</td></tr>
+                        <tr><td className="px-5 py-3 text-slate-700">&gt; 50%</td><td className="px-5 py-3 text-center text-red-700 font-semibold">High</td><td className="px-5 py-3 text-slate-700">Resolution required before this dimension&apos;s score can be considered final.</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
               </>
             )}
           </div>
