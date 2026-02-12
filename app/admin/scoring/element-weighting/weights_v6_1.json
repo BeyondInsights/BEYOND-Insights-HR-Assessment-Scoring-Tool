@@ -1,0 +1,982 @@
+{
+  "1": [
+    {
+      "e": "Emergency leave within 24 hours",
+      "w": 0.1607443487595962,
+      "eq": 0.07692307692307693,
+      "s": 1.0
+    },
+    {
+      "e": "Remote work options for on-site employees",
+      "w": 0.1226958946705094,
+      "eq": 0.07692307692307693,
+      "s": 1.0
+    },
+    {
+      "e": "Intermittent leave beyond local / legal requirements",
+      "w": 0.1055719886585551,
+      "eq": 0.07692307692307693,
+      "s": 0.99
+    },
+    {
+      "e": "Paid micro-breaks for side effects",
+      "w": 0.09166214808443932,
+      "eq": 0.07692307692307693,
+      "s": 0.995
+    },
+    {
+      "e": "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)",
+      "w": 0.08844700944857736,
+      "eq": 0.07692307692307693,
+      "s": 0.995
+    },
+    {
+      "e": "Job protection beyond local / legal requirements",
+      "w": 0.06617671296984098,
+      "eq": 0.07692307692307693,
+      "s": 0.965
+    },
+    {
+      "e": "Paid medical leave beyond local / legal requirements",
+      "w": 0.05821865221587011,
+      "eq": 0.07692307692307693,
+      "s": 0.97
+    },
+    {
+      "e": "Reduced schedule/part-time with full benefits",
+      "w": 0.05683847855327905,
+      "eq": 0.07692307692307693,
+      "s": 0.97
+    },
+    {
+      "e": "Disability pay top-up (employer adds to disability insurance)",
+      "w": 0.05181875808972826,
+      "eq": 0.07692307692307693,
+      "s": 0.97
+    },
+    {
+      "e": "Full salary (100%) continuation during cancer-related short-term disability leave",
+      "w": 0.05171962979783774,
+      "eq": 0.07692307692307693,
+      "s": 0.965
+    },
+    {
+      "e": "PTO accrual during leave",
+      "w": 0.04959392102151006,
+      "eq": 0.07692307692307693,
+      "s": 0.98
+    },
+    {
+      "e": "Leave donation bank (employees can donate PTO to colleagues)",
+      "w": 0.04841690494753866,
+      "eq": 0.07692307692307693,
+      "s": 0.94
+    },
+    {
+      "e": "Paid micro-breaks for medical-related side effects",
+      "w": 0.04809555278271788,
+      "eq": 0.07692307692307693,
+      "s": 0.95
+    }
+  ],
+  "2": [
+    {
+      "e": "Accelerated life insurance benefits (partial payout for terminal / critical illness)",
+      "w": 0.1546445311728133,
+      "eq": 0.05882352941176471,
+      "s": 1.0
+    },
+    {
+      "e": "Tax/estate planning assistance",
+      "w": 0.1181620358236864,
+      "eq": 0.05882352941176471,
+      "s": 0.995
+    },
+    {
+      "e": "Real-time cost estimator tools",
+      "w": 0.07334918309751717,
+      "eq": 0.05882352941176471,
+      "s": 0.985
+    },
+    {
+      "e": "Insurance advocacy/pre-authorization support",
+      "w": 0.07230607928124667,
+      "eq": 0.05882352941176471,
+      "s": 1.0
+    },
+    {
+      "e": "$0 copay for specialty drugs",
+      "w": 0.05619728130753064,
+      "eq": 0.05882352941176471,
+      "s": 0.995
+    },
+    {
+      "e": "Short-term disability covering 60%+ of salary",
+      "w": 0.05531330574399339,
+      "eq": 0.05882352941176471,
+      "s": 0.99
+    },
+    {
+      "e": "Long-term disability covering 60%+ of salary",
+      "w": 0.04829851591816467,
+      "eq": 0.05882352941176471,
+      "s": 0.99
+    },
+    {
+      "e": "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance",
+      "w": 0.04693975010768796,
+      "eq": 0.05882352941176471,
+      "s": 0.995
+    },
+    {
+      "e": "Financial counseling services",
+      "w": 0.04689724338418164,
+      "eq": 0.05882352941176471,
+      "s": 0.965
+    },
+    {
+      "e": "Paid time off for clinical trial participation",
+      "w": 0.04334753370425683,
+      "eq": 0.05882352941176471,
+      "s": 0.98
+    },
+    {
+      "e": "Coverage for clinical trials and experimental treatments not covered by standard health insurance",
+      "w": 0.04311311773317445,
+      "eq": 0.05882352941176471,
+      "s": 0.975
+    },
+    {
+      "e": "Employer-paid disability insurance supplements",
+      "w": 0.04241013023336659,
+      "eq": 0.05882352941176471,
+      "s": 0.98
+    },
+    {
+      "e": "Guaranteed job protection",
+      "w": 0.04096036392412116,
+      "eq": 0.05882352941176471,
+      "s": 0.99
+    },
+    {
+      "e": "Travel/lodging reimbursement for specialized care beyond insurance coverage",
+      "w": 0.03990622067010068,
+      "eq": 0.05882352941176471,
+      "s": 0.985
+    },
+    {
+      "e": "Hardship grants program funded by employer",
+      "w": 0.03976798122829439,
+      "eq": 0.05882352941176471,
+      "s": 0.975
+    },
+    {
+      "e": "Voluntary supplemental illness insurance (with employer contribution)",
+      "w": 0.03955912251011896,
+      "eq": 0.05882352941176471,
+      "s": 0.975
+    },
+    {
+      "e": "Set out-of-pocket maximums (for in-network single coverage)",
+      "w": 0.03882760415974513,
+      "eq": 0.05882352941176471,
+      "s": 0.975
+    }
+  ],
+  "3": [
+    {
+      "e": "Manager peer support / community building",
+      "w": 0.1747253566488161,
+      "eq": 0.1,
+      "s": 1.0
+    },
+    {
+      "e": "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams",
+      "w": 0.1545829403135466,
+      "eq": 0.1,
+      "s": 1.0
+    },
+    {
+      "e": "Empathy/communication skills training",
+      "w": 0.1401334790386556,
+      "eq": 0.1,
+      "s": 0.995
+    },
+    {
+      "e": "Dedicated manager resource hub",
+      "w": 0.09982033830595481,
+      "eq": 0.1,
+      "s": 0.995
+    },
+    {
+      "e": "Manager evaluations include how well they support impacted employees",
+      "w": 0.08049495251854867,
+      "eq": 0.1,
+      "s": 0.965
+    },
+    {
+      "e": "Clear escalation protocol for manager response",
+      "w": 0.0773468725752184,
+      "eq": 0.1,
+      "s": 0.975
+    },
+    {
+      "e": "Legal compliance training",
+      "w": 0.07100190818813726,
+      "eq": 0.1,
+      "s": 0.97
+    },
+    {
+      "e": "AI-powered guidance tools",
+      "w": 0.06929380961043959,
+      "eq": 0.1,
+      "s": 0.97
+    },
+    {
+      "e": "Privacy protection and confidentiality management",
+      "w": 0.06721092373091646,
+      "eq": 0.1,
+      "s": 0.98
+    },
+    {
+      "e": "Senior leader coaching on supporting impacted employees",
+      "w": 0.06538941906976656,
+      "eq": 0.1,
+      "s": 0.96
+    }
+  ],
+  "4": [
+    {
+      "e": "Physical rehabilitation support",
+      "w": 0.2000732301526569,
+      "eq": 0.1,
+      "s": 1.0
+    },
+    {
+      "e": "Nutrition coaching",
+      "w": 0.1331955961718942,
+      "eq": 0.1,
+      "s": 1.0
+    },
+    {
+      "e": "Insurance advocacy/appeals support",
+      "w": 0.1021841202917084,
+      "eq": 0.1,
+      "s": 0.965
+    },
+    {
+      "e": "Dedicated navigation support to help employees understand benefits and access medical care",
+      "w": 0.0894259827586451,
+      "eq": 0.1,
+      "s": 0.975
+    },
+    {
+      "e": "Online tools, apps, or portals for health/benefits support",
+      "w": 0.08760379995312051,
+      "eq": 0.1,
+      "s": 0.965
+    },
+    {
+      "e": "Occupational therapy/vocational rehabilitation",
+      "w": 0.08131461421738392,
+      "eq": 0.1,
+      "s": 0.945
+    },
+    {
+      "e": "Care coordination concierge",
+      "w": 0.07859532703005108,
+      "eq": 0.1,
+      "s": 0.95
+    },
+    {
+      "e": "Survivorship planning assistance",
+      "w": 0.07730990100071228,
+      "eq": 0.1,
+      "s": 0.94
+    },
+    {
+      "e": "Benefits optimization assistance (maximizing coverage, minimizing costs)",
+      "w": 0.07667534923237572,
+      "eq": 0.1,
+      "s": 0.945
+    },
+    {
+      "e": "Clinical trial matching service",
+      "w": 0.07362207919145188,
+      "eq": 0.1,
+      "s": 0.955
+    }
+  ],
+  "5": [
+    {
+      "e": "Flexible scheduling options",
+      "w": 0.1340670504942493,
+      "eq": 0.09090909090909091,
+      "s": 0.98
+    },
+    {
+      "e": "Ergonomic equipment funding",
+      "w": 0.126183071627263,
+      "eq": 0.09090909090909091,
+      "s": 1.0
+    },
+    {
+      "e": "Rest areas / quiet spaces",
+      "w": 0.115474628879482,
+      "eq": 0.09090909090909091,
+      "s": 0.995
+    },
+    {
+      "e": "Temporary role redesigns",
+      "w": 0.1091288475436512,
+      "eq": 0.09090909090909091,
+      "s": 0.99
+    },
+    {
+      "e": "Assistive technology catalog",
+      "w": 0.1088363571450404,
+      "eq": 0.09090909090909091,
+      "s": 0.99
+    },
+    {
+      "e": "Priority parking",
+      "w": 0.07985193134940098,
+      "eq": 0.09090909090909091,
+      "s": 0.975
+    },
+    {
+      "e": "Cognitive / fatigue support tools",
+      "w": 0.07497818519123954,
+      "eq": 0.09090909090909091,
+      "s": 0.99
+    },
+    {
+      "e": "Policy accommodations (e.g., dress code flexibility, headphone use)",
+      "w": 0.07050135603192845,
+      "eq": 0.09090909090909091,
+      "s": 0.98
+    },
+    {
+      "e": "Remote work capability",
+      "w": 0.06407495375260479,
+      "eq": 0.09090909090909091,
+      "s": 0.98
+    },
+    {
+      "e": "Transportation reimbursement",
+      "w": 0.05923139236144188,
+      "eq": 0.09090909090909091,
+      "s": 0.965
+    },
+    {
+      "e": "Physical workspace modifications",
+      "w": 0.05767222562369851,
+      "eq": 0.09090909090909091,
+      "s": 0.96
+    }
+  ],
+  "6": [
+    {
+      "e": "Employee peer support groups (internal employees with shared experience)",
+      "w": 0.193108757658883,
+      "eq": 0.08333333333333333,
+      "s": 1.0
+    },
+    {
+      "e": "Stigma-reduction initiatives",
+      "w": 0.1302556687218598,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "Anonymous benefits navigation tool or website (no login required)",
+      "w": 0.09030820500414777,
+      "eq": 0.08333333333333333,
+      "s": 0.995
+    },
+    {
+      "e": "Specialized emotional counseling",
+      "w": 0.07990900922616058,
+      "eq": 0.08333333333333333,
+      "s": 0.965
+    },
+    {
+      "e": "Inclusive communication guidelines",
+      "w": 0.07116949660937254,
+      "eq": 0.08333333333333333,
+      "s": 0.95
+    },
+    {
+      "e": "Manager training on handling sensitive health information",
+      "w": 0.07097248482757151,
+      "eq": 0.08333333333333333,
+      "s": 0.975
+    },
+    {
+      "e": "Professional-led support groups (external facilitator/counselor)",
+      "w": 0.06674785135213987,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "Written anti-retaliation policies for health disclosures",
+      "w": 0.0651297837931701,
+      "eq": 0.08333333333333333,
+      "s": 0.975
+    },
+    {
+      "e": "Strong anti-discrimination policies specific to health conditions",
+      "w": 0.06386372829738222,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "Clear process for confidential health disclosures",
+      "w": 0.05908247330773353,
+      "eq": 0.08333333333333333,
+      "s": 0.985
+    },
+    {
+      "e": "Confidential HR channel for health benefits, policies and insurance-related questions",
+      "w": 0.05728749932010435,
+      "eq": 0.08333333333333333,
+      "s": 0.995
+    },
+    {
+      "e": "Optional open health dialogue forums",
+      "w": 0.05216504188147477,
+      "eq": 0.08333333333333333,
+      "s": 0.96
+    }
+  ],
+  "7": [
+    {
+      "e": "Peer mentorship program (employees who had similar condition mentoring current employees)",
+      "w": 0.2000326881429042,
+      "eq": 0.1111111111111111,
+      "s": 0.99
+    },
+    {
+      "e": "Continued access to training/development",
+      "w": 0.1434856093901353,
+      "eq": 0.1111111111111111,
+      "s": 0.995
+    },
+    {
+      "e": "Adjusted performance goals/deliverables during treatment and recovery",
+      "w": 0.1058504930675279,
+      "eq": 0.1111111111111111,
+      "s": 0.985
+    },
+    {
+      "e": "Succession planning protections",
+      "w": 0.1042567181054697,
+      "eq": 0.1111111111111111,
+      "s": 0.995
+    },
+    {
+      "e": "Structured reintegration programs",
+      "w": 0.1019065106394884,
+      "eq": 0.1111111111111111,
+      "s": 0.985
+    },
+    {
+      "e": "Optional stay-connected program",
+      "w": 0.1014286553697459,
+      "eq": 0.1111111111111111,
+      "s": 0.975
+    },
+    {
+      "e": "Career coaching for employees managing cancer or other serious health conditions",
+      "w": 0.08424172393421082,
+      "eq": 0.1111111111111111,
+      "s": 0.98
+    },
+    {
+      "e": "Professional coach/mentor for employees managing cancer or other serious health conditions",
+      "w": 0.08151756346135056,
+      "eq": 0.1111111111111111,
+      "s": 0.965
+    },
+    {
+      "e": "Project continuity protocols",
+      "w": 0.07728003788916722,
+      "eq": 0.1111111111111111,
+      "s": 0.965
+    }
+  ],
+  "8": [
+    {
+      "e": "Flexibility for medical setbacks",
+      "w": 0.1546868565881262,
+      "eq": 0.08333333333333333,
+      "s": 0.995
+    },
+    {
+      "e": "Manager training on supporting team members during treatment/return",
+      "w": 0.1240789280391122,
+      "eq": 0.08333333333333333,
+      "s": 1.0
+    },
+    {
+      "e": "Long-term success tracking",
+      "w": 0.1023336665124122,
+      "eq": 0.08333333333333333,
+      "s": 1.0
+    },
+    {
+      "e": "Workload adjustments during treatment",
+      "w": 0.08972116381829195,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "Access to occupational therapy/vocational rehabilitation",
+      "w": 0.08194557650294709,
+      "eq": 0.08333333333333333,
+      "s": 1.0
+    },
+    {
+      "e": "Structured progress reviews",
+      "w": 0.0721914824703793,
+      "eq": 0.08333333333333333,
+      "s": 0.96
+    },
+    {
+      "e": "Buddy/mentor pairing for support",
+      "w": 0.0693456218851759,
+      "eq": 0.08333333333333333,
+      "s": 0.975
+    },
+    {
+      "e": "Flexible work arrangements during treatment",
+      "w": 0.06843142374070407,
+      "eq": 0.08333333333333333,
+      "s": 0.98
+    },
+    {
+      "e": "Online peer support forums",
+      "w": 0.06832521368456974,
+      "eq": 0.08333333333333333,
+      "s": 0.995
+    },
+    {
+      "e": "Phased return-to-work plans",
+      "w": 0.05901955254930084,
+      "eq": 0.08333333333333333,
+      "s": 0.965
+    },
+    {
+      "e": "Contingency planning for treatment schedules",
+      "w": 0.05614347971172499,
+      "eq": 0.08333333333333333,
+      "s": 0.975
+    },
+    {
+      "e": "Access to specialized work resumption professionals",
+      "w": 0.05377703449725548,
+      "eq": 0.08333333333333333,
+      "s": 0.965
+    }
+  ],
+  "9": [
+    {
+      "e": "Executive sponsors communicate regularly about workplace support programs",
+      "w": 0.1778381686929527,
+      "eq": 0.08333333333333333,
+      "s": 1.0
+    },
+    {
+      "e": "ESG/CSR reporting inclusion",
+      "w": 0.1229618857463557,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "Public success story celebrations",
+      "w": 0.1015889923151731,
+      "eq": 0.08333333333333333,
+      "s": 0.995
+    },
+    {
+      "e": "Executive-led town halls focused on health benefits and employee support",
+      "w": 0.07810612332149623,
+      "eq": 0.08333333333333333,
+      "s": 0.985
+    },
+    {
+      "e": "Year-over-year budget growth",
+      "w": 0.07780126827768785,
+      "eq": 0.08333333333333333,
+      "s": 0.975
+    },
+    {
+      "e": "Support programs included in investor/stakeholder communications",
+      "w": 0.07695301191814694,
+      "eq": 0.08333333333333333,
+      "s": 0.965
+    },
+    {
+      "e": "Compensation tied to support outcomes",
+      "w": 0.06772731538135726,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "C-suite executive serves as program champion/sponsor",
+      "w": 0.06395062620884548,
+      "eq": 0.08333333333333333,
+      "s": 0.99
+    },
+    {
+      "e": "Cross-functional executive steering committee for workplace support programs",
+      "w": 0.0602125155803146,
+      "eq": 0.08333333333333333,
+      "s": 0.955
+    },
+    {
+      "e": "Support metrics included in annual report/sustainability reporting",
+      "w": 0.0581486103819218,
+      "eq": 0.08333333333333333,
+      "s": 0.98
+    },
+    {
+      "e": "Executive accountability metrics",
+      "w": 0.05754981099320475,
+      "eq": 0.08333333333333333,
+      "s": 0.97
+    },
+    {
+      "e": "Dedicated budget allocation for serious illness support programs",
+      "w": 0.05716167118254364,
+      "eq": 0.08333333333333333,
+      "s": 0.985
+    }
+  ],
+  "10": [
+    {
+      "e": "Practical support for managing caregiving and work",
+      "w": 0.1147081908738289,
+      "eq": 0.05,
+      "s": 0.995
+    },
+    {
+      "e": "Family navigation support",
+      "w": 0.08045065933731016,
+      "eq": 0.05,
+      "s": 0.995
+    },
+    {
+      "e": "Eldercare consultation and referral services",
+      "w": 0.08003149723350998,
+      "eq": 0.05,
+      "s": 0.99
+    },
+    {
+      "e": "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)",
+      "w": 0.05740157235474427,
+      "eq": 0.05,
+      "s": 1.0
+    },
+    {
+      "e": "Caregiver resource navigator/concierge",
+      "w": 0.05211853040241135,
+      "eq": 0.05,
+      "s": 0.99
+    },
+    {
+      "e": "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)",
+      "w": 0.0481481632404091,
+      "eq": 0.05,
+      "s": 0.975
+    },
+    {
+      "e": "Paid caregiver leave with expanded eligibility (beyond local legal requirements)",
+      "w": 0.04663845009717204,
+      "eq": 0.05,
+      "s": 0.97
+    },
+    {
+      "e": "Flexible work arrangements for caregivers",
+      "w": 0.04574654625206875,
+      "eq": 0.05,
+      "s": 0.975
+    },
+    {
+      "e": "Paid time off for care coordination appointments",
+      "w": 0.04387303116855032,
+      "eq": 0.05,
+      "s": 0.99
+    },
+    {
+      "e": "Respite care funding/reimbursement",
+      "w": 0.04304005982405095,
+      "eq": 0.05,
+      "s": 0.98
+    },
+    {
+      "e": "Emergency dependent care when regular arrangements unavailable",
+      "w": 0.04299906411042232,
+      "eq": 0.05,
+      "s": 0.965
+    },
+    {
+      "e": "Unpaid leave job protection beyond local / legal requirements",
+      "w": 0.04297809417126936,
+      "eq": 0.05,
+      "s": 0.985
+    },
+    {
+      "e": "Legal/financial planning assistance for caregivers",
+      "w": 0.04133216506012812,
+      "eq": 0.05,
+      "s": 1.0
+    },
+    {
+      "e": "Mental health support specifically for caregivers",
+      "w": 0.04129038384566857,
+      "eq": 0.05,
+      "s": 0.97
+    },
+    {
+      "e": "Manager training for supervising caregivers",
+      "w": 0.03936332095685776,
+      "eq": 0.05,
+      "s": 0.975
+    },
+    {
+      "e": "Dependent care account matching/contributions",
+      "w": 0.03821538878323766,
+      "eq": 0.05,
+      "s": 0.985
+    },
+    {
+      "e": "Caregiver peer support groups",
+      "w": 0.03713973579329485,
+      "eq": 0.05,
+      "s": 0.99
+    },
+    {
+      "e": "Dependent care subsidies",
+      "w": 0.03497426235894701,
+      "eq": 0.05,
+      "s": 0.975
+    },
+    {
+      "e": "Emergency caregiver funds",
+      "w": 0.0349313953162576,
+      "eq": 0.05,
+      "s": 0.99
+    },
+    {
+      "e": "Modified job duties during peak caregiving periods",
+      "w": 0.03461948881986072,
+      "eq": 0.05,
+      "s": 0.96
+    }
+  ],
+  "11": [
+    {
+      "e": "Legal protections beyond requirements",
+      "w": 0.1153996485970552,
+      "eq": 0.07692307692307693,
+      "s": 1.0
+    },
+    {
+      "e": "Individual health assessments (online or in-person)",
+      "w": 0.1120164264027488,
+      "eq": 0.07692307692307693,
+      "s": 0.995
+    },
+    {
+      "e": "Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)",
+      "w": 0.1045884771640271,
+      "eq": 0.07692307692307693,
+      "s": 1.0
+    },
+    {
+      "e": "Genetic screening/counseling",
+      "w": 0.09695712678950819,
+      "eq": 0.07692307692307693,
+      "s": 0.995
+    },
+    {
+      "e": "At least 70% coverage for regionally / locally recommended screenings",
+      "w": 0.07206267378889553,
+      "eq": 0.07692307692307693,
+      "s": 0.995
+    },
+    {
+      "e": "Full or partial coverage for annual health screenings/checkups",
+      "w": 0.07003433609211697,
+      "eq": 0.07692307692307693,
+      "s": 1.0
+    },
+    {
+      "e": "On-site vaccinations",
+      "w": 0.06965208840000102,
+      "eq": 0.07692307692307693,
+      "s": 0.99
+    },
+    {
+      "e": "Risk factor tracking/reporting",
+      "w": 0.06600960723619988,
+      "eq": 0.07692307692307693,
+      "s": 0.995
+    },
+    {
+      "e": "Regular health education sessions",
+      "w": 0.06347765400217076,
+      "eq": 0.07692307692307693,
+      "s": 0.985
+    },
+    {
+      "e": "Targeted risk-reduction programs",
+      "w": 0.06162247454232177,
+      "eq": 0.07692307692307693,
+      "s": 0.99
+    },
+    {
+      "e": "Paid time off for preventive care appointments",
+      "w": 0.06140459814825524,
+      "eq": 0.07692307692307693,
+      "s": 1.0
+    },
+    {
+      "e": "Workplace safety assessments to minimize health risks",
+      "w": 0.05485523538824572,
+      "eq": 0.07692307692307693,
+      "s": 0.98
+    },
+    {
+      "e": "Lifestyle coaching programs",
+      "w": 0.05191965344845387,
+      "eq": 0.07692307692307693,
+      "s": 0.965
+    }
+  ],
+  "12": [
+    {
+      "e": "Regular program enhancements",
+      "w": 0.2000342109617968,
+      "eq": 0.1111111111111111,
+      "s": 0.985
+    },
+    {
+      "e": "Employee confidence in employer support",
+      "w": 0.1451678254076296,
+      "eq": 0.1111111111111111,
+      "s": 0.99
+    },
+    {
+      "e": "Innovation pilots",
+      "w": 0.1112990527327584,
+      "eq": 0.1111111111111111,
+      "s": 0.995
+    },
+    {
+      "e": "External benchmarking",
+      "w": 0.1111959905518361,
+      "eq": 0.1111111111111111,
+      "s": 0.98
+    },
+    {
+      "e": "Return-to-work success metrics",
+      "w": 0.1018781225169551,
+      "eq": 0.1111111111111111,
+      "s": 0.975
+    },
+    {
+      "e": "Program utilization analytics",
+      "w": 0.1007931881178525,
+      "eq": 0.1111111111111111,
+      "s": 0.98
+    },
+    {
+      "e": "Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)",
+      "w": 0.07722721546676811,
+      "eq": 0.1111111111111111,
+      "s": 0.945
+    },
+    {
+      "e": "Business impact/ROI assessment",
+      "w": 0.07673708577384229,
+      "eq": 0.1111111111111111,
+      "s": 0.96
+    },
+    {
+      "e": "Employee satisfaction tracking",
+      "w": 0.07566730847056116,
+      "eq": 0.1111111111111111,
+      "s": 0.955
+    }
+  ],
+  "13": [
+    {
+      "e": "Family/caregiver communication inclusion",
+      "w": 0.1767808044348132,
+      "eq": 0.09090909090909091,
+      "s": 1.0
+    },
+    {
+      "e": "Employee testimonials/success stories",
+      "w": 0.1207224241991404,
+      "eq": 0.09090909090909091,
+      "s": 1.0
+    },
+    {
+      "e": "Proactive communication at point of diagnosis disclosure",
+      "w": 0.1146173067595343,
+      "eq": 0.09090909090909091,
+      "s": 1.0
+    },
+    {
+      "e": "Anonymous information access options",
+      "w": 0.1077929170136032,
+      "eq": 0.09090909090909091,
+      "s": 0.995
+    },
+    {
+      "e": "Multi-channel communication strategy",
+      "w": 0.1048328977323178,
+      "eq": 0.09090909090909091,
+      "s": 0.985
+    },
+    {
+      "e": "Ability to access program information and resources anonymously",
+      "w": 0.0769202054133343,
+      "eq": 0.09090909090909091,
+      "s": 0.99
+    },
+    {
+      "e": "Dedicated program website or portal",
+      "w": 0.0723070834630967,
+      "eq": 0.09090909090909091,
+      "s": 0.985
+    },
+    {
+      "e": "New hire orientation coverage",
+      "w": 0.05809141506395725,
+      "eq": 0.09090909090909091,
+      "s": 0.98
+    },
+    {
+      "e": "Regular company-wide awareness campaigns (at least quarterly)",
+      "w": 0.05684438853531876,
+      "eq": 0.09090909090909091,
+      "s": 0.945
+    },
+    {
+      "e": "Manager toolkit for cascade communications",
+      "w": 0.05662691203609724,
+      "eq": 0.09090909090909091,
+      "s": 0.97
+    },
+    {
+      "e": "Cancer awareness month campaigns with resources",
+      "w": 0.0544636453487869,
+      "eq": 0.09090909090909091,
+      "s": 0.965
+    }
+  ]
+}
