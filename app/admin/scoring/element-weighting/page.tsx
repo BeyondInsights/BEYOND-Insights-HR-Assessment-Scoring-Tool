@@ -410,193 +410,288 @@ export default function ElementWeightingPage() {
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* The Question */}
-            <section>
-              <h2 className="text-xl font-bold text-slate-800 mb-3">The Question</h2>
-              <p className="text-slate-600 leading-relaxed">
-                The Index assesses workplace cancer support across 13 dimensions, with each dimension containing between 9 and 20 individual program elements. In the first version of scoring, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as offering an employee assistance program.
-              </p>
-              <p className="text-slate-600 leading-relaxed mt-3">
-                That is a reasonable starting point, but it does not reflect reality. Some elements are table-stakes practices that most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs from the rest. <strong className="text-slate-800">The question is whether the scoring should reflect that distinction.</strong>
-              </p>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                  <span className="w-1.5 h-8 bg-slate-800 rounded-full"></span>
+                  The Question
+                </h2>
+              </div>
+              <div className="px-8 py-6">
+                <p className="text-slate-600 leading-relaxed">
+                  The Index assesses workplace cancer support across 13 dimensions, with each dimension containing between 9 and 20 individual program elements. In the first version of scoring, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as offering an employee assistance program.
+                </p>
+                <p className="text-slate-600 leading-relaxed mt-4">
+                  That is a reasonable starting point, but it does not reflect reality. Some elements are table-stakes practices that most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs from the rest.
+                </p>
+                <div className="mt-4 p-4 bg-slate-800 rounded-lg">
+                  <p className="text-white font-semibold">The question is whether the scoring should reflect that distinction.</p>
+                </div>
+              </div>
             </section>
 
             {/* Our Answer */}
-            <section className="bg-violet-50 border border-violet-200 rounded-xl p-6">
-              <h2 className="text-xl font-bold text-violet-900 mb-3">Our Answer</h2>
-              <p className="text-violet-800 leading-relaxed">
-                <strong>Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em>calibrates</em> the scoring rather than rewrites it.
-              </p>
-              <p className="text-violet-700 mt-3 text-sm">
-                The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.
-              </p>
+            <section className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-xl shadow-lg overflow-hidden">
+              <div className="px-8 py-6">
+                <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                  <span className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                  </span>
+                  Our Answer
+                </h2>
+                <p className="text-violet-100 mt-4 text-lg leading-relaxed">
+                  <strong className="text-white">Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em>calibrates</em> the scoring rather than rewrites it.
+                </p>
+              </div>
+              <div className="px-8 py-4 bg-black/20">
+                <p className="text-violet-200 text-sm">
+                  <strong className="text-white">Framework preserved:</strong> The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.
+                </p>
+              </div>
             </section>
 
             {/* How We Did It */}
-            <section>
-              <h2 className="text-xl font-bold text-slate-800 mb-4">How We Did It</h2>
-              <div className="grid gap-3">
-                {[
-                  { step: 1, title: 'Start with the existing framework', desc: 'All 13 dimensions, response options, and dimension weights remain unchanged.' },
-                  { step: 2, title: 'Use the full response scale', desc: 'Elements scored on full 4-level scale (Not Offered → Currently Offer), not collapsed to binary.' },
-                  { step: 3, title: 'Learn weights only from quality data', desc: 'Companies with >40% Unsure responses in a dimension excluded from weight estimation.' },
-                  { step: 4, title: 'Define importance to avoid circularity', desc: 'Element importance measured by prediction of overall strength outside its own dimension.' },
-                  { step: 5, title: 'Test stability through bootstrapping', desc: '200 resamples ensure weights are stable, not driven by individual companies.' },
-                  { step: 6, title: 'Blend toward equal weights', desc: 'Final weights blend empirical findings with equal weighting. No element exceeds 20% cap.' }
-                ].map(item => (
-                  <div key={item.step} className="flex gap-4 items-start">
-                    <div className="w-7 h-7 rounded-full bg-slate-800 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">{item.step}</div>
-                    <div>
-                      <span className="font-semibold text-slate-800">{item.title}:</span>
-                      <span className="text-slate-600 ml-1">{item.desc}</span>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                  <span className="w-1.5 h-8 bg-violet-600 rounded-full"></span>
+                  How We Did It
+                </h2>
+              </div>
+              <div className="px-8 py-6">
+                <div className="grid gap-4">
+                  {[
+                    { step: 1, title: 'Start with the existing framework', desc: 'All 13 dimensions, response options, and dimension weights remain unchanged.' },
+                    { step: 2, title: 'Use the full response scale', desc: 'Elements scored on full 4-level scale (Not Offered → Currently Offer), not collapsed to binary.' },
+                    { step: 3, title: 'Learn weights only from quality data', desc: 'Companies with >40% Unsure responses in a dimension excluded from weight estimation.' },
+                    { step: 4, title: 'Define importance to avoid circularity', desc: 'Element importance measured by prediction of overall strength outside its own dimension.' },
+                    { step: 5, title: 'Test stability through bootstrapping', desc: '200 resamples ensure weights are stable, not driven by individual companies.' },
+                    { step: 6, title: 'Blend toward equal weights', desc: 'Final weights blend empirical findings with equal weighting. No element exceeds 20% cap.' }
+                  ].map(item => (
+                    <div key={item.step} className="flex gap-4 items-start p-4 bg-slate-50 rounded-lg border border-slate-100 hover:border-violet-200 hover:bg-violet-50/30 transition-colors">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 text-white text-sm font-bold flex items-center justify-center flex-shrink-0 shadow-md">{item.step}</div>
+                      <div className="pt-1">
+                        <span className="font-semibold text-slate-800">{item.title}</span>
+                        <p className="text-slate-600 text-sm mt-0.5">{item.desc}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </section>
 
             {/* What the Calibration Produces */}
-            <section>
-              <h2 className="text-xl font-bold text-slate-800 mb-4">What the Calibration Produces</h2>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white border border-slate-200 rounded-lg p-5 text-center">
-                  <p className="text-3xl font-bold text-violet-600">1–3 pts</p>
-                  <p className="text-sm text-slate-600 mt-1">Typical composite score shift</p>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                  <span className="w-1.5 h-8 bg-emerald-600 rounded-full"></span>
+                  What the Calibration Produces
+                </h2>
+              </div>
+              <div className="px-8 py-6">
+                <div className="grid grid-cols-3 gap-6">
+                  <div className="text-center p-6 bg-gradient-to-br from-violet-50 to-purple-50 rounded-xl border border-violet-100">
+                    <p className="text-4xl font-bold text-violet-600">1–3 pts</p>
+                    <p className="text-sm text-slate-600 mt-2">Typical composite score shift</p>
+                  </div>
+                  <div className="text-center p-6 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                    <p className="text-4xl font-bold text-emerald-600">2–3×</p>
+                    <p className="text-sm text-slate-600 mt-2">Weight ratio (high vs low element)</p>
+                  </div>
+                  <div className="text-center p-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200">
+                    <p className="text-4xl font-bold text-slate-700">Preserved</p>
+                    <p className="text-sm text-slate-600 mt-2">Rankings largely maintained</p>
+                  </div>
                 </div>
-                <div className="bg-white border border-slate-200 rounded-lg p-5 text-center">
-                  <p className="text-3xl font-bold text-violet-600">2–3×</p>
-                  <p className="text-sm text-slate-600 mt-1">Weight ratio (high vs low element)</p>
-                </div>
-                <div className="bg-white border border-slate-200 rounded-lg p-5 text-center">
-                  <p className="text-3xl font-bold text-violet-600">Preserved</p>
-                  <p className="text-sm text-slate-600 mt-1">Rankings largely maintained</p>
+                <div className="mt-6 p-4 bg-slate-800 rounded-lg">
+                  <p className="text-slate-300 text-sm text-center">This is the expected behavior of a well-calibrated adjustment: <strong className="text-white">meaningful differentiation without disruption.</strong></p>
                 </div>
               </div>
-              <p className="text-slate-500 text-sm mt-4">This is the expected behavior of a well-calibrated adjustment: meaningful differentiation without disruption.</p>
             </section>
 
             {/* Top Differentiating Elements */}
-            <section>
-              <h2 className="text-xl font-bold text-slate-800 mb-4">Top Differentiating Elements by Dimension</h2>
-              <p className="text-slate-500 text-sm mb-4">The three highest-weighted elements in each dimension. These are the programs that most consistently predict stronger overall performance.</p>
-              <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3">
+                  <span className="w-1.5 h-8 bg-amber-500 rounded-full"></span>
+                  Top Differentiating Elements by Dimension
+                </h2>
+                <p className="text-slate-500 text-sm mt-2">The three highest-weighted elements in each dimension. These are the programs that most consistently predict stronger overall performance.</p>
+              </div>
+              <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="px-4 py-2 text-left font-semibold text-slate-600 w-48">Dimension</th>
-                      <th className="px-4 py-2 text-left font-semibold text-slate-600">Top 3 Elements</th>
+                    <tr className="bg-slate-800 text-white">
+                      <th className="px-6 py-3 text-left font-semibold w-56">Dimension</th>
+                      <th className="px-6 py-3 text-left font-semibold">Top 3 Elements</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {DIMENSION_ORDER.map(d => (
-                      <tr key={d} className="hover:bg-slate-50">
-                        <td className="px-4 py-2 font-medium text-slate-700">D{d}: {DIMENSIONS[d].name}</td>
-                        <td className="px-4 py-2 text-slate-600">{DIMENSIONS[d].topElements.join(' · ')}</td>
+                    {DIMENSION_ORDER.map((d, i) => (
+                      <tr key={d} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                        <td className="px-6 py-3 font-medium text-slate-700">
+                          <span className="text-violet-600">D{d}:</span> {DIMENSIONS[d].name}
+                        </td>
+                        <td className="px-6 py-3 text-slate-600">{DIMENSIONS[d].topElements.join(' · ')}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-              <p className="text-slate-500 text-sm mt-3 italic">Note: Every element contributes to scores. Lower-weighted elements still matter. These are illustrative of the calibration, not the full picture.</p>
+              <div className="px-8 py-4 bg-amber-50 border-t border-amber-100">
+                <p className="text-amber-800 text-sm">
+                  <strong>Note:</strong> Every element contributes to scores. Lower-weighted elements still matter. These are illustrative of the calibration, not the full picture.
+                </p>
+              </div>
             </section>
           </div>
         )}
 
         {/* METHODOLOGY TAB */}
         {activeTab === 'methodology' && (
-          <div className="space-y-8">
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">1. Overview</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Within each of the 13 assessment dimensions, element weights calibrate scoring so that elements more predictive of overall program strength receive modestly higher weight. The model operates on 159 elements across 13 dimensions (152 original plus 7 sub-elements), fit on n=43 companies (22 index participants + 21 HR panel respondents).
-              </p>
+          <div className="space-y-6">
+            {/* Section 1 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">1. Overview</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-slate-600 leading-relaxed">
+                  Within each of the 13 assessment dimensions, element weights calibrate scoring so that elements more predictive of overall program strength receive modestly higher weight. The model operates on 159 elements across 13 dimensions (152 original plus 7 sub-elements), fit on n=43 companies (22 index participants + 21 HR panel respondents).
+                </p>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">2. Feature Encoding</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Each element is scored on its full ordinal scale: Currently Offer = 5, Planning = 3, Assessing = 2, Not Offered = 0. Unsure responses are treated as missing for model fitting. This preserves the full response granularity rather than collapsing to binary.
-              </p>
+            {/* Section 2 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">2. Feature Encoding</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-slate-600 leading-relaxed">
+                  Each element is scored on its full ordinal scale: <span className="font-semibold text-emerald-600">Currently Offer = 5</span>, <span className="font-semibold text-blue-600">Planning = 3</span>, <span className="font-semibold text-amber-600">Assessing = 2</span>, <span className="font-semibold text-slate-500">Not Offered = 0</span>. Unsure responses are treated as missing for model fitting. This preserves the full response granularity rather than collapsing to binary.
+                </p>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">3. Company & Element Filtering</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                <strong>Company rule:</strong> For each dimension, companies with &lt;60% observed (non-Unsure) elements are excluded from model fitting. Excluded companies still receive scores.
-              </p>
-              <p className="text-slate-600 text-sm leading-relaxed mt-2">
-                <strong>Element rule:</strong> Elements with &gt;90% identical responses or &lt;70% observed values are dropped. In v6.1, zero elements were dropped.
-              </p>
+            {/* Section 3 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">3. Company & Element Filtering</h2>
+              </div>
+              <div className="px-6 py-5 space-y-4">
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-700">Company rule:</p>
+                  <p className="text-slate-600 mt-1">For each dimension, companies with &lt;60% observed (non-Unsure) elements are excluded from model fitting. Excluded companies still receive scores using final weights.</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                  <p className="font-semibold text-slate-700">Element rule:</p>
+                  <p className="text-slate-600 mt-1">Elements with &gt;90% identical responses or &lt;70% observed values are dropped and receive floor weight. In v6.1, zero elements were dropped.</p>
+                </div>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">4. Ridge Regression with Leave-One-Out Outcome</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                For each dimension d, the outcome variable is the leave-one-out composite: mean of all dimension scores excluding dimension d (avoids circularity). Predictors are ordinal element scores, z-scored before fitting. Ridge regularization (α=1.0) distributes weight among correlated elements.
-              </p>
-              <p className="text-slate-500 text-sm mt-2">Note: Ridge coefficients are not used directly as weights (can be negative). Instead, permutation importance is computed.</p>
+            {/* Section 4 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">4. Ridge Regression with Leave-One-Out Outcome</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-slate-600 leading-relaxed">
+                  For each dimension d, the outcome variable is the leave-one-out composite: mean of all dimension scores excluding dimension d (avoids circularity). Predictors are ordinal element scores, z-scored before fitting. Ridge regularization (α=1.0) distributes weight among correlated elements rather than concentrating it.
+                </p>
+                <div className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <p className="text-amber-800 text-sm"><strong>Note:</strong> Ridge coefficients are not used directly as weights (can be negative due to multicollinearity). Instead, permutation importance is computed.</p>
+                </div>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">5. Permutation Importance</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                For each element j: <code className="bg-slate-100 px-1 rounded">I(j) = max(0, R²_base − R²_permuted(j))</code>. Each element is permuted 100 times for stable estimates. Importance is non-negative by construction.
-              </p>
+            {/* Section 5 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">5. Permutation Importance</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-slate-600 leading-relaxed mb-3">For each element j, importance is measured as:</p>
+                <div className="p-4 bg-slate-800 rounded-lg font-mono text-emerald-400 text-sm">
+                  I(j) = max(0, R²_base − R²_permuted(j))
+                </div>
+                <p className="text-slate-600 mt-3">Each element is permuted 100 times for stable estimates. Importance is non-negative by construction.</p>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">6. Bootstrap Stability & Soft Attenuation</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                200 bootstrap resamples of companies. Stability s(j) = fraction of bootstraps where element j's importance exceeds zero. Soft attenuation: <code className="bg-slate-100 px-1 rounded">w_attenuated(j) = I(j) × s(j)^1.5</code>. Elements with high stability retain full weight; unstable elements are dampened.
-              </p>
+            {/* Section 6 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">6. Bootstrap Stability & Soft Attenuation</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-slate-600 leading-relaxed mb-3">
+                  200 bootstrap resamples of companies are drawn. Stability s(j) = fraction of bootstraps where element j's importance exceeds zero.
+                </p>
+                <div className="p-4 bg-slate-800 rounded-lg font-mono text-emerald-400 text-sm mb-3">
+                  w_attenuated(j) = I(j) × s(j)^1.5
+                </div>
+                <p className="text-slate-600">Elements with high stability retain full weight; unstable elements are dampened continuously.</p>
+              </div>
             </section>
 
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">7. Adaptive Shrinkage Toward Equal Weights</h2>
-              <p className="text-slate-600 text-sm leading-relaxed mb-3">
-                Final weight: <code className="bg-slate-100 px-1 rounded">w_final(j) = α × w_empirical(j) + (1−α) × w_equal</code>
-              </p>
-              <table className="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
-                <thead>
-                  <tr className="bg-slate-50">
-                    <th className="px-3 py-2 text-left font-semibold text-slate-600 border-b border-slate-200">CV R² Range</th>
-                    <th className="px-3 py-2 text-left font-semibold text-slate-600 border-b border-slate-200">α (Empirical Share)</th>
-                    <th className="px-3 py-2 text-left font-semibold text-slate-600 border-b border-slate-200">Rationale</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  <tr><td className="px-3 py-2 text-amber-700">CV R² ≤ 0</td><td className="px-3 py-2">0.30</td><td className="px-3 py-2 text-slate-500">No reliable signal</td></tr>
-                  <tr><td className="px-3 py-2">0 &lt; CV R² &lt; 0.05</td><td className="px-3 py-2">0.40</td><td className="px-3 py-2 text-slate-500">Marginal signal</td></tr>
-                  <tr><td className="px-3 py-2 text-emerald-700">CV R² ≥ 0.05</td><td className="px-3 py-2">0.50</td><td className="px-3 py-2 text-slate-500">Meaningful signal</td></tr>
-                </tbody>
-              </table>
-              <p className="text-slate-500 text-sm mt-2">Hard cap: No element exceeds 20% of its dimension's total weight.</p>
-            </section>
-
-            <section>
-              <h2 className="text-lg font-bold text-slate-800 mb-2">8. Dimension-Level Results</h2>
-              <div className="overflow-x-auto">
+            {/* Section 7 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">7. Adaptive Shrinkage Toward Equal Weights</h2>
+              </div>
+              <div className="px-6 py-5">
+                <p className="text-slate-600 leading-relaxed mb-4">Final weight blends empirical importance with equal weighting:</p>
+                <div className="p-4 bg-slate-800 rounded-lg font-mono text-emerald-400 text-sm mb-4">
+                  w_final(j) = α × w_empirical(j) + (1−α) × w_equal
+                </div>
                 <table className="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
                   <thead>
-                    <tr className="bg-slate-50">
-                      <th className="px-3 py-2 text-left font-semibold text-slate-600 border-b border-slate-200">Dim</th>
-                      <th className="px-3 py-2 text-left font-semibold text-slate-600 border-b border-slate-200">Name</th>
-                      <th className="px-3 py-2 text-center font-semibold text-slate-600 border-b border-slate-200">Wt</th>
-                      <th className="px-3 py-2 text-center font-semibold text-slate-600 border-b border-slate-200">CV R²</th>
-                      <th className="px-3 py-2 text-center font-semibold text-slate-600 border-b border-slate-200">α</th>
-                      <th className="px-3 py-2 text-center font-semibold text-slate-600 border-b border-slate-200">n</th>
+                    <tr className="bg-slate-100">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">CV R² Range</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">α (Empirical Share)</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Rationale</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {DIMENSION_ORDER.map(d => {
+                    <tr className="bg-amber-50/50"><td className="px-4 py-3 font-medium text-amber-700">CV R² ≤ 0</td><td className="px-4 py-3">0.30 (30% empirical)</td><td className="px-4 py-3 text-slate-500">No reliable signal</td></tr>
+                    <tr><td className="px-4 py-3">0 &lt; CV R² &lt; 0.05</td><td className="px-4 py-3">0.40 (40% empirical)</td><td className="px-4 py-3 text-slate-500">Marginal signal</td></tr>
+                    <tr className="bg-emerald-50/50"><td className="px-4 py-3 font-medium text-emerald-700">CV R² ≥ 0.05</td><td className="px-4 py-3">0.50 (50% empirical)</td><td className="px-4 py-3 text-slate-500">Meaningful signal</td></tr>
+                  </tbody>
+                </table>
+                <p className="text-slate-500 text-sm mt-3"><strong>Hard cap:</strong> No single element can exceed 20% of its dimension's total weight. Any excess is redistributed proportionally.</p>
+              </div>
+            </section>
+
+            {/* Section 8 */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-800 to-slate-900">
+                <h2 className="text-lg font-semibold text-white">8. Dimension-Level Results</h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-100">
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Dim</th>
+                      <th className="px-4 py-3 text-left font-semibold text-slate-700 border-b border-slate-200">Name</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">Wt</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">CV R²</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">α</th>
+                      <th className="px-4 py-3 text-center font-semibold text-slate-700 border-b border-slate-200">n</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {DIMENSION_ORDER.map((d, i) => {
                       const dim = DIMENSIONS[d];
                       return (
-                        <tr key={d} className={dim.cvR2 < 0 ? 'bg-amber-50/50' : dim.cvR2 > 0.3 ? 'bg-emerald-50/50' : ''}>
-                          <td className="px-3 py-2 font-medium">D{d}</td>
-                          <td className="px-3 py-2">{dim.name}</td>
-                          <td className="px-3 py-2 text-center">{dim.weight}%</td>
-                          <td className={`px-3 py-2 text-center ${dim.cvR2 < 0 ? 'text-amber-700' : dim.cvR2 > 0.3 ? 'text-emerald-700' : ''}`}>{dim.cvR2.toFixed(3)}</td>
-                          <td className="px-3 py-2 text-center">{dim.alpha}</td>
-                          <td className="px-3 py-2 text-center">{dim.n}</td>
+                        <tr key={d} className={`${dim.cvR2 < 0 ? 'bg-amber-50/50' : dim.cvR2 > 0.3 ? 'bg-emerald-50/50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                          <td className="px-4 py-2.5 font-semibold text-slate-700">D{d}</td>
+                          <td className="px-4 py-2.5 text-slate-600">{dim.name}</td>
+                          <td className="px-4 py-2.5 text-center font-semibold">{dim.weight}%</td>
+                          <td className={`px-4 py-2.5 text-center font-medium ${dim.cvR2 < 0 ? 'text-amber-700' : dim.cvR2 > 0.3 ? 'text-emerald-700' : 'text-slate-600'}`}>{dim.cvR2.toFixed(3)}</td>
+                          <td className="px-4 py-2.5 text-center">{dim.alpha}</td>
+                          <td className="px-4 py-2.5 text-center">{dim.n}</td>
                         </tr>
                       );
                     })}
@@ -609,55 +704,77 @@ export default function ElementWeightingPage() {
 
         {/* DIMENSIONS TAB */}
         {activeTab === 'dimensions' && (
-          <div className="space-y-3">
-            <p className="text-sm text-slate-500 mb-4">Click a dimension to expand element-level weights. Elements ranked by adjusted weight.</p>
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6 mb-6">
+              <h2 className="text-lg font-bold text-white">Element-Level Weights by Dimension</h2>
+              <p className="text-slate-300 mt-1 text-sm">Click a dimension to expand element-level weights. Elements ranked by adjusted weight. Purple highlight indicates elements at the 20% cap.</p>
+            </div>
             {DIMENSION_ORDER.map(d => {
               const dim = DIMENSIONS[d];
               const isExpanded = expandedDim === d;
               return (
-                <div key={d} className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+                <div key={d} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                   <button
                     onClick={() => setExpandedDim(isExpanded ? null : d)}
-                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="w-8 h-8 rounded bg-slate-800 text-white text-sm font-bold flex items-center justify-center">{d}</span>
+                    <div className="flex items-center gap-4">
+                      <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 text-white text-sm font-bold flex items-center justify-center shadow-md">{d}</span>
                       <div className="text-left">
-                        <span className="font-medium text-slate-800">{dim.name}</span>
-                        <span className="text-slate-400 text-sm ml-3">{dim.elements} elements · {dim.weight}% weight · CV R²={dim.cvR2.toFixed(2)}</span>
+                        <span className="font-semibold text-slate-800">{dim.name}</span>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-xs text-slate-500">{dim.elements} elements</span>
+                          <span className="text-xs font-medium text-violet-600">{dim.weight}% weight</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${dim.cvR2 < 0 ? 'bg-amber-100 text-amber-700' : dim.cvR2 > 0.3 ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                            CV R²={dim.cvR2.toFixed(2)}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <svg className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    <div className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center transition-transform ${isExpanded ? 'rotate-180 bg-violet-100' : ''}`}>
+                      <svg className={`w-5 h-5 ${isExpanded ? 'text-violet-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    </div>
                   </button>
                   {isExpanded && (
                     <div className="border-t border-slate-200">
                       <table className="w-full text-sm">
                         <thead>
-                          <tr className="bg-slate-50 text-slate-500">
-                            <th className="px-4 py-2 text-left font-medium w-8">#</th>
+                          <tr className="bg-slate-800 text-white">
+                            <th className="px-4 py-2 text-left font-medium w-10">#</th>
                             <th className="px-4 py-2 text-left font-medium">Element</th>
-                            <th className="px-4 py-2 text-right font-medium w-20">Equal</th>
-                            <th className="px-4 py-2 text-right font-medium w-20">Adjusted</th>
+                            <th className="px-4 py-2 text-right font-medium w-24">Equal Wt</th>
+                            <th className="px-4 py-2 text-right font-medium w-24">Adjusted Wt</th>
                             <th className="px-4 py-2 text-right font-medium w-20">Δ</th>
-                            <th className="px-4 py-2 text-right font-medium w-24">Stability</th>
+                            <th className="px-4 py-2 text-center font-medium w-28">Stability</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                          {dim.items.map(item => (
-                            <tr key={item.rank} className={item.weight >= 0.195 ? 'bg-violet-50/50' : ''}>
-                              <td className="px-4 py-2 text-slate-400">{item.rank}</td>
-                              <td className="px-4 py-2 text-slate-700">{item.name}</td>
-                              <td className="px-4 py-2 text-right text-slate-500">{(item.equal * 100).toFixed(1)}%</td>
-                              <td className={`px-4 py-2 text-right font-medium ${item.weight >= 0.195 ? 'text-violet-700' : 'text-slate-700'}`}>{(item.weight * 100).toFixed(1)}%</td>
-                              <td className="px-4 py-2 text-right">
-                                <span className={item.delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}</span>
+                          {dim.items.map((item, i) => (
+                            <tr key={item.rank} className={`${item.weight >= 0.195 ? 'bg-violet-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-slate-100/50`}>
+                              <td className="px-4 py-2.5 text-slate-400 font-medium">{item.rank}</td>
+                              <td className="px-4 py-2.5 text-slate-700">{item.name}</td>
+                              <td className="px-4 py-2.5 text-right text-slate-500">{(item.equal * 100).toFixed(1)}%</td>
+                              <td className={`px-4 py-2.5 text-right font-semibold ${item.weight >= 0.195 ? 'text-violet-700' : 'text-slate-700'}`}>
+                                {(item.weight * 100).toFixed(1)}%
+                                {item.weight >= 0.195 && <span className="ml-1 text-violet-400 text-xs">cap</span>}
                               </td>
-                              <td className="px-4 py-2 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                                    <div className="h-full rounded-full" style={{ width: `${item.stability * 100}%`, backgroundColor: item.stability >= 0.7 ? '#059669' : item.stability >= 0.4 ? '#d97706' : '#dc2626' }} />
+                              <td className="px-4 py-2.5 text-right">
+                                <span className={`font-medium ${item.delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full rounded-full transition-all"
+                                      style={{
+                                        width: `${item.stability * 100}%`,
+                                        backgroundColor: item.stability >= 0.7 ? '#059669' : item.stability >= 0.4 ? '#d97706' : '#dc2626'
+                                      }}
+                                    />
                                   </div>
-                                  <span className="text-slate-400 text-xs w-8">{Math.round(item.stability * 100)}%</span>
+                                  <span className="text-xs text-slate-500 w-8 text-right">{Math.round(item.stability * 100)}%</span>
                                 </div>
                               </td>
                             </tr>
@@ -674,87 +791,121 @@ export default function ElementWeightingPage() {
 
         {/* COMPARISON TAB */}
         {activeTab === 'comparison' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Score Comparison: Equal Weight vs. Element-Weighted</h2>
-                <p className="text-sm text-slate-500">All pipeline components identical except element weighting within dimensions.</p>
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-white">Score Comparison: Equal Weight vs. Element-Weighted</h2>
+              <p className="text-slate-300 mt-1 text-sm">All pipeline components identical. Only difference is element weighting within each dimension.</p>
+              <div className="flex gap-6 mt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-white border border-slate-300"></div>
+                  <span className="text-slate-300 text-sm">Equal Weight Score</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-emerald-500"></div>
+                  <span className="text-slate-300 text-sm">Element-Weighted Score</span>
+                </div>
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-lg overflow-hidden">
+            {/* Summary Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-emerald-600">+73%</p>
+                    <p className="text-xs text-slate-500">Companies with higher weighted score</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-violet-100 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-violet-600">2.1 pts</p>
+                    <p className="text-xs text-slate-500">Average score shift</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-slate-700">5 pts</p>
+                    <p className="text-xs text-slate-500">Maximum shift observed</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Table Container */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-[11px]">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-600 min-w-[160px]"></th>
-                      <th className="px-2 py-2 text-center font-bold text-violet-700 min-w-[60px] bg-violet-50">Benchmark</th>
-                      {COMPANIES.map(c => (
-                        <th key={c} className="px-2 py-2 text-center font-medium text-slate-600 min-w-[55px] whitespace-nowrap">{c}</th>
+                    <tr className="bg-slate-800 text-white">
+                      <th className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-left font-semibold min-w-[180px] border-r border-slate-700"></th>
+                      <th className="px-3 py-3 text-center font-semibold min-w-[65px] bg-violet-700 border-r border-violet-600">Benchmark</th>
+                      {COMPANIES.map((c, i) => (
+                        <th key={c} className={`px-2 py-3 text-center font-medium min-w-[58px] whitespace-nowrap ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>{c}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Composite */}
-                    <tr className="bg-slate-100 border-y border-slate-200">
-                      <td colSpan={2 + COMPANIES.length} className="px-3 py-1 font-bold text-slate-700 uppercase text-[10px] tracking-wide">Composite</td>
+                    {/* Composite Section */}
+                    <tr className="bg-slate-100 border-y border-slate-300">
+                      <td colSpan={2 + COMPANIES.length} className="px-4 py-2 font-bold text-slate-800 uppercase text-[10px] tracking-wider">Composite Score</td>
                     </tr>
-                    <tr className="hover:bg-slate-50">
-                      <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600">Equal</td>
-                      <td className="px-2 py-1 text-center font-semibold bg-violet-50/50">{SCORES.Benchmark.eqC}</td>
-                      {COMPANIES.map(c => <td key={c} className="px-2 py-1 text-center text-slate-600">{SCORES[c]?.eqC}</td>)}
+                    <tr className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="sticky left-0 z-10 bg-white px-4 py-2 text-slate-600 font-medium border-r border-slate-100">Equal Weight</td>
+                      <td className="px-3 py-2 text-center font-bold text-slate-700 bg-violet-50 border-r border-slate-100">{SCORES.Benchmark.eqC}</td>
+                      {COMPANIES.map((c, i) => <td key={c} className={`px-2 py-2 text-center text-slate-600 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{SCORES[c]?.eqC}</td>)}
                     </tr>
-                    <tr className="bg-emerald-50/30 hover:bg-emerald-50/50">
-                      <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-700 font-medium">Weighted</td>
-                      <td className="px-2 py-1 text-center font-bold text-emerald-700 bg-emerald-100/50">{SCORES.Benchmark.wtC}</td>
-                      {COMPANIES.map(c => <td key={c} className="px-2 py-1 text-center text-emerald-700 font-semibold">{SCORES[c]?.wtC}</td>)}
+                    <tr className="border-b border-slate-200 bg-emerald-50 hover:bg-emerald-100/50">
+                      <td className="sticky left-0 z-10 bg-emerald-50 px-4 py-2 text-emerald-700 font-semibold border-r border-emerald-100">Element-Weighted</td>
+                      <td className="px-3 py-2 text-center font-bold text-emerald-700 bg-emerald-100 border-r border-emerald-100">{SCORES.Benchmark.wtC}</td>
+                      {COMPANIES.map((c, i) => <td key={c} className={`px-2 py-2 text-center font-semibold text-emerald-700 ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/50'}`}>{SCORES[c]?.wtC}</td>)}
                     </tr>
-                    <tr className="border-b border-slate-200">
-                      <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-400 text-[10px]">Δ</td>
-                      <td className="px-2 py-1 text-center text-[10px] bg-violet-50/30">
+                    <tr className="border-b-2 border-slate-300 bg-slate-50">
+                      <td className="sticky left-0 z-10 bg-slate-50 px-4 py-1.5 text-slate-500 text-[10px] border-r border-slate-200">Δ (Weighted − Equal)</td>
+                      <td className="px-3 py-1.5 text-center text-[10px] font-semibold bg-violet-50/50 border-r border-slate-200">
                         <span className="text-emerald-600">+{SCORES.Benchmark.wtC - SCORES.Benchmark.eqC}</span>
                       </td>
                       {COMPANIES.map(c => {
                         const d = (SCORES[c]?.wtC || 0) - (SCORES[c]?.eqC || 0);
-                        return <td key={c} className="px-2 py-1 text-center text-[10px]"><span className={d > 0 ? 'text-emerald-600' : d < 0 ? 'text-red-500' : 'text-slate-400'}>{d > 0 ? '+' : ''}{d}</span></td>;
+                        return <td key={c} className="px-2 py-1.5 text-center text-[10px] font-semibold"><span className={d > 0 ? 'text-emerald-600' : d < 0 ? 'text-red-500' : 'text-slate-400'}>{d > 0 ? '+' : ''}{d}</span></td>;
                       })}
                     </tr>
 
                     {/* Dimensions */}
-                    {DIMENSION_ORDER.map(dim => (
+                    {DIMENSION_ORDER.map((dim, idx) => (
                       <React.Fragment key={dim}>
-                        <tr className="bg-slate-50 border-t border-slate-100">
-                          <td colSpan={2 + COMPANIES.length} className="px-3 py-1 text-[10px] font-semibold text-slate-500">D{dim}: {DIMENSIONS[dim].name} ({DIMENSIONS[dim].weight}%)</td>
+                        <tr className={`${idx === 0 ? '' : 'border-t border-slate-200'} bg-slate-100`}>
+                          <td colSpan={2 + COMPANIES.length} className="px-4 py-1.5 text-[10px] font-semibold text-slate-600">
+                            <span className="text-slate-800">D{dim}:</span> {DIMENSIONS[dim].name} <span className="text-slate-400 font-normal">({DIMENSIONS[dim].weight}%)</span>
+                          </td>
                         </tr>
-                        <tr className="hover:bg-slate-50">
-                          <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-500 pl-5">Equal</td>
-                          <td className="px-2 py-1 text-center text-slate-500 bg-violet-50/30">{SCORES.Benchmark.dims[dim]?.eq}</td>
-                          {COMPANIES.map(c => <td key={c} className="px-2 py-1 text-center text-slate-500">{SCORES[c]?.dims[dim]?.eq}</td>)}
+                        <tr className="border-b border-slate-50 hover:bg-slate-50/50">
+                          <td className="sticky left-0 z-10 bg-white px-4 py-1.5 text-slate-500 pl-6 text-[10px] border-r border-slate-100">Equal</td>
+                          <td className="px-3 py-1.5 text-center text-slate-500 bg-violet-50/30 border-r border-slate-100">{SCORES.Benchmark.dims[dim]?.eq}</td>
+                          {COMPANIES.map((c, i) => <td key={c} className={`px-2 py-1.5 text-center text-slate-500 ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{SCORES[c]?.dims[dim]?.eq}</td>)}
                         </tr>
-                        <tr className="bg-emerald-50/20 hover:bg-emerald-50/30">
-                          <td className="sticky left-0 z-10 bg-emerald-50/20 px-3 py-1 text-emerald-600 pl-5">Weighted</td>
-                          <td className="px-2 py-1 text-center text-emerald-600 font-medium bg-emerald-100/30">{SCORES.Benchmark.dims[dim]?.wt}</td>
-                          {COMPANIES.map(c => <td key={c} className="px-2 py-1 text-center text-emerald-600">{SCORES[c]?.dims[dim]?.wt}</td>)}
+                        <tr className="border-b border-slate-100 bg-emerald-50/30 hover:bg-emerald-50/50">
+                          <td className="sticky left-0 z-10 bg-emerald-50/30 px-4 py-1.5 text-emerald-600 font-medium pl-6 text-[10px] border-r border-emerald-100/50">Weighted</td>
+                          <td className="px-3 py-1.5 text-center font-medium text-emerald-600 bg-emerald-100/30 border-r border-emerald-100/50">{SCORES.Benchmark.dims[dim]?.wt}</td>
+                          {COMPANIES.map((c, i) => <td key={c} className={`px-2 py-1.5 text-center text-emerald-600 ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`}>{SCORES[c]?.dims[dim]?.wt}</td>)}
                         </tr>
                       </React.Fragment>
                     ))}
                   </tbody>
                 </table>
-              </div>
-            </div>
-
-            <div className="flex gap-4 text-sm">
-              <div className="bg-white border border-slate-200 rounded-lg px-4 py-2">
-                <span className="text-xl font-bold text-emerald-600">+73%</span>
-                <span className="text-slate-500 ml-2">companies with higher weighted score</span>
-              </div>
-              <div className="bg-white border border-slate-200 rounded-lg px-4 py-2">
-                <span className="text-xl font-bold text-violet-600">2.1</span>
-                <span className="text-slate-500 ml-2">avg shift (pts)</span>
-              </div>
-              <div className="bg-white border border-slate-200 rounded-lg px-4 py-2">
-                <span className="text-xl font-bold text-slate-700">5</span>
-                <span className="text-slate-500 ml-2">max shift</span>
               </div>
             </div>
           </div>
