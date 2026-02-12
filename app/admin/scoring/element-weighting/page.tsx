@@ -346,7 +346,6 @@ export default function ElementWeightingPage() {
   const [loading, setLoading] = useState(true);
   const [expDim, setExpDim] = useState<number | null>(null);
   const [showTech, setShowTech] = useState(false);
-  const [benchMode, setBenchMode] = useState<'all' | 'index'>('all');
 
   useEffect(() => {
     (async () => {
@@ -360,16 +359,18 @@ export default function ElementWeightingPage() {
     if (!data.length) return { cos: [] as CR[], bench: null as CR | null };
     const all = data.filter((a: any) => { const id = a.app_id || a.survey_id || ''; return !id.startsWith('TEST') && a.dimension1_data; }).map(scoreCo);
     const complete = all.filter(c => c.ok);
-    const pool = benchMode === 'index' ? complete.filter(c => !c.isPanel) : complete;
+    // Benchmark uses ALL complete (index + panel)
+    const pool = complete;
+    // Table shows ONLY index companies (no panel)
     const index = complete.filter(c => !c.isPanel).sort((a, b) => b.wtC - a.wtC);
     let bench: CR | null = null;
     if (pool.length > 0) {
       const avgDims: Record<number, DR> = {};
       for (let d = 1; d <= 13; d++) { const dr = pool.filter(c => c.dims[d]?.tot > 0); avgDims[d] = { eqB: dr.length > 0 ? Math.round(dr.reduce((s, c) => s + c.dims[d].eqB, 0) / dr.length) : 0, wtB: dr.length > 0 ? Math.round(dr.reduce((s, c) => s + c.dims[d].wtB, 0) / dr.length) : 0, uns: 0, tot: 0, matched: 0, unmatched: [] }; }
-      bench = { name: 'Benchmark', sid: 'BENCH', isPanel: false, ok: true, dims: avgDims, eqC: Math.round(pool.reduce((s, c) => s + c.eqC, 0) / pool.length), wtC: Math.round(pool.reduce((s, c) => s + c.wtC, 0) / pool.length), mat: 0, brd: 0, matchPct: pool.reduce((s, c) => s + c.matchPct, 0) / pool.length, unsPct: 0 };
+      bench = { name: 'Benchmark', sid: 'BENCH', isPanel: false, ok: true, dims: avgDims, eqC: Math.round(pool.reduce((s, c) => s + c.eqC, 0) / pool.length), wtC: Math.round(pool.reduce((s, c) => s + c.wtC, 0) / pool.length), mat: 0, brd: 0, matchPct: 1, unsPct: 0 };
     }
     return { cos: index, bench };
-  }, [data, benchMode]);
+  }, [data]);
 
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center"><div className="w-10 h-10 border-3 border-slate-300 border-t-violet-600 rounded-full animate-spin"></div></div>;
 
@@ -410,8 +411,8 @@ export default function ElementWeightingPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-10 py-10">
+      {/* Content - Full width for comparison tab */}
+      <div className={`mx-auto px-10 py-10 ${tab === 'compare' ? 'max-w-none' : 'max-w-7xl'}`}>
         {tab === 'method' ? (
           <div className="max-w-4xl space-y-8">
             {/* Main Card */}
@@ -487,47 +488,60 @@ export default function ElementWeightingPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {/* Controls */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-6 py-4 flex items-center justify-between">
-              <div><p className="font-semibold text-slate-800">Benchmark Population</p><p className="text-sm text-slate-500">Select which companies to include</p></div>
-              <div className="flex gap-2">
-                <button onClick={() => setBenchMode('all')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${benchMode === 'all' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>All Complete</button>
-                <button onClick={() => setBenchMode('index')} className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${benchMode === 'index' ? 'bg-violet-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Index Only</button>
-              </div>
-            </div>
-
-            {/* Match Rate Warning */}
-            {bench && bench.matchPct < 0.9 && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl px-6 py-4">
-                <p className="font-semibold text-amber-800">Element Match Rate: {Math.round(bench.matchPct * 100)}%</p>
-                <p className="text-sm text-amber-700 mt-1">Some grid elements did not match the weight table entries. Unmatched elements fall back to equal weighting.</p>
-              </div>
-            )}
-
-            {/* Score Table */}
+            {/* Score Table - Full width with horizontal scroll, INDEX COMPANIES ONLY */}
             {bench && cos.length > 0 && (
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="bg-gradient-to-r from-violet-700 to-purple-700 px-8 py-5">
                   <h2 className="text-lg font-bold text-white">Score Comparison: Equal Weight vs. Element-Weighted</h2>
                   <p className="text-violet-200 text-sm mt-1">All pipeline components are identical. The only difference is element weighting within dimensions.</p>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead><tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="sticky left-0 bg-slate-50 z-10 px-4 py-3 text-left font-semibold text-slate-600 min-w-[160px]">Metric</th>
-                      <th className="px-4 py-3 text-center font-semibold text-slate-600 min-w-[80px] border-l border-slate-200 bg-violet-50">Benchmark</th>
-                      {cos.slice(0, 10).map(c => <th key={c.sid} className="px-3 py-3 text-center font-medium text-slate-700 min-w-[80px]"><div className="truncate max-w-[80px]" title={c.name}>{c.name}</div></th>)}
-                    </tr></thead>
+                <div className="overflow-x-auto max-h-[70vh]">
+                  <table className="text-xs border-collapse">
+                    <thead className="sticky top-0 z-20">
+                      <tr className="bg-slate-50 border-b border-slate-200">
+                        <th className="sticky left-0 bg-slate-50 z-30 px-4 py-3 text-left font-semibold text-slate-600 min-w-[180px] border-r border-slate-200">Metric</th>
+                        <th className="px-4 py-3 text-center font-semibold text-slate-600 min-w-[90px] bg-violet-50 border-r border-slate-200">Benchmark</th>
+                        {cos.map(c => <th key={c.sid} className="px-3 py-3 text-center font-medium text-slate-700 min-w-[100px] whitespace-nowrap">{c.name}</th>)}
+                      </tr>
+                    </thead>
                     <tbody>
-                      <tr className="bg-slate-800"><td colSpan={2 + Math.min(cos.length, 10)} className="px-4 py-2 font-bold text-xs text-white uppercase tracking-wider">Composite Score</td></tr>
-                      <tr className="border-b border-slate-100"><td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 font-medium">Equal Weight</td><td className="px-4 py-2 text-center font-semibold text-slate-700 border-l border-slate-200 bg-violet-50">{bench.eqC}</td>{cos.slice(0, 10).map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqC}</td>)}</tr>
-                      <tr className="border-b border-slate-100 bg-emerald-50/50"><td className="sticky left-0 bg-emerald-50/50 z-10 px-4 py-2 text-emerald-800 font-medium">Element-Weighted</td><td className="px-4 py-2 text-center font-bold text-emerald-700 border-l border-slate-200 bg-emerald-100/50">{bench.wtC}</td>{cos.slice(0, 10).map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700 font-semibold">{c.wtC}</td>)}</tr>
-                      <tr className="border-b border-slate-200"><td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-500">Delta</td><td className="px-4 py-2 text-center text-slate-500 border-l border-slate-200 bg-violet-50">{(bench.wtC - bench.eqC >= 0 ? '+' : '') + (bench.wtC - bench.eqC)}</td>{cos.slice(0, 10).map(c => { const d = c.wtC - c.eqC; return <td key={c.sid} className="px-3 py-2 text-center"><span className={d >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{(d >= 0 ? '+' : '') + d}</span></td>; })}</tr>
+                      <tr className="bg-slate-800">
+                        <td className="sticky left-0 bg-slate-800 z-10 px-4 py-2 font-bold text-xs text-white uppercase tracking-wider border-r border-slate-700">Composite Score</td>
+                        <td className="px-4 py-2 border-r border-slate-700"></td>
+                        <td colSpan={cos.length}></td>
+                      </tr>
+                      <tr className="border-b border-slate-100">
+                        <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 font-medium border-r border-slate-200">Equal Weight</td>
+                        <td className="px-4 py-2 text-center font-semibold text-slate-700 bg-violet-50 border-r border-slate-200">{bench.eqC}</td>
+                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.eqC}</td>)}
+                      </tr>
+                      <tr className="border-b border-slate-100 bg-emerald-50/50">
+                        <td className="sticky left-0 bg-emerald-50/50 z-10 px-4 py-2 text-emerald-800 font-medium border-r border-slate-200">Element-Weighted</td>
+                        <td className="px-4 py-2 text-center font-bold text-emerald-700 bg-emerald-100/50 border-r border-slate-200">{bench.wtC}</td>
+                        {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700 font-semibold">{c.wtC}</td>)}
+                      </tr>
+                      <tr className="border-b border-slate-200">
+                        <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-500 border-r border-slate-200">Delta</td>
+                        <td className="px-4 py-2 text-center text-slate-500 bg-violet-50 border-r border-slate-200">{(bench.wtC - bench.eqC >= 0 ? '+' : '') + (bench.wtC - bench.eqC)}</td>
+                        {cos.map(c => { const delta = c.wtC - c.eqC; return <td key={c.sid} className="px-3 py-2 text-center"><span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>{(delta >= 0 ? '+' : '') + delta}</span></td>; })}
+                      </tr>
                       {DO.map(d => (
                         <React.Fragment key={d}>
-                          <tr className="bg-slate-100 border-t border-slate-200"><td colSpan={2 + Math.min(cos.length, 10)} className="px-4 py-2 font-semibold text-xs text-slate-700">D{d}: {DN[d]} <span className="font-normal text-slate-400 ml-2">({DW[d]}%)</span></td></tr>
-                          <tr className="border-b border-slate-100"><td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 pl-8">Equal</td><td className="px-4 py-2 text-center text-slate-600 border-l border-slate-200 bg-violet-50">{bench.dims[d]?.eqB ?? '-'}</td>{cos.slice(0, 10).map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.dims[d]?.eqB ?? '-'}</td>)}</tr>
-                          <tr className="border-b border-slate-100 bg-emerald-50/30"><td className="sticky left-0 bg-emerald-50/30 z-10 px-4 py-2 text-emerald-700 pl-8">Weighted</td><td className="px-4 py-2 text-center text-emerald-700 border-l border-slate-200 bg-emerald-50/50">{bench.dims[d]?.wtB ?? '-'}</td>{cos.slice(0, 10).map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700">{c.dims[d]?.wtB ?? '-'}</td>)}</tr>
+                          <tr className="bg-slate-100 border-t border-slate-200">
+                            <td className="sticky left-0 bg-slate-100 z-10 px-4 py-2 font-semibold text-xs text-slate-700 border-r border-slate-200">D{d}: {DN[d]} <span className="font-normal text-slate-400">({DW[d]}%)</span></td>
+                            <td className="px-4 py-2 bg-slate-100 border-r border-slate-200"></td>
+                            <td colSpan={cos.length} className="bg-slate-100"></td>
+                          </tr>
+                          <tr className="border-b border-slate-100">
+                            <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 pl-8 border-r border-slate-200">Equal</td>
+                            <td className="px-4 py-2 text-center text-slate-600 bg-violet-50 border-r border-slate-200">{bench.dims[d]?.eqB ?? '-'}</td>
+                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-slate-600">{c.dims[d]?.eqB ?? '-'}</td>)}
+                          </tr>
+                          <tr className="border-b border-slate-100 bg-emerald-50/30">
+                            <td className="sticky left-0 bg-emerald-50/30 z-10 px-4 py-2 text-emerald-700 pl-8 border-r border-slate-200">Weighted</td>
+                            <td className="px-4 py-2 text-center text-emerald-700 bg-emerald-50/50 border-r border-slate-200">{bench.dims[d]?.wtB ?? '-'}</td>
+                            {cos.map(c => <td key={c.sid} className="px-3 py-2 text-center text-emerald-700">{c.dims[d]?.wtB ?? '-'}</td>)}
+                          </tr>
                         </React.Fragment>
                       ))}
                     </tbody>
