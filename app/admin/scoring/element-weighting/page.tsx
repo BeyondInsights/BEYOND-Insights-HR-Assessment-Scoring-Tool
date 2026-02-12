@@ -1590,6 +1590,7 @@ export default function ElementWeightingPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              <Link href="/admin/scoring/unsure-methodology" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Unsure Substitutions</Link>
               <Link href="/admin/scoring" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Scoring</Link>
               <Link href="/admin" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Dashboard</Link>
             </div>
@@ -1739,20 +1740,6 @@ export default function ElementWeightingPage() {
               <p className="text-slate-700 leading-relaxed mb-3">We avoided approaches that are hard to defend or unstable at small sample sizes: subjective expert weighting, binary recoding that discards maturity progression, raw coefficients that can produce misleading negatives, and hard cutoffs that create cliff effects. Instead, we use stable importance measures, proportional damping, and conservative blending to keep the framework intact.</p>
               <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration. As participation grows, the empirical signal strengthens and weights can become more data-driven while maintaining the same guardrails. Weights are recalibrated annually and published alongside each Index release.</p>
             </section>
-
-            {/* Quick Navigation */}
-            <div className="flex flex-wrap gap-4">
-              <button onClick={() => setActiveTab('weights')} className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-violet-600 to-violet-700 text-white font-semibold rounded-xl shadow-sm hover:from-violet-700 hover:to-violet-800 transition-all">
-                <IconScale />
-                <span>View Element Weights</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-              </button>
-              <a href="/admin/scoring/unsure-methodology" className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-white font-semibold rounded-xl shadow-sm hover:from-amber-600 hover:to-amber-700 transition-all">
-                <IconShield />
-                <span>Unsure Substitutions</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-              </a>
-            </div>
           </div>
         )}
 
