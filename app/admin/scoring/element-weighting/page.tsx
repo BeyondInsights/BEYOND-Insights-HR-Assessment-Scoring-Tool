@@ -1022,7 +1022,6 @@ const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
   },
 };
 
-=== DIMENSIONS ===
 const DIMENSIONS: Record<number, DimensionData> = {
   1: {
     name: "Medical Leave & Flexible Work",
