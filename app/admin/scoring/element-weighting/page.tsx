@@ -2361,7 +2361,7 @@ export default function ElementWeightingPage() {
   const [expandedDim, setExpandedDim] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<CompanyComparison[]>([]);
-  const [includePanel, setIncludePanel] = useState(false);
+  
 
   // Load assessments from Supabase
   useEffect(() => {
@@ -2394,9 +2394,9 @@ export default function ElementWeightingPage() {
 
   const filteredCompanies = useMemo(() => {
     let list = companies.filter(c => c.isComplete);
-    if (!includePanel) list = list.filter(c => !c.isPanel);
+    list = list.filter(c => !c.isPanel);
     return list.sort((a, b) => b.eqComposite - a.eqComposite);
-  }, [companies, includePanel]);
+  }, [companies]);
 
   const benchmark = useMemo(() => {
     if (filteredCompanies.length === 0) return null;
@@ -2468,6 +2468,7 @@ export default function ElementWeightingPage() {
       {/* Content */}
       <div className={`mx-auto py-10 ${activeTab === 'scoring' ? 'max-w-[1800px] px-6' : 'max-w-7xl px-12'}`}>
 
+
         {/* ===== TAB 1: OVERVIEW ===== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
@@ -2476,122 +2477,45 @@ export default function ElementWeightingPage() {
               <p className="text-slate-600 text-sm">A data-driven calibration of the Cancer and Careers assessment framework</p>
             </div>
 
-            {/* The Question */}
-            <section className="rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm">
-              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center shadow-sm">
-                  <IconTarget />
-                </div>
-                <h3 className="font-bold text-slate-900 text-xl">The Question</h3>
-              </div>
-              <div className="px-10 py-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
-                <p>The Index assesses workplace cancer support across 13 dimensions, with each dimension containing between 9 and 20 individual support elements. In the first version of the scoring, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as offering an employee assistance program.</p>
-                <p>That is a reasonable starting point, but it does not reflect reality. Some elements are table-stakes practices that most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs from the rest. The question is whether the scoring should reflect that distinction.</p>
-              </div>
-            </section>
-
-            {/* Our Answer */}
+            {/* The Question + Our Answer */}
             <section className="rounded-2xl shadow-lg overflow-hidden">
               <div className="bg-gradient-to-r from-slate-800 to-slate-900 px-10 py-8">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center"><IconCheck /></div>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Our Answer</p>
-                </div>
-                <p className="text-white text-lg leading-relaxed">
-                  <strong>Yes, but carefully.</strong> We adjusted element weights within each dimension so that programs which more consistently distinguish stronger overall performers receive modestly higher weight. We did this using the data itself, not subjective judgment, and we blended the results back toward equal weighting to ensure the adjustment <em className="text-slate-300">calibrates</em> the scoring rather than rewrites it.
-                </p>
+                <p className="text-white text-lg leading-relaxed mb-4">The Index scores 13 dimensions of workplace cancer support, each containing 9 to 20 individual elements. In the first version, every element within a dimension counted equally. Offering a clinical trial matching service counted the same as an employee assistance program.</p>
+                <p className="text-white text-lg leading-relaxed">Some elements are table-stakes practices most organizations already provide. Others are rarer commitments that distinguish genuinely mature programs. <strong>We adjusted element weights so that programs which more consistently distinguish stronger overall performers receive modestly higher weight</strong>, using the data itself rather than subjective judgment, and blending back toward equal weighting to ensure the adjustment calibrates the scoring rather than rewrites it.</p>
               </div>
-              <div className="bg-slate-900 px-10 py-5 border-t border-white/10">
+              <div className="bg-slate-900 px-10 py-4 border-t border-white/10">
                 <p className="text-slate-300 text-sm">The Cancer and Careers framework remains intact. The 13 dimensions, their relative weights, and the response scale are all unchanged. Element weighting adjusts only how much each item contributes within its own dimension.</p>
               </div>
             </section>
 
-            {/* How We Did It (8 Steps) */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 px-10 py-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white"><IconLayers /></div>
-                  <div>
-                    <h3 className="font-bold text-white text-xl">How We Did It</h3>
-                    <p className="text-sm text-slate-400 mt-0.5">A transparent, reproducible process designed to withstand peer review</p>
+            {/* How We Did It - prose with stat cards */}
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+              <h3 className="font-bold text-slate-900 text-xl mb-4">How We Did It</h3>
+              <p className="text-slate-700 leading-relaxed mb-4">For each dimension, we built a model asking which elements best predict a company&apos;s composite score across the other 12 dimensions. This avoids circularity: an element earns higher weight only if companies that score well on it also tend to score well everywhere else. We measured each element&apos;s contribution by temporarily scrambling its data and observing how much predictive accuracy declined. The analysis was repeated 200 times on different random samples to ensure stability, and unstable signals were dampened proportionally.</p>
+              <p className="text-slate-700 leading-relaxed mb-6">The final weights blend the empirical findings with equal weighting, adapting by dimension based on signal strength. No element is removed or zeroed out, and a 20% cap prevents any single element from dominating its dimension. Only clean data was used: companies with high unsure rates were excluded from weight estimation but still receive scored reports.</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Most companies move by fewer than 3 points.', color: 'from-violet-600 to-purple-700' },
+                  { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Highest-weighted vs lowest within a dimension.', color: 'from-indigo-600 to-blue-700' },
+                  { v: 'Preserved', l: 'Rankings', d: 'Any reordering is among companies with similar scores.', color: 'from-sky-600 to-cyan-700' },
+                  { v: '3 elements', l: '20% Cap Hit', d: 'The data suggested even higher weight for these.', color: 'from-emerald-600 to-teal-700' }
+                ].map((m, i) => (
+                  <div key={i} className="rounded-xl overflow-hidden shadow-sm">
+                    <div className={`bg-gradient-to-br ${m.color} px-5 py-4`}>
+                      <p className="text-2xl font-bold text-white">{m.v}</p>
+                      <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{m.l}</p>
+                    </div>
+                    <div className="bg-white border border-slate-200 border-t-0 px-5 py-3">
+                      <p className="text-xs text-slate-600 leading-relaxed">{m.d}</p>
+                    </div>
                   </div>
-                </div>
-              </div>
-              <div className="px-10 py-8">
-                <div className="space-y-6">
-                  {[
-                    { t: 'Preserved the full response scale', d: 'Each element is scored on four levels: Currently Offer, Planning, Assessing, and Not Offered. Collapsing this to a binary would discard the progression signal the survey was designed to capture.', color: '#64748B' },
-                    { t: 'Used only clean data', d: 'If a company reported \u201cUnsure\u201d on a significant proportion of elements in a dimension, that company was excluded from weight estimation for that dimension. This prevents the analysis from learning patterns in incomplete data. Those companies still receive scored reports using the final weights.', color: '#64748B' },
-                    { t: 'Built a model that predicts overall program strength', d: 'For each dimension, we asked: which elements in this dimension best predict a company\u2019s composite score across all the other 12 dimensions? Elements that predict overall strength are the true differentiators. They signal depth and maturity that extends beyond a single area.', color: '#64748B' },
-                    { t: 'Avoided circularity by design', d: 'We deliberately did not predict the dimension\u2019s own score. If we had, the model would reward elements simply for being part of the formula, not for predicting anything meaningful. By looking outward to the composite, an element earns higher weight only if companies that score well on it also tend to score well everywhere else.', color: '#64748B' },
-                    { t: 'Measured each element\u2019s contribution by disruption', d: 'If we temporarily scramble an element\u2019s data across companies, how much does the model\u2019s ability to predict composite strength decline? Elements that cause a larger decline when scrambled are stronger differentiators. This approach produces importance scores that are always positive and intuitive to interpret.', color: '#64748B' },
-                    { t: 'Tested stability through resampling', d: 'The analysis was repeated 200 times on different random samples of companies. Elements that consistently appeared as important across all samples received their full weight. Elements whose importance fluctuated were dampened proportionally. This protects against any single company driving an element\u2019s weight.', color: '#64748B' },
-                    { t: 'Blended the results back toward equal weights', d: 'The final weight for each element is a blend of what the data suggests and what equal weighting would produce. This ensures that even where the empirical signal is strong, the expert framework still anchors the result. As participation grows in future years, the empirical share can increase.', color: '#64748B' },
-                    { t: 'Capped the maximum weight', d: 'No single element can exceed 20% of its dimension\u2019s total weight, regardless of what the data suggests. Any excess is redistributed proportionally among the other elements. This prevents any one program from dominating a dimension\u2019s score.', color: '#64748B' }
-                  ].map((step, i) => (
-                    <div key={i} className="flex gap-5">
-                      <div className="flex-shrink-0 w-11 h-11 rounded-full text-white text-sm font-bold flex items-center justify-center shadow-lg border-2 border-white" style={{ backgroundColor: step.color }}>{i + 1}</div>
-                      <div className="pt-1">
-                        <p className="font-semibold text-slate-900">{step.t}</p>
-                        <p className="text-sm text-slate-600 mt-1 leading-relaxed">{step.d}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* What the Calibration Produces */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center shadow-sm text-white"><IconTrendUp /></div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-xl">What the Calibration Produces</h3>
-                  <p className="text-sm text-slate-500 mt-0.5">The adjustment is deliberately modest</p>
-                </div>
-              </div>
-              <div className="px-10 py-8">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6">
-                  {[
-                    { v: '1\u20133 pts', l: 'Composite Score Shifts', d: 'Most companies move by fewer than 3 points.', color: 'from-violet-600 to-purple-700' },
-                    { v: '2\u20133\u00d7', l: 'Weight Spread', d: 'Highest-weighted element vs lowest within a dimension.', color: 'from-indigo-600 to-blue-700' },
-                    { v: 'Preserved', l: 'Rankings', d: 'Where reordering occurs, it is among companies with similar scores.', color: 'from-sky-600 to-cyan-700' },
-                    { v: '3 elements', l: '20% Cap Hit', d: 'The data would have given them even higher weight.', color: 'from-emerald-600 to-teal-700' }
-                  ].map((m, i) => (
-                    <div key={i} className="rounded-xl overflow-hidden shadow-sm">
-                      <div className={`bg-gradient-to-br ${m.color} px-5 py-4`}>
-                        <p className="text-2xl font-bold text-white">{m.v}</p>
-                        <p className="text-xs font-semibold text-white/80 uppercase tracking-wider mt-1">{m.l}</p>
-                      </div>
-                      <div className="bg-white border border-slate-200 border-t-0 px-5 py-3">
-                        <p className="text-xs text-slate-600 leading-relaxed">{m.d}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-4 bg-slate-800 rounded-lg">
-                  <p className="text-slate-200 text-sm text-center">This is the expected behavior of a well-calibrated adjustment: <span className="text-white font-semibold">meaningful differentiation without disruption.</span></p>
-                </div>
-              </div>
-            </section>
-
-            {/* How the Blend Adapts */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-sky-600 flex items-center justify-center shadow-sm text-white"><IconRefresh /></div>
-                <h3 className="font-bold text-slate-900 text-xl">How the Blend Adapts</h3>
-              </div>
-              <div className="px-10 py-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
-                <p>The blend between data-driven weights and equal weights adapts by dimension based on the strength of the empirical signal. In dimensions where the data clearly identifies which elements differentiate stronger programs, the blend leans more toward the empirical finding. Where the signal is emerging, the blend anchors more heavily toward the expert framework.</p>
-                <p>This is a Year 1 calibration. The adaptive blend is conservative by design. As participation grows, the empirical signal strengthens across all dimensions, and the blend can shift further toward data-driven weights.</p>
-                <p>No dimension is excluded. The same methodology is applied across all 13 dimensions, with the blend adapting to the strength of evidence in each.</p>
+                ))}
               </div>
             </section>
 
             {/* Top Differentiators Table */}
             <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 px-10 py-6">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Cross-Dimensional Analysis</p>
+              <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 px-10 py-5">
                 <h3 className="font-bold text-white text-xl">Top Differentiating Elements by Dimension</h3>
                 <p className="text-sm text-slate-400 mt-1">Programs that most consistently predict stronger overall performance across the Index</p>
               </div>
@@ -2610,7 +2534,7 @@ export default function ElementWeightingPage() {
                       const dim = DIMENSIONS[d];
                       const color = DIM_COLORS[d];
                       return (
-                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-slate-50 transition-colors`}>
+                        <tr key={d} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-slate-50`}>
                           <td className="px-6 py-3.5">
                             <span className="inline-flex items-center gap-3">
                               <span className="w-8 h-8 rounded-lg text-white text-xs font-bold flex items-center justify-center flex-shrink-0 shadow-sm" style={{ backgroundColor: color }}>{d}</span>
@@ -2630,105 +2554,15 @@ export default function ElementWeightingPage() {
                 </table>
               </div>
               <div className="px-8 py-4 bg-gradient-to-r from-violet-50 to-purple-50 border-t border-violet-100">
-                <p className="text-sm text-slate-700"><strong className="text-violet-700">Important:</strong> Every element contributes to the score. Lower-weighted elements still matter. The elements that receive higher weight tend to be rarer commitments that signal deeper organizational investment.</p>
+                <p className="text-sm text-slate-700"><strong className="text-violet-700">Every element contributes.</strong> Lower-weighted elements still matter. Higher-weighted elements tend to be rarer commitments that signal deeper organizational investment.</p>
               </div>
             </section>
 
-            {/* What We Chose Not to Do */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-10 py-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F87171" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                </div>
-                <h3 className="font-bold text-white text-xl">What We Chose Not to Do</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
-                      <th className="px-6 py-3 text-left font-semibold w-56">Alternative</th>
-                      <th className="px-6 py-3 text-left font-semibold">Why We Moved On</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {[
-                      ['Expert judgment weighting', 'Subjective and difficult to defend. Different experts produce different weights, with no way to adjudicate.'],
-                      ['Simple yes/no encoding', 'Discards the distinction between Assessing, Planning, and Currently Offer. The ordinal scale captures progression that a binary cannot.'],
-                      ['Raw model outputs as weights', 'Some outputs are negative due to overlapping elements. We used permutation importance, which produces only positive weights.'],
-                      ['Treating co-occurring elements independently', 'If two programs tend to be offered together, a simple approach gives both full credit for what may be a shared underlying capability. Our approach distributes weight among related elements.'],
-                      ['Dropping low-stability elements', 'Hard cutoffs create cliff effects. Instead, we dampen unstable elements proportionally. Every element still contributes.']
-                    ].map(([alt, why], i) => (
-                      <tr key={i} className={`${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'} hover:bg-slate-50 transition-colors`}>
-                        <td className="px-6 py-3 font-semibold text-slate-800">{alt}</td>
-                        <td className="px-6 py-3 text-slate-700">{why}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            {/* How This Evolves */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-10 py-6 border-b border-slate-100 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm text-white"><IconRefresh /></div>
-                <h3 className="font-bold text-slate-900 text-xl">How This Evolves</h3>
-              </div>
-              <div className="px-10 py-8 text-slate-700 leading-relaxed space-y-4 text-[15px]">
-                <p>This is a Year 1 calibration. The methodology is designed to scale naturally as participation grows. With more organizations completing the assessment each year, the empirical signal strengthens across all dimensions, the stability of element weights increases, and the blend can shift further toward data-driven weights with greater confidence.</p>
-                <p>Weights are recalibrated annually using the latest data and published alongside each Index release.</p>
-              </div>
-              <div className="px-10 pb-8">
-                <div className="bg-slate-50 rounded-xl border border-slate-200 p-6">
-                  <div className="grid grid-cols-4 gap-4 text-xs">
-                  {[
-                    { m: 'Year 1 (Current)', a: 'Conservative blend. Equal weights substantial.', color: 'bg-violet-600' },
-                    { m: '75+ Organizations', a: 'Re-run analysis. Consider increasing empirical share.', color: 'bg-blue-600' },
-                    { m: '100+ Organizations', a: 'Full recalibration with high confidence.', color: 'bg-emerald-600' },
-                    { m: 'Annually', a: 'Recalibrate and publish updated weights.', color: 'bg-amber-500' }
-                  ].map((s, i) => (
-                    <div key={i} className="flex gap-2">
-                      <div className={`w-1.5 rounded-full ${s.color} flex-shrink-0`} />
-                      <div>
-                        <p className="font-semibold text-slate-800">{s.m}</p>
-                        <p className="text-slate-600 mt-0.5">{s.a}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Key Principles */}
-            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-slate-700 to-slate-800 px-10 py-5 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-white"><IconShield /></div>
-                <h3 className="font-bold text-white text-xl">Key Principles</h3>
-              </div>
-              <div className="px-10 py-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { t: 'The framework comes first.', d: 'Dimensions are not reweighted. Elements are not moved between dimensions. The Cancer and Careers framework is the foundation.', color: '#64748B' },
-                    { t: 'Calibration, not reinvention.', d: 'Score shifts of 1\u20133 points confirm the adjustment is proportionate to the evidence.', color: '#64748B' },
-                    { t: 'Data-driven, not opinion-driven.', d: 'Every weight traces to observed patterns across participating organizations.', color: '#64748B' },
-                    { t: 'Conservative by design.', d: 'Substantial equal-weight component in every blend. 20% cap provides an additional safety net.', color: '#64748B' },
-                    { t: 'All elements contribute.', d: 'No element is removed or zeroed out. The weighting adjusts relative emphasis, not inclusion.', color: '#64748B' },
-                    { t: 'Every dimension uses the same method.', d: 'The blend adapts to signal strength, but the process is identical across all 13 dimensions.', color: '#64748B' },
-                    { t: 'Transparent and reproducible.', d: 'Fully documented methodology. Available for peer review and Advisory Committee vetting.', color: '#64748B' }
-                  ].map((p, i) => (
-                    <div key={i} className="flex gap-3.5 p-4 rounded-xl border border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:shadow-sm transition-all">
-                      <div className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5" style={{ backgroundColor: p.color }}>
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}><polyline points="20 6 9 17 4 12" /></svg>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm">{p.t}</p>
-                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{p.d}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+            {/* What We Chose Not to Do + How This Evolves - combined prose */}
+            <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+              <h3 className="font-bold text-slate-900 text-lg mb-4">Design Decisions and Future Direction</h3>
+              <p className="text-slate-700 leading-relaxed mb-4">We chose against expert judgment weighting (subjective, difficult to defend), simple binary encoding (discards the ordinal progression), raw model outputs (can produce negatives), and hard cutoffs for low-stability elements (cliff effects). Instead, unstable signals are dampened proportionally, co-occurring elements share credit, and the blend adapts to signal strength in each dimension.</p>
+              <p className="text-slate-700 leading-relaxed">This is a Year 1 calibration, conservative by design. As participation grows, the empirical signal strengthens and the blend can shift further toward data-driven weights. Weights are recalibrated annually and published alongside each Index release.</p>
             </section>
           </div>
         )}
@@ -3117,10 +2951,6 @@ export default function ElementWeightingPage() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
                 <p className="text-slate-600 text-sm">Equal-weight vs. element-weighted scores calculated live from assessment data. Only within-dimension element weighting differs.</p>
               </div>
-              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
-                <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
-                Include Panel
-              </label>
             </div>
 
             {loading ? (
@@ -3157,21 +2987,48 @@ export default function ElementWeightingPage() {
                   </div>
                 </div>
 
-                {/* Score Table */}
+                {/* Score Table — top scrollbar, vertical scroll, frozen header + row labels */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
+                  <div
+                    className="overflow-auto max-h-[78vh]"
+                    style={{ overflowX: 'auto', overflowY: 'auto' }}
+                    ref={(el) => {
+                      if (el) {
+                        const existing = el.parentElement?.querySelector('.top-scroll-bar') as HTMLElement;
+                        if (!existing) {
+                          const topScroll = document.createElement('div');
+                          topScroll.className = 'top-scroll-bar';
+                          topScroll.style.cssText = 'overflow-x:auto;overflow-y:hidden;height:14px;border-bottom:1px solid #e2e8f0;';
+                          const inner = document.createElement('div');
+                          inner.style.height = '1px';
+                          topScroll.appendChild(inner);
+                          el.parentElement?.insertBefore(topScroll, el);
+                          topScroll.addEventListener('scroll', () => { el.scrollLeft = topScroll.scrollLeft; });
+                          el.addEventListener('scroll', () => { topScroll.scrollLeft = el.scrollLeft; });
+                          const obs = new ResizeObserver(() => {
+                            const table = el.querySelector('table');
+                            if (table) inner.style.width = table.scrollWidth + 'px';
+                          });
+                          obs.observe(el);
+                        }
+                      }
+                    }}
+                  >
+                    <table className="w-full text-sm border-collapse">
+                      <thead className="sticky top-0 z-30">
                         <tr className="bg-slate-800 text-white">
-                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
+                          <th className="sticky left-0 top-0 z-40 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
                           <th className="px-2 py-3 text-center font-bold text-xs bg-slate-700 border-r border-slate-600 min-w-[65px]">Benchmark</th>
-                          {filteredCompanies.map((c, i) => (
+                          {filteredCompanies.map((c, i) => {
+                            const displayName = c.companyName.replace(/ International$/i, '').replace(/ Corporation$/i, '');
+                            return (
                             <th key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-xs leading-tight min-w-[60px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                              {c.companyName.length > 14
-                                ? c.companyName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
-                                : c.companyName}
+                              {displayName.length > 14
+                                ? displayName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
+                                : displayName}
                             </th>
-                          ))}
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody>
