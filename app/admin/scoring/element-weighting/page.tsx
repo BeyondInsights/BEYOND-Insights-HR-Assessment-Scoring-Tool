@@ -651,6 +651,150 @@ function calculateCompanyComparison(assessment: Record<string, any>): CompanyCom
   };
 }
 
+// ============================================
+// COMBINED SCORING: Element Weights + Unsure Substitution
+// ============================================
+
+interface CombinedCompanyResult {
+  companyName: string;
+  surveyId: string;
+  isComplete: boolean;
+  isPanel: boolean;
+  dims: Record<number, { eq: number; wt: number; combined: number }>;
+  eqComposite: number;      // Equal-weight, unsure=0
+  wtComposite: number;      // Element-weighted, unsure=0
+  combinedComposite: number; // Element-weighted + unsure substitution
+  maturityScore: number;
+  breadthScore: number;
+}
+
+function calculateCombinedScore(
+  assessment: Record<string, any>,
+  populationMeans: Record<number, number>
+): CombinedCompanyResult {
+  // Get baseline scores
+  const eqScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
+
+  const dims: Record<number, { eq: number; wt: number; combined: number }> = {};
+
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`];
+
+    // Equal-weight score (from original function)
+    const eqScore = eqScores.dimensions[i]?.blendedScore || 0;
+
+    // Element-weighted score (unsure=0)
+    const wtResult = calculateElementWeightedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS);
+    const wtScore = wtResult.blendedWeighted;
+
+    // Combined: Element-weighted base + unsure substitution
+    // Recalculate with element weights AND unsure credit
+    let combinedScore = wtScore;
+
+    if (dimData) {
+      const mainGrid = dimData[`d${i}a`];
+      if (mainGrid && typeof mainGrid === 'object') {
+        const dimWeights = ELEMENT_WEIGHTS[i] || {};
+        let weightedEarned = 0;
+        let weightedMax = 0;
+        let unsureCount = 0;
+        let answeredItems = 0;
+
+        Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+          if (i === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+          const { points, isUnsure } = statusToPoints(status);
+
+          // Find element weight
+          let elemWeight = dimWeights[itemKey];
+          if (elemWeight === undefined) {
+            const keys = Object.keys(dimWeights);
+            const match = keys.find(k => k.startsWith(itemKey.substring(0, 30)) || itemKey.startsWith(k.substring(0, 30)));
+            elemWeight = match ? dimWeights[match] : undefined;
+          }
+          const w = elemWeight || (1 / Object.keys(mainGrid).length);
+
+          if (isUnsure) {
+            unsureCount++;
+            answeredItems++;
+            weightedMax += POINTS.CURRENTLY_OFFER * w;
+          } else if (points !== null) {
+            answeredItems++;
+            weightedEarned += points * w;
+            weightedMax += POINTS.CURRENTLY_OFFER * w;
+          }
+        });
+
+        if (answeredItems > 0 && weightedMax > 0) {
+          // Unsure substitution: (1-r)^2 discount on population mean
+          const r = unsureCount / answeredItems;
+          const mu = populationMeans[i] || 3.09;
+          const v_d = mu * Math.pow(1 - r, 2);
+
+          // For combined, unsure credit uses average element weight
+          const avgWeight = answeredItems > 0 ? (weightedMax / (answeredItems * POINTS.CURRENTLY_OFFER)) : (1 / answeredItems);
+          let unsureCredit = unsureCount * v_d * avgWeight;
+
+          // Cap at 10% of weighted max
+          const cap = 0.10 * weightedMax;
+          if (unsureCredit > cap) unsureCredit = cap;
+
+          combinedScore = Math.round(((weightedEarned + unsureCredit) / weightedMax) * 100);
+
+          // Apply geo multiplier
+          const geoResponse = dimData[`d${i}aa`] || dimData[`D${i}aa`];
+          const geoMult = getGeoMultiplier(geoResponse);
+          combinedScore = Math.round(combinedScore * geoMult);
+
+          // Apply follow-up blend
+          if ([1, 3, 12, 13].includes(i)) {
+            const followUpScore = calculateFollowUpScore(i, assessment);
+            if (followUpScore !== null) {
+              const key = `d${i}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+              const gridPct = DEFAULT_BLEND_WEIGHTS[key]?.grid ?? 85;
+              const followUpPct = DEFAULT_BLEND_WEIGHTS[key]?.followUp ?? 15;
+              combinedScore = Math.round((combinedScore * (gridPct / 100)) + (followUpScore * (followUpPct / 100)));
+            }
+          }
+        }
+      }
+    }
+
+    dims[i] = { eq: eqScore, wt: wtScore, combined: combinedScore };
+  }
+
+  // Composites
+  const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
+
+  let wtWeightedDim = 0;
+  let combinedWeightedDim = 0;
+  if (eqScores.isComplete && totalWeight > 0) {
+    for (let d = 1; d <= 13; d++) {
+      const w = DEFAULT_DIMENSION_WEIGHTS[d] || 0;
+      wtWeightedDim += dims[d].wt * (w / totalWeight);
+      combinedWeightedDim += dims[d].combined * (w / totalWeight);
+    }
+  }
+
+  const calcComposite = (dimAvg: number) => eqScores.isComplete ? Math.round(
+    (Math.round(dimAvg) * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+    (eqScores.maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+    (eqScores.breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+  ) : 0;
+
+  return {
+    companyName: eqScores.companyName,
+    surveyId: eqScores.surveyId,
+    isComplete: eqScores.isComplete,
+    isPanel: eqScores.isPanel,
+    dims,
+    eqComposite: eqScores.compositeScore,
+    wtComposite: calcComposite(wtWeightedDim),
+    combinedComposite: calcComposite(combinedWeightedDim),
+    maturityScore: eqScores.maturityScore,
+    breadthScore: eqScores.breadthScore,
+  };
+}
+
 
 // ============================================
 // ELEMENT WEIGHTS — v6.1 (Authoritative)
@@ -2357,10 +2501,11 @@ const DIM_COLORS: Record<number, string> = {
 };
 
 export default function ElementWeightingPage() {
-  const [activeTab, setActiveTab] = useState<'overview' | 'statistical' | 'weights' | 'scoring'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'statistical' | 'weights' | 'scoring' | 'combined'>('overview');
   const [expandedDim, setExpandedDim] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<CompanyComparison[]>([]);
+  const [combinedCompanies, setCombinedCompanies] = useState<CombinedCompanyResult[]>([]);
   
 
   // Load assessments from Supabase
@@ -2383,6 +2528,29 @@ export default function ElementWeightingPage() {
           return false;
         });
         setCompanies(valid.map(a => calculateCompanyComparison(a)));
+
+        // Calculate population means for combined scoring
+        const popMeans: Record<number, number> = {};
+        for (let dim = 1; dim <= 13; dim++) {
+          let totalPts = 0;
+          let totalAnswered = 0;
+          for (const a of valid) {
+            const dimData = a[`dimension${dim}_data`];
+            if (!dimData) continue;
+            const grid = dimData[`d${dim}a`];
+            if (!grid || typeof grid !== 'object') continue;
+            Object.entries(grid).forEach(([key, status]: [string, any]) => {
+              if (dim === 10 && D10_EXCLUDED_ITEMS.includes(key)) return;
+              const { points, isUnsure } = statusToPoints(status);
+              if (!isUnsure && points !== null) {
+                totalPts += points;
+                totalAnswered++;
+              }
+            });
+          }
+          popMeans[dim] = totalAnswered > 0 ? totalPts / totalAnswered : 3.09;
+        }
+        setCombinedCompanies(valid.map(a => calculateCombinedScore(a, popMeans)));
       } catch (err) {
         console.error('Error loading assessments:', err);
       } finally {
@@ -2411,11 +2579,37 @@ export default function ElementWeightingPage() {
     return { dims, eqC, wtC };
   }, [filteredCompanies]);
 
+  const filteredCombined = useMemo(() => {
+    let list = combinedCompanies.filter(c => c.isComplete);
+    list = list.filter(c => !c.isPanel);
+    return list.sort((a, b) => b.eqComposite - a.eqComposite);
+  }, [combinedCompanies]);
+
+  const combinedBenchmark = useMemo(() => {
+    if (filteredCombined.length === 0) return null;
+    const dims: Record<number, { eq: number; wt: number; combined: number }> = {};
+    for (let i = 1; i <= 13; i++) {
+      const eqs = filteredCombined.map(c => c.dims[i]?.eq || 0);
+      const wts = filteredCombined.map(c => c.dims[i]?.wt || 0);
+      const cbs = filteredCombined.map(c => c.dims[i]?.combined || 0);
+      dims[i] = {
+        eq: Math.round(eqs.reduce((a, b) => a + b, 0) / eqs.length),
+        wt: Math.round(wts.reduce((a, b) => a + b, 0) / wts.length),
+        combined: Math.round(cbs.reduce((a, b) => a + b, 0) / cbs.length),
+      };
+    }
+    const eqC = Math.round(filteredCombined.reduce((s, c) => s + c.eqComposite, 0) / filteredCombined.length);
+    const wtC = Math.round(filteredCombined.reduce((s, c) => s + c.wtComposite, 0) / filteredCombined.length);
+    const cbC = Math.round(filteredCombined.reduce((s, c) => s + c.combinedComposite, 0) / filteredCombined.length);
+    return { dims, eqC, wtC, cbC };
+  }, [filteredCombined]);
+
   const tabs = [
     { key: 'overview' as const, label: 'Overview', icon: <IconTarget /> },
     { key: 'statistical' as const, label: 'Statistical Overview', icon: <IconChart /> },
     { key: 'weights' as const, label: 'Element Weights', icon: <IconScale /> },
     { key: 'scoring' as const, label: 'Score Comparison', icon: <IconGrid /> },
+    { key: 'combined' as const, label: 'Combined Scoring', icon: <IconLayers /> },
   ];
 
   return (
@@ -2466,7 +2660,7 @@ export default function ElementWeightingPage() {
       </div>
 
       {/* Content */}
-      <div className={`mx-auto py-10 ${activeTab === 'scoring' ? 'max-w-[1800px] px-6' : 'max-w-7xl px-12'}`}>
+      <div className={`mx-auto py-10 ${(activeTab === 'scoring' || activeTab === 'combined') ? 'max-w-[1800px] px-6' : 'max-w-7xl px-12'}`}>
 
 
 
@@ -3151,6 +3345,215 @@ export default function ElementWeightingPage() {
             )}
           </div>
         )}
+
+        {/* ===== TAB 5: COMBINED SCORING — Element Weights + Unsure Substitution ===== */}
+        {activeTab === 'combined' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 mb-1">Combined Scoring</h2>
+              <p className="text-slate-600">Element weighting + unsure substitution applied together. This is what production scoring would look like.</p>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-20 text-slate-500">Loading assessment data...</div>
+            ) : filteredCombined.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">No complete assessments found.</div>
+            ) : (
+              <>
+                {/* Legend + Stats */}
+                <div className="flex items-center gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-white border-2 border-slate-300" />
+                    <span className="text-slate-700 text-sm font-medium">Equal Weight</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-emerald-600" />
+                    <span className="text-slate-700 text-sm font-medium">Element-Weighted</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-violet-600" />
+                    <span className="text-slate-700 text-sm font-medium">Combined (EW + Unsure)</span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-6">
+                    <div>
+                      <span className="text-2xl font-bold text-violet-700">{filteredCombined.filter(c => c.combinedComposite > c.eqComposite).length}</span>
+                      <span className="text-sm text-slate-600 ml-1">score higher</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-bold text-slate-800">
+                        {(filteredCombined.reduce((s, c) => s + Math.abs(c.combinedComposite - c.eqComposite), 0) / filteredCombined.length).toFixed(1)}
+                      </span>
+                      <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-slate-700">{filteredCombined.length}</span>
+                      <span className="text-sm text-slate-600 ml-1">companies</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Combined Score Table */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div
+                    className="overflow-auto max-h-[78vh]"
+                    ref={(el) => {
+                      if (el) {
+                        const existing = el.parentElement?.querySelector('.top-scroll-bar') as HTMLElement;
+                        if (!existing) {
+                          const topScroll = document.createElement('div');
+                          topScroll.className = 'top-scroll-bar';
+                          topScroll.style.cssText = 'overflow-x:auto;overflow-y:hidden;height:14px;border-bottom:1px solid #e2e8f0;';
+                          const inner = document.createElement('div');
+                          inner.style.height = '1px';
+                          topScroll.appendChild(inner);
+                          el.parentElement?.insertBefore(topScroll, el);
+                          topScroll.addEventListener('scroll', () => { el.scrollLeft = topScroll.scrollLeft; });
+                          el.addEventListener('scroll', () => { topScroll.scrollLeft = el.scrollLeft; });
+                          const obs = new ResizeObserver(() => {
+                            const table = el.querySelector('table');
+                            if (table) inner.style.width = table.scrollWidth + 'px';
+                          });
+                          obs.observe(el);
+                        }
+                      }
+                    }}
+                  >
+                    <table className="w-full text-sm border-collapse">
+                      <thead className="sticky top-0 z-30">
+                        <tr className="bg-slate-800 text-white">
+                          <th className="sticky left-0 top-0 z-40 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
+                          <th className="px-2 py-3 text-center font-bold text-xs bg-slate-700 border-r border-slate-600 min-w-[65px]">Benchmark</th>
+                          {filteredCombined.map((c, i) => {
+                            const displayName = c.companyName.replace(/ International$/i, '').replace(/ Corporation$/i, '');
+                            return (
+                            <th key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-xs leading-tight min-w-[60px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
+                              {displayName.length > 14
+                                ? displayName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
+                                : displayName}
+                            </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Composite Section */}
+                        <tr className="bg-slate-200 border-y-2 border-slate-400">
+                          <td colSpan={2 + filteredCombined.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
+                        </tr>
+                        {/* Equal */}
+                        <tr className="border-b border-slate-200">
+                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Equal</td>
+                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{combinedBenchmark?.eqC}</td>
+                          {filteredCombined.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.eqComposite}</td>
+                          ))}
+                        </tr>
+                        {/* Element-Weighted */}
+                        <tr className="border-b border-slate-200 bg-emerald-50">
+                          <td className="sticky left-0 z-10 bg-emerald-50 px-3 py-2.5 text-emerald-800 font-bold text-sm border-r border-emerald-100">Weighted</td>
+                          <td className="px-2 py-2.5 text-center font-bold bg-emerald-100 border-r border-emerald-100" style={{ color: getScoreColor(combinedBenchmark?.wtC || 0) }}>{combinedBenchmark?.wtC}</td>
+                          {filteredCombined.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/50'}`} style={{ color: getScoreColor(c.wtComposite) }}>{c.wtComposite}</td>
+                          ))}
+                        </tr>
+                        {/* Combined */}
+                        <tr className="border-b border-slate-200 bg-violet-50">
+                          <td className="sticky left-0 z-10 bg-violet-50 px-3 py-2.5 text-violet-800 font-bold text-sm border-r border-violet-100">Combined</td>
+                          <td className="px-2 py-2.5 text-center font-bold bg-violet-100 border-r border-violet-100" style={{ color: getScoreColor(combinedBenchmark?.cbC || 0) }}>{combinedBenchmark?.cbC}</td>
+                          {filteredCombined.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-violet-50' : 'bg-violet-50/50'}`} style={{ color: getScoreColor(c.combinedComposite) }}>{c.combinedComposite}</td>
+                          ))}
+                        </tr>
+                        {/* Delta: Combined vs Equal */}
+                        <tr className="border-b-2 border-slate-400 bg-slate-100">
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta; vs Equal</td>
+                          <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
+                            {combinedBenchmark && <span className={(combinedBenchmark.cbC - combinedBenchmark.eqC) >= 0 ? 'text-violet-700' : 'text-red-700'}>{(combinedBenchmark.cbC - combinedBenchmark.eqC) >= 0 ? '+' : ''}{combinedBenchmark.cbC - combinedBenchmark.eqC}</span>}
+                          </td>
+                          {filteredCombined.map((c) => {
+                            const d = c.combinedComposite - c.eqComposite;
+                            return (
+                              <td key={c.surveyId} className="px-1 py-1.5 text-center text-xs font-bold">
+                                <span className={d > 0 ? 'text-violet-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
+                                  {d > 0 ? '+' : ''}{d}
+                                </span>
+                              </td>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Dimension Rows */}
+                        {DIMENSION_ORDER.map((dim, idx) => (
+                          <React.Fragment key={dim}>
+                            <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
+                              <td colSpan={2 + filteredCombined.length} className="px-3 py-1 text-xs font-bold text-slate-800">
+                                D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
+                              </td>
+                            </tr>
+                            {/* Equal */}
+                            <tr className="border-b border-slate-100">
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Equal</td>
+                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{combinedBenchmark?.dims[dim]?.eq}</td>
+                              {filteredCombined.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
+                              ))}
+                            </tr>
+                            {/* Element-Weighted */}
+                            <tr className="border-b border-slate-100 bg-emerald-50/30">
+                              <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-800 font-semibold pl-4 text-xs border-r border-emerald-100/50">Wt</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(combinedBenchmark?.dims[dim]?.wt || 0) }}>{combinedBenchmark?.dims[dim]?.wt}</td>
+                              {filteredCombined.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.wt || 0) }}>
+                                  {c.dims[dim]?.wt}
+                                </td>
+                              ))}
+                            </tr>
+                            {/* Combined */}
+                            <tr className="border-b border-slate-100 bg-violet-50/30">
+                              <td className="sticky left-0 z-10 bg-violet-50/30 px-3 py-1 text-violet-800 font-semibold pl-4 text-xs border-r border-violet-100/50">Comb</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-violet-100/30 border-r border-violet-100/50" style={{ color: getScoreColor(combinedBenchmark?.dims[dim]?.combined || 0) }}>{combinedBenchmark?.dims[dim]?.combined}</td>
+                              {filteredCombined.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-violet-50/40' : 'bg-violet-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.combined || 0) }}>
+                                  {c.dims[dim]?.combined}
+                                </td>
+                              ))}
+                            </tr>
+                            {/* Delta */}
+                            <tr className="border-b border-slate-200 bg-slate-50/50">
+                              <td className="sticky left-0 z-10 bg-slate-50/50 px-3 py-1 text-slate-500 pl-4 text-[10px] font-bold border-r border-slate-100">&Delta;</td>
+                              <td className="px-2 py-1 text-center text-[10px] font-bold bg-slate-50/50 border-r border-slate-100">
+                                {combinedBenchmark?.dims[dim]?.eq != null && combinedBenchmark?.dims[dim]?.combined != null && (
+                                  <span className={(combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].eq) >= 0 ? 'text-violet-600' : 'text-red-600'}>
+                                    {(combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].eq) >= 0 ? '+' : ''}{combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].eq}
+                                  </span>
+                                )}
+                              </td>
+                              {filteredCombined.map((c) => {
+                                const eqVal = c.dims[dim]?.eq;
+                                const cbVal = c.dims[dim]?.combined;
+                                const delta = (eqVal != null && cbVal != null) ? cbVal - eqVal : null;
+                                return (
+                                  <td key={c.surveyId} className="px-1 py-1 text-center text-[10px] font-bold">
+                                    {delta !== null && (
+                                      <span className={delta > 0 ? 'text-violet-600' : delta < 0 ? 'text-red-600' : 'text-slate-400'}>
+                                        {delta > 0 ? '+' : ''}{delta}
+                                      </span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
       </div>
       </div>
     </div>
