@@ -745,112 +745,86 @@ export default function ElementWeightingPage() {
           </div>
         )}
 
-        {/* ============ COMPARISON TAB - Companies as Columns ============ */}
+        {/* ============ COMPARISON TAB - Clean Excel-like Style ============ */}
         {activeTab === 'comparison' && (
-          <div className="space-y-8">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-violet-700 to-purple-700 rounded-2xl px-10 py-8 shadow-lg">
-              <h2 className="text-2xl font-bold text-white">Score Comparison: Equal Weight vs. Element-Weighted</h2>
-              <p className="text-violet-200 mt-2 text-lg">All pipeline components (dimension weights, geo multiplier, follow-up blend, maturity, breadth) are identical. The only difference is element weighting within each dimension's grid calculation.</p>
+          <div className="space-y-6">
+            {/* Compact Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Score Comparison: Equal Weight vs. Element-Weighted</h2>
+                <p className="text-sm text-slate-500">All pipeline components identical. Only difference is element weighting within dimensions.</p>
+              </div>
+              <div className="flex gap-4 text-xs">
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-white border border-slate-300"></span> Equal Weight</div>
+                <div className="flex items-center gap-2"><span className="w-3 h-3 rounded bg-emerald-100"></span> Element-Weighted</div>
+              </div>
             </div>
 
-            {/* Table Container */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            {/* Table */}
+            <div className="bg-white rounded-lg border border-slate-200 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse" style={{ minWidth: '2400px' }}>
-                  {/* Header Row */}
+                <table className="w-full text-xs" style={{ minWidth: '1800px' }}>
                   <thead>
-                    <tr className="bg-slate-800 text-white">
-                      <th className="sticky left-0 z-30 bg-slate-800 px-6 py-4 text-left font-bold text-sm min-w-[220px] border-r border-slate-700">Metric</th>
-                      <th className="px-5 py-4 text-center font-bold text-sm min-w-[100px] bg-violet-700 border-r border-violet-600">Benchmark</th>
-                      {SCORE_COMPARISON.map((c, i) => (
-                        <th key={c.name} className={`px-4 py-4 text-center font-semibold text-sm min-w-[95px] whitespace-nowrap ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                          {c.name}
-                        </th>
+                    <tr className="border-b border-slate-300">
+                      <th className="sticky left-0 z-20 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-600 min-w-[140px]"></th>
+                      <th className="px-2 py-2 text-center font-bold text-violet-700 min-w-[70px] bg-violet-50">Benchmark</th>
+                      {SCORE_COMPARISON.map(c => (
+                        <th key={c.name} className="px-2 py-2 text-center font-medium text-slate-700 min-w-[65px] whitespace-nowrap bg-slate-50">{c.name}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody>
-                    {/* COMPOSITE SECTION HEADER */}
-                    <tr className="bg-slate-900">
-                      <td colSpan={2 + SCORE_COMPARISON.length} className="px-6 py-3 font-bold text-sm text-white uppercase tracking-wider">
-                        Composite Score
-                      </td>
+                  <tbody className="divide-y divide-slate-100">
+                    {/* COMPOSITE */}
+                    <tr className="bg-slate-100">
+                      <td colSpan={2 + SCORE_COMPARISON.length} className="sticky left-0 px-3 py-1.5 font-bold text-xs text-slate-700 uppercase tracking-wide">Composite</td>
                     </tr>
-                    
-                    {/* Equal Weight Row */}
-                    <tr className="bg-white hover:bg-slate-50 border-b border-slate-200">
-                      <td className="sticky left-0 z-10 bg-white px-6 py-4 font-medium text-slate-700 border-r border-slate-200">Equal Weight</td>
-                      <td className="px-5 py-4 text-center font-bold text-lg text-slate-800 bg-violet-50 border-r border-slate-200">{BENCHMARK.eqC}</td>
-                      {SCORE_COMPARISON.map((c, i) => (
-                        <td key={c.name} className={`px-4 py-4 text-center font-medium text-base text-slate-700 ${i % 2 === 0 ? 'bg-slate-50/50' : 'bg-white'}`}>
-                          {c.eqC}
-                        </td>
+                    <tr className="hover:bg-slate-50">
+                      <td className="sticky left-0 z-10 bg-white px-3 py-1.5 text-slate-600">Equal</td>
+                      <td className="px-2 py-1.5 text-center font-semibold text-slate-700 bg-violet-50/50">{BENCHMARK.eqC}</td>
+                      {SCORE_COMPARISON.map(c => (
+                        <td key={c.name} className="px-2 py-1.5 text-center text-slate-600">{c.eqC}</td>
                       ))}
                     </tr>
-                    
-                    {/* Element-Weighted Row */}
-                    <tr className="bg-emerald-50 hover:bg-emerald-100 border-b border-emerald-200">
-                      <td className="sticky left-0 z-10 bg-emerald-50 px-6 py-4 font-semibold text-emerald-800 border-r border-emerald-200">Element-Weighted</td>
-                      <td className="px-5 py-4 text-center font-bold text-lg text-emerald-700 bg-emerald-100 border-r border-emerald-200">{BENCHMARK.wtC}</td>
-                      {SCORE_COMPARISON.map((c, i) => (
-                        <td key={c.name} className={`px-4 py-4 text-center font-bold text-base text-emerald-700 ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/70'}`}>
-                          {c.wtC}
-                        </td>
+                    <tr className="bg-emerald-50/40 hover:bg-emerald-50/60">
+                      <td className="sticky left-0 z-10 bg-emerald-50/40 px-3 py-1.5 text-emerald-700 font-medium">Weighted</td>
+                      <td className="px-2 py-1.5 text-center font-bold text-emerald-700 bg-emerald-100/50">{BENCHMARK.wtC}</td>
+                      {SCORE_COMPARISON.map(c => (
+                        <td key={c.name} className="px-2 py-1.5 text-center text-emerald-700 font-semibold">{c.wtC}</td>
                       ))}
                     </tr>
-                    
-                    {/* Delta Row */}
-                    <tr className="bg-slate-100 border-b-4 border-slate-300">
-                      <td className="sticky left-0 z-10 bg-slate-100 px-6 py-3 font-medium text-slate-500 border-r border-slate-200">Δ (Weighted − Equal)</td>
-                      <td className="px-5 py-3 text-center font-semibold text-slate-600 bg-violet-100/50 border-r border-slate-200">
-                        <span className={BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-                          {BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? '+' : ''}{BENCHMARK.wtC - BENCHMARK.eqC}
-                        </span>
+                    <tr className="border-b border-slate-200">
+                      <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-400 text-[10px]">Δ</td>
+                      <td className="px-2 py-1 text-center text-[10px] bg-violet-50/30">
+                        <span className={BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? 'text-emerald-600' : 'text-red-500'}>{BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? '+' : ''}{BENCHMARK.wtC - BENCHMARK.eqC}</span>
                       </td>
-                      {SCORE_COMPARISON.map((c, i) => {
-                        const delta = c.wtC - c.eqC;
-                        return (
-                          <td key={c.name} className={`px-4 py-3 text-center font-semibold ${i % 2 === 0 ? 'bg-slate-100' : 'bg-slate-50'}`}>
-                            <span className={delta > 0 ? 'text-emerald-600' : delta < 0 ? 'text-red-600' : 'text-slate-400'}>
-                              {delta > 0 ? '+' : ''}{delta}
-                            </span>
-                          </td>
-                        );
+                      {SCORE_COMPARISON.map(c => {
+                        const d = c.wtC - c.eqC;
+                        return <td key={c.name} className="px-2 py-1 text-center text-[10px]"><span className={d > 0 ? 'text-emerald-600' : d < 0 ? 'text-red-500' : 'text-slate-400'}>{d > 0 ? '+' : ''}{d}</span></td>;
                       })}
                     </tr>
                     
-                    {/* DIMENSION SECTIONS */}
-                    {DIMENSION_ORDER.map((d, dimIdx) => {
+                    {/* DIMENSIONS */}
+                    {DIMENSION_ORDER.map(d => {
                       const dim = DIMENSIONS[d];
                       return (
                         <React.Fragment key={d}>
-                          {/* Dimension Header */}
-                          <tr className="bg-slate-700 text-white">
-                            <td colSpan={2 + SCORE_COMPARISON.length} className="px-6 py-3 font-semibold text-sm">
-                              D{d}: {dim.name} <span className="font-normal text-slate-300 ml-2">({dim.weight}% of composite)</span>
+                          <tr className="bg-slate-50">
+                            <td colSpan={2 + SCORE_COMPARISON.length} className="sticky left-0 px-3 py-1 text-[10px] font-semibold text-slate-500 uppercase">
+                              D{d}: {dim.name} <span className="font-normal">({dim.weight}%)</span>
                             </td>
                           </tr>
-                          
-                          {/* Equal Row */}
-                          <tr className="bg-white hover:bg-slate-50 border-b border-slate-100">
-                            <td className="sticky left-0 z-10 bg-white px-6 py-3 text-slate-600 pl-10 border-r border-slate-200">Equal</td>
-                            <td className="px-5 py-3 text-center font-medium text-slate-700 bg-violet-50/50 border-r border-slate-200">{BENCHMARK.dims[d]?.eq ?? '—'}</td>
-                            {SCORE_COMPARISON.map((c, i) => (
-                              <td key={c.name} className={`px-4 py-3 text-center text-slate-600 ${i % 2 === 0 ? 'bg-slate-50/30' : 'bg-white'}`}>
-                                {c.dims[d]?.eq ?? '—'}
-                              </td>
+                          <tr className="hover:bg-slate-50">
+                            <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-500 pl-5">Equal</td>
+                            <td className="px-2 py-1 text-center text-slate-600 bg-violet-50/30">{BENCHMARK.dims[d]?.eq ?? '—'}</td>
+                            {SCORE_COMPARISON.map(c => (
+                              <td key={c.name} className="px-2 py-1 text-center text-slate-500">{c.dims[d]?.eq ?? '—'}</td>
                             ))}
                           </tr>
-                          
-                          {/* Weighted Row */}
-                          <tr className={`bg-emerald-50/50 hover:bg-emerald-50 ${dimIdx < DIMENSION_ORDER.length - 1 ? 'border-b-2 border-slate-200' : ''}`}>
-                            <td className="sticky left-0 z-10 bg-emerald-50/50 px-6 py-3 text-emerald-700 font-medium pl-10 border-r border-slate-200">Weighted</td>
-                            <td className="px-5 py-3 text-center font-semibold text-emerald-700 bg-emerald-100/50 border-r border-slate-200">{BENCHMARK.dims[d]?.wt ?? '—'}</td>
-                            {SCORE_COMPARISON.map((c, i) => (
-                              <td key={c.name} className={`px-4 py-3 text-center font-medium text-emerald-700 ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`}>
-                                {c.dims[d]?.wt ?? '—'}
-                              </td>
+                          <tr className="bg-emerald-50/30 hover:bg-emerald-50/50">
+                            <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-600 pl-5">Weighted</td>
+                            <td className="px-2 py-1 text-center text-emerald-600 font-medium bg-emerald-100/40">{BENCHMARK.dims[d]?.wt ?? '—'}</td>
+                            {SCORE_COMPARISON.map(c => (
+                              <td key={c.name} className="px-2 py-1 text-center text-emerald-600">{c.dims[d]?.wt ?? '—'}</td>
                             ))}
                           </tr>
                         </React.Fragment>
@@ -861,22 +835,19 @@ export default function ElementWeightingPage() {
               </div>
             </div>
 
-            {/* Summary Stats */}
-            <div className="grid grid-cols-3 gap-8">
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg">
-                <p className="text-5xl font-bold text-emerald-600">+{Math.round(SCORE_COMPARISON.filter(c => c.wtC > c.eqC).length / SCORE_COMPARISON.length * 100)}%</p>
-                <p className="text-lg font-semibold text-slate-700 mt-2">Companies with Higher Weighted Score</p>
-                <p className="text-sm text-slate-500 mt-1">{SCORE_COMPARISON.filter(c => c.wtC > c.eqC).length} of {SCORE_COMPARISON.length} companies</p>
+            {/* Compact Stats */}
+            <div className="flex gap-6">
+              <div className="bg-white rounded-lg border border-slate-200 px-6 py-4">
+                <span className="text-2xl font-bold text-emerald-600">+{Math.round(SCORE_COMPARISON.filter(c => c.wtC > c.eqC).length / SCORE_COMPARISON.length * 100)}%</span>
+                <span className="text-sm text-slate-500 ml-2">higher weighted score</span>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg">
-                <p className="text-5xl font-bold text-violet-600">{(SCORE_COMPARISON.reduce((sum, c) => sum + Math.abs(c.wtC - c.eqC), 0) / SCORE_COMPARISON.length).toFixed(1)}</p>
-                <p className="text-lg font-semibold text-slate-700 mt-2">Average Score Shift</p>
-                <p className="text-sm text-slate-500 mt-1">Points difference (absolute)</p>
+              <div className="bg-white rounded-lg border border-slate-200 px-6 py-4">
+                <span className="text-2xl font-bold text-violet-600">{(SCORE_COMPARISON.reduce((sum, c) => sum + Math.abs(c.wtC - c.eqC), 0) / SCORE_COMPARISON.length).toFixed(1)}</span>
+                <span className="text-sm text-slate-500 ml-2">avg shift (pts)</span>
               </div>
-              <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-lg">
-                <p className="text-5xl font-bold text-slate-700">{Math.max(...SCORE_COMPARISON.map(c => Math.abs(c.wtC - c.eqC)))}</p>
-                <p className="text-lg font-semibold text-slate-700 mt-2">Maximum Score Shift</p>
-                <p className="text-sm text-slate-500 mt-1">Largest individual change</p>
+              <div className="bg-white rounded-lg border border-slate-200 px-6 py-4">
+                <span className="text-2xl font-bold text-slate-700">{Math.max(...SCORE_COMPARISON.map(c => Math.abs(c.wtC - c.eqC)))}</span>
+                <span className="text-sm text-slate-500 ml-2">max shift</span>
               </div>
             </div>
           </div>
