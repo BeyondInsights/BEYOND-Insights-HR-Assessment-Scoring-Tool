@@ -310,33 +310,42 @@ const DIMENSIONS: Record<number, {
   }
 };
 
-// Score comparison data from Excel
-const SCORE_COMPARISON = [
-  { name: 'Merck', eqC: 86, wtC: 90 },
-  { name: 'Best Buy', eqC: 85, wtC: 88 },
-  { name: 'Google (Alphabet)', eqC: 85, wtC: 88 },
-  { name: 'Blood Cancer United', eqC: 86, wtC: 87 },
-  { name: 'Sanofi', eqC: 81, wtC: 86 },
-  { name: 'Pfizer', eqC: 82, wtC: 85 },
-  { name: 'Publicis', eqC: 82, wtC: 84 },
-  { name: 'AbbVie', eqC: 78, wtC: 82 },
-  { name: 'Memorial Sloan Kettering', eqC: 80, wtC: 81 },
-  { name: 'Marriott International', eqC: 79, wtC: 80 },
-  { name: 'Haymarket', eqC: 76, wtC: 79 },
-  { name: 'Lloyds Bank (Group)', eqC: 76, wtC: 78 },
-  { name: 'Nestlé', eqC: 73, wtC: 76 },
-  { name: 'Stellantis', eqC: 69, wtC: 73 },
-  { name: 'Citi', eqC: 72, wtC: 73 },
-  { name: 'Maven Search Corporation', eqC: 69, wtC: 69 },
-  { name: 'ICBC-AXA Life', eqC: 69, wtC: 69 },
-  { name: 'Renault Group', eqC: 71, wtC: 69 },
-  { name: 'Schneider Electric', eqC: 62, wtC: 60 },
-  { name: 'Ford Otosan', eqC: 55, wtC: 56 },
-  { name: "L'Oréal", eqC: 47, wtC: 47 },
-  { name: 'Inspire Brands', eqC: 26, wtC: 24 }
+// Score comparison data from Excel - includes dimension-level scores
+const SCORE_COMPARISON: Array<{
+  name: string;
+  eqC: number;
+  wtC: number;
+  dims: Record<number, { eq: number; wt: number }>;
+}> = [
+  { name: 'Merck', eqC: 86, wtC: 90, dims: { 1: { eq: 82, wt: 87 }, 2: { eq: 85, wt: 90 }, 3: { eq: 76, wt: 85 }, 4: { eq: 93, wt: 95 }, 5: { eq: 91, wt: 95 }, 6: { eq: 100, wt: 100 }, 7: { eq: 80, wt: 84 }, 8: { eq: 82, wt: 84 }, 9: { eq: 67, wt: 73 }, 10: { eq: 82, wt: 86 }, 11: { eq: 100, wt: 100 }, 12: { eq: 73, wt: 78 }, 13: { eq: 93, wt: 97 } } },
+  { name: 'Best Buy', eqC: 85, wtC: 88, dims: { 1: { eq: 90, wt: 92 }, 2: { eq: 72, wt: 80 }, 3: { eq: 73, wt: 80 }, 4: { eq: 88, wt: 91 }, 5: { eq: 91, wt: 95 }, 6: { eq: 95, wt: 93 }, 7: { eq: 100, wt: 100 }, 8: { eq: 82, wt: 83 }, 9: { eq: 44, wt: 52 }, 10: { eq: 82, wt: 86 }, 11: { eq: 90, wt: 92 }, 12: { eq: 100, wt: 100 }, 13: { eq: 100, wt: 100 } } },
+  { name: 'Google (Alphabet)', eqC: 85, wtC: 88, dims: { 1: { eq: 100, wt: 100 }, 2: { eq: 59, wt: 59 }, 3: { eq: 100, wt: 100 }, 4: { eq: 84, wt: 87 }, 5: { eq: 100, wt: 100 }, 6: { eq: 100, wt: 100 }, 7: { eq: 100, wt: 100 }, 8: { eq: 80, wt: 87 }, 9: { eq: 86, wt: 90 }, 10: { eq: 76, wt: 82 }, 11: { eq: 100, wt: 100 }, 12: { eq: 93, wt: 95 }, 13: { eq: 65, wt: 70 } } },
+  { name: 'Blood Cancer United', eqC: 86, wtC: 87, dims: { 1: { eq: 90, wt: 93 }, 2: { eq: 75, wt: 82 }, 3: { eq: 80, wt: 87 }, 4: { eq: 96, wt: 97 }, 5: { eq: 91, wt: 94 }, 6: { eq: 86, wt: 88 }, 7: { eq: 0, wt: 0 }, 8: { eq: 100, wt: 100 }, 9: { eq: 100, wt: 100 }, 10: { eq: 73, wt: 72 }, 11: { eq: 60, wt: 52 }, 12: { eq: 100, wt: 100 }, 13: { eq: 100, wt: 100 } } },
+  { name: 'Sanofi', eqC: 81, wtC: 86, dims: { 1: { eq: 100, wt: 100 }, 2: { eq: 100, wt: 100 }, 3: { eq: 74, wt: 86 }, 4: { eq: 80, wt: 85 }, 5: { eq: 95, wt: 94 }, 6: { eq: 89, wt: 92 }, 7: { eq: 67, wt: 75 }, 8: { eq: 82, wt: 79 }, 9: { eq: 40, wt: 57 }, 10: { eq: 76, wt: 81 }, 11: { eq: 96, wt: 92 }, 12: { eq: 33, wt: 43 }, 13: { eq: 78, wt: 88 } } },
+  { name: 'Pfizer', eqC: 82, wtC: 85, dims: { 1: { eq: 73, wt: 81 }, 2: { eq: 87, wt: 88 }, 3: { eq: 60, wt: 74 }, 4: { eq: 100, wt: 100 }, 5: { eq: 73, wt: 77 }, 6: { eq: 92, wt: 95 }, 7: { eq: 33, wt: 39 }, 8: { eq: 83, wt: 81 }, 9: { eq: 70, wt: 78 }, 10: { eq: 74, wt: 79 }, 11: { eq: 92, wt: 83 }, 12: { eq: 86, wt: 92 }, 13: { eq: 100, wt: 100 } } },
+  { name: 'Publicis', eqC: 82, wtC: 84, dims: { 1: { eq: 82, wt: 87 }, 2: { eq: 91, wt: 94 }, 3: { eq: 64, wt: 62 }, 4: { eq: 80, wt: 84 }, 5: { eq: 76, wt: 83 }, 6: { eq: 92, wt: 95 }, 7: { eq: 73, wt: 78 }, 8: { eq: 95, wt: 91 }, 9: { eq: 73, wt: 80 }, 10: { eq: 58, wt: 65 }, 11: { eq: 72, wt: 76 }, 12: { eq: 71, wt: 76 }, 13: { eq: 100, wt: 100 } } },
+  { name: 'AbbVie', eqC: 78, wtC: 82, dims: { 1: { eq: 83, wt: 88 }, 2: { eq: 64, wt: 71 }, 3: { eq: 74, wt: 76 }, 4: { eq: 94, wt: 95 }, 5: { eq: 85, wt: 90 }, 6: { eq: 82, wt: 85 }, 7: { eq: 67, wt: 67 }, 8: { eq: 65, wt: 71 }, 9: { eq: 38, wt: 49 }, 10: { eq: 81, wt: 80 }, 11: { eq: 91, wt: 94 }, 12: { eq: 76, wt: 80 }, 13: { eq: 100, wt: 100 } } },
+  { name: 'Memorial Sloan Kettering', eqC: 80, wtC: 81, dims: { 1: { eq: 70, wt: 72 }, 2: { eq: 88, wt: 92 }, 3: { eq: 68, wt: 73 }, 4: { eq: 100, wt: 100 }, 5: { eq: 73, wt: 81 }, 6: { eq: 83, wt: 75 }, 7: { eq: 33, wt: 38 }, 8: { eq: 92, wt: 95 }, 9: { eq: 49, wt: 53 }, 10: { eq: 63, wt: 70 }, 11: { eq: 100, wt: 100 }, 12: { eq: 65, wt: 54 }, 13: { eq: 84, wt: 78 } } },
+  { name: 'Marriott International', eqC: 79, wtC: 80, dims: { 1: { eq: 75, wt: 81 }, 2: { eq: 64, wt: 67 }, 3: { eq: 73, wt: 66 }, 4: { eq: 100, wt: 100 }, 5: { eq: 100, wt: 100 }, 6: { eq: 73, wt: 75 }, 7: { eq: 73, wt: 72 }, 8: { eq: 84, wt: 84 }, 9: { eq: 63, wt: 69 }, 10: { eq: 44, wt: 45 }, 11: { eq: 91, wt: 94 }, 12: { eq: 70, wt: 68 }, 13: { eq: 83, wt: 90 } } },
+  { name: 'Haymarket', eqC: 76, wtC: 79, dims: { 1: { eq: 91, wt: 94 }, 2: { eq: 61, wt: 66 }, 3: { eq: 84, wt: 79 }, 4: { eq: 60, wt: 66 }, 5: { eq: 91, wt: 95 }, 6: { eq: 85, wt: 84 }, 7: { eq: 85, wt: 90 }, 8: { eq: 85, wt: 86 }, 9: { eq: 64, wt: 70 }, 10: { eq: 58, wt: 60 }, 11: { eq: 63, wt: 70 }, 12: { eq: 50, wt: 53 }, 13: { eq: 87, wt: 89 } } },
+  { name: 'Lloyds Bank (Group)', eqC: 76, wtC: 78, dims: { 1: { eq: 82, wt: 87 }, 2: { eq: 44, wt: 36 }, 3: { eq: 88, wt: 93 }, 4: { eq: 75, wt: 81 }, 5: { eq: 91, wt: 95 }, 6: { eq: 83, wt: 88 }, 7: { eq: 71, wt: 77 }, 8: { eq: 95, wt: 91 }, 9: { eq: 53, wt: 59 }, 10: { eq: 55, wt: 60 }, 11: { eq: 68, wt: 70 }, 12: { eq: 45, wt: 51 }, 13: { eq: 87, wt: 88 } } },
+  { name: 'Nestlé', eqC: 73, wtC: 76, dims: { 1: { eq: 90, wt: 90 }, 2: { eq: 65, wt: 64 }, 3: { eq: 66, wt: 76 }, 4: { eq: 42, wt: 47 }, 5: { eq: 86, wt: 92 }, 6: { eq: 93, wt: 93 }, 7: { eq: 76, wt: 77 }, 8: { eq: 95, wt: 97 }, 9: { eq: 54, wt: 63 }, 10: { eq: 49, wt: 47 }, 11: { eq: 92, wt: 95 }, 12: { eq: 49, wt: 54 }, 13: { eq: 85, wt: 86 } } },
+  { name: 'Stellantis', eqC: 69, wtC: 73, dims: { 1: { eq: 73, wt: 81 }, 2: { eq: 69, wt: 78 }, 3: { eq: 56, wt: 69 }, 4: { eq: 50, wt: 48 }, 5: { eq: 91, wt: 91 }, 6: { eq: 91, wt: 95 }, 7: { eq: 40, wt: 45 }, 8: { eq: 64, wt: 69 }, 9: { eq: 78, wt: 85 }, 10: { eq: 50, wt: 54 }, 11: { eq: 92, wt: 88 }, 12: { eq: 100, wt: 100 }, 13: { eq: 82, wt: 82 } } },
+  { name: 'Citi', eqC: 72, wtC: 73, dims: { 1: { eq: 31, wt: 36 }, 2: { eq: 65, wt: 76 }, 3: { eq: 55, wt: 49 }, 4: { eq: 80, wt: 84 }, 5: { eq: 100, wt: 100 }, 6: { eq: 100, wt: 100 }, 7: { eq: 0, wt: 0 }, 8: { eq: 100, wt: 100 }, 9: { eq: 0, wt: 0 }, 10: { eq: 71, wt: 72 }, 11: { eq: 91, wt: 80 }, 12: { eq: 88, wt: 85 }, 13: { eq: 89, wt: 84 } } },
+  { name: 'Maven Search Corporation', eqC: 69, wtC: 69, dims: { 1: { eq: 100, wt: 100 }, 2: { eq: 54, wt: 61 }, 3: { eq: 60, wt: 61 }, 4: { eq: 72, wt: 74 }, 5: { eq: 73, wt: 78 }, 6: { eq: 58, wt: 52 }, 7: { eq: 82, wt: 86 }, 8: { eq: 82, wt: 80 }, 9: { eq: 55, wt: 61 }, 10: { eq: 67, wt: 66 }, 11: { eq: 58, wt: 58 }, 12: { eq: 53, wt: 54 }, 13: { eq: 64, wt: 61 } } },
+  { name: 'ICBC-AXA Life', eqC: 69, wtC: 69, dims: { 1: { eq: 100, wt: 100 }, 2: { eq: 0, wt: 0 }, 3: { eq: 0, wt: 0 }, 4: { eq: 100, wt: 100 }, 5: { eq: 100, wt: 100 }, 6: { eq: 100, wt: 100 }, 7: { eq: 0, wt: 0 }, 8: { eq: 100, wt: 100 }, 9: { eq: 0, wt: 0 }, 10: { eq: 100, wt: 100 }, 11: { eq: 100, wt: 100 }, 12: { eq: 100, wt: 100 }, 13: { eq: 100, wt: 100 } } },
+  { name: 'Renault Group', eqC: 71, wtC: 69, dims: { 1: { eq: 60, wt: 65 }, 2: { eq: 38, wt: 30 }, 3: { eq: 83, wt: 68 }, 4: { eq: 78, wt: 82 }, 5: { eq: 100, wt: 100 }, 6: { eq: 84, wt: 91 }, 7: { eq: 58, wt: 56 }, 8: { eq: 63, wt: 63 }, 9: { eq: 83, wt: 78 }, 10: { eq: 21, wt: 26 }, 11: { eq: 75, wt: 61 }, 12: { eq: 78, wt: 85 }, 13: { eq: 90, wt: 78 } } },
+  { name: 'Schneider Electric', eqC: 62, wtC: 60, dims: { 1: { eq: 30, wt: 29 }, 2: { eq: 41, wt: 32 }, 3: { eq: 58, wt: 58 }, 4: { eq: 60, wt: 59 }, 5: { eq: 93, wt: 93 }, 6: { eq: 90, wt: 88 }, 7: { eq: 50, wt: 48 }, 8: { eq: 60, wt: 60 }, 9: { eq: 84, wt: 83 }, 10: { eq: 38, wt: 40 }, 11: { eq: 49, wt: 31 }, 12: { eq: 60, wt: 71 }, 13: { eq: 86, wt: 83 } } },
+  { name: 'Ford Otosan', eqC: 55, wtC: 56, dims: { 1: { eq: 67, wt: 73 }, 2: { eq: 60, wt: 58 }, 3: { eq: 40, wt: 43 }, 4: { eq: 22, wt: 23 }, 5: { eq: 76, wt: 78 }, 6: { eq: 33, wt: 35 }, 7: { eq: 68, wt: 69 }, 8: { eq: 73, wt: 73 }, 9: { eq: 80, wt: 84 }, 10: { eq: 51, wt: 48 }, 11: { eq: 85, wt: 83 }, 12: { eq: 58, wt: 54 }, 13: { eq: 66, wt: 66 } } },
+  { name: "L'Oréal", eqC: 47, wtC: 47, dims: { 1: { eq: 36, wt: 37 }, 2: { eq: 6, wt: 4 }, 3: { eq: 100, wt: 100 }, 4: { eq: 10, wt: 9 }, 5: { eq: 27, wt: 37 }, 6: { eq: 100, wt: 100 }, 7: { eq: 51, wt: 51 }, 8: { eq: 87, wt: 82 }, 9: { eq: 27, wt: 32 }, 10: { eq: 26, wt: 22 }, 11: { eq: 38, wt: 35 }, 12: { eq: 20, wt: 18 }, 13: { eq: 33, wt: 37 } } },
+  { name: 'Inspire Brands', eqC: 26, wtC: 24, dims: { 1: { eq: 33, wt: 35 }, 2: { eq: 35, wt: 34 }, 3: { eq: 10, wt: 7 }, 4: { eq: 50, wt: 48 }, 5: { eq: 64, wt: 68 }, 6: { eq: 17, wt: 13 }, 7: { eq: 0, wt: 0 }, 8: { eq: 25, wt: 19 }, 9: { eq: 8, wt: 5 }, 10: { eq: 20, wt: 16 }, 11: { eq: 31, wt: 19 }, 12: { eq: 22, wt: 23 }, 13: { eq: 0, wt: 0 } } }
 ];
 
-const BENCHMARK = { eqC: 71, wtC: 72 };
+const BENCHMARK = { 
+  eqC: 71, 
+  wtC: 72,
+  dims: { 1: { eq: 74, wt: 78 }, 2: { eq: 60, wt: 62 }, 3: { eq: 66, wt: 68 }, 4: { eq: 73, wt: 75 }, 5: { eq: 85, wt: 88 }, 6: { eq: 83, wt: 84 }, 7: { eq: 55, wt: 57 }, 8: { eq: 81, wt: 81 }, 9: { eq: 55, wt: 60 }, 10: { eq: 60, wt: 62 }, 11: { eq: 79, wt: 76 }, 12: { eq: 68, wt: 70 }, 13: { eq: 81, wt: 81 } }
+};
 
 export default function ElementWeightingPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'methodology' | 'dimensions' | 'comparison'>('overview');
@@ -344,18 +353,18 @@ export default function ElementWeightingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-      {/* ============ HERO HEADER - Matches Company Report ============ */}
+      {/* ============ HERO HEADER - BI Logo Primary ============ */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800">
         <div className="max-w-7xl mx-auto px-12 py-10">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-10">
-              <div className="bg-white rounded-xl p-5 shadow-lg">
-                <img src="/best-companies-2026-logo.png" alt="Best Companies 2026" className="h-24 object-contain" />
+            <div className="flex items-center gap-8">
+              <div className="bg-white rounded-xl p-4 shadow-lg">
+                <img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-14 object-contain" />
               </div>
               <div>
-                <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Scoring Methodology</p>
+                <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Scoring Calibration</p>
                 <h1 className="text-3xl font-bold text-white mt-2">Element Weighting Analysis</h1>
-                <p className="text-slate-300 mt-1 text-lg">Best Companies for Working with Cancer Index 2026</p>
+                <p className="text-slate-300 mt-1">Best Companies for Working with Cancer Index 2026</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -397,7 +406,7 @@ export default function ElementWeightingPage() {
       </div>
 
       {/* ============ CONTENT ============ */}
-      <div className="max-w-7xl mx-auto px-12 py-10">
+      <div className={`mx-auto px-12 py-10 ${activeTab === 'comparison' ? 'max-w-none' : 'max-w-7xl'}`}>
         
         {/* ============ OVERVIEW TAB ============ */}
         {activeTab === 'overview' && (
@@ -736,7 +745,7 @@ export default function ElementWeightingPage() {
           </div>
         )}
 
-        {/* ============ COMPARISON TAB ============ */}
+        {/* ============ COMPARISON TAB - Companies as Columns ============ */}
         {activeTab === 'comparison' && (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -745,40 +754,78 @@ export default function ElementWeightingPage() {
                 <p className="text-violet-200 mt-1">All pipeline components (dimension weights, geo multiplier, follow-up blend, maturity, breadth) are identical. The only difference is element weighting within each dimension.</p>
               </div>
               
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="sticky left-0 bg-slate-50 z-10 px-6 py-4 text-left font-semibold text-slate-700 min-w-[200px]">Company</th>
-                      <th className="px-4 py-4 text-center font-semibold text-slate-700 w-24">Equal Wt</th>
-                      <th className="px-4 py-4 text-center font-semibold text-emerald-700 bg-emerald-50 w-24">Weighted</th>
-                      <th className="px-4 py-4 text-center font-semibold text-slate-700 w-24">Delta</th>
+              <div className="overflow-x-auto max-h-[75vh]">
+                <table className="text-xs border-collapse w-max">
+                  <thead className="sticky top-0 z-20">
+                    <tr className="bg-slate-100 border-b-2 border-slate-300">
+                      <th className="sticky left-0 bg-slate-100 z-30 px-4 py-3 text-left font-bold text-slate-700 min-w-[180px] border-r border-slate-300">Metric</th>
+                      <th className="px-3 py-3 text-center font-bold text-violet-700 min-w-[80px] bg-violet-100 border-r border-slate-300">Benchmark</th>
+                      {SCORE_COMPARISON.map(c => (
+                        <th key={c.name} className="px-3 py-3 text-center font-medium text-slate-700 min-w-[90px] whitespace-nowrap">{c.name}</th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="bg-violet-50 border-b-2 border-violet-200">
-                      <td className="sticky left-0 bg-violet-50 z-10 px-6 py-4 font-bold text-violet-700">Benchmark (All Complete)</td>
-                      <td className="px-4 py-4 text-center font-semibold">{BENCHMARK.eqC}</td>
-                      <td className="px-4 py-4 text-center font-bold text-emerald-700 bg-emerald-100/50">{BENCHMARK.wtC}</td>
-                      <td className="px-4 py-4 text-center">
-                        <span className={BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium'}>
-                          {BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? '+' : ''}{BENCHMARK.wtC - BENCHMARK.eqC}
-                        </span>
-                      </td>
+                    {/* COMPOSITE SECTION */}
+                    <tr className="bg-slate-800">
+                      <td colSpan={2 + SCORE_COMPARISON.length} className="px-4 py-2 font-bold text-xs text-white uppercase tracking-wider">Composite Score</td>
                     </tr>
-                    {SCORE_COMPARISON.map((company, i) => {
-                      const delta = company.wtC - company.eqC;
-                      return (
-                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50">
-                          <td className="sticky left-0 bg-white hover:bg-slate-50 z-10 px-6 py-3 font-medium text-slate-700">{company.name}</td>
-                          <td className="px-4 py-3 text-center text-slate-600">{company.eqC}</td>
-                          <td className="px-4 py-3 text-center font-semibold text-emerald-700 bg-emerald-50/30">{company.wtC}</td>
-                          <td className="px-4 py-3 text-center">
+                    <tr className="border-b border-slate-100 hover:bg-slate-50">
+                      <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 font-medium border-r border-slate-200">Equal Weight</td>
+                      <td className="px-3 py-2 text-center font-semibold text-slate-700 bg-violet-50 border-r border-slate-200">{BENCHMARK.eqC}</td>
+                      {SCORE_COMPARISON.map(c => (
+                        <td key={c.name} className="px-3 py-2 text-center text-slate-600">{c.eqC}</td>
+                      ))}
+                    </tr>
+                    <tr className="border-b border-slate-100 bg-emerald-50/50 hover:bg-emerald-50">
+                      <td className="sticky left-0 bg-emerald-50/50 z-10 px-4 py-2 text-emerald-800 font-medium border-r border-slate-200">Element-Weighted</td>
+                      <td className="px-3 py-2 text-center font-bold text-emerald-700 bg-emerald-100/50 border-r border-slate-200">{BENCHMARK.wtC}</td>
+                      {SCORE_COMPARISON.map(c => (
+                        <td key={c.name} className="px-3 py-2 text-center text-emerald-700 font-semibold">{c.wtC}</td>
+                      ))}
+                    </tr>
+                    <tr className="border-b-2 border-slate-300">
+                      <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-500 border-r border-slate-200">Delta</td>
+                      <td className="px-3 py-2 text-center text-slate-500 bg-violet-50 border-r border-slate-200">
+                        {BENCHMARK.wtC - BENCHMARK.eqC >= 0 ? '+' : ''}{BENCHMARK.wtC - BENCHMARK.eqC}
+                      </td>
+                      {SCORE_COMPARISON.map(c => {
+                        const delta = c.wtC - c.eqC;
+                        return (
+                          <td key={c.name} className="px-3 py-2 text-center">
                             <span className={delta >= 0 ? 'text-emerald-600' : 'text-amber-600'}>
                               {delta >= 0 ? '+' : ''}{delta}
                             </span>
                           </td>
-                        </tr>
+                        );
+                      })}
+                    </tr>
+                    
+                    {/* DIMENSION SECTIONS */}
+                    {DIMENSION_ORDER.map(d => {
+                      const dim = DIMENSIONS[d];
+                      return (
+                        <React.Fragment key={d}>
+                          <tr className="bg-slate-100 border-t border-slate-200">
+                            <td colSpan={2 + SCORE_COMPARISON.length} className="px-4 py-2 font-semibold text-xs text-slate-700">
+                              D{d}: {dim.name} <span className="font-normal text-slate-400">({dim.weight}%)</span>
+                            </td>
+                          </tr>
+                          <tr className="border-b border-slate-100 hover:bg-slate-50">
+                            <td className="sticky left-0 bg-white z-10 px-4 py-2 text-slate-600 pl-8 border-r border-slate-200">Equal</td>
+                            <td className="px-3 py-2 text-center text-slate-600 bg-violet-50 border-r border-slate-200">{BENCHMARK.dims[d]?.eq ?? '—'}</td>
+                            {SCORE_COMPARISON.map(c => (
+                              <td key={c.name} className="px-3 py-2 text-center text-slate-600">{c.dims[d]?.eq ?? '—'}</td>
+                            ))}
+                          </tr>
+                          <tr className="border-b border-slate-100 bg-emerald-50/30 hover:bg-emerald-50/50">
+                            <td className="sticky left-0 bg-emerald-50/30 z-10 px-4 py-2 text-emerald-700 pl-8 border-r border-slate-200">Weighted</td>
+                            <td className="px-3 py-2 text-center text-emerald-700 bg-emerald-50/50 border-r border-slate-200">{BENCHMARK.dims[d]?.wt ?? '—'}</td>
+                            {SCORE_COMPARISON.map(c => (
+                              <td key={c.name} className="px-3 py-2 text-center text-emerald-700">{c.dims[d]?.wt ?? '—'}</td>
+                            ))}
+                          </tr>
+                        </React.Fragment>
                       );
                     })}
                   </tbody>
