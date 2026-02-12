@@ -568,7 +568,7 @@ function calculateUnsureAdjustedDimensionScore(
   result.totalItems = totalItems;
   result.unsureCount = unsureCount;
   result.confirmedPts = confirmedPts;
-  result.maxPts = totalItems * POINTS.CURRENTLY_OFFER; // True max (all items × 5)
+  result.maxPts = answeredItems * POINTS.CURRENTLY_OFFER;
 
   // RAW SCORE: current method (unsure = 0, in denominator)
   if (maxPts > 0) {
@@ -576,7 +576,8 @@ function calculateUnsureAdjustedDimensionScore(
   }
 
   // ADJUSTED SCORE: (1-r)² substitution + 10% cap
-  const r = totalItems > 0 ? unsureCount / totalItems : 0;
+  // Use answeredItems as denominator to match raw score calculation
+  const r = answeredItems > 0 ? unsureCount / answeredItems : 0;
   result.unsureRate = r;
   const mu = populationMeans[dimNum] || 3.09;
   result.populationMean = mu;
@@ -586,7 +587,7 @@ function calculateUnsureAdjustedDimensionScore(
   result.perUnsureCredit = v_d;
 
   // Total unsure contribution: V_d = min(U_d × v_d, 0.10 × MaxPts_d)
-  const totalMaxPts = totalItems * POINTS.CURRENTLY_OFFER;
+  const totalMaxPts = answeredItems * POINTS.CURRENTLY_OFFER;
   let V_d = unsureCount * v_d;
   const cap = 0.10 * totalMaxPts;
   if (V_d > cap) {
@@ -1289,7 +1290,7 @@ export default function UnsureMethodologyPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
-                <p className="text-slate-600 text-sm">Current scores vs. unsure-adjusted scores calculated live from assessment data. The adjustment applies (1&minus;r)&sup2; substitution + 10% cap.</p>
+                <p className="text-slate-600 text-sm">Current scores vs. unsure-substituted scores calculated live from assessment data. Substitution applies (1&minus;r)&sup2; discounted partial credit with a 10% dimension cap.</p>
               </div>
             </div>
 
