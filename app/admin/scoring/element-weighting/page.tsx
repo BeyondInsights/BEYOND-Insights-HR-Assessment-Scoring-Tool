@@ -2927,7 +2927,6 @@ export default function ElementWeightingPage() {
                       <th className="px-5 py-3 text-left font-semibold">Dimension</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Wt</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Elem</th>
-                      <th className="px-4 py-3 text-center font-semibold w-24">Signal</th>
                       <th className="px-4 py-3 text-center font-semibold w-14">\u03b1</th>
                       <th className="px-4 py-3 text-left font-semibold">Top 3 Elements</th>
                     </tr>
@@ -2946,9 +2945,6 @@ export default function ElementWeightingPage() {
                           </td>
                           <td className="px-4 py-3 text-center text-slate-700 font-medium">{dim.weight}%</td>
                           <td className="px-4 py-3 text-center text-slate-600">{dim.elements}</td>
-                          <td className="px-4 py-3 text-center">
-                            </span>
-                          </td>
                           <td className="px-4 py-3 text-center">
                             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${sig.bg} border ${sig.border}`} style={{ color: sig.color }}>{sig.label}</span>
                           </td>
