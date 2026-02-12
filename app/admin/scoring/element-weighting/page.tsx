@@ -2412,7 +2412,7 @@ export default function ElementWeightingPage() {
   }, [filteredCompanies]);
 
   const tabs = [
-    { key: 'overview' as const, label: 'Executive Overview', icon: <IconTarget /> },
+    { key: 'overview' as const, label: 'Overview', icon: <IconTarget /> },
     { key: 'statistical' as const, label: 'Statistical Overview', icon: <IconChart /> },
     { key: 'weights' as const, label: 'Element Weights', icon: <IconScale /> },
     { key: 'scoring' as const, label: 'Score Comparison', icon: <IconGrid /> },
@@ -2468,7 +2468,7 @@ export default function ElementWeightingPage() {
       {/* Content */}
       <div className={`mx-auto py-10 ${activeTab === 'scoring' ? 'max-w-[1800px] px-6' : 'max-w-7xl px-12'}`}>
 
-        {/* ===== TAB 1: EXECUTIVE OVERVIEW ===== */}
+        {/* ===== TAB 1: OVERVIEW ===== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
             <div>
