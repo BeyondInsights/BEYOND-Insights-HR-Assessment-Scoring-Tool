@@ -857,10 +857,29 @@ export default function UnsureMethodologyPage() {
     const means: Record<number, number> = {};
     for (let i = 1; i <= 13; i++) {
       const vals = filteredCompanies.map(c => c.dims[i]?.populationMean || 0);
-      means[i] = vals.length > 0 ? vals[0] : 3.09; // All companies have same population mean
+      means[i] = vals.length > 0 ? vals[0] : 3.09;
     }
     return means;
   }, [filteredCompanies]);
+
+  // Benchmark: average across filtered companies
+  const benchmark = useMemo(() => {
+    if (filteredCompanies.length === 0) return null;
+    const dims: Record<number, { raw: number; adj: number }> = {};
+    for (let i = 1; i <= 13; i++) {
+      const raws = filteredCompanies.map(c => c.dims[i]?.rawScore || 0);
+      const adjs = filteredCompanies.map(c => c.dims[i]?.adjustedScore || 0);
+      dims[i] = {
+        raw: Math.round(raws.reduce((a, b) => a + b, 0) / raws.length),
+        adj: Math.round(adjs.reduce((a, b) => a + b, 0) / adjs.length),
+      };
+    }
+    const rawC = Math.round(filteredCompanies.reduce((s, c) => s + c.rawComposite, 0) / filteredCompanies.length);
+    const adjC = Math.round(filteredCompanies.reduce((s, c) => s + c.adjustedComposite, 0) / filteredCompanies.length);
+    return { dims, rawC, adjC };
+  }, [filteredCompanies]);
+
+  const DIMENSION_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
   const tabs = [
     { key: 'overview' as const, label: 'Executive Overview', icon: <IconTarget /> },
@@ -1234,130 +1253,151 @@ export default function UnsureMethodologyPage() {
           </div>
         )}
 
-        {/* ===== TAB 3: COMPANY IMPACT (LIVE FROM SUPABASE) ===== */}
+
+        {/* ===== TAB 3: SCORE COMPARISON — LIVE FROM SUPABASE ===== */}
         {activeTab === 'impact' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-1">Company Impact</h2>
-                <p className="text-slate-600 text-sm">{filteredCompanies.length} companies &mdash; live unsure-adjusted scores from Supabase</p>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
+                <p className="text-slate-600 text-sm">Current scores vs. unsure-adjusted scores calculated live from assessment data. The adjustment applies (1&minus;r)&sup2; substitution + 10% cap.</p>
               </div>
-              <label className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm cursor-pointer">
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
                 <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
-                <span className="text-sm text-slate-700 font-medium">Include panel companies</span>
+                Include Panel
               </label>
             </div>
 
-            {/* Company Table with Raw vs Adjusted */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm" style={{ tableLayout: 'auto' }}>
-                  <thead>
-                    <tr className="bg-slate-800 text-white">
-                      <th className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-left font-bold text-sm border-r border-slate-700 min-w-[180px]">Company</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[70px]">Status</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[85px]">Unsure %</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[65px]">Max Dim</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm bg-slate-600 border-x border-slate-500 min-w-[65px]" title="Current method: Unsure=0 in denominator">Raw</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm bg-violet-700 border-x border-violet-600 min-w-[70px]" title="(1-r)² substitution + 10% cap">Adjusted</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[50px]" title="Adjusted minus Raw">&Delta;</th>
-                      {Array.from({ length: 13 }, (_, i) => (
-                        <th key={i} className={`px-2 py-3 text-center font-semibold text-xs min-w-[55px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                          D{i + 1}
-                        </th>
-                      ))}
-                      <th className="px-3 py-3 text-left font-bold text-sm min-w-[100px]">Flags</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredCompanies.map((c, idx) => {
-                      const style = getStatusStyle(c.status);
-                      const delta = c.adjustedComposite - c.rawComposite;
-                      return (
-                        <tr key={c.surveyId || c.companyName} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-violet-50/30`}>
-                          <td className={`sticky left-0 z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} px-4 py-2.5 font-semibold text-slate-800 text-sm border-r border-slate-100`}>{c.companyName}</td>
-                          <td className="px-2 py-2.5 text-center">
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${style.bg} ${style.text} border ${style.border}`}>
-                              {getStatusLabel(c.status)}
-                            </span>
+            {filteredCompanies.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">No complete assessments found.</div>
+            ) : (
+              <>
+                {/* Legend + Stats */}
+                <div className="flex items-center gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-white border-2 border-slate-300" />
+                    <span className="text-slate-700 text-sm font-medium">Current (Unsure = 0)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-violet-600" />
+                    <span className="text-slate-700 text-sm font-medium">Unsure-Adjusted</span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-6">
+                    <div>
+                      <span className="text-2xl font-bold text-violet-700">{filteredCompanies.filter(c => c.adjustedComposite > c.rawComposite).length}</span>
+                      <span className="text-sm text-slate-600 ml-1">score higher</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-bold text-slate-800">
+                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.adjustedComposite - c.rawComposite), 0) / filteredCompanies.length).toFixed(1)}
+                      </span>
+                      <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-slate-700">{filteredCompanies.length}</span>
+                      <span className="text-sm text-slate-600 ml-1">companies</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Score Table — same layout as element weighting */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-800 text-white">
+                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
+                          <th className="px-2 py-3 text-center font-bold text-xs bg-slate-700 border-r border-slate-600 min-w-[65px]">Benchmark</th>
+                          {filteredCompanies.map((c, i) => (
+                            <th key={c.surveyId || c.companyName} className={`px-1 py-3 text-center font-semibold text-xs leading-tight min-w-[60px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
+                              {c.companyName.length > 14
+                                ? c.companyName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
+                                : c.companyName}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {/* Composite */}
+                        <tr className="bg-slate-200 border-y-2 border-slate-400">
+                          <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
+                        </tr>
+                        <tr className="border-b border-slate-200">
+                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Current</td>
+                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{benchmark?.rawC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId || c.companyName} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.rawComposite}</td>
+                          ))}
+                        </tr>
+                        <tr className="border-b border-slate-200 bg-violet-50">
+                          <td className="sticky left-0 z-10 bg-violet-50 px-3 py-3 text-violet-800 font-bold text-sm border-r border-violet-100">Adjusted</td>
+                          <td className="px-2 py-2.5 text-center font-bold bg-violet-100 border-r border-violet-100" style={{ color: getScoreColor(benchmark?.adjC || 0) }}>{benchmark?.adjC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId || c.companyName} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-violet-50' : 'bg-violet-50/50'}`} style={{ color: getScoreColor(c.adjustedComposite) }}>{c.adjustedComposite}</td>
+                          ))}
+                        </tr>
+                        <tr className="border-b-2 border-slate-400 bg-slate-100">
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta;</td>
+                          <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
+                            {benchmark && <span className={(benchmark.adjC - benchmark.rawC) >= 0 ? 'text-violet-700' : 'text-red-700'}>{(benchmark.adjC - benchmark.rawC) >= 0 ? '+' : ''}{benchmark.adjC - benchmark.rawC}</span>}
                           </td>
-                          <td className="px-3 py-2.5 text-center">
-                            <div className="flex items-center justify-center gap-1.5">
-                              <div className="w-12 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full rounded-full" style={{ width: `${Math.min(c.overallUnsurePct, 100)}%`, backgroundColor: getUnsureBarColor(c.overallUnsurePct) }} />
-                              </div>
-                              <span className="text-sm font-medium text-slate-700 w-10 text-right">{c.overallUnsurePct.toFixed(0)}%</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-2.5 text-center text-sm font-medium" style={{ color: c.maxDimUnsurePct > 50 ? '#DC2626' : c.maxDimUnsurePct > 25 ? '#D97706' : '#059669' }}>{c.maxDimUnsurePct.toFixed(0)}%</td>
-                          <td className="px-3 py-2.5 text-center font-bold text-sm bg-slate-50 border-x border-slate-100" style={{ color: getScoreColor(c.rawComposite) }}>{c.rawComposite}</td>
-                          <td className="px-3 py-2.5 text-center font-bold text-sm bg-violet-50 border-x border-violet-100" style={{ color: getScoreColor(c.adjustedComposite) }}>{c.adjustedComposite}</td>
-                          <td className="px-3 py-2.5 text-center text-sm font-bold" style={{ color: delta > 0 ? '#059669' : delta < 0 ? '#DC2626' : '#64748B' }}>{delta > 0 ? '+' : ''}{delta}</td>
-                          {Array.from({ length: 13 }, (_, i) => {
-                            const dim = c.dims[i + 1];
+                          {filteredCompanies.map((c) => {
+                            const d = c.adjustedComposite - c.rawComposite;
                             return (
-                              <td key={i} className="px-2 py-2.5 text-center text-sm" style={{ color: getScoreColor(dim?.adjustedScore || 0) }}>
-                                {dim ? dim.adjustedScore : 0}
+                              <td key={c.surveyId || c.companyName} className="px-1 py-1.5 text-center text-xs font-bold">
+                                <span className={d > 0 ? 'text-violet-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
+                                  {d > 0 ? '+' : ''}{d}
+                                </span>
                               </td>
                             );
                           })}
-                          <td className="px-3 py-2.5 text-xs text-slate-500 max-w-[200px]">{c.flags === '-' ? '' : c.flags}</td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
 
-            {/* Population Means Reference */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-lg">Population Means (&mu;<sub>d</sub>) — Live from Supabase</h3>
-                <p className="text-slate-500 text-sm mt-1">Calculated from confirmed responses across all complete assessments</p>
-              </div>
-              <div className="px-8 py-5">
-                <div className="grid grid-cols-13 gap-2">
-                  {Array.from({ length: 13 }, (_, i) => {
-                    const mu = populationMeans[i + 1] || 0;
-                    return (
-                      <div key={i} className="text-center">
-                        <div className="text-[10px] font-bold text-slate-500 mb-1">D{i + 1}</div>
-                        <div className="text-sm font-bold text-slate-800">{mu.toFixed(2)}</div>
-                        <div className="text-[10px] text-slate-400">/ 5.00</div>
-                      </div>
-                    );
-                  })}
+                        {/* Unsure % row */}
+                        <tr className="bg-amber-50/50 border-b-2 border-slate-300">
+                          <td className="sticky left-0 z-10 bg-amber-50/50 px-3 py-1.5 text-amber-800 text-xs font-bold border-r border-amber-100">Unsure %</td>
+                          <td className="px-2 py-1.5 text-center text-xs font-bold bg-amber-50 border-r border-amber-100 text-amber-700">&mdash;</td>
+                          {filteredCompanies.map((c) => (
+                            <td key={c.surveyId || c.companyName} className="px-1 py-1.5 text-center text-xs font-bold" style={{ color: getUnsureBarColor(c.overallUnsurePct) }}>
+                              {c.overallUnsurePct.toFixed(0)}%
+                            </td>
+                          ))}
+                        </tr>
+
+                        {/* Dimension Rows */}
+                        {DIMENSION_ORDER.map((dim, idx) => (
+                          <React.Fragment key={dim}>
+                            <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
+                              <td colSpan={2 + filteredCompanies.length} className="px-3 py-1 text-xs font-bold text-slate-800">
+                                D{dim}: {DIMENSION_NAMES[dim]}
+                              </td>
+                            </tr>
+                            <tr className="border-b border-slate-100">
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Current</td>
+                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.raw}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId || c.companyName} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.rawScore}</td>
+                              ))}
+                            </tr>
+                            <tr className="border-b border-slate-100 bg-violet-50/30">
+                              <td className="sticky left-0 z-10 bg-violet-50/30 px-3 py-1 text-violet-800 font-semibold pl-4 text-xs border-r border-violet-100/50">Adj</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-violet-100/30 border-r border-violet-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.adj || 0) }}>{benchmark?.dims[dim]?.adj}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId || c.companyName} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-violet-50/40' : 'bg-violet-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.adjustedScore || 0) }}>
+                                  {c.dims[dim]?.adjustedScore}
+                                </td>
+                              ))}
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
-            </section>
-
-            {/* Dimension Flag Thresholds */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="px-8 py-5 border-b border-slate-100">
-                <h3 className="font-bold text-slate-900 text-lg">Dimension-Level Flag Thresholds</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
-                      <th className="px-5 py-3 text-left font-semibold">Dimension Unsure Rate</th>
-                      <th className="px-5 py-3 text-center font-semibold">Flag Level</th>
-                      <th className="px-5 py-3 text-left font-semibold">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    <tr><td className="px-5 py-3 text-slate-700">&le; 25%</td><td className="px-5 py-3 text-center text-emerald-700 font-semibold">No flag</td><td className="px-5 py-3 text-slate-700">Dimension scored normally.</td></tr>
-                    <tr><td className="px-5 py-3 text-slate-700">&gt; 25&ndash;40%</td><td className="px-5 py-3 text-center text-amber-700 font-semibold">&#9888; NOTE</td><td className="px-5 py-3 text-slate-700">Noted in company report. No immediate action.</td></tr>
-                    <tr><td className="px-5 py-3 text-slate-700">&gt; 40&ndash;50%</td><td className="px-5 py-3 text-center text-orange-700 font-semibold">&#9888;&#9888; ELEVATED</td><td className="px-5 py-3 text-slate-700">Company contacted for verification.</td></tr>
-                    <tr><td className="px-5 py-3 text-slate-700">&gt; 50%</td><td className="px-5 py-3 text-center text-red-700 font-semibold">&#9940; HIGH</td><td className="px-5 py-3 text-slate-700">Resolution required for badge eligibility.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
+              </>
+            )}
           </div>
         )}
-
         {/* ===== TAB 4: ALTERNATIVES EXPLORED ===== */}
         {activeTab === 'alternatives' && (
           <div className="space-y-8">
