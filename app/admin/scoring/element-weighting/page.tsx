@@ -1,16 +1,851 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
+
+// ============================================
+// TYPES
+// ============================================
 
 interface ElementItem { rank: number; name: string; weight: number; equal: number; delta: number; stability: number; }
 interface DimensionData { name: string; weight: number; elements: number; cvR2: number; alpha: number; n: number; topElements: string[]; items: ElementItem[]; }
 
+// ============================================
+// SCORING CONSTANTS (from page_146_)
+// ============================================
+
+const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
+const INSUFFICIENT_DATA_THRESHOLD = 0.40;
+
+const D10_EXCLUDED_ITEMS = [
+  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
+];
+
+const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
+  4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
+};
+
+const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, depth: 0, maturity: 5, breadth: 5 };
+const DEFAULT_BLEND_WEIGHTS = {
+  d1: { grid: 85, followUp: 15 }, d3: { grid: 85, followUp: 15 },
+  d12: { grid: 85, followUp: 15 }, d13: { grid: 85, followUp: 15 },
+};
+
+const DIMENSION_NAMES: Record<number, string> = {
+  1: 'Medical Leave & Flexibility', 2: 'Insurance & Financial Protection',
+  3: 'Manager Preparedness & Capability', 4: 'Cancer Support Resources',
+  5: 'Workplace Accommodations', 6: 'Culture & Psychological Safety',
+  7: 'Career Continuity & Advancement', 8: 'Work Continuation & Resumption',
+  9: 'Executive Commitment & Resources', 10: 'Caregiver & Family Support',
+  11: 'Prevention & Wellness', 12: 'Continuous Improvement',
+  13: 'Communication & Awareness',
+};
+
 const DIMENSION_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
+// ============================================
+
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+      case 3: return { points: POINTS.PLANNING, isUnsure: false };
+      case 2: return { points: POINTS.ASSESSING, isUnsure: false };
+      case 1: return { points: POINTS.NOT_ABLE, isUnsure: false };
+      case 5: return { points: null, isUnsure: true };
+      default: return { points: null, isUnsure: false };
+    }
+  }
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
+    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
+    // Handle both "Unsure" and "Unknown (5)" as unsure responses
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
+      return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+    }
+    if (s.includes('planning') || s.includes('development')) return { points: POINTS.PLANNING, isUnsure: false };
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s.length > 0) return { points: POINTS.NOT_ABLE, isUnsure: false };
+  }
+  return { points: null, isUnsure: false };
+}
+
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  // Single-country companies (no geo question asked) get 1.0 - question doesn't apply
+  // The geo multiplier measures consistency across locations, which requires multiple locations
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75;  // Select locations only
+      case 2: return 0.90;  // Varies by location
+      case 3: return 1.0;   // Consistent globally
+      default: return 1.0;  // N/A or unknown
+    }
+  }
+  
+  const s = String(geoResponse).toLowerCase();
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
+  if (s.includes('vary') || s.includes('varies')) return 0.90;
+  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  return 1.0;  // Default to N/A treatment
+}
+
+// ============================================
+// FOLLOW-UP SCORING FOR WEIGHTED BLEND
+// ============================================
+
+function scoreD1PaidLeave(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  // Match actual survey values: "13 or more weeks", "9 to less than 13 weeks", etc.
+  if (v.includes('does not apply')) return 0;
+  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks') || v.includes('more than 13')) return 100;
+  if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
+  if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
+  if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
+  if ((v.includes('1 to') && v.includes('3')) || v.includes('1-3')) return 10;
+  return 0;
+}
+
+function scoreD1PartTime(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  // Match actual survey values: "26 weeks or more", "13 to less than 26 weeks", "12 to less than 26 weeks", etc.
+  if (v.includes('no additional')) return 0;
+  if (v.includes('medically necessary') || v.includes('healthcare provider')) return 100;
+  if (v.includes('26 weeks or more') || v.includes('26+ weeks') || v.includes('26 or more')) return 80;
+  // Handle both "12 to" and "13 to" less than 26 - treat as same tier
+  if ((v.includes('12 to') || v.includes('13 to')) && v.includes('26')) return 50;
+  if ((v.includes('5 to') && v.includes('12')) || (v.includes('5 to') && v.includes('13'))) return 30;
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
+  return 0;
+}
+
+function scoreD3Training(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  // Match actual survey values: "100%", "75 to less than 100%", "10 to less than 25%"
+  // IMPORTANT: Check for exact "less than 10%" first (not "less than 100")
+  if (v.includes('less than 10%') || v === 'less than 10' || v.includes('less than 10 percent')) return 0;
+  if (v === '100%' || v === '100' || v.includes('100% of') || (v.includes('100') && !v.includes('less than'))) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;    // "75 to less than 100%"
+  if (v.includes('50') && v.includes('75')) return 50;     // "50 to less than 75%"
+  if (v.includes('25') && v.includes('50')) return 30;     // "25 to less than 50%"
+  if (v.includes('10') && v.includes('25')) return 10;     // "10 to less than 25%"
+  return 0;
+}
+
+function scoreD12CaseReview(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('systematic')) return 100;
+  if (v.includes('ad hoc')) return 50;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+// D12_2: Have individual employee experiences/reviews led to policy changes?
+function scoreD12PolicyChanges(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('several') || v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('few') || v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v === 'no' || v.includes('no change') || v.includes('not yet')) return 20;
+  return 0;
+}
+
+function scoreD13Communication(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('monthly')) return 100;
+  if (v.includes('quarterly')) return 70;
+  if (v.includes('twice')) return 40;
+  if (v.includes('annually') || v.includes('world cancer day')) return 20;
+  if (v.includes('only when asked')) return 0;
+  if (v.includes('do not actively') || v.includes('no regular')) return 0;
+  return 0;
+}
+
+function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  
+  switch (dimNum) {
+    case 1: {
+      const d1_1_usa = dimData?.d1_1_usa;
+      const d1_1_non_usa = dimData?.d1_1_non_usa;
+      const d1_4b = dimData?.d1_4b;
+      const scores: number[] = [];
+      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
+      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      // Check both key formats: d31 (correct) and d3_1 (legacy migration)
+      const d31 = dimData?.d31 ?? dimData?.d3_1;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      // D12 uses both D12_1 (case review method) and D12_2 (policy changes) - averaged
+      const d12_1 = dimData?.d12_1;
+      const d12_2 = dimData?.d12_2;
+      const scores: number[] = [];
+      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
+      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 13: {
+      const d13_1 = dimData?.d13_1;
+      return d13_1 ? scoreD13Communication(d13_1) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+// ============================================
+// MATURITY & BREADTH SCORING - FIXED
+// ============================================
+
+// Maturity = OR1 only - FIXED: Legal minimum = 0 points
+function calculateMaturityScore(assessment: Record<string, any>): number {
+  const currentSupport = assessment.current_support_data || {};
+  const or1 = currentSupport.or1;
+  
+  // Handle numeric codes first (from imported data)
+  if (or1 === 6 || or1 === '6') return 100; // Comprehensive/Leading-edge
+  if (or1 === 5 || or1 === '5') return 80;  // Enhanced/Strong
+  if (or1 === 4 || or1 === '4') return 50;  // Moderate
+  if (or1 === 3 || or1 === '3') return 20;  // Developing/Basic
+  if (or1 === 2 || or1 === '2') return 0;   // Legal minimum only
+  if (or1 === 1 || or1 === '1') return 0;   // No formal approach
+  
+  // Fall back to text matching for survey app entries
+  const v = String(or1 || '').toLowerCase();
+  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
+  if (v.includes('comprehensive')) return 100;
+  if (v.includes('enhanced') || v.includes('strong')) return 80;
+  if (v.includes('moderate')) return 50;
+  if (v.includes('basic')) return 20;
+  if (v.includes('developing')) return 20;
+  if (v.includes('legal minimum')) return 0;
+  if (v.includes('no formal')) return 0;
+  return 0;
+}
+
+function calculateBreadthScore(assessment: Record<string, any>): number {
+  // Check BOTH current_support_data AND general_benefits_data for cb3 fields
+  // Some companies have these in current_support_data, others in general_benefits_data
+  const currentSupport = assessment.current_support_data || {};
+  const generalBenefits = assessment.general_benefits_data || {};
+  
+  const scores: number[] = [];
+  
+  // CB3a: Check both sources, prefer current_support_data if present
+  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  
+  // Handle numeric codes first (from imported data)
+  if (cb3a === 3 || cb3a === '3') {
+    scores.push(100); // Yes, we offer additional support
+  } else if (cb3a === 2 || cb3a === '2') {
+    scores.push(50); // Currently developing
+  } else if (cb3a === 1 || cb3a === '1') {
+    scores.push(0); // No additional support
+  } else if (cb3a !== undefined && cb3a !== null) {
+    // Fall back to text matching for survey app entries
+    const v = String(cb3a).toLowerCase();
+    if (v.includes('yes') && v.includes('additional support')) {
+      scores.push(100);
+    } else if (v.includes('developing') || v.includes('currently developing')) {
+      scores.push(50);
+    } else {
+      scores.push(0);
+    }
+  } else {
+    scores.push(0);
+  }
+  
+  // CB3b: Check both sources
+  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+  if (cb3b && Array.isArray(cb3b)) {
+    const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
+    scores.push(cb3bScore);
+  } else {
+    scores.push(0);
+  }
+  
+  // CB3c: Check both sources
+  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+  if (cb3c && Array.isArray(cb3c)) {
+    const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
+    scores.push(cb3cScore);
+  } else {
+    scores.push(0);
+  }
+  
+  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+}
+
+interface DimensionScore {
+  rawScore: number;
+  adjustedScore: number;
+  geoMultiplier: number;
+  totalItems: number;
+  answeredItems: number;
+  unsureCount: number;
+  unsurePercent: number;
+  isInsufficientData: boolean;
+  followUpScore: number | null;
+  blendedScore: number;
+}
+
+function calculateDimensionScore(
+  dimNum: number, 
+  dimData: Record<string, any> | null, 
+  assessment?: Record<string, any>,
+  blendWeights?: typeof DEFAULT_BLEND_WEIGHTS
+): DimensionScore {
+  const result: DimensionScore = {
+    rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, totalItems: 0,
+    answeredItems: 0, unsureCount: 0, unsurePercent: 0, isInsufficientData: false,
+    followUpScore: null, blendedScore: 0,
+  };
+  if (!dimData) return result;
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
+  let earnedPoints = 0;
+  
+  // Process grid items, excluding D10 items that weren't in original survey
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    // Skip excluded D10 items for Year 1 scoring fairness
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) {
+      return; // Skip this item entirely
+    }
+    
+    result.totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
+    if (isUnsure) { result.unsureCount++; result.answeredItems++; }
+    else if (points !== null) { result.answeredItems++; earnedPoints += points; }
+  });
+  
+  result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
+  result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
+  const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
+  if (maxPoints > 0) result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  result.geoMultiplier = getGeoMultiplier(geoResponse);
+  result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
+  
+  // Apply weighted blend for D1, D3, D12, D13
+  if (assessment && [1, 3, 12, 13].includes(dimNum) && blendWeights) {
+    result.followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (result.followUpScore !== null) {
+      const key = `d${dimNum}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+      const gridPct = blendWeights[key]?.grid ?? 85;
+      const followUpPct = blendWeights[key]?.followUp ?? 15;
+      result.blendedScore = Math.round((result.adjustedScore * (gridPct / 100)) + (result.followUpScore * (followUpPct / 100)));
+    } else {
+      result.blendedScore = result.adjustedScore;
+    }
+  } else {
+    result.blendedScore = result.adjustedScore;
+  }
+  
+  return result;
+}
+
+interface CompanyScores {
+  companyName: string;
+  surveyId: string;
+  dimensions: Record<number, DimensionScore>;
+  unweightedScore: number;
+  weightedScore: number;
+  insufficientDataCount: number;
+  isProvisional: boolean;
+  isComplete: boolean;
+  isFoundingPartner: boolean;
+  isPanel: boolean;
+  completedDimCount: number;
+  compositeScore: number;
+  depthScore: number;
+  maturityScore: number;
+  breadthScore: number;
+  globalFootprint: {
+    countryCount: number;
+    segment: 'Single' | 'Regional' | 'Global';
+    isMultiCountry: boolean;
+  };
+  dataConfidence: {
+    percent: number;
+    totalItems: number;
+    verifiedItems: number;
+    unsureCount: number;
+  };
+}
+
+function calculateCompanyScores(
+  assessment: Record<string, any>, 
+  weights: Record<number, number>, 
+  compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS,
+  blendWeights: typeof DEFAULT_BLEND_WEIGHTS
+): CompanyScores {
+  const dimensions: Record<number, DimensionScore> = {};
+  let completedDimCount = 0;
+  
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`];
+    dimensions[i] = calculateDimensionScore(i, dimData, assessment, blendWeights);
+    if (dimensions[i].totalItems > 0) completedDimCount++;
+  }
+  
+  const isComplete = completedDimCount === 13;
+  const insufficientDataCount = Object.values(dimensions).filter(d => d.isInsufficientData).length;
+  const isProvisional = insufficientDataCount >= 4;
+  
+  const appId = assessment.app_id || assessment.survey_id || '';
+  const isFoundingPartner = appId.startsWith('FP-') || assessment.is_founding_partner === true || assessment.payment_method === 'founding_partner';
+  const isPanel = appId.startsWith('PANEL-');
+  
+  let unweightedScore = 0;
+  let weightedScore = 0;
+  
+  if (isComplete) {
+    const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
+    unweightedScore = dimsWithData.length > 0
+      ? Math.round(dimsWithData.reduce((sum, d) => sum + d.blendedScore, 0) / dimsWithData.length)
+      : 0;
+    
+    const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+    if (totalWeight > 0) {
+      for (let i = 1; i <= 13; i++) {
+        const dim = dimensions[i];
+        const weight = weights[i] || 0;
+        weightedScore += dim.blendedScore * (weight / totalWeight);
+      }
+    }
+    weightedScore = Math.round(weightedScore);
+  }
+  
+  const maturityScore = calculateMaturityScore(assessment);
+  const breadthScore = calculateBreadthScore(assessment);
+  
+  // Extract global footprint from firmographics
+  const firmographics = assessment.firmographics_data || {};
+  const s9a = firmographics.s9a || ''; // Number of OTHER countries besides HQ
+  let countryCount = 1; // Start with 1 (headquarters)
+  
+  // Parse s9a to get additional country count
+  if (typeof s9a === 'string') {
+    const s = s9a.toLowerCase();
+    if (s.includes('no other countries') || s.includes('headquarters only')) {
+      countryCount = 1;
+    } else if (s.includes('50 or more') || s.includes('50+')) {
+      countryCount = 51; // 50+ other countries + HQ
+    } else if (s.includes('20 to 49')) {
+      countryCount = 35; // midpoint + HQ
+    } else if (s.includes('10 to 19')) {
+      countryCount = 15; // midpoint + HQ
+    } else if (s.includes('5 to 9')) {
+      countryCount = 8; // midpoint + HQ
+    } else if (s.includes('3 to 4')) {
+      countryCount = 4; // midpoint + HQ
+    } else if (s.includes('1 to 2')) {
+      countryCount = 2; // midpoint + HQ
+    }
+  }
+  
+  // Determine segment
+  const segment: 'Single' | 'Regional' | 'Global' = 
+    countryCount === 1 ? 'Single' : 
+    countryCount <= 10 ? 'Regional' : 'Global';
+  
+  const globalFootprint = {
+    countryCount,
+    segment,
+    isMultiCountry: countryCount > 1,
+  };
+  
+  // Calculate Data Confidence (% of items not marked "Unsure")
+  let totalItems = 0;
+  let unsureCount = 0;
+  for (let i = 1; i <= 13; i++) {
+    totalItems += dimensions[i].totalItems;
+    unsureCount += dimensions[i].unsureCount;
+  }
+  const verifiedItems = totalItems - unsureCount;
+  const dataConfidence = {
+    percent: totalItems > 0 ? Math.round((verifiedItems / totalItems) * 100) : 0,
+    totalItems,
+    verifiedItems,
+    unsureCount,
+  };
+  
+  const compositeScore = isComplete ? Math.round(
+    (weightedScore * (compositeWeights.weightedDim / 100)) +
+    (maturityScore * (compositeWeights.maturity / 100)) +
+    (breadthScore * (compositeWeights.breadth / 100))
+  ) : 0;
+  
+  return {
+    companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
+    surveyId: assessment.app_id || assessment.survey_id || 'N/A',
+    dimensions, unweightedScore, weightedScore, insufficientDataCount,
+    isProvisional, isComplete, isFoundingPartner, isPanel, completedDimCount,
+    compositeScore,
+    depthScore: 0,
+    maturityScore,
+    breadthScore,
+    globalFootprint,
+    dataConfidence,
+  };
+}
+
+function getScoreColor(score: number): string {
+  if (score >= 80) return '#059669';
+  if (score >= 60) return '#0284C7';
+  if (score >= 40) return '#D97706';
+  return '#DC2626';
+}
+
+// ============================================
+// ELEMENT-WEIGHTED SCORING
+// ============================================
+
+function calculateElementWeightedDimensionScore(
+  dimNum: number,
+  dimData: Record<string, any> | null,
+  assessment?: Record<string, any>,
+  blendWeights?: typeof DEFAULT_BLEND_WEIGHTS
+): { equalScore: number; weightedScore: number; blendedEqual: number; blendedWeighted: number } {
+  const result = { equalScore: 0, weightedScore: 0, blendedEqual: 0, blendedWeighted: 0 };
+  if (!dimData) return result;
+  
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
+  
+  const dimWeights = ELEMENT_WEIGHTS[dimNum] || {};
+  let earnedPoints = 0;
+  let weightedEarned = 0;
+  let weightedMax = 0;
+  let answeredItems = 0;
+  let unsureCount = 0;
+  let totalItems = 0;
+  
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+    totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
+    
+    // Find element weight (fuzzy match for slight name differences)
+    let elemWeight = dimWeights[itemKey];
+    if (elemWeight === undefined) {
+      // Try partial match
+      const keys = Object.keys(dimWeights);
+      const match = keys.find(k => k.startsWith(itemKey.substring(0, 30)) || itemKey.startsWith(k.substring(0, 30)));
+      elemWeight = match ? dimWeights[match] : (1 / totalItems); // fallback to equal
+    }
+    
+    if (isUnsure) { 
+      unsureCount++; 
+      answeredItems++;
+      // Unsure = 0 points earned, but counts in denominator
+      weightedMax += POINTS.CURRENTLY_OFFER * (elemWeight || 0);
+    } else if (points !== null) { 
+      answeredItems++; 
+      earnedPoints += points;
+      weightedEarned += points * (elemWeight || 0);
+      weightedMax += POINTS.CURRENTLY_OFFER * (elemWeight || 0);
+    }
+  });
+  
+  // Equal-weight raw score (same as page_146_)
+  const maxPoints = answeredItems * POINTS.CURRENTLY_OFFER;
+  if (maxPoints > 0) result.equalScore = Math.round((earnedPoints / maxPoints) * 100);
+  
+  // Element-weighted raw score
+  if (weightedMax > 0) result.weightedScore = Math.round((weightedEarned / weightedMax) * 100);
+  
+  // Apply geo multiplier
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  const geoMult = getGeoMultiplier(geoResponse);
+  result.equalScore = Math.round(result.equalScore * geoMult);
+  result.weightedScore = Math.round(result.weightedScore * geoMult);
+  
+  // Apply follow-up blend for D1, D3, D12, D13
+  if (assessment && [1, 3, 12, 13].includes(dimNum) && blendWeights) {
+    const followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (followUpScore !== null) {
+      const key = `d${dimNum}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+      const gridPct = blendWeights[key]?.grid ?? 85;
+      const followUpPct = blendWeights[key]?.followUp ?? 15;
+      result.blendedEqual = Math.round((result.equalScore * (gridPct / 100)) + (followUpScore * (followUpPct / 100)));
+      result.blendedWeighted = Math.round((result.weightedScore * (gridPct / 100)) + (followUpScore * (followUpPct / 100)));
+    } else {
+      result.blendedEqual = result.equalScore;
+      result.blendedWeighted = result.weightedScore;
+    }
+  } else {
+    result.blendedEqual = result.equalScore;
+    result.blendedWeighted = result.weightedScore;
+  }
+  
+  return result;
+}
+
+interface CompanyComparison {
+  companyName: string;
+  surveyId: string;
+  isComplete: boolean;
+  isPanel: boolean;
+  isFoundingPartner: boolean;
+  dims: Record<number, { eq: number; wt: number }>;
+  eqComposite: number;
+  wtComposite: number;
+  maturityScore: number;
+  breadthScore: number;
+}
+
+function calculateCompanyComparison(assessment: Record<string, any>): CompanyComparison {
+  // EQUAL-WEIGHT: Use the EXACT same function as page_146_ scoring page
+  const eqScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
+  
+  // ELEMENT-WEIGHTED: Calculate weighted dimension scores
+  const dims: Record<number, { eq: number; wt: number }> = {};
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`];
+    const wtResult = calculateElementWeightedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS);
+    // Equal side comes from the original scoring function (guaranteed correct)
+    dims[i] = { eq: eqScores.dimensions[i]?.blendedScore || 0, wt: wtResult.blendedWeighted };
+  }
+  
+  // Element-weighted composite: apply dimension weights to weighted dim scores, then 90/5/5
+  let wtWeightedDim = 0;
+  const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
+  if (eqScores.isComplete) {
+    for (let i = 1; i <= 13; i++) {
+      const w = DEFAULT_DIMENSION_WEIGHTS[i] || 0;
+      wtWeightedDim += dims[i].wt * (w / totalWeight);
+    }
+  }
+  const wtComposite = eqScores.isComplete ? Math.round(
+    (Math.round(wtWeightedDim) * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+    (eqScores.maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+    (eqScores.breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+  ) : 0;
+  
+  return {
+    companyName: eqScores.companyName,
+    surveyId: eqScores.surveyId,
+    isComplete: eqScores.isComplete,
+    isPanel: eqScores.isPanel,
+    isFoundingPartner: eqScores.isFoundingPartner,
+    dims,
+    eqComposite: eqScores.compositeScore,  // From original scoring function
+    wtComposite,
+    maturityScore: eqScores.maturityScore,
+    breadthScore: eqScores.breadthScore,
+  };
+}
+
+
+// ============================================
+// ELEMENT WEIGHTS — v6.1 (Authoritative)
+// ============================================
+
+const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
+  1: {
+    'Emergency leave within 24 hours': 0.160744,
+    'Remote work options for on-site employees': 0.122696,
+    'Intermittent leave beyond local / legal requirements': 0.105572,
+    'Paid micro-breaks for side effects': 0.091662,
+    'Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)': 0.088447,
+    'Job protection beyond local / legal requirements': 0.066177,
+    'Paid medical leave beyond local / legal requirements': 0.058219,
+    'Reduced schedule/part-time with full benefits': 0.056838,
+    'Disability pay top-up (employer adds to disability insurance)': 0.051819,
+    'Full salary (100%) continuation during cancer-related short-term disability leave': 0.05172,
+    'PTO accrual during leave': 0.049594,
+    'Leave donation bank (employees can donate PTO to colleagues)': 0.048417,
+    'Paid micro-breaks for medical-related side effects': 0.048096,
+  },
+  2: {
+    'Accelerated life insurance benefits (partial payout for terminal / critical illness)': 0.154645,
+    'Tax/estate planning assistance': 0.118162,
+    'Real-time cost estimator tools': 0.073349,
+    'Insurance advocacy/pre-authorization support': 0.072306,
+    '$0 copay for specialty drugs': 0.056197,
+    'Short-term disability covering 60%+ of salary': 0.055313,
+    'Long-term disability covering 60%+ of salary': 0.048299,
+    'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance': 0.04694,
+    'Financial counseling services': 0.046897,
+    'Paid time off for clinical trial participation': 0.043348,
+    'Coverage for clinical trials and experimental treatments not covered by standard health insurance': 0.043113,
+    'Employer-paid disability insurance supplements': 0.04241,
+    'Guaranteed job protection': 0.04096,
+    'Travel/lodging reimbursement for specialized care beyond insurance coverage': 0.039906,
+    'Hardship grants program funded by employer': 0.039768,
+    'Voluntary supplemental illness insurance (with employer contribution)': 0.039559,
+    'Set out-of-pocket maximums (for in-network single coverage)': 0.038828,
+  },
+  3: {
+    'Manager peer support / community building': 0.174725,
+    'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams': 0.154583,
+    'Empathy/communication skills training': 0.140133,
+    'Dedicated manager resource hub': 0.09982,
+    'Manager evaluations include how well they support impacted employees': 0.080495,
+    'Clear escalation protocol for manager response': 0.077347,
+    'Legal compliance training': 0.071002,
+    'AI-powered guidance tools': 0.069294,
+    'Privacy protection and confidentiality management': 0.067211,
+    'Senior leader coaching on supporting impacted employees': 0.065389,
+  },
+  4: {
+    'Physical rehabilitation support': 0.200073,
+    'Nutrition coaching': 0.133196,
+    'Insurance advocacy/appeals support': 0.102184,
+    'Dedicated navigation support to help employees understand benefits and access medical care': 0.089426,
+    'Online tools, apps, or portals for health/benefits support': 0.087604,
+    'Occupational therapy/vocational rehabilitation': 0.081315,
+    'Care coordination concierge': 0.078595,
+    'Survivorship planning assistance': 0.07731,
+    'Benefits optimization assistance (maximizing coverage, minimizing costs)': 0.076675,
+    'Clinical trial matching service': 0.073622,
+  },
+  5: {
+    'Flexible scheduling options': 0.134067,
+    'Ergonomic equipment funding': 0.126183,
+    'Rest areas / quiet spaces': 0.115475,
+    'Temporary role redesigns': 0.109129,
+    'Assistive technology catalog': 0.108836,
+    'Priority parking': 0.079852,
+    'Cognitive / fatigue support tools': 0.074978,
+    'Policy accommodations (e.g., dress code flexibility, headphone use)': 0.070501,
+    'Remote work capability': 0.064075,
+    'Transportation reimbursement': 0.059231,
+    'Physical workspace modifications': 0.057672,
+  },
+  6: {
+    'Employee peer support groups (internal employees with shared experience)': 0.193109,
+    'Stigma-reduction initiatives': 0.130256,
+    'Anonymous benefits navigation tool or website (no login required)': 0.090308,
+    'Specialized emotional counseling': 0.079909,
+    'Inclusive communication guidelines': 0.071169,
+    'Manager training on handling sensitive health information': 0.070972,
+    'Professional-led support groups (external facilitator/counselor)': 0.066748,
+    'Written anti-retaliation policies for health disclosures': 0.06513,
+    'Strong anti-discrimination policies specific to health conditions': 0.063864,
+    'Clear process for confidential health disclosures': 0.059082,
+    'Confidential HR channel for health benefits, policies and insurance-related questions': 0.057287,
+    'Optional open health dialogue forums': 0.052165,
+  },
+  7: {
+    'Peer mentorship program (employees who had similar condition mentoring current employees)': 0.200033,
+    'Continued access to training/development': 0.143486,
+    'Adjusted performance goals/deliverables during treatment and recovery': 0.10585,
+    'Succession planning protections': 0.104257,
+    'Structured reintegration programs': 0.101907,
+    'Optional stay-connected program': 0.101429,
+    'Career coaching for employees managing cancer or other serious health conditions': 0.084242,
+    'Professional coach/mentor for employees managing cancer or other serious health conditions': 0.081518,
+    'Project continuity protocols': 0.07728,
+  },
+  8: {
+    'Flexibility for medical setbacks': 0.154687,
+    'Manager training on supporting team members during treatment/return': 0.124079,
+    'Long-term success tracking': 0.102334,
+    'Workload adjustments during treatment': 0.089721,
+    'Access to occupational therapy/vocational rehabilitation': 0.081946,
+    'Structured progress reviews': 0.072191,
+    'Buddy/mentor pairing for support': 0.069346,
+    'Flexible work arrangements during treatment': 0.068431,
+    'Online peer support forums': 0.068325,
+    'Phased return-to-work plans': 0.05902,
+    'Contingency planning for treatment schedules': 0.056143,
+    'Access to specialized work resumption professionals': 0.053777,
+  },
+  9: {
+    'Executive sponsors communicate regularly about workplace support programs': 0.177838,
+    'ESG/CSR reporting inclusion': 0.122962,
+    'Public success story celebrations': 0.101589,
+    'Executive-led town halls focused on health benefits and employee support': 0.078106,
+    'Year-over-year budget growth': 0.077801,
+    'Support programs included in investor/stakeholder communications': 0.076953,
+    'Compensation tied to support outcomes': 0.067727,
+    'C-suite executive serves as program champion/sponsor': 0.063951,
+    'Cross-functional executive steering committee for workplace support programs': 0.060213,
+    'Support metrics included in annual report/sustainability reporting': 0.058149,
+    'Executive accountability metrics': 0.05755,
+    'Dedicated budget allocation for serious illness support programs': 0.057162,
+  },
+  10: {
+    'Practical support for managing caregiving and work': 0.114708,
+    'Family navigation support': 0.080451,
+    'Eldercare consultation and referral services': 0.080031,
+    'Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)': 0.057402,
+    'Caregiver resource navigator/concierge': 0.052119,
+    'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)': 0.048148,
+    'Paid caregiver leave with expanded eligibility (beyond local legal requirements)': 0.046638,
+    'Flexible work arrangements for caregivers': 0.045747,
+    'Paid time off for care coordination appointments': 0.043873,
+    'Respite care funding/reimbursement': 0.04304,
+    'Emergency dependent care when regular arrangements unavailable': 0.042999,
+    'Unpaid leave job protection beyond local / legal requirements': 0.042978,
+    'Legal/financial planning assistance for caregivers': 0.041332,
+    'Mental health support specifically for caregivers': 0.04129,
+    'Manager training for supervising caregivers': 0.039363,
+    'Dependent care account matching/contributions': 0.038215,
+    'Caregiver peer support groups': 0.03714,
+    'Dependent care subsidies': 0.034974,
+    'Emergency caregiver funds': 0.034931,
+    'Modified job duties during peak caregiving periods': 0.034619,
+  },
+  11: {
+    'Legal protections beyond requirements': 0.1154,
+    'Individual health assessments (online or in-person)': 0.112016,
+    'Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)': 0.104588,
+    'Genetic screening/counseling': 0.096957,
+    'At least 70% coverage for regionally / locally recommended screenings': 0.072063,
+    'Full or partial coverage for annual health screenings/checkups': 0.070034,
+    'On-site vaccinations': 0.069652,
+    'Risk factor tracking/reporting': 0.06601,
+    'Regular health education sessions': 0.063478,
+    'Targeted risk-reduction programs': 0.061622,
+    'Paid time off for preventive care appointments': 0.061405,
+    'Workplace safety assessments to minimize health risks': 0.054855,
+    'Lifestyle coaching programs': 0.05192,
+  },
+  12: {
+    'Regular program enhancements': 0.200034,
+    'Employee confidence in employer support': 0.145168,
+    'Innovation pilots': 0.111299,
+    'External benchmarking': 0.111196,
+    'Return-to-work success metrics': 0.101878,
+    'Program utilization analytics': 0.100793,
+    'Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)': 0.077227,
+    'Business impact/ROI assessment': 0.076737,
+    'Employee satisfaction tracking': 0.075667,
+  },
+  13: {
+    'Family/caregiver communication inclusion': 0.176781,
+    'Employee testimonials/success stories': 0.120722,
+    'Proactive communication at point of diagnosis disclosure': 0.114617,
+    'Anonymous information access options': 0.107793,
+    'Multi-channel communication strategy': 0.104833,
+    'Ability to access program information and resources anonymously': 0.07692,
+    'Dedicated program website or portal': 0.072307,
+    'New hire orientation coverage': 0.058091,
+    'Regular company-wide awareness campaigns (at least quarterly)': 0.056844,
+    'Manager toolkit for cascade communications': 0.056627,
+    'Cancer awareness month campaigns with resources': 0.054464,
+  },
+};
 const DIMENSIONS: Record<number, DimensionData> = {
   1: {
-    name: "Medical Leave & Flexible Work",
+    name: "Medical Leave & Flexibility",
     weight: 7,
     elements: 13,
     cvR2: -0.131,
@@ -280,7 +1115,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   3: {
-    name: "Manager Preparedness",
+    name: "Manager Preparedness & Capability",
     weight: 12,
     elements: 10,
     cvR2: 0.156,
@@ -375,7 +1210,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   4: {
-    name: "Treatment & Navigation",
+    name: "Cancer Support Resources",
     weight: 14,
     elements: 10,
     cvR2: 0.419,
@@ -573,7 +1408,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   6: {
-    name: "Culture & Stigma",
+    name: "Culture & Psychological Safety",
     weight: 8,
     elements: 12,
     cvR2: 0.361,
@@ -684,7 +1519,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   7: {
-    name: "Career Continuity",
+    name: "Career Continuity & Advancement",
     weight: 4,
     elements: 9,
     cvR2: 0.33,
@@ -771,7 +1606,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   8: {
-    name: "Treatment Support & Reintegration",
+    name: "Work Continuation & Resumption",
     weight: 13,
     elements: 12,
     cvR2: 0.53,
@@ -882,7 +1717,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   9: {
-    name: "Leadership & Accountability",
+    name: "Executive Commitment & Resources",
     weight: 4,
     elements: 12,
     cvR2: 0.136,
@@ -993,7 +1828,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   10: {
-    name: "Caregiver Support",
+    name: "Caregiver & Family Support",
     weight: 4,
     elements: 20,
     cvR2: -0.063,
@@ -1168,7 +2003,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   11: {
-    name: "Prevention & Early Detection",
+    name: "Prevention & Wellness",
     weight: 3,
     elements: 13,
     cvR2: 0.473,
@@ -1287,7 +2122,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
     ]
   },
   12: {
-    name: "Measurement & Outcomes",
+    name: "Continuous Improvement",
     weight: 3,
     elements: 9,
     cvR2: 0.12,
@@ -1478,38 +2313,8 @@ const DIMENSIONS: Record<number, DimensionData> = {
   }
 };
 
-const COMPANIES = ['Merck', 'Best Buy', 'Google (Alphabet)', 'Blood Cancer United', 'Sanofi', 'Pfizer', 'Publicis', 'AbbVie', 'Memorial Sloan Kettering', 'Marriott International', 'Haymarket', 'Lloyds Bank (Group)', 'Nestlé', 'Stellantis', 'Citi', 'Maven Search Corp', 'ICBC-AXA Life', 'Renault Group', 'Schneider Electric', 'Ford Otosan', "L'Oréal", 'Inspire Brands'];
-
-type ScoreEntry = { eqC: number; wtC: number; dims: Record<number, { eq: number; wt: number }> };
-
-const SCORES: Record<string, ScoreEntry> = {
-  'Benchmark': { eqC: 71, wtC: 72, dims: { 1:{eq:74,wt:78},2:{eq:60,wt:62},3:{eq:66,wt:68},4:{eq:73,wt:75},5:{eq:85,wt:88},6:{eq:83,wt:84},7:{eq:55,wt:57},8:{eq:81,wt:81},9:{eq:55,wt:60},10:{eq:60,wt:62},11:{eq:79,wt:76},12:{eq:68,wt:70},13:{eq:81,wt:81} } },
-  'Merck': { eqC: 86, wtC: 90, dims: { 1:{eq:82,wt:87},2:{eq:85,wt:90},3:{eq:76,wt:85},4:{eq:93,wt:95},5:{eq:91,wt:95},6:{eq:100,wt:100},7:{eq:80,wt:84},8:{eq:82,wt:84},9:{eq:67,wt:73},10:{eq:82,wt:86},11:{eq:100,wt:100},12:{eq:73,wt:78},13:{eq:93,wt:97} } },
-  'Best Buy': { eqC: 85, wtC: 88, dims: { 1:{eq:90,wt:92},2:{eq:72,wt:80},3:{eq:73,wt:80},4:{eq:88,wt:91},5:{eq:91,wt:95},6:{eq:95,wt:93},7:{eq:100,wt:100},8:{eq:82,wt:83},9:{eq:44,wt:52},10:{eq:82,wt:86},11:{eq:90,wt:92},12:{eq:100,wt:100},13:{eq:100,wt:100} } },
-  'Google (Alphabet)': { eqC: 85, wtC: 88, dims: { 1:{eq:100,wt:100},2:{eq:59,wt:59},3:{eq:100,wt:100},4:{eq:84,wt:87},5:{eq:100,wt:100},6:{eq:100,wt:100},7:{eq:100,wt:100},8:{eq:80,wt:87},9:{eq:86,wt:90},10:{eq:76,wt:82},11:{eq:100,wt:100},12:{eq:93,wt:95},13:{eq:65,wt:70} } },
-  'Blood Cancer United': { eqC: 86, wtC: 87, dims: { 1:{eq:90,wt:93},2:{eq:75,wt:82},3:{eq:80,wt:87},4:{eq:96,wt:97},5:{eq:91,wt:94},6:{eq:86,wt:88},7:{eq:0,wt:0},8:{eq:100,wt:100},9:{eq:100,wt:100},10:{eq:73,wt:72},11:{eq:60,wt:52},12:{eq:100,wt:100},13:{eq:100,wt:100} } },
-  'Sanofi': { eqC: 81, wtC: 86, dims: { 1:{eq:100,wt:100},2:{eq:100,wt:100},3:{eq:74,wt:86},4:{eq:80,wt:85},5:{eq:95,wt:94},6:{eq:89,wt:92},7:{eq:67,wt:75},8:{eq:82,wt:79},9:{eq:40,wt:57},10:{eq:76,wt:81},11:{eq:96,wt:92},12:{eq:33,wt:43},13:{eq:78,wt:88} } },
-  'Pfizer': { eqC: 82, wtC: 85, dims: { 1:{eq:73,wt:81},2:{eq:87,wt:88},3:{eq:60,wt:74},4:{eq:100,wt:100},5:{eq:73,wt:77},6:{eq:92,wt:95},7:{eq:33,wt:39},8:{eq:83,wt:81},9:{eq:70,wt:78},10:{eq:74,wt:79},11:{eq:92,wt:83},12:{eq:86,wt:92},13:{eq:100,wt:100} } },
-  'Publicis': { eqC: 82, wtC: 84, dims: { 1:{eq:82,wt:87},2:{eq:91,wt:94},3:{eq:64,wt:62},4:{eq:80,wt:84},5:{eq:76,wt:83},6:{eq:92,wt:95},7:{eq:73,wt:78},8:{eq:95,wt:91},9:{eq:73,wt:80},10:{eq:58,wt:65},11:{eq:72,wt:76},12:{eq:71,wt:76},13:{eq:100,wt:100} } },
-  'AbbVie': { eqC: 78, wtC: 82, dims: { 1:{eq:83,wt:88},2:{eq:64,wt:71},3:{eq:74,wt:76},4:{eq:94,wt:95},5:{eq:85,wt:90},6:{eq:82,wt:85},7:{eq:67,wt:67},8:{eq:65,wt:71},9:{eq:38,wt:49},10:{eq:81,wt:80},11:{eq:91,wt:94},12:{eq:76,wt:80},13:{eq:100,wt:100} } },
-  'Memorial Sloan Kettering': { eqC: 80, wtC: 81, dims: { 1:{eq:70,wt:72},2:{eq:88,wt:92},3:{eq:68,wt:73},4:{eq:100,wt:100},5:{eq:73,wt:81},6:{eq:83,wt:75},7:{eq:33,wt:38},8:{eq:92,wt:95},9:{eq:49,wt:53},10:{eq:63,wt:70},11:{eq:100,wt:100},12:{eq:65,wt:54},13:{eq:84,wt:78} } },
-  'Marriott International': { eqC: 79, wtC: 80, dims: { 1:{eq:75,wt:81},2:{eq:64,wt:67},3:{eq:73,wt:66},4:{eq:100,wt:100},5:{eq:100,wt:100},6:{eq:73,wt:75},7:{eq:73,wt:72},8:{eq:84,wt:84},9:{eq:63,wt:69},10:{eq:44,wt:45},11:{eq:91,wt:94},12:{eq:70,wt:68},13:{eq:83,wt:90} } },
-  'Haymarket': { eqC: 76, wtC: 79, dims: { 1:{eq:91,wt:94},2:{eq:61,wt:66},3:{eq:84,wt:79},4:{eq:60,wt:66},5:{eq:91,wt:95},6:{eq:85,wt:84},7:{eq:85,wt:90},8:{eq:85,wt:86},9:{eq:64,wt:70},10:{eq:58,wt:60},11:{eq:63,wt:70},12:{eq:50,wt:53},13:{eq:87,wt:89} } },
-  'Lloyds Bank (Group)': { eqC: 76, wtC: 78, dims: { 1:{eq:82,wt:87},2:{eq:44,wt:36},3:{eq:88,wt:93},4:{eq:75,wt:81},5:{eq:91,wt:95},6:{eq:83,wt:88},7:{eq:71,wt:77},8:{eq:95,wt:91},9:{eq:53,wt:59},10:{eq:55,wt:60},11:{eq:68,wt:70},12:{eq:45,wt:51},13:{eq:87,wt:88} } },
-  'Nestlé': { eqC: 73, wtC: 76, dims: { 1:{eq:90,wt:90},2:{eq:65,wt:64},3:{eq:66,wt:76},4:{eq:42,wt:47},5:{eq:86,wt:92},6:{eq:93,wt:93},7:{eq:76,wt:77},8:{eq:95,wt:97},9:{eq:54,wt:63},10:{eq:49,wt:47},11:{eq:92,wt:95},12:{eq:49,wt:54},13:{eq:85,wt:86} } },
-  'Stellantis': { eqC: 69, wtC: 73, dims: { 1:{eq:73,wt:81},2:{eq:69,wt:78},3:{eq:56,wt:69},4:{eq:50,wt:48},5:{eq:91,wt:91},6:{eq:91,wt:95},7:{eq:40,wt:45},8:{eq:64,wt:69},9:{eq:78,wt:85},10:{eq:50,wt:54},11:{eq:92,wt:88},12:{eq:100,wt:100},13:{eq:82,wt:82} } },
-  'Citi': { eqC: 72, wtC: 73, dims: { 1:{eq:31,wt:36},2:{eq:65,wt:76},3:{eq:55,wt:49},4:{eq:80,wt:84},5:{eq:100,wt:100},6:{eq:100,wt:100},7:{eq:0,wt:0},8:{eq:100,wt:100},9:{eq:0,wt:0},10:{eq:71,wt:72},11:{eq:91,wt:80},12:{eq:88,wt:85},13:{eq:89,wt:84} } },
-  'Maven Search Corp': { eqC: 69, wtC: 69, dims: { 1:{eq:100,wt:100},2:{eq:54,wt:61},3:{eq:60,wt:61},4:{eq:72,wt:74},5:{eq:73,wt:78},6:{eq:58,wt:52},7:{eq:82,wt:86},8:{eq:82,wt:80},9:{eq:55,wt:61},10:{eq:67,wt:66},11:{eq:58,wt:58},12:{eq:53,wt:54},13:{eq:64,wt:61} } },
-  'ICBC-AXA Life': { eqC: 69, wtC: 69, dims: { 1:{eq:100,wt:100},2:{eq:0,wt:0},3:{eq:0,wt:0},4:{eq:100,wt:100},5:{eq:100,wt:100},6:{eq:100,wt:100},7:{eq:0,wt:0},8:{eq:100,wt:100},9:{eq:0,wt:0},10:{eq:100,wt:100},11:{eq:100,wt:100},12:{eq:100,wt:100},13:{eq:100,wt:100} } },
-  'Renault Group': { eqC: 71, wtC: 69, dims: { 1:{eq:60,wt:65},2:{eq:38,wt:30},3:{eq:83,wt:68},4:{eq:78,wt:82},5:{eq:100,wt:100},6:{eq:84,wt:91},7:{eq:58,wt:56},8:{eq:63,wt:63},9:{eq:83,wt:78},10:{eq:21,wt:26},11:{eq:75,wt:61},12:{eq:78,wt:85},13:{eq:90,wt:78} } },
-  'Schneider Electric': { eqC: 62, wtC: 60, dims: { 1:{eq:30,wt:29},2:{eq:41,wt:32},3:{eq:58,wt:58},4:{eq:60,wt:59},5:{eq:93,wt:93},6:{eq:90,wt:88},7:{eq:50,wt:48},8:{eq:60,wt:60},9:{eq:84,wt:83},10:{eq:38,wt:40},11:{eq:49,wt:31},12:{eq:60,wt:71},13:{eq:86,wt:83} } },
-  'Ford Otosan': { eqC: 55, wtC: 56, dims: { 1:{eq:67,wt:73},2:{eq:60,wt:58},3:{eq:40,wt:43},4:{eq:22,wt:23},5:{eq:76,wt:78},6:{eq:33,wt:35},7:{eq:68,wt:69},8:{eq:73,wt:73},9:{eq:80,wt:84},10:{eq:51,wt:48},11:{eq:85,wt:83},12:{eq:58,wt:54},13:{eq:66,wt:66} } },
-  "L'Oréal": { eqC: 47, wtC: 47, dims: { 1:{eq:36,wt:37},2:{eq:6,wt:4},3:{eq:100,wt:100},4:{eq:10,wt:9},5:{eq:27,wt:37},6:{eq:100,wt:100},7:{eq:51,wt:51},8:{eq:87,wt:82},9:{eq:27,wt:32},10:{eq:26,wt:22},11:{eq:38,wt:35},12:{eq:20,wt:18},13:{eq:33,wt:37} } },
-  'Inspire Brands': { eqC: 26, wtC: 24, dims: { 1:{eq:33,wt:35},2:{eq:35,wt:34},3:{eq:10,wt:7},4:{eq:50,wt:48},5:{eq:64,wt:68},6:{eq:17,wt:13},7:{eq:0,wt:0},8:{eq:25,wt:19},9:{eq:8,wt:5},10:{eq:20,wt:16},11:{eq:31,wt:19},12:{eq:22,wt:23},13:{eq:0,wt:0} } }
-};
-
 // ============================================
-// HELPERS
+// HELPERS & ICONS
 // ============================================
 
 function getSig(c: number): { label: string; color: string; bg: string; border: string } {
@@ -1526,49 +2331,19 @@ function stabColor(s: number): string {
   return '#6B7280';
 }
 
-function getScoreColor(score: number): string {
-  if (score >= 90) return '#065F46';
-  if (score >= 75) return '#047857';
-  if (score >= 60) return '#1E40AF';
-  if (score >= 40) return '#92400E';
-  if (score >= 20) return '#9A3412';
-  return '#991B1B';
-}
+// getScoreColor defined in scoring functions above
 
-// Custom SVG Icons
-function IconScale() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><path d="M3 7l4-4h10l4 4"/><circle cx="7" cy="14" r="3"/><circle cx="17" cy="14" r="3"/><path d="M7 11V7"/><path d="M17 11V7"/></svg>);
-}
-function IconTarget() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>);
-}
-function IconShield() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>);
-}
-function IconChart() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/></svg>);
-}
-function IconLayers() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>);
-}
-function IconRefresh() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>);
-}
-function IconGrid() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>);
-}
-function IconTrendUp() {
-  return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>);
-}
-function IconCheck() {
-  return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>);
-}
-function IconChevron({ open }: { open: boolean }) {
-  return (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>);
-}
-function PipelineArrow() {
-  return (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 flex-shrink-0 mx-1"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>);
-}
+function IconScale() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><path d="M3 7l4-4h10l4 4"/><circle cx="7" cy="14" r="3"/><circle cx="17" cy="14" r="3"/><path d="M7 11V7"/><path d="M17 11V7"/></svg>); }
+function IconTarget() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>); }
+function IconShield() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>); }
+function IconChart() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/></svg>); }
+function IconLayers() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>); }
+function IconRefresh() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>); }
+function IconGrid() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>); }
+function IconTrendUp() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>); }
+function IconCheck() { return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>); }
+function IconChevron({ open }: { open: boolean }) { return (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${open ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9"/></svg>); }
+function PipelineArrow() { return (<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400 flex-shrink-0 mx-1"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>); }
 
 // ============================================
 // PAGE COMPONENT
@@ -1577,6 +2352,57 @@ function PipelineArrow() {
 export default function ElementWeightingPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'statistical' | 'weights' | 'scoring'>('overview');
   const [expandedDim, setExpandedDim] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState<CompanyComparison[]>([]);
+  const [includePanel, setIncludePanel] = useState(false);
+
+  // Load assessments from Supabase
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('assessments')
+          .select('*')
+          .order('company_name', { ascending: true });
+        if (error) throw error;
+        const valid = (data || []).filter(a => {
+          for (let i = 1; i <= 13; i++) {
+            const dd = a[`dimension${i}_data`];
+            if (dd && typeof dd === 'object') {
+              const grid = dd[`d${i}a`];
+              if (grid && Object.keys(grid).length > 0) return true;
+            }
+          }
+          return false;
+        });
+        setCompanies(valid.map(a => calculateCompanyComparison(a)));
+      } catch (err) {
+        console.error('Error loading assessments:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const filteredCompanies = useMemo(() => {
+    let list = companies.filter(c => c.isComplete);
+    if (!includePanel) list = list.filter(c => !c.isPanel);
+    return list.sort((a, b) => b.eqComposite - a.eqComposite);
+  }, [companies, includePanel]);
+
+  const benchmark = useMemo(() => {
+    if (filteredCompanies.length === 0) return null;
+    const dims: Record<number, { eq: number; wt: number }> = {};
+    for (let i = 1; i <= 13; i++) {
+      const eqs = filteredCompanies.map(c => c.dims[i]?.eq || 0);
+      const wts = filteredCompanies.map(c => c.dims[i]?.wt || 0);
+      dims[i] = { eq: Math.round(eqs.reduce((a, b) => a + b, 0) / eqs.length), wt: Math.round(wts.reduce((a, b) => a + b, 0) / wts.length) };
+    }
+    const eqC = Math.round(filteredCompanies.reduce((s, c) => s + c.eqComposite, 0) / filteredCompanies.length);
+    const wtC = Math.round(filteredCompanies.reduce((s, c) => s + c.wtComposite, 0) / filteredCompanies.length);
+    return { dims, eqC, wtC };
+  }, [filteredCompanies]);
 
   const tabs = [
     { key: 'overview' as const, label: 'Executive Overview', icon: <IconTarget /> },
@@ -1592,9 +2418,7 @@ export default function ElementWeightingPage() {
         <div className="max-w-[1400px] mx-auto px-8 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="bg-white rounded-lg px-3 py-2">
-                <img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-9" />
-              </div>
+              <div className="bg-white rounded-lg px-3 py-2"><img src="/BI_LOGO_FINAL.png" alt="Beyond Insights" className="h-9" /></div>
               <div className="border-l border-slate-700 pl-6">
                 <h1 className="text-lg font-semibold text-white">Element Weighting</h1>
                 <p className="text-sm text-slate-400">Best Companies for Working with Cancer Index — 2026</p>
@@ -1613,15 +2437,10 @@ export default function ElementWeightingPage() {
         <div className="max-w-[1400px] mx-auto px-8">
           <div className="flex">
             {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                 className={`flex items-center gap-2 px-6 py-3.5 text-sm font-semibold border-b-2 transition-colors ${
-                  activeTab === tab.key
-                    ? 'border-violet-600 text-slate-900'
-                    : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                }`}
-              >
+                  activeTab === tab.key ? 'border-violet-600 text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                }`}>
                 <span className={activeTab === tab.key ? 'text-violet-600' : 'text-slate-400'}>{tab.icon}</span>
                 {tab.label}
               </button>
@@ -1990,7 +2809,7 @@ export default function ElementWeightingPage() {
                   {[
                     { title: 'Bootstrap Stability', detail: '200 resamples', color: 'bg-slate-700' },
                     { title: 'Soft Attenuation', detail: 'w \u00d7 s(j)^1.5', color: 'bg-slate-600' },
-                    { title: 'Adaptive \u03b1 Blend', detail: 'CV R\u00b2 \u2192 \u03b1', color: 'bg-slate-600' },
+                    { title: 'Adaptive \u03b1 Blend', detail: 'Signal 2192 03b1', color: 'bg-slate-600' },
                     { title: '20% Hard Cap', detail: 'Redistribute excess', color: 'bg-slate-800' },
                   ].map((s, i) => (
                     <div key={i} className="relative">
@@ -2066,7 +2885,7 @@ export default function ElementWeightingPage() {
                         <span className="text-xs font-bold text-amber-700 uppercase tracking-wider">Emerging Signal</span>
                         <span className="text-xl font-bold text-amber-800">\u03b1 = 0.30</span>
                       </div>
-                      <p className="text-sm font-mono text-amber-700 mb-2">CV R\u00b2 &lt; 0</p>
+                      <p className="text-sm font-mono text-amber-700 mb-2">Emerging signal</p>
                       <p className="text-sm text-amber-800 leading-relaxed">30% empirical, 70% equal. Anchor heavily toward the expert framework while allowing modest differentiation.</p>
                     </div>
                   </div>
@@ -2076,7 +2895,7 @@ export default function ElementWeightingPage() {
                         <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider">Developing Signal</span>
                         <span className="text-xl font-bold text-indigo-800">\u03b1 = 0.40</span>
                       </div>
-                      <p className="text-sm font-mono text-indigo-700 mb-2">0 \u2264 CV R\u00b2 &lt; 0.10</p>
+                      <p className="text-sm font-mono text-indigo-700 mb-2">0 \u2264 Emerging signal.10</p>
                       <p className="text-sm text-indigo-800 leading-relaxed">40% empirical, 60% equal. Lean toward equal but allow more differentiation.</p>
                     </div>
                   </div>
@@ -2086,7 +2905,7 @@ export default function ElementWeightingPage() {
                         <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">Established Signal</span>
                         <span className="text-xl font-bold text-emerald-800">\u03b1 = 0.50</span>
                       </div>
-                      <p className="text-sm font-mono text-emerald-700 mb-2">CV R\u00b2 \u2265 0.10</p>
+                      <p className="text-sm font-mono text-emerald-700 mb-2">Established signal</p>
                       <p className="text-sm text-emerald-800 leading-relaxed">50% empirical, 50% equal. Balanced blend of empirical and equal.</p>
                     </div>
                   </div>
@@ -2108,7 +2927,6 @@ export default function ElementWeightingPage() {
                       <th className="px-5 py-3 text-left font-semibold">Dimension</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Wt</th>
                       <th className="px-4 py-3 text-center font-semibold w-16">Elem</th>
-                      <th className="px-4 py-3 text-center font-semibold w-24">CV R\u00b2</th>
                       <th className="px-4 py-3 text-center font-semibold w-24">Signal</th>
                       <th className="px-4 py-3 text-center font-semibold w-14">\u03b1</th>
                       <th className="px-4 py-3 text-left font-semibold">Top 3 Elements</th>
@@ -2129,8 +2947,6 @@ export default function ElementWeightingPage() {
                           <td className="px-4 py-3 text-center text-slate-700 font-medium">{dim.weight}%</td>
                           <td className="px-4 py-3 text-center text-slate-600">{dim.elements}</td>
                           <td className="px-4 py-3 text-center">
-                            <span className={`font-mono font-bold ${dim.cvR2 < 0 ? 'text-amber-700' : dim.cvR2 >= 0.30 ? 'text-emerald-700' : 'text-slate-700'}`}>
-                              {dim.cvR2 >= 0 ? '+' : ''}{dim.cvR2.toFixed(3)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-center">
@@ -2146,7 +2962,6 @@ export default function ElementWeightingPage() {
               </div>
               <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
                 <div className="flex items-center gap-6 text-xs text-slate-600">
-                  <span><strong className="text-slate-700">CV R\u00b2</strong> = 5-fold cross-validated R\u00b2 (out-of-sample predictive power)</span>
                   <span><strong className="text-slate-700">\u03b1</strong> = empirical share in final blend (1 \u2212 \u03b1 = equal weight share)</span>
                 </div>
               </div>
@@ -2200,10 +3015,8 @@ export default function ElementWeightingPage() {
 
               return (
                 <div key={d} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                  <button
-                    onClick={() => setExpandedDim(isExpanded ? null : d)}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                  >
+                  <button onClick={() => setExpandedDim(isExpanded ? null : d)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-4">
                       <span className="w-10 h-10 rounded-lg bg-slate-800 text-white text-sm font-bold flex items-center justify-center">{d}</span>
                       <div className="text-left">
@@ -2212,7 +3025,6 @@ export default function ElementWeightingPage() {
                           <span className="text-slate-600 font-medium">{dim.elements} elements</span>
                           <span className="text-slate-600 font-medium">{dim.weight}% dim wt</span>
                           <span className={`font-bold px-2 py-0.5 rounded-full ${sig.bg} border ${sig.border}`} style={{ color: sig.color }}>
-                            CV R² = {dim.cvR2 >= 0 ? '+' : ''}{dim.cvR2.toFixed(3)}
                           </span>
                           <span className="text-slate-600 font-medium">α = {dim.alpha.toFixed(2)}</span>
                         </div>
@@ -2240,9 +3052,7 @@ export default function ElementWeightingPage() {
                               <td className="pl-6 pr-2 py-2.5 text-slate-500 text-xs font-medium">{item.rank}</td>
                               <td className="px-3 py-2.5 text-slate-800">{item.name}</td>
                               <td className="px-3 py-2.5 text-right text-slate-500 tabular-nums">{(item.equal * 100).toFixed(1)}%</td>
-                              <td className="px-3 py-2.5 text-right tabular-nums">
-                                <span className="font-bold text-slate-900">{(item.weight * 100).toFixed(1)}%</span>
-                              </td>
+                              <td className="px-3 py-2.5 text-right tabular-nums"><span className="font-bold text-slate-900">{(item.weight * 100).toFixed(1)}%</span></td>
                               <td className="px-3 py-2.5 text-right tabular-nums">
                                 <span className={`text-xs font-bold ${item.delta >= 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
                                   {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}%
@@ -2276,114 +3086,139 @@ export default function ElementWeightingPage() {
           </div>
         )}
 
-        {/* ===== TAB 4: SCORE COMPARISON — 22 real companies ===== */}
+        {/* ===== TAB 4: SCORE COMPARISON — LIVE FROM SUPABASE ===== */}
         {activeTab === 'scoring' && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
-              <p className="text-slate-600 text-sm">Equal-weight vs. element-weighted scores across all 22 participating organizations. Only within-dimension element weighting differs.</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Score Comparison</h2>
+                <p className="text-slate-600 text-sm">Equal-weight vs. element-weighted scores calculated live from assessment data. Only within-dimension element weighting differs.</p>
+              </div>
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+                <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
+                Include Panel
+              </label>
             </div>
 
-            {/* Legend */}
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-white border-2 border-slate-300" />
-                <span className="text-slate-700 text-sm font-medium">Equal Weight</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-emerald-600" />
-                <span className="text-slate-700 text-sm font-medium">Element-Weighted</span>
-              </div>
-            </div>
+            {loading ? (
+              <div className="text-center py-20 text-slate-500">Loading assessment data...</div>
+            ) : filteredCompanies.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">No complete assessments found.</div>
+            ) : (
+              <>
+                {/* Legend + Stats */}
+                <div className="flex items-center gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-white border-2 border-slate-300" />
+                    <span className="text-slate-700 text-sm font-medium">Equal Weight</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-emerald-600" />
+                    <span className="text-slate-700 text-sm font-medium">Element-Weighted</span>
+                  </div>
+                  <div className="ml-auto flex items-center gap-6">
+                    <div>
+                      <span className="text-2xl font-bold text-emerald-700">{filteredCompanies.filter(c => c.wtComposite > c.eqComposite).length}</span>
+                      <span className="text-sm text-slate-600 ml-1">score higher</span>
+                    </div>
+                    <div>
+                      <span className="text-2xl font-bold text-slate-800">
+                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.wtComposite - c.eqComposite), 0) / filteredCompanies.length).toFixed(1)}
+                      </span>
+                      <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
+                    </div>
+                    <div>
+                      <span className="text-lg font-bold text-slate-700">{filteredCompanies.length}</span>
+                      <span className="text-sm text-slate-600 ml-1">companies</span>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Score Table — tight columns for 22 companies */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs" style={{ tableLayout: 'fixed' }}>
-                  <colgroup>
-                    <col style={{ width: '110px' }} />
-                    <col style={{ width: '44px' }} />
-                    {COMPANIES.map((_, i) => (
-                      <col key={i} style={{ width: '44px' }} />
-                    ))}
-                  </colgroup>
-                  <thead>
-                    <tr className="bg-slate-800 text-white">
-                      <th className="sticky left-0 z-20 bg-slate-800 px-2 py-2.5 text-left font-bold text-xs border-r border-slate-700" />
-                      <th className="px-1 py-2.5 text-center font-bold text-[9px] leading-tight bg-slate-700 border-r border-slate-600">Benchmark</th>
-                      {COMPANIES.map((c, i) => (
-                        <th key={c} className={`px-0.5 py-2.5 text-center font-semibold text-[8px] leading-tight ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                          {c.length > 12 ? c.split(' ').map((w, j) => <span key={j} className="block">{w}</span>) : c}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Composite Section */}
-                    <tr className="bg-slate-200 border-y-2 border-slate-400">
-                      <td colSpan={2 + COMPANIES.length} className="px-2 py-1.5 font-bold text-slate-900 uppercase text-[10px] tracking-wider">Composite Score</td>
-                    </tr>
-                    <tr className="border-b border-slate-200">
-                      <td className="sticky left-0 z-10 bg-white px-2 py-2 text-slate-800 font-semibold text-xs border-r border-slate-100">Equal</td>
-                      <td className="px-1 py-2 text-center font-bold text-slate-800 bg-slate-50 border-r border-slate-100">{SCORES.Benchmark.eqC}</td>
-                      {COMPANIES.map((c, i) => (
-                        <td key={c} className={`px-1 py-2 text-center font-medium text-slate-700 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{SCORES[c]?.eqC}</td>
-                      ))}
-                    </tr>
-                    <tr className="border-b border-slate-200 bg-emerald-50">
-                      <td className="sticky left-0 z-10 bg-emerald-50 px-2 py-2 text-emerald-800 font-bold text-xs border-r border-emerald-100">Weighted</td>
-                      <td className="px-1 py-2 text-center font-bold bg-emerald-100 border-r border-emerald-100" style={{ color: getScoreColor(SCORES.Benchmark.wtC) }}>{SCORES.Benchmark.wtC}</td>
-                      {COMPANIES.map((c, i) => (
-                        <td key={c} className={`px-1 py-2 text-center font-bold ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/50'}`} style={{ color: getScoreColor(SCORES[c]?.wtC || 0) }}>{SCORES[c]?.wtC}</td>
-                      ))}
-                    </tr>
-                    <tr className="border-b-2 border-slate-400 bg-slate-100">
-                      <td className="sticky left-0 z-10 bg-slate-100 px-2 py-1 text-slate-600 text-[10px] font-bold border-r border-slate-200">Δ</td>
-                      <td className="px-1 py-1 text-center text-[10px] font-bold bg-slate-100 border-r border-slate-200">
-                        <span className="text-emerald-700">+{SCORES.Benchmark.wtC - SCORES.Benchmark.eqC}</span>
-                      </td>
-                      {COMPANIES.map((c) => {
-                        const delta = (SCORES[c]?.wtC || 0) - (SCORES[c]?.eqC || 0);
-                        return (
-                          <td key={c} className="px-1 py-1 text-center text-[10px] font-bold">
-                            <span className={delta > 0 ? 'text-emerald-700' : delta < 0 ? 'text-red-700' : 'text-slate-400'}>
-                              {delta > 0 ? '+' : ''}{delta}
-                            </span>
-                          </td>
-                        );
-                      })}
-                    </tr>
-
-                    {/* Dimension Rows */}
-                    {DIMENSION_ORDER.map((dim, idx) => (
-                      <React.Fragment key={dim}>
-                        <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
-                          <td colSpan={2 + COMPANIES.length} className="px-2 py-1 text-[10px] font-bold text-slate-800">
-                            D{dim}: {DIMENSIONS[dim].name} <span className="text-slate-500 font-medium">({DIMENSIONS[dim].weight}%)</span>
-                          </td>
-                        </tr>
-                        <tr className="border-b border-slate-100">
-                          <td className="sticky left-0 z-10 bg-white px-2 py-1 text-slate-600 pl-4 text-[10px] font-medium border-r border-slate-100">Equal</td>
-                          <td className="px-1 py-1 text-center text-slate-600 text-[10px] bg-slate-50/50 border-r border-slate-100">{SCORES.Benchmark.dims[dim]?.eq}</td>
-                          {COMPANIES.map((c, i) => (
-                            <td key={c} className={`px-1 py-1 text-center text-slate-600 text-[10px] ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{SCORES[c]?.dims[dim]?.eq}</td>
+                {/* Score Table */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-slate-800 text-white">
+                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
+                          <th className="px-2 py-3 text-center font-bold text-xs bg-slate-700 border-r border-slate-600 min-w-[65px]">Benchmark</th>
+                          {filteredCompanies.map((c, i) => (
+                            <th key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-xs leading-tight min-w-[60px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
+                              {c.companyName.length > 14
+                                ? c.companyName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
+                                : c.companyName}
+                            </th>
                           ))}
                         </tr>
-                        <tr className="border-b border-slate-100 bg-emerald-50/30">
-                          <td className="sticky left-0 z-10 bg-emerald-50/30 px-2 py-1 text-emerald-800 font-semibold pl-4 text-[10px] border-r border-emerald-100/50">Wt</td>
-                          <td className="px-1 py-1 text-center font-semibold text-[10px] bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(SCORES.Benchmark.dims[dim]?.wt || 0) }}>{SCORES.Benchmark.dims[dim]?.wt}</td>
-                          {COMPANIES.map((c, i) => (
-                            <td key={c} className={`px-1 py-1 text-center text-[10px] font-semibold ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`} style={{ color: getScoreColor(SCORES[c]?.dims[dim]?.wt || 0) }}>
-                              {SCORES[c]?.dims[dim]?.wt}
-                            </td>
+                      </thead>
+                      <tbody>
+                        {/* Composite */}
+                        <tr className="bg-slate-200 border-y-2 border-slate-400">
+                          <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
+                        </tr>
+                        <tr className="border-b border-slate-200">
+                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Equal</td>
+                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{benchmark?.eqC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.eqComposite}</td>
                           ))}
                         </tr>
-                      </React.Fragment>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                        <tr className="border-b border-slate-200 bg-emerald-50">
+                          <td className="sticky left-0 z-10 bg-emerald-50 px-3 py-3 text-emerald-800 font-bold text-sm border-r border-emerald-100">Weighted</td>
+                          <td className="px-2 py-2.5 text-center font-bold bg-emerald-100 border-r border-emerald-100" style={{ color: getScoreColor(benchmark?.wtC || 0) }}>{benchmark?.wtC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-emerald-50' : 'bg-emerald-50/50'}`} style={{ color: getScoreColor(c.wtComposite) }}>{c.wtComposite}</td>
+                          ))}
+                        </tr>
+                        <tr className="border-b-2 border-slate-400 bg-slate-100">
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">Δ</td>
+                          <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
+                            {benchmark && <span className={(benchmark.wtC - benchmark.eqC) >= 0 ? 'text-emerald-700' : 'text-red-700'}>{(benchmark.wtC - benchmark.eqC) >= 0 ? '+' : ''}{benchmark.wtC - benchmark.eqC}</span>}
+                          </td>
+                          {filteredCompanies.map((c) => {
+                            const d = c.wtComposite - c.eqComposite;
+                            return (
+                              <td key={c.surveyId} className="px-1 py-1.5 text-center text-xs font-bold">
+                                <span className={d > 0 ? 'text-emerald-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
+                                  {d > 0 ? '+' : ''}{d}
+                                </span>
+                              </td>
+                            );
+                          })}
+                        </tr>
+
+                        {/* Dimension Rows */}
+                        {DIMENSION_ORDER.map((dim, idx) => (
+                          <React.Fragment key={dim}>
+                            <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
+                              <td colSpan={2 + filteredCompanies.length} className="px-3 py-1 text-xs font-bold text-slate-800">
+                                D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
+                              </td>
+                            </tr>
+                            <tr className="border-b border-slate-100">
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Equal</td>
+                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.eq}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
+                              ))}
+                            </tr>
+                            <tr className="border-b border-slate-100 bg-emerald-50/30">
+                              <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-800 font-semibold pl-4 text-xs border-r border-emerald-100/50">Wt</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.wt || 0) }}>{benchmark?.dims[dim]?.wt}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.wt || 0) }}>
+                                  {c.dims[dim]?.wt}
+                                </td>
+                              ))}
+                            </tr>
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
