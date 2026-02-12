@@ -1,13 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase/client';
 
-function IconShield() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>); }
-function IconTarget() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>); }
-function IconChart() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/></svg>); }
-function IconGrid() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>); }
-function IconAlertTriangle() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>); }
+const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
+const INSUFFICIENT_DATA_THRESHOLD = 0.40;
+
+const D10_EXCLUDED_ITEMS = [
+  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
+];
+
+const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
+  4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
+};
+
+const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, depth: 0, maturity: 5, breadth: 5 };
+const DEFAULT_BLEND_WEIGHTS = {
+  d1: { grid: 85, followUp: 15 }, d3: { grid: 85, followUp: 15 },
+  d12: { grid: 85, followUp: 15 }, d13: { grid: 85, followUp: 15 },
+};
 
 const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility', 2: 'Insurance & Financial Protection',
@@ -19,56 +31,719 @@ const DIMENSION_NAMES: Record<number, string> = {
   13: 'Communication & Awareness',
 };
 
-interface Company {
-  name: string; status: string; rankEligible: boolean;
-  unsurePct: number; maxDimUnsure: number; composite: number;
-  flags: string; dims: number[];
+const DIMENSION_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+
+// ============================================
+
+function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
+  if (typeof status === 'number') {
+    switch (status) {
+      case 4: return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+      case 3: return { points: POINTS.PLANNING, isUnsure: false };
+      case 2: return { points: POINTS.ASSESSING, isUnsure: false };
+      case 1: return { points: POINTS.NOT_ABLE, isUnsure: false };
+      case 5: return { points: null, isUnsure: true };
+      default: return { points: null, isUnsure: false };
+    }
+  }
+  if (typeof status === 'string') {
+    const s = status.toLowerCase().trim();
+    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
+    // Handle both "Unsure" and "Unknown (5)" as unsure responses
+    if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
+      return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+    }
+    if (s.includes('planning') || s.includes('development')) return { points: POINTS.PLANNING, isUnsure: false };
+    if (s.includes('assessing') || s.includes('feasibility')) return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s.length > 0) return { points: POINTS.NOT_ABLE, isUnsure: false };
+  }
+  return { points: null, isUnsure: false };
 }
 
-const COMPANIES: Company[] = [
-  { name: 'Merck', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 4.6, maxDimUnsure: 33.3, composite: 82.6, flags: '-', dims: [81.8, 84.7, 76.0, 89.1, 90.9, 100.0, 61.4, 76.0, 67.3, 80.4, 100.0, 72.5, 93.3] },
-  { name: 'Google (Alphabet)', status: 'Scored (Provisional - verify)', rankEligible: false, unsurePct: 15.1, maxDimUnsure: 44.4, composite: 79.2, flags: 'D7 44%', dims: [89.7, 57.1, 79.1, 84.0, 96.5, 96.8, 63.0, 74.3, 62.5, 72.8, 96.7, 92.5, 64.0] },
-  { name: 'Publicis', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 0.0, maxDimUnsure: 0.0, composite: 79.0, flags: '-', dims: [81.8, 90.6, 64.0, 80.0, 76.4, 91.7, 73.3, 95.0, 76.4, 57.9, 72.3, 67.5, 100.0] },
-  { name: 'Pfizer', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 3.3, maxDimUnsure: 12.5, composite: 77.3, flags: '-', dims: [72.7, 81.8, 60.0, 95.1, 72.7, 91.7, 33.3, 83.3, 67.7, 73.7, 92.3, 80.7, 100.0] },
-  { name: 'AbbVie', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 1.3, maxDimUnsure: 15.4, composite: 76.6, flags: '-', dims: [90.9, 63.5, 74.0, 94.0, 85.5, 81.7, 66.7, 65.0, 38.2, 80.0, 84.3, 72.5, 100.0] },
-  { name: 'Haymarket', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 1.3, maxDimUnsure: 11.1, composite: 73.6, flags: '-', dims: [90.9, 61.2, 84.0, 60.0, 90.9, 85.0, 80.3, 82.9, 63.6, 57.9, 63.1, 50.0, 86.7] },
-  { name: 'Memorial Sloan Kettering', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 7.9, maxDimUnsure: 36.4, composite: 72.6, flags: '-', dims: [68.5, 85.4, 68.0, 100.0, 69.1, 83.3, 30.3, 91.7, 38.8, 63.2, 96.7, 65.0, 84.4] },
-  { name: 'Marriott International', status: 'Scored (Provisional - verify)', rankEligible: false, unsurePct: 12.5, maxDimUnsure: 45.5, composite: 71.5, flags: 'D9 45%', dims: [76.4, 61.8, 71.0, 95.1, 100.0, 71.8, 69.2, 81.3, 38.2, 41.3, 84.3, 63.2, 76.2] },
-  { name: 'Lloyds Bank (Group)', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 2.0, maxDimUnsure: 20.0, composite: 71.5, flags: '-', dims: [81.8, 44.2, 88.0, 68.0, 90.9, 83.3, 71.1, 95.0, 52.7, 54.7, 67.7, 45.0, 86.7] },
-  { name: 'Best Buy', status: 'Scored (Provisional - resolution required)', rankEligible: false, unsurePct: 21.7, maxDimUnsure: 88.9, composite: 70.2, flags: 'D7 88%', dims: [80.7, 63.2, 53.0, 88.0, 90.9, 91.8, 11.7, 70.9, 37.4, 77.0, 78.3, 93.2, 76.7] },
-  { name: 'Maven Search Corporation', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 3.3, maxDimUnsure: 18.2, composite: 66.3, flags: '-', dims: [89.7, 51.6, 60.0, 72.0, 72.7, 58.3, 82.2, 81.7, 54.5, 68.4, 58.5, 52.5, 60.0] },
-  { name: 'Stellantis', status: 'Scored (Provisional - verify)', rankEligible: false, unsurePct: 19.1, maxDimUnsure: 50.0, composite: 65.3, flags: 'D3 50%; D7 44%', dims: [68.5, 66.5, 35.8, 39.0, 90.9, 88.5, 29.7, 57.6, 62.3, 43.7, 89.0, 100.0, 77.3] },
-  { name: 'Renault Group', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 13.8, maxDimUnsure: 40.0, composite: 64.4, flags: '-', dims: [53.4, 38.3, 59.0, 75.1, 82.7, 73.3, 55.9, 51.4, 87.3, 23.5, 73.6, 75.0, 88.9] },
-  { name: 'Sanofi', status: 'Scored (Provisional - resolution required)', rankEligible: false, unsurePct: 25.0, maxDimUnsure: 52.9, composite: 63.8, flags: 'D2 52%; D4 50%', dims: [82.1, 53.8, 61.1, 47.8, 79.1, 76.7, 52.5, 79.6, 40.4, 72.8, 76.0, 32.5, 75.1] },
-  { name: 'Nestlé', status: 'Scored (Provisional - resolution required)', rankEligible: false, unsurePct: 23.0, maxDimUnsure: 52.9, composite: 61.8, flags: 'D2 52%; D7 44%', dims: [74.8, 37.4, 55.1, 43.1, 64.5, 93.3, 49.7, 73.1, 53.1, 48.8, 79.9, 48.2, 81.8] },
-  { name: 'Schneider Electric', status: 'Scored (Provisional - verify)', rankEligible: false, unsurePct: 17.8, maxDimUnsure: 46.2, composite: 57.0, flags: 'D11 46%', dims: [35.2, 41.2, 54.0, 51.2, 77.3, 83.5, 49.2, 54.3, 67.7, 40.2, 35.1, 67.5, 84.4] },
-  { name: 'Blood Cancer United', status: 'Scored (Provisional - resolution required)', rankEligible: false, unsurePct: 31.6, maxDimUnsure: 100.0, composite: 55.7, flags: 'D6 41%; D7 100%; D8 58%; D9 90%; D12 75%; D13 66%', dims: [89.1, 75.3, 57.0, 96.0, 90.9, 60.0, 0.0, 48.3, 9.5, 71.6, 59.8, 27.8, 38.6] },
-  { name: 'Ford Otosan', status: 'Scored (Provisional - verify)', rankEligible: false, unsurePct: 19.1, maxDimUnsure: 44.4, composite: 53.6, flags: 'D2 41%; D7 44%', dims: [63.6, 43.5, 40.0, 25.1, 76.4, 35.0, 45.3, 58.1, 64.1, 51.1, 79.7, 52.5, 62.2] },
-  { name: 'Citi', status: 'Scored (Provisional - resolution required)', rankEligible: false, unsurePct: 36.8, maxDimUnsure: 100.0, composite: 51.5, flags: 'D3 60%; D6 50%; D7 100%; D8 83%; D9 90%', dims: [25.8, 64.2, 28.0, 80.0, 82.7, 59.2, 0.0, 18.2, 0.4, 61.6, 84.3, 80.7, 84.0] },
-  { name: 'L’Oréal', status: 'Scored (Provisional - resolution required)', rankEligible: false, unsurePct: 15.8, maxDimUnsure: 83.3, composite: 28.3, flags: 'D3 80%; D6 83%; D8 50%', dims: [36.4, 5.9, 22.0, 10.0, 27.3, 18.4, 51.1, 51.6, 27.3, 26.3, 38.5, 20.0, 33.3] },
-  { name: 'Inspire Brands', status: 'Scored (Confirmed)', rankEligible: true, unsurePct: 0.0, maxDimUnsure: 0.0, composite: 24.1, flags: '-', dims: [27.3, 35.3, 10.0, 50.0, 63.6, 16.7, 0.0, 25.0, 9.1, 21.1, 30.8, 25.0, 0.0] },
-  { name: 'ICBC-AXA Life', status: 'Scored (Insufficient confirmation)', rankEligible: false, unsurePct: 80.9, maxDimUnsure: 100.0, composite: 23.0, flags: 'D1 72%; D2 100%; D3 100%; D4 90%; D5 72%; D6 66%; D7 100%; D8 75%; D9 100%; D10 89%; D11 61%; D12 75%', dims: [30.8, 0.0, 0.0, 10.6, 31.3, 38.8, 0.0, 28.1, 0.0, 11.0, 44.5, 27.8, 76.7] },
-];
+function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
+  // Single-country companies (no geo question asked) get 1.0 - question doesn't apply
+  // The geo multiplier measures consistency across locations, which requires multiple locations
+  if (geoResponse === undefined || geoResponse === null) return 1.0;
+  
+  if (typeof geoResponse === 'number') {
+    switch (geoResponse) {
+      case 1: return 0.75;  // Select locations only
+      case 2: return 0.90;  // Varies by location
+      case 3: return 1.0;   // Consistent globally
+      default: return 1.0;  // N/A or unknown
+    }
+  }
+  
+  const s = String(geoResponse).toLowerCase();
+  if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
+  if (s.includes('vary') || s.includes('varies')) return 0.90;
+  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  return 1.0;  // Default to N/A treatment
+}
 
-const BENCHMARKS = [
-  { name: '22 Index Adjusted', composite: 62.2, dims: [67.8, 54.8, 54.5, 66.0, 77.4, 71.8, 44.4, 65.6, 46.3, 54.5, 72.0, 59.6, 74.1] },
-  { name: 'All 43 Adjusted', composite: 57.9, dims: [61.7, 52.4, 56.4, 57.9, 68.5, 68.3, 45.8, 59.7, 45.6, 49.2, 63.2, 57.6, 66.8] },
-];
+// ============================================
+// FOLLOW-UP SCORING FOR WEIGHTED BLEND
+// ============================================
 
-const DISCOUNT_TABLE = [
-  { r: 0.10, label: '10% (1 of 10)', oneMinusR: 0.90, squared: 0.81, perItem: 2.50, total: 2.50, pctMax: 5.0 },
-  { r: 0.20, label: '20% (2 of 10)', oneMinusR: 0.80, squared: 0.64, perItem: 1.98, total: 3.95, pctMax: 7.9 },
-  { r: 0.33, label: '33% (3 of 10)', oneMinusR: 0.67, squared: 0.45, perItem: 1.39, total: 4.16, pctMax: 8.3 },
-  { r: 0.50, label: '50% (5 of 10)', oneMinusR: 0.50, squared: 0.25, perItem: 0.77, total: 3.86, pctMax: 7.7 },
-  { r: 0.80, label: '80% (8 of 10)', oneMinusR: 0.20, squared: 0.04, perItem: 0.12, total: 0.99, pctMax: 2.0 },
-  { r: 1.00, label: '100% (10 of 10)', oneMinusR: 0.00, squared: 0.00, perItem: 0.00, total: 0.00, pctMax: 0.0 },
-];
+function scoreD1PaidLeave(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  // Match actual survey values: "13 or more weeks", "9 to less than 13 weeks", etc.
+  if (v.includes('does not apply')) return 0;
+  if (v.includes('13 or more') || v.includes('13 weeks or more') || v.includes('13+ weeks') || v.includes('more than 13')) return 100;
+  if ((v.includes('9 to') && v.includes('13')) || v.includes('9-13')) return 70;
+  if ((v.includes('5 to') && v.includes('9')) || v.includes('5-9')) return 40;
+  if ((v.includes('3 to') && v.includes('5')) || v.includes('3-5')) return 20;
+  if ((v.includes('1 to') && v.includes('3')) || v.includes('1-3')) return 10;
+  return 0;
+}
+
+function scoreD1PartTime(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  // Match actual survey values: "26 weeks or more", "13 to less than 26 weeks", "12 to less than 26 weeks", etc.
+  if (v.includes('no additional')) return 0;
+  if (v.includes('medically necessary') || v.includes('healthcare provider')) return 100;
+  if (v.includes('26 weeks or more') || v.includes('26+ weeks') || v.includes('26 or more')) return 80;
+  // Handle both "12 to" and "13 to" less than 26 - treat as same tier
+  if ((v.includes('12 to') || v.includes('13 to')) && v.includes('26')) return 50;
+  if ((v.includes('5 to') && v.includes('12')) || (v.includes('5 to') && v.includes('13'))) return 30;
+  if (v.includes('case-by-case')) return 40;
+  if (v.includes('4 weeks') || v.includes('up to 4')) return 10;
+  return 0;
+}
+
+function scoreD3Training(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  // Match actual survey values: "100%", "75 to less than 100%", "10 to less than 25%"
+  // IMPORTANT: Check for exact "less than 10%" first (not "less than 100")
+  if (v.includes('less than 10%') || v === 'less than 10' || v.includes('less than 10 percent')) return 0;
+  if (v === '100%' || v === '100' || v.includes('100% of') || (v.includes('100') && !v.includes('less than'))) return 100;
+  if (v.includes('75') && v.includes('100')) return 80;    // "75 to less than 100%"
+  if (v.includes('50') && v.includes('75')) return 50;     // "50 to less than 75%"
+  if (v.includes('25') && v.includes('50')) return 30;     // "25 to less than 50%"
+  if (v.includes('10') && v.includes('25')) return 10;     // "10 to less than 25%"
+  return 0;
+}
+
+function scoreD12CaseReview(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('systematic')) return 100;
+  if (v.includes('ad hoc')) return 50;
+  if (v.includes('aggregate') || v.includes('only review aggregate')) return 20;
+  return 0;
+}
+
+// D12_2: Have individual employee experiences/reviews led to policy changes?
+function scoreD12PolicyChanges(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('several') || v.includes('significant') || v.includes('major')) return 100;
+  if (v.includes('few') || v.includes('some') || v.includes('minor') || v.includes('adjustments')) return 60;
+  if (v === 'no' || v.includes('no change') || v.includes('not yet')) return 20;
+  return 0;
+}
+
+function scoreD13Communication(value: string | undefined): number {
+  if (!value) return 0;
+  const v = String(value).toLowerCase();
+  if (v.includes('monthly')) return 100;
+  if (v.includes('quarterly')) return 70;
+  if (v.includes('twice')) return 40;
+  if (v.includes('annually') || v.includes('world cancer day')) return 20;
+  if (v.includes('only when asked')) return 0;
+  if (v.includes('do not actively') || v.includes('no regular')) return 0;
+  return 0;
+}
+
+function calculateFollowUpScore(dimNum: number, assessment: Record<string, any>): number | null {
+  const dimData = assessment[`dimension${dimNum}_data`];
+  
+  switch (dimNum) {
+    case 1: {
+      const d1_1_usa = dimData?.d1_1_usa;
+      const d1_1_non_usa = dimData?.d1_1_non_usa;
+      const d1_4b = dimData?.d1_4b;
+      const scores: number[] = [];
+      if (d1_1_usa) scores.push(scoreD1PaidLeave(d1_1_usa));
+      if (d1_1_non_usa) scores.push(scoreD1PaidLeave(d1_1_non_usa));
+      if (d1_4b) scores.push(scoreD1PartTime(d1_4b));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 3: {
+      // Check both key formats: d31 (correct) and d3_1 (legacy migration)
+      const d31 = dimData?.d31 ?? dimData?.d3_1;
+      return d31 ? scoreD3Training(d31) : null;
+    }
+    case 12: {
+      // D12 uses both D12_1 (case review method) and D12_2 (policy changes) - averaged
+      const d12_1 = dimData?.d12_1;
+      const d12_2 = dimData?.d12_2;
+      const scores: number[] = [];
+      if (d12_1) scores.push(scoreD12CaseReview(d12_1));
+      if (d12_2) scores.push(scoreD12PolicyChanges(d12_2));
+      return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    }
+    case 13: {
+      const d13_1 = dimData?.d13_1;
+      return d13_1 ? scoreD13Communication(d13_1) : null;
+    }
+    default:
+      return null;
+  }
+}
+
+// ============================================
+// MATURITY & BREADTH SCORING - FIXED
+// ============================================
+
+// Maturity = OR1 only - FIXED: Legal minimum = 0 points
+function calculateMaturityScore(assessment: Record<string, any>): number {
+  const currentSupport = assessment.current_support_data || {};
+  const or1 = currentSupport.or1;
+  
+  // Handle numeric codes first (from imported data)
+  if (or1 === 6 || or1 === '6') return 100; // Comprehensive/Leading-edge
+  if (or1 === 5 || or1 === '5') return 80;  // Enhanced/Strong
+  if (or1 === 4 || or1 === '4') return 50;  // Moderate
+  if (or1 === 3 || or1 === '3') return 20;  // Developing/Basic
+  if (or1 === 2 || or1 === '2') return 0;   // Legal minimum only
+  if (or1 === 1 || or1 === '1') return 0;   // No formal approach
+  
+  // Fall back to text matching for survey app entries
+  const v = String(or1 || '').toLowerCase();
+  if (v.includes('leading-edge') || v.includes('leading edge')) return 100;
+  if (v.includes('comprehensive')) return 100;
+  if (v.includes('enhanced') || v.includes('strong')) return 80;
+  if (v.includes('moderate')) return 50;
+  if (v.includes('basic')) return 20;
+  if (v.includes('developing')) return 20;
+  if (v.includes('legal minimum')) return 0;
+  if (v.includes('no formal')) return 0;
+  return 0;
+}
+
+function calculateBreadthScore(assessment: Record<string, any>): number {
+  // Check BOTH current_support_data AND general_benefits_data for cb3 fields
+  // Some companies have these in current_support_data, others in general_benefits_data
+  const currentSupport = assessment.current_support_data || {};
+  const generalBenefits = assessment.general_benefits_data || {};
+  
+  const scores: number[] = [];
+  
+  // CB3a: Check both sources, prefer current_support_data if present
+  const cb3a = currentSupport.cb3a ?? generalBenefits.cb3a;
+  
+  // Handle numeric codes first (from imported data)
+  if (cb3a === 3 || cb3a === '3') {
+    scores.push(100); // Yes, we offer additional support
+  } else if (cb3a === 2 || cb3a === '2') {
+    scores.push(50); // Currently developing
+  } else if (cb3a === 1 || cb3a === '1') {
+    scores.push(0); // No additional support
+  } else if (cb3a !== undefined && cb3a !== null) {
+    // Fall back to text matching for survey app entries
+    const v = String(cb3a).toLowerCase();
+    if (v.includes('yes') && v.includes('additional support')) {
+      scores.push(100);
+    } else if (v.includes('developing') || v.includes('currently developing')) {
+      scores.push(50);
+    } else {
+      scores.push(0);
+    }
+  } else {
+    scores.push(0);
+  }
+  
+  // CB3b: Check both sources
+  const cb3b = currentSupport.cb3b || generalBenefits.cb3b;
+  if (cb3b && Array.isArray(cb3b)) {
+    const cb3bScore = Math.min(100, Math.round((cb3b.length / 6) * 100));
+    scores.push(cb3bScore);
+  } else {
+    scores.push(0);
+  }
+  
+  // CB3c: Check both sources
+  const cb3c = currentSupport.cb3c || generalBenefits.cb3c;
+  if (cb3c && Array.isArray(cb3c)) {
+    const cb3cScore = Math.min(100, Math.round((cb3c.length / 13) * 100));
+    scores.push(cb3cScore);
+  } else {
+    scores.push(0);
+  }
+  
+  return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+}
+
+interface DimensionScore {
+  rawScore: number;
+  adjustedScore: number;
+  geoMultiplier: number;
+  totalItems: number;
+  answeredItems: number;
+  unsureCount: number;
+  unsurePercent: number;
+  isInsufficientData: boolean;
+  followUpScore: number | null;
+  blendedScore: number;
+}
+
+function calculateDimensionScore(
+  dimNum: number, 
+  dimData: Record<string, any> | null, 
+  assessment?: Record<string, any>,
+  blendWeights?: typeof DEFAULT_BLEND_WEIGHTS
+): DimensionScore {
+  const result: DimensionScore = {
+    rawScore: 0, adjustedScore: 0, geoMultiplier: 1.0, totalItems: 0,
+    answeredItems: 0, unsureCount: 0, unsurePercent: 0, isInsufficientData: false,
+    followUpScore: null, blendedScore: 0,
+  };
+  if (!dimData) return result;
+  const mainGrid = dimData[`d${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
+  let earnedPoints = 0;
+  
+  // Process grid items, excluding D10 items that weren't in original survey
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    // Skip excluded D10 items for Year 1 scoring fairness
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) {
+      return; // Skip this item entirely
+    }
+    
+    result.totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
+    if (isUnsure) { result.unsureCount++; result.answeredItems++; }
+    else if (points !== null) { result.answeredItems++; earnedPoints += points; }
+  });
+  
+  result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
+  result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
+  const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
+  if (maxPoints > 0) result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  result.geoMultiplier = getGeoMultiplier(geoResponse);
+  result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
+  
+  // Apply weighted blend for D1, D3, D12, D13
+  if (assessment && [1, 3, 12, 13].includes(dimNum) && blendWeights) {
+    result.followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (result.followUpScore !== null) {
+      const key = `d${dimNum}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+      const gridPct = blendWeights[key]?.grid ?? 85;
+      const followUpPct = blendWeights[key]?.followUp ?? 15;
+      result.blendedScore = Math.round((result.adjustedScore * (gridPct / 100)) + (result.followUpScore * (followUpPct / 100)));
+    } else {
+      result.blendedScore = result.adjustedScore;
+    }
+  } else {
+    result.blendedScore = result.adjustedScore;
+  }
+  
+  return result;
+}
+
+interface CompanyScores {
+  companyName: string;
+  surveyId: string;
+  dimensions: Record<number, DimensionScore>;
+  unweightedScore: number;
+  weightedScore: number;
+  insufficientDataCount: number;
+  isProvisional: boolean;
+  isComplete: boolean;
+  isFoundingPartner: boolean;
+  isPanel: boolean;
+  completedDimCount: number;
+  compositeScore: number;
+  depthScore: number;
+  maturityScore: number;
+  breadthScore: number;
+  globalFootprint: {
+    countryCount: number;
+    segment: 'Single' | 'Regional' | 'Global';
+    isMultiCountry: boolean;
+  };
+  dataConfidence: {
+    percent: number;
+    totalItems: number;
+    verifiedItems: number;
+    unsureCount: number;
+  };
+}
+
+function calculateCompanyScores(
+  assessment: Record<string, any>, 
+  weights: Record<number, number>, 
+  compositeWeights: typeof DEFAULT_COMPOSITE_WEIGHTS,
+  blendWeights: typeof DEFAULT_BLEND_WEIGHTS
+): CompanyScores {
+  const dimensions: Record<number, DimensionScore> = {};
+  let completedDimCount = 0;
+  
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`];
+    dimensions[i] = calculateDimensionScore(i, dimData, assessment, blendWeights);
+    if (dimensions[i].totalItems > 0) completedDimCount++;
+  }
+  
+  const isComplete = completedDimCount === 13;
+  const insufficientDataCount = Object.values(dimensions).filter(d => d.isInsufficientData).length;
+  const isProvisional = insufficientDataCount >= 4;
+  
+  const appId = assessment.app_id || assessment.survey_id || '';
+  const isFoundingPartner = appId.startsWith('FP-') || assessment.is_founding_partner === true || assessment.payment_method === 'founding_partner';
+  const isPanel = appId.startsWith('PANEL-');
+  
+  let unweightedScore = 0;
+  let weightedScore = 0;
+  
+  if (isComplete) {
+    const dimsWithData = Object.values(dimensions).filter(d => d.totalItems > 0);
+    unweightedScore = dimsWithData.length > 0
+      ? Math.round(dimsWithData.reduce((sum, d) => sum + d.blendedScore, 0) / dimsWithData.length)
+      : 0;
+    
+    const totalWeight = Object.values(weights).reduce((sum, w) => sum + w, 0);
+    if (totalWeight > 0) {
+      for (let i = 1; i <= 13; i++) {
+        const dim = dimensions[i];
+        const weight = weights[i] || 0;
+        weightedScore += dim.blendedScore * (weight / totalWeight);
+      }
+    }
+    weightedScore = Math.round(weightedScore);
+  }
+  
+  const maturityScore = calculateMaturityScore(assessment);
+  const breadthScore = calculateBreadthScore(assessment);
+  
+  // Extract global footprint from firmographics
+  const firmographics = assessment.firmographics_data || {};
+  const s9a = firmographics.s9a || ''; // Number of OTHER countries besides HQ
+  let countryCount = 1; // Start with 1 (headquarters)
+  
+  // Parse s9a to get additional country count
+  if (typeof s9a === 'string') {
+    const s = s9a.toLowerCase();
+    if (s.includes('no other countries') || s.includes('headquarters only')) {
+      countryCount = 1;
+    } else if (s.includes('50 or more') || s.includes('50+')) {
+      countryCount = 51; // 50+ other countries + HQ
+    } else if (s.includes('20 to 49')) {
+      countryCount = 35; // midpoint + HQ
+    } else if (s.includes('10 to 19')) {
+      countryCount = 15; // midpoint + HQ
+    } else if (s.includes('5 to 9')) {
+      countryCount = 8; // midpoint + HQ
+    } else if (s.includes('3 to 4')) {
+      countryCount = 4; // midpoint + HQ
+    } else if (s.includes('1 to 2')) {
+      countryCount = 2; // midpoint + HQ
+    }
+  }
+  
+  // Determine segment
+  const segment: 'Single' | 'Regional' | 'Global' = 
+    countryCount === 1 ? 'Single' : 
+    countryCount <= 10 ? 'Regional' : 'Global';
+  
+  const globalFootprint = {
+    countryCount,
+    segment,
+    isMultiCountry: countryCount > 1,
+  };
+  
+  // Calculate Data Confidence (% of items not marked "Unsure")
+  let totalItems = 0;
+  let unsureCount = 0;
+  for (let i = 1; i <= 13; i++) {
+    totalItems += dimensions[i].totalItems;
+    unsureCount += dimensions[i].unsureCount;
+  }
+  const verifiedItems = totalItems - unsureCount;
+  const dataConfidence = {
+    percent: totalItems > 0 ? Math.round((verifiedItems / totalItems) * 100) : 0,
+    totalItems,
+    verifiedItems,
+    unsureCount,
+  };
+  
+  const compositeScore = isComplete ? Math.round(
+    (weightedScore * (compositeWeights.weightedDim / 100)) +
+    (maturityScore * (compositeWeights.maturity / 100)) +
+    (breadthScore * (compositeWeights.breadth / 100))
+  ) : 0;
+  
+  return {
+    companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
+    surveyId: assessment.app_id || assessment.survey_id || 'N/A',
+    dimensions, unweightedScore, weightedScore, insufficientDataCount,
+    isProvisional, isComplete, isFoundingPartner, isPanel, completedDimCount,
+    compositeScore,
+    depthScore: 0,
+    maturityScore,
+    breadthScore,
+    globalFootprint,
+    dataConfidence,
+  };
+}
+
 function getScoreColor(score: number): string {
   if (score >= 80) return '#059669';
   if (score >= 60) return '#0284C7';
   if (score >= 40) return '#D97706';
   return '#DC2626';
 }
+
+
+
+// ============================================
+// UNSURE-ADJUSTED SCORING: (1-r)² + 10% cap
+// ============================================
+
+// Number of elements per dimension (for unsure rate calculation)
+const DIMENSION_ELEMENT_COUNTS: Record<number, number> = {
+  1: 11, 2: 17, 3: 10, 4: 10, 5: 11, 6: 12, 7: 9,
+  8: 12, 9: 11, 10: 19, 11: 13, 12: 8, 13: 15,
+};
+
+interface UnsureDimensionResult {
+  rawScore: number;       // Current method: unsure=0 in denominator
+  adjustedScore: number;  // New: (1-r)² substitution + 10% cap
+  unsureCount: number;
+  totalItems: number;
+  unsureRate: number;
+  confirmedPts: number;
+  maxPts: number;
+  unsureCredit: number;   // V_d (the total unsure contribution)
+  perUnsureCredit: number; // v_d (per-item credit)
+  populationMean: number; // mu_d for this dimension
+  capApplied: boolean;
+}
+
+function calculateUnsureAdjustedDimensionScore(
+  dimNum: number,
+  dimData: Record<string, any> | undefined,
+  assessment: Record<string, any>,
+  blendWeights: typeof DEFAULT_BLEND_WEIGHTS,
+  populationMeans: Record<number, number>
+): UnsureDimensionResult {
+  const result: UnsureDimensionResult = {
+    rawScore: 0, adjustedScore: 0, unsureCount: 0, totalItems: 0,
+    unsureRate: 0, confirmedPts: 0, maxPts: 0, unsureCredit: 0,
+    perUnsureCredit: 0, populationMean: populationMeans[dimNum] || 3.09,
+    capApplied: false,
+  };
+
+  if (!dimData) return result;
+  const mainGrid = dimData[`d${dimNum}a`] || dimData[`D${dimNum}a`];
+  if (!mainGrid || typeof mainGrid !== 'object') return result;
+
+  let confirmedPts = 0;
+  let unsureCount = 0;
+  let answeredItems = 0;
+  let totalItems = 0;
+
+  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
+    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) return;
+    totalItems++;
+    const { points, isUnsure } = statusToPoints(status);
+
+    if (isUnsure) {
+      unsureCount++;
+      answeredItems++;
+      // Current method: 0 points, counted in denominator
+    } else if (points !== null) {
+      answeredItems++;
+      confirmedPts += points;
+    }
+  });
+
+  const maxPts = answeredItems * POINTS.CURRENTLY_OFFER;
+  result.totalItems = totalItems;
+  result.unsureCount = unsureCount;
+  result.confirmedPts = confirmedPts;
+  result.maxPts = totalItems * POINTS.CURRENTLY_OFFER; // True max (all items × 5)
+
+  // RAW SCORE: current method (unsure = 0, in denominator)
+  if (maxPts > 0) {
+    result.rawScore = Math.round((confirmedPts / maxPts) * 100);
+  }
+
+  // ADJUSTED SCORE: (1-r)² substitution + 10% cap
+  const r = totalItems > 0 ? unsureCount / totalItems : 0;
+  result.unsureRate = r;
+  const mu = populationMeans[dimNum] || 3.09;
+  result.populationMean = mu;
+
+  // Per-unsure credit: v_d = mu_d × (1-r)²
+  const v_d = mu * Math.pow(1 - r, 2);
+  result.perUnsureCredit = v_d;
+
+  // Total unsure contribution: V_d = min(U_d × v_d, 0.10 × MaxPts_d)
+  const totalMaxPts = totalItems * POINTS.CURRENTLY_OFFER;
+  let V_d = unsureCount * v_d;
+  const cap = 0.10 * totalMaxPts;
+  if (V_d > cap) {
+    V_d = cap;
+    result.capApplied = true;
+  }
+  result.unsureCredit = V_d;
+
+  // Adjusted dimension score: (ConfirmedPts + V_d) / MaxPts_d × 100
+  if (totalMaxPts > 0) {
+    result.adjustedScore = Math.round(((confirmedPts + V_d) / totalMaxPts) * 100);
+  }
+
+  // Apply geographic multiplier to BOTH scores
+  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+  const geoMult = getGeoMultiplier(geoResponse);
+  result.rawScore = Math.round(result.rawScore * geoMult);
+  result.adjustedScore = Math.round(result.adjustedScore * geoMult);
+
+  // Apply follow-up blending for D1, D3, D12, D13
+  const dimKey = `d${dimNum}` as keyof typeof blendWeights;
+  if (blendWeights[dimKey]) {
+    const followUpScore = calculateFollowUpScore(dimNum, assessment);
+    if (followUpScore !== null) {
+      const gridPct = blendWeights[dimKey].grid / 100;
+      const fuPct = blendWeights[dimKey].followUp / 100;
+      result.rawScore = Math.round(result.rawScore * gridPct + followUpScore * fuPct);
+      result.adjustedScore = Math.round(result.adjustedScore * gridPct + followUpScore * fuPct);
+    }
+  }
+
+  return result;
+}
+
+// ============================================
+// COMPANY-LEVEL UNSURE COMPARISON
+// ============================================
+
+interface UnsureCompanyResult {
+  companyName: string;
+  surveyId: string;
+  isComplete: boolean;
+  isPanel: boolean;
+  isFoundingPartner: boolean;
+  dims: Record<number, UnsureDimensionResult>;
+  rawComposite: number;     // Current scoring method
+  adjustedComposite: number; // With (1-r)² unsure handling
+  totalUnsure: number;
+  totalItems: number;
+  overallUnsurePct: number;
+  maxDimUnsurePct: number;
+  status: string;
+  rankEligible: boolean;
+  flags: string;
+  maturityScore: number;
+  breadthScore: number;
+}
+
+function calculateUnsureCompanyResult(
+  assessment: Record<string, any>,
+  populationMeans: Record<number, number>
+): UnsureCompanyResult {
+  // Use original scoring for raw composite (guaranteed match with scoring page)
+  const rawScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
+
+  // Calculate unsure-adjusted dimension scores
+  const dims: Record<number, UnsureDimensionResult> = {};
+  let totalUnsure = 0;
+  let totalItems = 0;
+  let maxDimUnsurePct = 0;
+  const flagParts: string[] = [];
+
+  for (let i = 1; i <= 13; i++) {
+    const dimData = assessment[`dimension${i}_data`];
+    dims[i] = calculateUnsureAdjustedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS, populationMeans);
+
+    // Override rawScore from the original scoring function (guaranteed correct)
+    dims[i].rawScore = rawScores.dimensions[i]?.blendedScore || 0;
+
+    totalUnsure += dims[i].unsureCount;
+    totalItems += dims[i].totalItems;
+    const dimUnsurePct = dims[i].totalItems > 0 ? (dims[i].unsureCount / dims[i].totalItems) * 100 : 0;
+    if (dimUnsurePct > maxDimUnsurePct) maxDimUnsurePct = dimUnsurePct;
+
+    // Dimension-level flags
+    if (dimUnsurePct > 40) {
+      flagParts.push(`D${i} ${Math.round(dimUnsurePct)}%`);
+    }
+  }
+
+  const overallUnsurePct = totalItems > 0 ? (totalUnsure / totalItems) * 100 : 0;
+
+  // Adjusted composite: dimension-weighted average then 90/5/5
+  let adjWeightedDim = 0;
+  const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
+  if (rawScores.isComplete && totalWeight > 0) {
+    for (let i = 1; i <= 13; i++) {
+      const w = DEFAULT_DIMENSION_WEIGHTS[i] || 0;
+      adjWeightedDim += dims[i].adjustedScore * (w / totalWeight);
+    }
+  }
+  const adjustedComposite = rawScores.isComplete ? Math.round(
+    (Math.round(adjWeightedDim) * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+    (rawScores.maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+    (rawScores.breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+  ) : 0;
+
+  // Determine status
+  let status = 'Scored (Confirmed)';
+  let rankEligible = true;
+  if (overallUnsurePct > 50 || maxDimUnsurePct >= 100) {
+    status = 'Scored (Insufficient confirmation)';
+    rankEligible = false;
+  } else if (overallUnsurePct > 25 || maxDimUnsurePct > 50) {
+    status = 'Scored (Provisional - resolution required)';
+    rankEligible = false;
+  } else if (maxDimUnsurePct > 40) {
+    status = 'Scored (Provisional - verify)';
+    rankEligible = false;
+  }
+
+  const appId = assessment.app_id || assessment.survey_id || '';
+
+  return {
+    companyName: rawScores.companyName,
+    surveyId: appId,
+    isComplete: rawScores.isComplete,
+    isPanel: rawScores.isPanel,
+    isFoundingPartner: rawScores.isFoundingPartner,
+    dims,
+    rawComposite: rawScores.compositeScore,
+    adjustedComposite,
+    totalUnsure,
+    totalItems,
+    overallUnsurePct,
+    maxDimUnsurePct,
+    status,
+    rankEligible,
+    flags: flagParts.length > 0 ? flagParts.join('; ') : '-',
+    maturityScore: rawScores.maturityScore,
+    breadthScore: rawScores.breadthScore,
+  };
+}
+
+
+const DISCOUNT_TABLE = [
+  { label: '10% (1 of 10)', oneMinusR: 0.90, squared: 0.81, perItem: 2.50, total: 2.50, pctMax: 5.0 },
+  { label: '20% (2 of 10)', oneMinusR: 0.80, squared: 0.64, perItem: 1.98, total: 3.95, pctMax: 7.9 },
+  { label: '33% (3 of 10)', oneMinusR: 0.67, squared: 0.45, perItem: 1.39, total: 4.16, pctMax: 8.3 },
+  { label: '50% (5 of 10)', oneMinusR: 0.50, squared: 0.25, perItem: 0.77, total: 3.86, pctMax: 7.7 },
+  { label: '80% (8 of 10)', oneMinusR: 0.20, squared: 0.04, perItem: 0.12, total: 0.99, pctMax: 2.0 },
+  { label: '100% (10 of 10)', oneMinusR: 0.00, squared: 0.00, perItem: 0.00, total: 0.00, pctMax: 0.0 },
+];
+
+// ============================================
+// HELPERS
+// ============================================
 
 function getStatusStyle(status: string): { bg: string; text: string; border: string } {
   if (status.includes('Confirmed')) return { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' };
@@ -84,13 +759,108 @@ function getUnsureBarColor(pct: number): string {
   return '#DC2626';
 }
 
+function getStatusLabel(status: string): string {
+  if (status.includes('Confirmed')) return 'Confirmed';
+  if (status.includes('verify')) return 'Verify';
+  if (status.includes('resolution')) return 'Resolve';
+  return 'Excluded';
+}
+
+// ============================================
+// ICONS
+// ============================================
+
+function IconShield() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>); }
+function IconTarget() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>); }
+function IconChart() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 6-10"/></svg>); }
+function IconGrid() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>); }
+function IconAlertTriangle() { return (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>); }
+
+// ============================================
+// PAGE COMPONENT
+// ============================================
+
 export default function UnsureMethodologyPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'technical' | 'impact' | 'alternatives'>('overview');
+  const [loading, setLoading] = useState(true);
+  const [companies, setCompanies] = useState<UnsureCompanyResult[]>([]);
+  const [includePanel, setIncludePanel] = useState(false);
 
-  const confirmedCount = COMPANIES.filter(c => c.status.includes('Confirmed')).length;
-  const verifyCount = COMPANIES.filter(c => c.status.includes('verify')).length;
-  const resolutionCount = COMPANIES.filter(c => c.status.includes('resolution')).length;
-  const excludedCount = COMPANIES.filter(c => c.status.includes('Insufficient')).length;
+  // Load assessments from Supabase and compute live scores
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('assessments')
+          .select('*')
+          .order('company_name', { ascending: true });
+        if (error) throw error;
+
+        const valid = (data || []).filter(a => {
+          let dimCount = 0;
+          for (let i = 1; i <= 13; i++) {
+            const dd = a[`dimension${i}_data`];
+            if (dd && typeof dd === 'object') {
+              const grid = dd[`d${i}a`];
+              if (grid && Object.keys(grid).length > 0) dimCount++;
+            }
+          }
+          return dimCount === 13; // Only complete assessments
+        });
+
+        // Step 1: Calculate population means (mu_d) from ALL valid assessments
+        const populationMeans: Record<number, number> = {};
+        for (let dim = 1; dim <= 13; dim++) {
+          let totalPts = 0;
+          let totalAnswered = 0;
+          for (const a of valid) {
+            const dimData = a[`dimension${dim}_data`];
+            if (!dimData) continue;
+            const grid = dimData[`d${dim}a`];
+            if (!grid || typeof grid !== 'object') continue;
+            Object.entries(grid).forEach(([key, status]: [string, any]) => {
+              if (dim === 10 && D10_EXCLUDED_ITEMS.includes(key)) return;
+              const { points, isUnsure } = statusToPoints(status);
+              if (!isUnsure && points !== null) {
+                totalPts += points;
+                totalAnswered++;
+              }
+            });
+          }
+          populationMeans[dim] = totalAnswered > 0 ? totalPts / totalAnswered : 3.09;
+        }
+
+        // Step 2: Calculate unsure-adjusted scores for each company
+        setCompanies(valid.map(a => calculateUnsureCompanyResult(a, populationMeans)));
+      } catch (err) {
+        console.error('Error loading assessments:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const filteredCompanies = useMemo(() => {
+    let list = companies.filter(c => c.isComplete);
+    if (!includePanel) list = list.filter(c => !c.isPanel);
+    return list.sort((a, b) => b.adjustedComposite - a.adjustedComposite);
+  }, [companies, includePanel]);
+
+  const confirmedCount = filteredCompanies.filter(c => c.status.includes('Confirmed')).length;
+  const verifyCount = filteredCompanies.filter(c => c.status.includes('verify')).length;
+  const resolutionCount = filteredCompanies.filter(c => c.status.includes('resolution')).length;
+  const excludedCount = filteredCompanies.filter(c => c.status.includes('Insufficient')).length;
+
+  // Population means for display
+  const populationMeans = useMemo(() => {
+    const means: Record<number, number> = {};
+    for (let i = 1; i <= 13; i++) {
+      const vals = filteredCompanies.map(c => c.dims[i]?.populationMean || 0);
+      means[i] = vals.length > 0 ? vals[0] : 3.09; // All companies have same population mean
+    }
+    return means;
+  }, [filteredCompanies]);
 
   const tabs = [
     { key: 'overview' as const, label: 'Executive Overview', icon: <IconTarget /> },
@@ -114,6 +884,7 @@ export default function UnsureMethodologyPage() {
             </div>
             <div className="flex items-center gap-3">
               <Link href="/admin/scoring" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Scoring</Link>
+              <Link href="/admin/scoring/element-weighting" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Element Weights</Link>
               <Link href="/admin" className="px-4 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors">Dashboard</Link>
             </div>
           </div>
@@ -137,7 +908,16 @@ export default function UnsureMethodologyPage() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="max-w-[1400px] mx-auto px-8 py-20 text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-violet-600 mx-auto mb-4" />
+          <p className="text-slate-500">Loading assessments from Supabase&hellip;</p>
+        </div>
+      )}
+
       {/* Content */}
+      {!loading && (
       <div className={`mx-auto py-8 ${activeTab === 'impact' ? 'max-w-[1600px] px-4' : 'max-w-[1400px] px-8'}`}>
 
         {/* ===== TAB 1: EXECUTIVE OVERVIEW ===== */}
@@ -454,15 +1234,21 @@ export default function UnsureMethodologyPage() {
           </div>
         )}
 
-        {/* ===== TAB 3: COMPANY IMPACT ===== */}
+        {/* ===== TAB 3: COMPANY IMPACT (LIVE FROM SUPABASE) ===== */}
         {activeTab === 'impact' && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-1">Company Impact</h2>
-              <p className="text-slate-600 text-sm">All 22 Index participants with unsure-adjusted composite and dimension scores</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-1">Company Impact</h2>
+                <p className="text-slate-600 text-sm">{filteredCompanies.length} companies &mdash; live unsure-adjusted scores from Supabase</p>
+              </div>
+              <label className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 shadow-sm cursor-pointer">
+                <input type="checkbox" checked={includePanel} onChange={(e) => setIncludePanel(e.target.checked)} className="rounded border-slate-300" />
+                <span className="text-sm text-slate-700 font-medium">Include panel companies</span>
+              </label>
             </div>
 
-            {/* Company Table */}
+            {/* Company Table with Raw vs Adjusted */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm" style={{ tableLayout: 'auto' }}>
@@ -470,54 +1256,51 @@ export default function UnsureMethodologyPage() {
                     <tr className="bg-slate-800 text-white">
                       <th className="sticky left-0 z-20 bg-slate-800 px-4 py-3 text-left font-bold text-sm border-r border-slate-700 min-w-[180px]">Company</th>
                       <th className="px-3 py-3 text-center font-bold text-sm min-w-[70px]">Status</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[90px]">Unsure %</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[70px]">Max Dim</th>
-                      <th className="px-3 py-3 text-center font-bold text-sm bg-slate-700 border-x border-slate-600 min-w-[80px]">Composite</th>
+                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[85px]">Unsure %</th>
+                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[65px]">Max Dim</th>
+                      <th className="px-3 py-3 text-center font-bold text-sm bg-slate-600 border-x border-slate-500 min-w-[65px]" title="Current method: Unsure=0 in denominator">Raw</th>
+                      <th className="px-3 py-3 text-center font-bold text-sm bg-violet-700 border-x border-violet-600 min-w-[70px]" title="(1-r)² substitution + 10% cap">Adjusted</th>
+                      <th className="px-3 py-3 text-center font-bold text-sm min-w-[50px]" title="Adjusted minus Raw">&Delta;</th>
                       {Array.from({ length: 13 }, (_, i) => (
                         <th key={i} className={`px-2 py-3 text-center font-semibold text-xs min-w-[55px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
                           D{i + 1}
                         </th>
                       ))}
-                      <th className="px-3 py-3 text-left font-bold text-sm min-w-[120px]">Flags</th>
+                      <th className="px-3 py-3 text-left font-bold text-sm min-w-[100px]">Flags</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {BENCHMARKS.map((b) => (
-                      <tr key={b.name} className="bg-slate-100 border-b-2 border-slate-300">
-                        <td className="sticky left-0 z-10 bg-slate-100 px-4 py-2.5 font-bold text-slate-700 text-sm border-r border-slate-200">{b.name}</td>
-                        <td className="px-3 py-2.5 text-center text-xs text-slate-500">&mdash;</td>
-                        <td className="px-3 py-2.5 text-center text-xs text-slate-500">&mdash;</td>
-                        <td className="px-3 py-2.5 text-center text-xs text-slate-500">&mdash;</td>
-                        <td className="px-3 py-2.5 text-center font-bold text-sm border-x border-slate-200" style={{ color: getScoreColor(b.composite) }}>{b.composite}</td>
-                        {b.dims.map((d, i) => (
-                          <td key={i} className="px-2 py-2.5 text-center text-sm font-medium" style={{ color: getScoreColor(d) }}>{d.toFixed(0)}</td>
-                        ))}
-                        <td className="px-3 py-2.5 text-xs text-slate-400">&mdash;</td>
-                      </tr>
-                    ))}
-                    {COMPANIES.map((c, idx) => {
+                    {filteredCompanies.map((c, idx) => {
                       const style = getStatusStyle(c.status);
+                      const delta = c.adjustedComposite - c.rawComposite;
                       return (
-                        <tr key={c.name} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-violet-50/30`}>
-                          <td className={`sticky left-0 z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} px-4 py-2.5 font-semibold text-slate-800 text-sm border-r border-slate-100`}>{c.name}</td>
+                        <tr key={c.surveyId || c.companyName} className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-violet-50/30`}>
+                          <td className={`sticky left-0 z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} px-4 py-2.5 font-semibold text-slate-800 text-sm border-r border-slate-100`}>{c.companyName}</td>
                           <td className="px-2 py-2.5 text-center">
                             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${style.bg} ${style.text} border ${style.border}`}>
-                              {c.status.includes('Confirmed') ? 'Confirmed' : c.status.includes('verify') ? 'Verify' : c.status.includes('resolution') ? 'Resolve' : 'Excluded'}
+                              {getStatusLabel(c.status)}
                             </span>
                           </td>
                           <td className="px-3 py-2.5 text-center">
                             <div className="flex items-center justify-center gap-1.5">
                               <div className="w-12 h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                                <div className="h-full rounded-full" style={{ width: `${Math.min(c.unsurePct, 100)}%`, backgroundColor: getUnsureBarColor(c.unsurePct) }} />
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(c.overallUnsurePct, 100)}%`, backgroundColor: getUnsureBarColor(c.overallUnsurePct) }} />
                               </div>
-                              <span className="text-sm font-medium text-slate-700 w-10 text-right">{c.unsurePct.toFixed(0)}%</span>
+                              <span className="text-sm font-medium text-slate-700 w-10 text-right">{c.overallUnsurePct.toFixed(0)}%</span>
                             </div>
                           </td>
-                          <td className="px-3 py-2.5 text-center text-sm font-medium" style={{ color: c.maxDimUnsure > 50 ? '#DC2626' : c.maxDimUnsure > 25 ? '#D97706' : '#059669' }}>{c.maxDimUnsure.toFixed(0)}%</td>
-                          <td className="px-3 py-2.5 text-center font-bold text-sm border-x border-slate-100" style={{ color: getScoreColor(c.composite) }}>{c.composite}</td>
-                          {c.dims.map((d, i) => (
-                            <td key={i} className="px-2 py-2.5 text-center text-sm" style={{ color: getScoreColor(d) }}>{d.toFixed(0)}</td>
-                          ))}
+                          <td className="px-3 py-2.5 text-center text-sm font-medium" style={{ color: c.maxDimUnsurePct > 50 ? '#DC2626' : c.maxDimUnsurePct > 25 ? '#D97706' : '#059669' }}>{c.maxDimUnsurePct.toFixed(0)}%</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-sm bg-slate-50 border-x border-slate-100" style={{ color: getScoreColor(c.rawComposite) }}>{c.rawComposite}</td>
+                          <td className="px-3 py-2.5 text-center font-bold text-sm bg-violet-50 border-x border-violet-100" style={{ color: getScoreColor(c.adjustedComposite) }}>{c.adjustedComposite}</td>
+                          <td className="px-3 py-2.5 text-center text-sm font-bold" style={{ color: delta > 0 ? '#059669' : delta < 0 ? '#DC2626' : '#64748B' }}>{delta > 0 ? '+' : ''}{delta}</td>
+                          {Array.from({ length: 13 }, (_, i) => {
+                            const dim = c.dims[i + 1];
+                            return (
+                              <td key={i} className="px-2 py-2.5 text-center text-sm" style={{ color: getScoreColor(dim?.adjustedScore || 0) }}>
+                                {dim ? dim.adjustedScore : 0}
+                              </td>
+                            );
+                          })}
                           <td className="px-3 py-2.5 text-xs text-slate-500 max-w-[200px]">{c.flags === '-' ? '' : c.flags}</td>
                         </tr>
                       );
@@ -526,6 +1309,28 @@ export default function UnsureMethodologyPage() {
                 </table>
               </div>
             </div>
+
+            {/* Population Means Reference */}
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="px-8 py-5 border-b border-slate-100">
+                <h3 className="font-bold text-slate-900 text-lg">Population Means (&mu;<sub>d</sub>) — Live from Supabase</h3>
+                <p className="text-slate-500 text-sm mt-1">Calculated from confirmed responses across all complete assessments</p>
+              </div>
+              <div className="px-8 py-5">
+                <div className="grid grid-cols-13 gap-2">
+                  {Array.from({ length: 13 }, (_, i) => {
+                    const mu = populationMeans[i + 1] || 0;
+                    return (
+                      <div key={i} className="text-center">
+                        <div className="text-[10px] font-bold text-slate-500 mb-1">D{i + 1}</div>
+                        <div className="text-sm font-bold text-slate-800">{mu.toFixed(2)}</div>
+                        <div className="text-[10px] text-slate-400">/ 5.00</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
 
             {/* Dimension Flag Thresholds */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -543,9 +1348,9 @@ export default function UnsureMethodologyPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     <tr><td className="px-5 py-3 text-slate-700">&le; 25%</td><td className="px-5 py-3 text-center text-emerald-700 font-semibold">No flag</td><td className="px-5 py-3 text-slate-700">Dimension scored normally.</td></tr>
-                    <tr><td className="px-5 py-3 text-slate-700">&gt; 25&ndash;40%</td><td className="px-5 py-3 text-center text-amber-700 font-semibold">&#9888; NOTE</td><td className="px-5 py-3 text-slate-700">Noted in company report. No immediate action required.</td></tr>
-                    <tr><td className="px-5 py-3 text-slate-700">&gt; 40&ndash;50%</td><td className="px-5 py-3 text-center text-orange-700 font-semibold">&#9888;&#9888; ELEVATED</td><td className="px-5 py-3 text-slate-700">Company contacted for verification of this dimension.</td></tr>
-                    <tr><td className="px-5 py-3 text-slate-700">&gt; 50%</td><td className="px-5 py-3 text-center text-red-700 font-semibold">&#9940; HIGH</td><td className="px-5 py-3 text-slate-700">Company contacted. Resolution required for badge eligibility.</td></tr>
+                    <tr><td className="px-5 py-3 text-slate-700">&gt; 25&ndash;40%</td><td className="px-5 py-3 text-center text-amber-700 font-semibold">&#9888; NOTE</td><td className="px-5 py-3 text-slate-700">Noted in company report. No immediate action.</td></tr>
+                    <tr><td className="px-5 py-3 text-slate-700">&gt; 40&ndash;50%</td><td className="px-5 py-3 text-center text-orange-700 font-semibold">&#9888;&#9888; ELEVATED</td><td className="px-5 py-3 text-slate-700">Company contacted for verification.</td></tr>
+                    <tr><td className="px-5 py-3 text-slate-700">&gt; 50%</td><td className="px-5 py-3 text-center text-red-700 font-semibold">&#9940; HIGH</td><td className="px-5 py-3 text-slate-700">Resolution required for badge eligibility.</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -632,6 +1437,7 @@ export default function UnsureMethodologyPage() {
         )}
 
       </div>
+      )}
     </div>
   );
 }
