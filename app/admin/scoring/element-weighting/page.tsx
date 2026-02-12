@@ -843,1659 +843,533 @@ function calculateCombinedScore(
 
 const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
   1: {
-    'Emergency leave within 24 hours': 0.160744,
-    'Remote work options for on-site employees': 0.122696,
-    'Intermittent leave beyond local / legal requirements': 0.105572,
-    'Paid micro-breaks for side effects': 0.091662,
-    'Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)': 0.088447,
-    'Job protection beyond local / legal requirements': 0.066177,
-    'Paid medical leave beyond local / legal requirements': 0.058219,
-    'Reduced schedule/part-time with full benefits': 0.056838,
-    'Disability pay top-up (employer adds to disability insurance)': 0.051819,
-    'Full salary (100%) continuation during cancer-related short-term disability leave': 0.05172,
-    'PTO accrual during leave': 0.049594,
-    'Leave donation bank (employees can donate PTO to colleagues)': 0.048417,
-    'Paid micro-breaks for medical-related side effects': 0.048096,
+    'Job protection beyond local / legal requirements': 0.207811,
+    'Disability pay top-up (employer adds to disability insurance)': 0.197582,
+    'Intermittent leave beyond local / legal requirements': 0.105568,
+    'Leave donation bank (employees can donate PTO to colleagues)': 0.103603,
+    'Emergency leave within 24 hours': 0.094864,
+    'Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)': 0.051420,
+    'Paid micro-breaks for medical-related side effects': 0.050233,
+    'PTO accrual during leave': 0.047230,
+    'Paid medical leave beyond local / legal requirements': 0.047230,
+    'Reduced schedule/part-time with full benefits': 0.047230,
+    'Remote work options for on-site employees': 0.047230,
   },
   2: {
-    'Accelerated life insurance benefits (partial payout for terminal / critical illness)': 0.154645,
-    'Tax/estate planning assistance': 0.118162,
-    'Real-time cost estimator tools': 0.073349,
-    'Insurance advocacy/pre-authorization support': 0.072306,
-    '$0 copay for specialty drugs': 0.056197,
-    'Short-term disability covering 60%+ of salary': 0.055313,
-    'Long-term disability covering 60%+ of salary': 0.048299,
-    'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance': 0.04694,
-    'Financial counseling services': 0.046897,
-    'Paid time off for clinical trial participation': 0.043348,
-    'Coverage for clinical trials and experimental treatments not covered by standard health insurance': 0.043113,
-    'Employer-paid disability insurance supplements': 0.04241,
-    'Guaranteed job protection': 0.04096,
-    'Travel/lodging reimbursement for specialized care beyond insurance coverage': 0.039906,
-    'Hardship grants program funded by employer': 0.039768,
-    'Voluntary supplemental illness insurance (with employer contribution)': 0.039559,
-    'Set out-of-pocket maximums (for in-network single coverage)': 0.038828,
+    'Set out-of-pocket maximums (for in-network single coverage)': 0.179347,
+    'Short-term disability covering 60%+ of salary': 0.155168,
+    'Insurance advocacy/pre-authorization support': 0.093803,
+    'Voluntary supplemental illness insurance (with employer contribution)': 0.072777,
+    'Long-term disability covering 60%+ of salary': 0.065752,
+    'Financial counseling services': 0.064886,
+    'Real-time cost estimator tools': 0.045053,
+    'Guaranteed job protection': 0.042579,
+    'Tax/estate planning assistance': 0.036367,
+    'Hardship grants program funded by employer': 0.035581,
+    'Paid time off for clinical trial participation': 0.031722,
+    'Employer-paid disability insurance supplements': 0.029906,
+    '$0 copay for specialty drugs': 0.029412,
+    'Accelerated life insurance benefits (partial payout for terminal / critical illness)': 0.029412,
+    'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance': 0.029412,
+    'Coverage for clinical trials and experimental treatments not covered by standard health insurance': 0.029412,
+    'Travel/lodging reimbursement for specialized care beyond insurance coverage': 0.029412,
   },
   3: {
-    'Manager peer support / community building': 0.174725,
-    'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams': 0.154583,
-    'Empathy/communication skills training': 0.140133,
-    'Dedicated manager resource hub': 0.09982,
-    'Manager evaluations include how well they support impacted employees': 0.080495,
-    'Clear escalation protocol for manager response': 0.077347,
-    'Legal compliance training': 0.071002,
-    'AI-powered guidance tools': 0.069294,
-    'Privacy protection and confidentiality management': 0.067211,
-    'Senior leader coaching on supporting impacted employees': 0.065389,
+    'Dedicated manager resource hub': 0.234090,
+    'Legal compliance training': 0.234090,
+    'Privacy protection and confidentiality management': 0.088923,
+    'Empathy/communication skills training': 0.080660,
+    'Senior leader coaching on supporting impacted employees': 0.066326,
+    'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams': 0.061821,
+    'AI-powered guidance tools': 0.058522,
+    'Clear escalation protocol for manager response': 0.058522,
+    'Manager peer support / community building': 0.058522,
+    'Manager evaluations include how well they support impacted employees': 0.058522,
   },
   4: {
-    'Physical rehabilitation support': 0.200073,
-    'Nutrition coaching': 0.133196,
-    'Insurance advocacy/appeals support': 0.102184,
-    'Dedicated navigation support to help employees understand benefits and access medical care': 0.089426,
-    'Online tools, apps, or portals for health/benefits support': 0.087604,
-    'Occupational therapy/vocational rehabilitation': 0.081315,
-    'Care coordination concierge': 0.078595,
-    'Survivorship planning assistance': 0.07731,
-    'Benefits optimization assistance (maximizing coverage, minimizing costs)': 0.076675,
-    'Clinical trial matching service': 0.073622,
+    'Survivorship planning assistance': 0.205906,
+    'Physical rehabilitation support': 0.133478,
+    'Online tools, apps, or portals for health/benefits support': 0.120386,
+    'Dedicated navigation support to help employees understand benefits and access medical care': 0.087587,
+    'Insurance advocacy/appeals support': 0.081409,
+    'Care coordination concierge': 0.077281,
+    'Clinical trial matching service': 0.077070,
+    'Nutrition coaching': 0.072748,
+    'Occupational therapy/vocational rehabilitation': 0.072067,
+    'Benefits optimization assistance (maximizing coverage, minimizing costs)': 0.072067,
   },
   5: {
-    'Flexible scheduling options': 0.134067,
-    'Ergonomic equipment funding': 0.126183,
-    'Rest areas / quiet spaces': 0.115475,
-    'Temporary role redesigns': 0.109129,
-    'Assistive technology catalog': 0.108836,
-    'Priority parking': 0.079852,
-    'Cognitive / fatigue support tools': 0.074978,
-    'Policy accommodations (e.g., dress code flexibility, headphone use)': 0.070501,
-    'Remote work capability': 0.064075,
-    'Transportation reimbursement': 0.059231,
-    'Physical workspace modifications': 0.057672,
+    'Transportation reimbursement': 0.201677,
+    'Flexible scheduling options': 0.120571,
+    'Cognitive / fatigue support tools': 0.104888,
+    'Ergonomic equipment funding': 0.093637,
+    'Rest areas / quiet spaces': 0.082390,
+    'Priority parking': 0.070429,
+    'Remote work capability': 0.069553,
+    'Assistive technology catalog': 0.064346,
+    'Physical workspace modifications': 0.064170,
+    'Policy accommodations (e.g., dress code flexibility, headphone use)': 0.064170,
+    'Temporary role redesigns': 0.064170,
   },
   6: {
-    'Employee peer support groups (internal employees with shared experience)': 0.193109,
-    'Stigma-reduction initiatives': 0.130256,
-    'Anonymous benefits navigation tool or website (no login required)': 0.090308,
-    'Specialized emotional counseling': 0.079909,
-    'Inclusive communication guidelines': 0.071169,
-    'Manager training on handling sensitive health information': 0.070972,
-    'Professional-led support groups (external facilitator/counselor)': 0.066748,
-    'Written anti-retaliation policies for health disclosures': 0.06513,
-    'Strong anti-discrimination policies specific to health conditions': 0.063864,
-    'Clear process for confidential health disclosures': 0.059082,
-    'Confidential HR channel for health benefits, policies and insurance-related questions': 0.057287,
-    'Optional open health dialogue forums': 0.052165,
+    'Specialized emotional counseling': 0.217303,
+    'Clear process for confidential health disclosures': 0.146962,
+    'Professional-led support groups (external facilitator/counselor)': 0.113675,
+    'Stigma-reduction initiatives': 0.101042,
+    'Inclusive communication guidelines': 0.074226,
+    'Confidential HR channel for health benefits, policies and insurance-related questions': 0.058532,
+    'Written anti-retaliation policies for health disclosures': 0.054653,
+    'Optional open health dialogue forums': 0.051949,
+    'Anonymous benefits navigation tool or website (no login required)': 0.045566,
+    'Employee peer support groups (internal employees with shared experience)': 0.045549,
+    'Manager training on handling sensitive health information': 0.045271,
+    'Strong anti-discrimination policies specific to health conditions': 0.045271,
   },
   7: {
-    'Peer mentorship program (employees who had similar condition mentoring current employees)': 0.200033,
-    'Continued access to training/development': 0.143486,
-    'Adjusted performance goals/deliverables during treatment and recovery': 0.10585,
-    'Succession planning protections': 0.104257,
-    'Structured reintegration programs': 0.101907,
-    'Optional stay-connected program': 0.101429,
-    'Career coaching for employees managing cancer or other serious health conditions': 0.084242,
-    'Professional coach/mentor for employees managing cancer or other serious health conditions': 0.081518,
-    'Project continuity protocols': 0.07728,
+    'Succession planning protections': 0.217923,
+    'Professional coach/mentor for employees managing cancer or other serious health conditions': 0.171135,
+    'Peer mentorship program (employees who had similar condition mentoring current employees)': 0.136819,
+    'Optional stay-connected program': 0.107865,
+    'Career coaching for employees managing cancer or other serious health conditions': 0.099949,
+    'Continued access to training/development': 0.081965,
+    'Adjusted performance goals/deliverables during treatment and recovery': 0.063276,
+    'Project continuity protocols': 0.060534,
+    'Structured reintegration programs': 0.060534,
   },
   8: {
-    'Flexibility for medical setbacks': 0.154687,
-    'Manager training on supporting team members during treatment/return': 0.124079,
-    'Long-term success tracking': 0.102334,
-    'Workload adjustments during treatment': 0.089721,
-    'Access to occupational therapy/vocational rehabilitation': 0.081946,
-    'Structured progress reviews': 0.072191,
-    'Buddy/mentor pairing for support': 0.069346,
-    'Flexible work arrangements during treatment': 0.068431,
-    'Online peer support forums': 0.068325,
-    'Phased return-to-work plans': 0.05902,
-    'Contingency planning for treatment schedules': 0.056143,
-    'Access to specialized work resumption professionals': 0.053777,
+    'Structured progress reviews': 0.205169,
+    'Workload adjustments during treatment': 0.152341,
+    'Long-term success tracking': 0.100720,
+    'Phased return-to-work plans': 0.090584,
+    'Manager training on supporting team members during treatment/return': 0.070321,
+    'Access to specialized work resumption professionals': 0.063410,
+    'Online peer support forums': 0.059435,
+    'Flexible work arrangements during treatment': 0.052851,
+    'Flexibility for medical setbacks': 0.051292,
+    'Access to occupational therapy/vocational rehabilitation': 0.051292,
+    'Buddy/mentor pairing for support': 0.051292,
+    'Contingency planning for treatment schedules': 0.051292,
   },
   9: {
-    'Executive sponsors communicate regularly about workplace support programs': 0.177838,
-    'ESG/CSR reporting inclusion': 0.122962,
-    'Public success story celebrations': 0.101589,
-    'Executive-led town halls focused on health benefits and employee support': 0.078106,
-    'Year-over-year budget growth': 0.077801,
-    'Support programs included in investor/stakeholder communications': 0.076953,
-    'Compensation tied to support outcomes': 0.067727,
-    'C-suite executive serves as program champion/sponsor': 0.063951,
-    'Cross-functional executive steering committee for workplace support programs': 0.060213,
-    'Support metrics included in annual report/sustainability reporting': 0.058149,
-    'Executive accountability metrics': 0.05755,
-    'Dedicated budget allocation for serious illness support programs': 0.057162,
+    'Compensation tied to support outcomes': 0.155929,
+    'Dedicated budget allocation for serious illness support programs': 0.154607,
+    'Support programs included in investor/stakeholder communications': 0.138258,
+    'Cross-functional executive steering committee for workplace support programs': 0.108723,
+    'C-suite executive serves as program champion/sponsor': 0.083603,
+    'Year-over-year budget growth': 0.075930,
+    'Executive accountability metrics': 0.068396,
+    'ESG/CSR reporting inclusion': 0.066093,
+    'Support metrics included in annual report/sustainability reporting': 0.056281,
+    'Public success story celebrations': 0.046427,
+    'Executive sponsors communicate regularly about workplace support programs': 0.045753,
   },
   10: {
-    'Practical support for managing caregiving and work': 0.114708,
-    'Family navigation support': 0.080451,
-    'Eldercare consultation and referral services': 0.080031,
-    'Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)': 0.057402,
-    'Caregiver resource navigator/concierge': 0.052119,
-    'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)': 0.048148,
-    'Paid caregiver leave with expanded eligibility (beyond local legal requirements)': 0.046638,
-    'Flexible work arrangements for caregivers': 0.045747,
-    'Paid time off for care coordination appointments': 0.043873,
-    'Respite care funding/reimbursement': 0.04304,
-    'Emergency dependent care when regular arrangements unavailable': 0.042999,
-    'Unpaid leave job protection beyond local / legal requirements': 0.042978,
-    'Legal/financial planning assistance for caregivers': 0.041332,
-    'Mental health support specifically for caregivers': 0.04129,
-    'Manager training for supervising caregivers': 0.039363,
-    'Dependent care account matching/contributions': 0.038215,
-    'Caregiver peer support groups': 0.03714,
-    'Dependent care subsidies': 0.034974,
-    'Emergency caregiver funds': 0.034931,
-    'Modified job duties during peak caregiving periods': 0.034619,
+    'Paid time off for care coordination appointments': 0.166349,
+    'Dependent care account matching/contributions': 0.132188,
+    'Emergency dependent care when regular arrangements unavailable': 0.121024,
+    'Practical support for managing caregiving and work': 0.065544,
+    'Caregiver resource navigator/concierge': 0.060391,
+    'Flexible work arrangements for caregivers': 0.051760,
+    'Paid caregiver leave with expanded eligibility (beyond local legal requirements)': 0.050174,
+    'Mental health support specifically for caregivers': 0.043898,
+    'Unpaid leave job protection beyond local / legal requirements': 0.035734,
+    'Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)': 0.030444,
+    'Modified job duties during peak caregiving periods': 0.029458,
+    'Manager training for supervising caregivers': 0.028769,
+    'Respite care funding/reimbursement': 0.026374,
+    'Eldercare consultation and referral services': 0.026316,
+    'Caregiver peer support groups': 0.026316,
+    'Dependent care subsidies': 0.026316,
+    'Family navigation support': 0.026316,
+    'Legal/financial planning assistance for caregivers': 0.026316,
+    'Emergency caregiver funds': 0.026316,
   },
   11: {
-    'Legal protections beyond requirements': 0.1154,
-    'Individual health assessments (online or in-person)': 0.112016,
-    'Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)': 0.104588,
-    'Genetic screening/counseling': 0.096957,
-    'At least 70% coverage for regionally / locally recommended screenings': 0.072063,
-    'Full or partial coverage for annual health screenings/checkups': 0.070034,
-    'On-site vaccinations': 0.069652,
-    'Risk factor tracking/reporting': 0.06601,
-    'Regular health education sessions': 0.063478,
-    'Targeted risk-reduction programs': 0.061622,
-    'Paid time off for preventive care appointments': 0.061405,
-    'Workplace safety assessments to minimize health risks': 0.054855,
-    'Lifestyle coaching programs': 0.05192,
+    'Workplace safety assessments to minimize health risks': 0.176911,
+    'Risk factor tracking/reporting': 0.158489,
+    'Regular health education sessions': 0.141034,
+    'Paid time off for preventive care appointments': 0.125541,
+    'Genetic screening/counseling': 0.085175,
+    'On-site vaccinations': 0.040522,
+    'Lifestyle coaching programs': 0.040444,
+    'Legal protections beyond requirements': 0.039566,
+    'Full or partial coverage for annual health screenings/checkups': 0.038471,
+    'Individual health assessments (online or in-person)': 0.038462,
+    'At least 70% coverage for regionally / locally recommended screenings': 0.038462,
+    'Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)': 0.038462,
+    'Targeted risk-reduction programs': 0.038462,
   },
   12: {
-    'Regular program enhancements': 0.200034,
-    'Employee confidence in employer support': 0.145168,
-    'Innovation pilots': 0.111299,
-    'External benchmarking': 0.111196,
-    'Return-to-work success metrics': 0.101878,
-    'Program utilization analytics': 0.100793,
-    'Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)': 0.077227,
-    'Business impact/ROI assessment': 0.076737,
-    'Employee satisfaction tracking': 0.075667,
+    'External benchmarking': 0.224169,
+    'Program utilization analytics': 0.224169,
+    'Regular program enhancements': 0.183925,
+    'Innovation pilots': 0.087527,
+    'Employee satisfaction tracking': 0.070053,
+    'Employee confidence in employer support': 0.070053,
+    'Business impact/ROI assessment': 0.070053,
+    'Return-to-work success metrics': 0.070053,
   },
   13: {
-    'Family/caregiver communication inclusion': 0.176781,
-    'Employee testimonials/success stories': 0.120722,
-    'Proactive communication at point of diagnosis disclosure': 0.114617,
-    'Anonymous information access options': 0.107793,
-    'Multi-channel communication strategy': 0.104833,
-    'Ability to access program information and resources anonymously': 0.07692,
-    'Dedicated program website or portal': 0.072307,
-    'New hire orientation coverage': 0.058091,
-    'Regular company-wide awareness campaigns (at least quarterly)': 0.056844,
-    'Manager toolkit for cascade communications': 0.056627,
-    'Cancer awareness month campaigns with resources': 0.054464,
+    'Dedicated program website or portal': 0.220590,
+    'New hire orientation coverage': 0.139843,
+    'Ability to access program information and resources anonymously': 0.123256,
+    'Manager toolkit for cascade communications': 0.087384,
+    'Family/caregiver communication inclusion': 0.085785,
+    'Employee testimonials/success stories': 0.085785,
+    'Multi-channel communication strategy': 0.085785,
+    'Proactive communication at point of diagnosis disclosure': 0.085785,
+    'Regular company-wide awareness campaigns (at least quarterly)': 0.085785,
   },
 };
+
 const DIMENSIONS: Record<number, DimensionData> = {
   1: {
-    name: "Medical Leave & Flexibility",
+    name: "Medical Leave & Flexible Work",
     weight: 7,
-    elements: 13,
-    cvR2: -0.131,
-    alpha: 0.3,
-    n: 41,
+    elements: 11,
+    cvR2: 0.329,
+    alpha: 0.5,
+    n: 36,
     topElements: [
-      "Emergency leave within 24 hours",
-      "Remote work options for on-site employees",
-      "Intermittent leave beyond local / legal requirements"
+      "Job protection beyond local / legal requirements",
+      "Disability pay top-up (employer adds to disability",
+      "Intermittent leave beyond local / legal requiremen",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Emergency leave within 24 hours",
-        weight: 0.160744,
-        equal: 0.076923,
-        delta: 0.083821,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Remote work options for on-site employees",
-        weight: 0.122696,
-        equal: 0.076923,
-        delta: 0.045773,
-        stability: 1.0
-      },
-      {
-        rank: 3,
-        name: "Intermittent leave beyond local / legal requirements",
-        weight: 0.105572,
-        equal: 0.076923,
-        delta: 0.028649,
-        stability: 0.99
-      },
-      {
-        rank: 4,
-        name: "Paid micro-breaks for side effects",
-        weight: 0.091662,
-        equal: 0.076923,
-        delta: 0.014739,
-        stability: 0.995
-      },
-      {
-        rank: 5,
-        name: "Flexible work hours during treatment (e.g., varying start/end times...",
-        weight: 0.088447,
-        equal: 0.076923,
-        delta: 0.011524,
-        stability: 0.995
-      },
-      {
-        rank: 6,
-        name: "Job protection beyond local / legal requirements",
-        weight: 0.066177,
-        equal: 0.076923,
-        delta: -0.010746,
-        stability: 0.965
-      },
-      {
-        rank: 7,
-        name: "Paid medical leave beyond local / legal requirements",
-        weight: 0.058219,
-        equal: 0.076923,
-        delta: -0.018704,
-        stability: 0.97
-      },
-      {
-        rank: 8,
-        name: "Reduced schedule/part-time with full benefits",
-        weight: 0.056838,
-        equal: 0.076923,
-        delta: -0.020085,
-        stability: 0.97
-      },
-      {
-        rank: 9,
-        name: "Disability pay top-up (employer adds to disability insurance)",
-        weight: 0.051819,
-        equal: 0.076923,
-        delta: -0.025104,
-        stability: 0.97
-      },
-      {
-        rank: 10,
-        name: "Full salary (100%) continuation during cancer-related short-term di...",
-        weight: 0.05172,
-        equal: 0.076923,
-        delta: -0.025203,
-        stability: 0.965
-      },
-      {
-        rank: 11,
-        name: "PTO accrual during leave",
-        weight: 0.049594,
-        equal: 0.076923,
-        delta: -0.027329,
-        stability: 0.98
-      },
-      {
-        rank: 12,
-        name: "Leave donation bank (employees can donate PTO to colleagues)",
-        weight: 0.048417,
-        equal: 0.076923,
-        delta: -0.028506,
-        stability: 0.94
-      },
-      {
-        rank: 13,
-        name: "Paid micro-breaks for medical-related side effects",
-        weight: 0.048096,
-        equal: 0.076923,
-        delta: -0.028828,
-        stability: 0.95
-      }
+      { rank: 1, name: "Job protection beyond local / legal requirements", weight: 0.207811, equal: 0.090909, delta: 0.116902, stability: 1.000 },
+      { rank: 2, name: "Disability pay top-up (employer adds to disability insurance)", weight: 0.197582, equal: 0.090909, delta: 0.106673, stability: 0.995 },
+      { rank: 3, name: "Intermittent leave beyond local / legal requirements", weight: 0.105568, equal: 0.090909, delta: 0.014659, stability: 0.965 },
+      { rank: 4, name: "Leave donation bank (employees can donate PTO to colleagues)", weight: 0.103603, equal: 0.090909, delta: 0.012694, stability: 0.960 },
+      { rank: 5, name: "Emergency leave within 24 hours", weight: 0.094864, equal: 0.090909, delta: 0.003955, stability: 0.940 },
+      { rank: 6, name: "Flexible work hours during treatment (e.g., varying start/end times...", weight: 0.051420, equal: 0.090909, delta: -0.039489, stability: 0.755 },
+      { rank: 7, name: "Paid micro-breaks for medical-related side effects", weight: 0.050233, equal: 0.090909, delta: -0.040676, stability: 0.715 },
+      { rank: 8, name: "PTO accrual during leave", weight: 0.047230, equal: 0.090909, delta: -0.043679, stability: 0.000 },
+      { rank: 9, name: "Paid medical leave beyond local / legal requirements", weight: 0.047230, equal: 0.090909, delta: -0.043679, stability: 0.000 },
+      { rank: 10, name: "Reduced schedule/part-time with full benefits", weight: 0.047230, equal: 0.090909, delta: -0.043679, stability: 0.000 },
+      { rank: 11, name: "Remote work options for on-site employees", weight: 0.047230, equal: 0.090909, delta: -0.043679, stability: 0.000 },
     ]
   },
   2: {
     name: "Insurance & Financial Protection",
     weight: 11,
     elements: 17,
-    cvR2: 0.018,
-    alpha: 0.4,
-    n: 36,
+    cvR2: 0.876,
+    alpha: 0.5,
+    n: 31,
     topElements: [
-      "Accelerated life insurance benefits",
-      "Tax/estate planning assistance",
-      "Real-time cost estimator tools"
+      "Set out-of-pocket maximums (for in-network single ",
+      "Short-term disability covering 60%+ of salary",
+      "Insurance advocacy/pre-authorization support",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Accelerated life insurance benefits (partial payout for terminal / ...",
-        weight: 0.154645,
-        equal: 0.058824,
-        delta: 0.095821,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Tax/estate planning assistance",
-        weight: 0.118162,
-        equal: 0.058824,
-        delta: 0.059339,
-        stability: 0.995
-      },
-      {
-        rank: 3,
-        name: "Real-time cost estimator tools",
-        weight: 0.073349,
-        equal: 0.058824,
-        delta: 0.014526,
-        stability: 0.985
-      },
-      {
-        rank: 4,
-        name: "Insurance advocacy/pre-authorization support",
-        weight: 0.072306,
-        equal: 0.058824,
-        delta: 0.013483,
-        stability: 1.0
-      },
-      {
-        rank: 5,
-        name: "$0 copay for specialty drugs",
-        weight: 0.056197,
-        equal: 0.058824,
-        delta: -0.002626,
-        stability: 0.995
-      },
-      {
-        rank: 6,
-        name: "Short-term disability covering 60%+ of salary",
-        weight: 0.055313,
-        equal: 0.058824,
-        delta: -0.00351,
-        stability: 0.99
-      },
-      {
-        rank: 7,
-        name: "Long-term disability covering 60%+ of salary",
-        weight: 0.048299,
-        equal: 0.058824,
-        delta: -0.010525,
-        stability: 0.99
-      },
-      {
-        rank: 8,
-        name: "Coverage for advanced therapies (CAR-T, proton therapy, immunothera...",
-        weight: 0.04694,
-        equal: 0.058824,
-        delta: -0.011884,
-        stability: 0.995
-      },
-      {
-        rank: 9,
-        name: "Financial counseling services",
-        weight: 0.046897,
-        equal: 0.058824,
-        delta: -0.011926,
-        stability: 0.965
-      },
-      {
-        rank: 10,
-        name: "Paid time off for clinical trial participation",
-        weight: 0.043348,
-        equal: 0.058824,
-        delta: -0.015476,
-        stability: 0.98
-      },
-      {
-        rank: 11,
-        name: "Coverage for clinical trials and experimental treatments not covere...",
-        weight: 0.043113,
-        equal: 0.058824,
-        delta: -0.01571,
-        stability: 0.975
-      },
-      {
-        rank: 12,
-        name: "Employer-paid disability insurance supplements",
-        weight: 0.04241,
-        equal: 0.058824,
-        delta: -0.016413,
-        stability: 0.98
-      },
-      {
-        rank: 13,
-        name: "Guaranteed job protection",
-        weight: 0.04096,
-        equal: 0.058824,
-        delta: -0.017863,
-        stability: 0.99
-      },
-      {
-        rank: 14,
-        name: "Travel/lodging reimbursement for specialized care beyond insurance ...",
-        weight: 0.039906,
-        equal: 0.058824,
-        delta: -0.018917,
-        stability: 0.985
-      },
-      {
-        rank: 15,
-        name: "Hardship grants program funded by employer",
-        weight: 0.039768,
-        equal: 0.058824,
-        delta: -0.019056,
-        stability: 0.975
-      },
-      {
-        rank: 16,
-        name: "Voluntary supplemental illness insurance (with employer contribution)",
-        weight: 0.039559,
-        equal: 0.058824,
-        delta: -0.019264,
-        stability: 0.975
-      },
-      {
-        rank: 17,
-        name: "Set out-of-pocket maximums (for in-network single coverage)",
-        weight: 0.038828,
-        equal: 0.058824,
-        delta: -0.019996,
-        stability: 0.975
-      }
+      { rank: 1, name: "Set out-of-pocket maximums (for in-network single coverage)", weight: 0.179347, equal: 0.058824, delta: 0.120524, stability: 1.000 },
+      { rank: 2, name: "Short-term disability covering 60%+ of salary", weight: 0.155168, equal: 0.058824, delta: 0.096344, stability: 1.000 },
+      { rank: 3, name: "Insurance advocacy/pre-authorization support", weight: 0.093803, equal: 0.058824, delta: 0.034979, stability: 1.000 },
+      { rank: 4, name: "Voluntary supplemental illness insurance (with employer contribution)", weight: 0.072777, equal: 0.058824, delta: 0.013954, stability: 1.000 },
+      { rank: 5, name: "Long-term disability covering 60%+ of salary", weight: 0.065752, equal: 0.058824, delta: 0.006929, stability: 1.000 },
+      { rank: 6, name: "Financial counseling services", weight: 0.064886, equal: 0.058824, delta: 0.006063, stability: 1.000 },
+      { rank: 7, name: "Real-time cost estimator tools", weight: 0.045053, equal: 0.058824, delta: -0.013770, stability: 0.995 },
+      { rank: 8, name: "Guaranteed job protection", weight: 0.042579, equal: 0.058824, delta: -0.016245, stability: 0.980 },
+      { rank: 9, name: "Tax/estate planning assistance", weight: 0.036367, equal: 0.058824, delta: -0.022457, stability: 0.965 },
+      { rank: 10, name: "Hardship grants program funded by employer", weight: 0.035581, equal: 0.058824, delta: -0.023243, stability: 0.970 },
+      { rank: 11, name: "Paid time off for clinical trial participation", weight: 0.031722, equal: 0.058824, delta: -0.027102, stability: 0.870 },
+      { rank: 12, name: "Employer-paid disability insurance supplements", weight: 0.029906, equal: 0.058824, delta: -0.028917, stability: 0.710 },
+      { rank: 13, name: "$0 copay for specialty drugs", weight: 0.029412, equal: 0.058824, delta: -0.029412, stability: 0.000 },
+      { rank: 14, name: "Accelerated life insurance benefits (partial payout for terminal / ...", weight: 0.029412, equal: 0.058824, delta: -0.029412, stability: 0.000 },
+      { rank: 15, name: "Coverage for advanced therapies (CAR-T, proton therapy, immunothera...", weight: 0.029412, equal: 0.058824, delta: -0.029412, stability: 0.000 },
+      { rank: 16, name: "Coverage for clinical trials and experimental treatments not covere...", weight: 0.029412, equal: 0.058824, delta: -0.029412, stability: 0.000 },
+      { rank: 17, name: "Travel/lodging reimbursement for specialized care beyond insurance ...", weight: 0.029412, equal: 0.058824, delta: -0.029412, stability: 0.000 },
     ]
   },
   3: {
     name: "Manager Preparedness & Capability",
-    weight: 12,
+    weight: 7,
     elements: 10,
-    cvR2: 0.156,
+    cvR2: 0.105,
     alpha: 0.5,
-    n: 38,
+    n: 35,
     topElements: [
-      "Manager peer support / community building",
-      "Manager training on supporting employees managing cance",
-      "Empathy/communication skills training"
+      "Dedicated manager resource hub",
+      "Legal compliance training",
+      "Privacy protection and confidentiality management",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Manager peer support / community building",
-        weight: 0.174725,
-        equal: 0.1,
-        delta: 0.074725,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Manager training on supporting employees managing cancer or other s...",
-        weight: 0.154583,
-        equal: 0.1,
-        delta: 0.054583,
-        stability: 1.0
-      },
-      {
-        rank: 3,
-        name: "Empathy/communication skills training",
-        weight: 0.140133,
-        equal: 0.1,
-        delta: 0.040133,
-        stability: 0.995
-      },
-      {
-        rank: 4,
-        name: "Dedicated manager resource hub",
-        weight: 0.09982,
-        equal: 0.1,
-        delta: -0.00018,
-        stability: 0.995
-      },
-      {
-        rank: 5,
-        name: "Manager evaluations include how well they support impacted employees",
-        weight: 0.080495,
-        equal: 0.1,
-        delta: -0.019505,
-        stability: 0.965
-      },
-      {
-        rank: 6,
-        name: "Clear escalation protocol for manager response",
-        weight: 0.077347,
-        equal: 0.1,
-        delta: -0.022653,
-        stability: 0.975
-      },
-      {
-        rank: 7,
-        name: "Legal compliance training",
-        weight: 0.071002,
-        equal: 0.1,
-        delta: -0.028998,
-        stability: 0.97
-      },
-      {
-        rank: 8,
-        name: "AI-powered guidance tools",
-        weight: 0.069294,
-        equal: 0.1,
-        delta: -0.030706,
-        stability: 0.97
-      },
-      {
-        rank: 9,
-        name: "Privacy protection and confidentiality management",
-        weight: 0.067211,
-        equal: 0.1,
-        delta: -0.032789,
-        stability: 0.98
-      },
-      {
-        rank: 10,
-        name: "Senior leader coaching on supporting impacted employees",
-        weight: 0.065389,
-        equal: 0.1,
-        delta: -0.034611,
-        stability: 0.96
-      }
+      { rank: 1, name: "Dedicated manager resource hub", weight: 0.234090, equal: 0.100000, delta: 0.134090, stability: 1.000 },
+      { rank: 2, name: "Legal compliance training", weight: 0.234090, equal: 0.100000, delta: 0.134090, stability: 1.000 },
+      { rank: 3, name: "Privacy protection and confidentiality management", weight: 0.088923, equal: 0.100000, delta: -0.011077, stability: 0.950 },
+      { rank: 4, name: "Empathy/communication skills training", weight: 0.080660, equal: 0.100000, delta: -0.019340, stability: 0.920 },
+      { rank: 5, name: "Senior leader coaching on supporting impacted employees", weight: 0.066326, equal: 0.100000, delta: -0.033674, stability: 0.795 },
+      { rank: 6, name: "Manager training on supporting employees managing cancer or other s...", weight: 0.061821, equal: 0.100000, delta: -0.038179, stability: 0.735 },
+      { rank: 7, name: "AI-powered guidance tools", weight: 0.058522, equal: 0.100000, delta: -0.041478, stability: 0.000 },
+      { rank: 8, name: "Clear escalation protocol for manager response", weight: 0.058522, equal: 0.100000, delta: -0.041478, stability: 0.000 },
+      { rank: 9, name: "Manager peer support / community building", weight: 0.058522, equal: 0.100000, delta: -0.041478, stability: 0.000 },
+      { rank: 10, name: "Manager evaluations include how well they support impacted employees", weight: 0.058522, equal: 0.100000, delta: -0.041478, stability: 0.000 },
     ]
   },
   4: {
     name: "Cancer Support Resources",
-    weight: 14,
+    weight: 7,
     elements: 10,
-    cvR2: 0.419,
-    alpha: 0.5,
-    n: 40,
+    cvR2: -0.211,
+    alpha: 0.3,
+    n: 34,
     topElements: [
+      "Survivorship planning assistance",
       "Physical rehabilitation support",
-      "Nutrition coaching",
-      "Insurance advocacy/appeals support"
+      "Online tools, apps, or portals for health/benefits",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Physical rehabilitation support",
-        weight: 0.200073,
-        equal: 0.1,
-        delta: 0.100073,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Nutrition coaching",
-        weight: 0.133196,
-        equal: 0.1,
-        delta: 0.033196,
-        stability: 1.0
-      },
-      {
-        rank: 3,
-        name: "Insurance advocacy/appeals support",
-        weight: 0.102184,
-        equal: 0.1,
-        delta: 0.002184,
-        stability: 0.965
-      },
-      {
-        rank: 4,
-        name: "Dedicated navigation support to help employees understand benefits ...",
-        weight: 0.089426,
-        equal: 0.1,
-        delta: -0.010574,
-        stability: 0.975
-      },
-      {
-        rank: 5,
-        name: "Online tools, apps, or portals for health/benefits support",
-        weight: 0.087604,
-        equal: 0.1,
-        delta: -0.012396,
-        stability: 0.965
-      },
-      {
-        rank: 6,
-        name: "Occupational therapy/vocational rehabilitation",
-        weight: 0.081315,
-        equal: 0.1,
-        delta: -0.018685,
-        stability: 0.945
-      },
-      {
-        rank: 7,
-        name: "Care coordination concierge",
-        weight: 0.078595,
-        equal: 0.1,
-        delta: -0.021405,
-        stability: 0.95
-      },
-      {
-        rank: 8,
-        name: "Survivorship planning assistance",
-        weight: 0.07731,
-        equal: 0.1,
-        delta: -0.02269,
-        stability: 0.94
-      },
-      {
-        rank: 9,
-        name: "Benefits optimization assistance (maximizing coverage, minimizing c...",
-        weight: 0.076675,
-        equal: 0.1,
-        delta: -0.023325,
-        stability: 0.945
-      },
-      {
-        rank: 10,
-        name: "Clinical trial matching service",
-        weight: 0.073622,
-        equal: 0.1,
-        delta: -0.026378,
-        stability: 0.955
-      }
+      { rank: 1, name: "Survivorship planning assistance", weight: 0.205906, equal: 0.100000, delta: 0.105906, stability: 1.000 },
+      { rank: 2, name: "Physical rehabilitation support", weight: 0.133478, equal: 0.100000, delta: 0.033478, stability: 0.965 },
+      { rank: 3, name: "Online tools, apps, or portals for health/benefits support", weight: 0.120386, equal: 0.100000, delta: 0.020386, stability: 0.955 },
+      { rank: 4, name: "Dedicated navigation support to help employees understand benefits ...", weight: 0.087587, equal: 0.100000, delta: -0.012413, stability: 0.820 },
+      { rank: 5, name: "Insurance advocacy/appeals support", weight: 0.081409, equal: 0.100000, delta: -0.018591, stability: 0.795 },
+      { rank: 6, name: "Care coordination concierge", weight: 0.077281, equal: 0.100000, delta: -0.022719, stability: 0.760 },
+      { rank: 7, name: "Clinical trial matching service", weight: 0.077070, equal: 0.100000, delta: -0.022930, stability: 0.725 },
+      { rank: 8, name: "Nutrition coaching", weight: 0.072748, equal: 0.100000, delta: -0.027252, stability: 0.615 },
+      { rank: 9, name: "Occupational therapy/vocational rehabilitation", weight: 0.072067, equal: 0.100000, delta: -0.027933, stability: 0.000 },
+      { rank: 10, name: "Benefits optimization assistance (maximizing coverage, minimizing c...", weight: 0.072067, equal: 0.100000, delta: -0.027933, stability: 0.000 },
     ]
   },
   5: {
     name: "Workplace Accommodations",
     weight: 7,
     elements: 11,
-    cvR2: 0.412,
-    alpha: 0.5,
-    n: 39,
+    cvR2: -0.118,
+    alpha: 0.3,
+    n: 34,
     topElements: [
+      "Transportation reimbursement",
       "Flexible scheduling options",
-      "Ergonomic equipment funding",
-      "Rest areas / quiet spaces"
+      "Cognitive / fatigue support tools",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Flexible scheduling options",
-        weight: 0.134067,
-        equal: 0.090909,
-        delta: 0.043158,
-        stability: 0.98
-      },
-      {
-        rank: 2,
-        name: "Ergonomic equipment funding",
-        weight: 0.126183,
-        equal: 0.090909,
-        delta: 0.035274,
-        stability: 1.0
-      },
-      {
-        rank: 3,
-        name: "Rest areas / quiet spaces",
-        weight: 0.115475,
-        equal: 0.090909,
-        delta: 0.024566,
-        stability: 0.995
-      },
-      {
-        rank: 4,
-        name: "Temporary role redesigns",
-        weight: 0.109129,
-        equal: 0.090909,
-        delta: 0.01822,
-        stability: 0.99
-      },
-      {
-        rank: 5,
-        name: "Assistive technology catalog",
-        weight: 0.108836,
-        equal: 0.090909,
-        delta: 0.017927,
-        stability: 0.99
-      },
-      {
-        rank: 6,
-        name: "Priority parking",
-        weight: 0.079852,
-        equal: 0.090909,
-        delta: -0.011057,
-        stability: 0.975
-      },
-      {
-        rank: 7,
-        name: "Cognitive / fatigue support tools",
-        weight: 0.074978,
-        equal: 0.090909,
-        delta: -0.015931,
-        stability: 0.99
-      },
-      {
-        rank: 8,
-        name: "Policy accommodations (e.g., dress code flexibility, headphone use)",
-        weight: 0.070501,
-        equal: 0.090909,
-        delta: -0.020408,
-        stability: 0.98
-      },
-      {
-        rank: 9,
-        name: "Remote work capability",
-        weight: 0.064075,
-        equal: 0.090909,
-        delta: -0.026834,
-        stability: 0.98
-      },
-      {
-        rank: 10,
-        name: "Transportation reimbursement",
-        weight: 0.059231,
-        equal: 0.090909,
-        delta: -0.031678,
-        stability: 0.965
-      },
-      {
-        rank: 11,
-        name: "Physical workspace modifications",
-        weight: 0.057672,
-        equal: 0.090909,
-        delta: -0.033237,
-        stability: 0.96
-      }
+      { rank: 1, name: "Transportation reimbursement", weight: 0.201677, equal: 0.090909, delta: 0.110767, stability: 1.000 },
+      { rank: 2, name: "Flexible scheduling options", weight: 0.120571, equal: 0.090909, delta: 0.029662, stability: 1.000 },
+      { rank: 3, name: "Cognitive / fatigue support tools", weight: 0.104888, equal: 0.090909, delta: 0.013979, stability: 1.000 },
+      { rank: 4, name: "Ergonomic equipment funding", weight: 0.093637, equal: 0.090909, delta: 0.002728, stability: 0.985 },
+      { rank: 5, name: "Rest areas / quiet spaces", weight: 0.082390, equal: 0.090909, delta: -0.008519, stability: 0.955 },
+      { rank: 6, name: "Priority parking", weight: 0.070429, equal: 0.090909, delta: -0.020480, stability: 0.850 },
+      { rank: 7, name: "Remote work capability", weight: 0.069553, equal: 0.090909, delta: -0.021356, stability: 0.850 },
+      { rank: 8, name: "Assistive technology catalog", weight: 0.064346, equal: 0.090909, delta: -0.026563, stability: 0.590 },
+      { rank: 9, name: "Physical workspace modifications", weight: 0.064170, equal: 0.090909, delta: -0.026739, stability: 0.000 },
+      { rank: 10, name: "Policy accommodations (e.g., dress code flexibility, headphone use)", weight: 0.064170, equal: 0.090909, delta: -0.026739, stability: 0.000 },
+      { rank: 11, name: "Temporary role redesigns", weight: 0.064170, equal: 0.090909, delta: -0.026739, stability: 0.000 },
     ]
   },
   6: {
     name: "Culture & Psychological Safety",
-    weight: 8,
+    weight: 10,
     elements: 12,
-    cvR2: 0.361,
+    cvR2: 0.443,
     alpha: 0.5,
-    n: 38,
+    n: 36,
     topElements: [
-      "Employee peer support groups",
-      "Stigma-reduction initiatives",
-      "Anonymous benefits navigation tool or website"
+      "Specialized emotional counseling",
+      "Clear process for confidential health disclosures",
+      "Professional-led support groups (external facilita",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Employee peer support groups (internal employees with shared experi...",
-        weight: 0.193109,
-        equal: 0.083333,
-        delta: 0.109775,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Stigma-reduction initiatives",
-        weight: 0.130256,
-        equal: 0.083333,
-        delta: 0.046922,
-        stability: 0.99
-      },
-      {
-        rank: 3,
-        name: "Anonymous benefits navigation tool or website (no login required)",
-        weight: 0.090308,
-        equal: 0.083333,
-        delta: 0.006975,
-        stability: 0.995
-      },
-      {
-        rank: 4,
-        name: "Specialized emotional counseling",
-        weight: 0.079909,
-        equal: 0.083333,
-        delta: -0.003424,
-        stability: 0.965
-      },
-      {
-        rank: 5,
-        name: "Inclusive communication guidelines",
-        weight: 0.071169,
-        equal: 0.083333,
-        delta: -0.012164,
-        stability: 0.95
-      },
-      {
-        rank: 6,
-        name: "Manager training on handling sensitive health information",
-        weight: 0.070972,
-        equal: 0.083333,
-        delta: -0.012361,
-        stability: 0.975
-      },
-      {
-        rank: 7,
-        name: "Professional-led support groups (external facilitator/counselor)",
-        weight: 0.066748,
-        equal: 0.083333,
-        delta: -0.016585,
-        stability: 0.99
-      },
-      {
-        rank: 8,
-        name: "Written anti-retaliation policies for health disclosures",
-        weight: 0.06513,
-        equal: 0.083333,
-        delta: -0.018204,
-        stability: 0.975
-      },
-      {
-        rank: 9,
-        name: "Strong anti-discrimination policies specific to health conditions",
-        weight: 0.063864,
-        equal: 0.083333,
-        delta: -0.01947,
-        stability: 0.99
-      },
-      {
-        rank: 10,
-        name: "Clear process for confidential health disclosures",
-        weight: 0.059082,
-        equal: 0.083333,
-        delta: -0.024251,
-        stability: 0.985
-      },
-      {
-        rank: 11,
-        name: "Confidential HR channel for health benefits, policies and insurance...",
-        weight: 0.057287,
-        equal: 0.083333,
-        delta: -0.026046,
-        stability: 0.995
-      },
-      {
-        rank: 12,
-        name: "Optional open health dialogue forums",
-        weight: 0.052165,
-        equal: 0.083333,
-        delta: -0.031168,
-        stability: 0.96
-      }
+      { rank: 1, name: "Specialized emotional counseling", weight: 0.217303, equal: 0.083333, delta: 0.133969, stability: 1.000 },
+      { rank: 2, name: "Clear process for confidential health disclosures", weight: 0.146962, equal: 0.083333, delta: 0.063628, stability: 0.995 },
+      { rank: 3, name: "Professional-led support groups (external facilitator/counselor)", weight: 0.113675, equal: 0.083333, delta: 0.030342, stability: 1.000 },
+      { rank: 4, name: "Stigma-reduction initiatives", weight: 0.101042, equal: 0.083333, delta: 0.017709, stability: 0.990 },
+      { rank: 5, name: "Inclusive communication guidelines", weight: 0.074226, equal: 0.083333, delta: -0.009107, stability: 0.975 },
+      { rank: 6, name: "Confidential HR channel for health benefits, policies and insurance...", weight: 0.058532, equal: 0.083333, delta: -0.024801, stability: 0.900 },
+      { rank: 7, name: "Written anti-retaliation policies for health disclosures", weight: 0.054653, equal: 0.083333, delta: -0.028681, stability: 0.850 },
+      { rank: 8, name: "Optional open health dialogue forums", weight: 0.051949, equal: 0.083333, delta: -0.031384, stability: 0.835 },
+      { rank: 9, name: "Anonymous benefits navigation tool or website (no login required)", weight: 0.045566, equal: 0.083333, delta: -0.037767, stability: 0.600 },
+      { rank: 10, name: "Employee peer support groups (internal employees with shared experi...", weight: 0.045549, equal: 0.083333, delta: -0.037784, stability: 0.610 },
+      { rank: 11, name: "Manager training on handling sensitive health information", weight: 0.045271, equal: 0.083333, delta: -0.038062, stability: 0.000 },
+      { rank: 12, name: "Strong anti-discrimination policies specific to health conditions", weight: 0.045271, equal: 0.083333, delta: -0.038062, stability: 0.000 },
     ]
   },
   7: {
     name: "Career Continuity & Advancement",
-    weight: 4,
+    weight: 7,
     elements: 9,
-    cvR2: 0.33,
+    cvR2: 0.435,
     alpha: 0.5,
-    n: 34,
+    n: 32,
     topElements: [
-      "Peer mentorship program",
-      "Continued access to training/development",
-      "Adjusted performance goals/deliverables during treatmen"
+      "Succession planning protections",
+      "Professional coach/mentor for employees managing c",
+      "Peer mentorship program (employees who had similar",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Peer mentorship program (employees who had similar condition mentor...",
-        weight: 0.200033,
-        equal: 0.111111,
-        delta: 0.088922,
-        stability: 0.99
-      },
-      {
-        rank: 2,
-        name: "Continued access to training/development",
-        weight: 0.143486,
-        equal: 0.111111,
-        delta: 0.032374,
-        stability: 0.995
-      },
-      {
-        rank: 3,
-        name: "Adjusted performance goals/deliverables during treatment and recovery",
-        weight: 0.10585,
-        equal: 0.111111,
-        delta: -0.005261,
-        stability: 0.985
-      },
-      {
-        rank: 4,
-        name: "Succession planning protections",
-        weight: 0.104257,
-        equal: 0.111111,
-        delta: -0.006854,
-        stability: 0.995
-      },
-      {
-        rank: 5,
-        name: "Structured reintegration programs",
-        weight: 0.101907,
-        equal: 0.111111,
-        delta: -0.009205,
-        stability: 0.985
-      },
-      {
-        rank: 6,
-        name: "Optional stay-connected program",
-        weight: 0.101429,
-        equal: 0.111111,
-        delta: -0.009682,
-        stability: 0.975
-      },
-      {
-        rank: 7,
-        name: "Career coaching for employees managing cancer or other serious heal...",
-        weight: 0.084242,
-        equal: 0.111111,
-        delta: -0.026869,
-        stability: 0.98
-      },
-      {
-        rank: 8,
-        name: "Professional coach/mentor for employees managing cancer or other se...",
-        weight: 0.081518,
-        equal: 0.111111,
-        delta: -0.029594,
-        stability: 0.965
-      },
-      {
-        rank: 9,
-        name: "Project continuity protocols",
-        weight: 0.07728,
-        equal: 0.111111,
-        delta: -0.033831,
-        stability: 0.965
-      }
+      { rank: 1, name: "Succession planning protections", weight: 0.217923, equal: 0.111111, delta: 0.106812, stability: 1.000 },
+      { rank: 2, name: "Professional coach/mentor for employees managing cancer or other se...", weight: 0.171135, equal: 0.111111, delta: 0.060024, stability: 0.990 },
+      { rank: 3, name: "Peer mentorship program (employees who had similar condition mentor...", weight: 0.136819, equal: 0.111111, delta: 0.025708, stability: 0.960 },
+      { rank: 4, name: "Optional stay-connected program", weight: 0.107865, equal: 0.111111, delta: -0.003246, stability: 0.970 },
+      { rank: 5, name: "Career coaching for employees managing cancer or other serious heal...", weight: 0.099949, equal: 0.111111, delta: -0.011162, stability: 0.955 },
+      { rank: 6, name: "Continued access to training/development", weight: 0.081965, equal: 0.111111, delta: -0.029146, stability: 0.885 },
+      { rank: 7, name: "Adjusted performance goals/deliverables during treatment and recovery", weight: 0.063276, equal: 0.111111, delta: -0.047835, stability: 0.695 },
+      { rank: 8, name: "Project continuity protocols", weight: 0.060534, equal: 0.111111, delta: -0.050577, stability: 0.000 },
+      { rank: 9, name: "Structured reintegration programs", weight: 0.060534, equal: 0.111111, delta: -0.050577, stability: 0.000 },
     ]
   },
   8: {
     name: "Work Continuation & Resumption",
-    weight: 13,
+    weight: 7,
     elements: 12,
-    cvR2: 0.53,
-    alpha: 0.5,
-    n: 38,
+    cvR2: 0.044,
+    alpha: 0.4,
+    n: 36,
     topElements: [
-      "Flexibility for medical setbacks",
-      "Manager training on supporting team members during trea",
-      "Long-term success tracking"
+      "Structured progress reviews",
+      "Workload adjustments during treatment",
+      "Long-term success tracking",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Flexibility for medical setbacks",
-        weight: 0.154687,
-        equal: 0.083333,
-        delta: 0.071354,
-        stability: 0.995
-      },
-      {
-        rank: 2,
-        name: "Manager training on supporting team members during treatment/return",
-        weight: 0.124079,
-        equal: 0.083333,
-        delta: 0.040746,
-        stability: 1.0
-      },
-      {
-        rank: 3,
-        name: "Long-term success tracking",
-        weight: 0.102334,
-        equal: 0.083333,
-        delta: 0.019,
-        stability: 1.0
-      },
-      {
-        rank: 4,
-        name: "Workload adjustments during treatment",
-        weight: 0.089721,
-        equal: 0.083333,
-        delta: 0.006388,
-        stability: 0.99
-      },
-      {
-        rank: 5,
-        name: "Access to occupational therapy/vocational rehabilitation",
-        weight: 0.081946,
-        equal: 0.083333,
-        delta: -0.001388,
-        stability: 1.0
-      },
-      {
-        rank: 6,
-        name: "Structured progress reviews",
-        weight: 0.072191,
-        equal: 0.083333,
-        delta: -0.011142,
-        stability: 0.96
-      },
-      {
-        rank: 7,
-        name: "Buddy/mentor pairing for support",
-        weight: 0.069346,
-        equal: 0.083333,
-        delta: -0.013988,
-        stability: 0.975
-      },
-      {
-        rank: 8,
-        name: "Flexible work arrangements during treatment",
-        weight: 0.068431,
-        equal: 0.083333,
-        delta: -0.014902,
-        stability: 0.98
-      },
-      {
-        rank: 9,
-        name: "Online peer support forums",
-        weight: 0.068325,
-        equal: 0.083333,
-        delta: -0.015008,
-        stability: 0.995
-      },
-      {
-        rank: 10,
-        name: "Phased return-to-work plans",
-        weight: 0.05902,
-        equal: 0.083333,
-        delta: -0.024314,
-        stability: 0.965
-      },
-      {
-        rank: 11,
-        name: "Contingency planning for treatment schedules",
-        weight: 0.056143,
-        equal: 0.083333,
-        delta: -0.02719,
-        stability: 0.975
-      },
-      {
-        rank: 12,
-        name: "Access to specialized work resumption professionals",
-        weight: 0.053777,
-        equal: 0.083333,
-        delta: -0.029556,
-        stability: 0.965
-      }
+      { rank: 1, name: "Structured progress reviews", weight: 0.205169, equal: 0.083333, delta: 0.121836, stability: 0.990 },
+      { rank: 2, name: "Workload adjustments during treatment", weight: 0.152341, equal: 0.083333, delta: 0.069007, stability: 0.985 },
+      { rank: 3, name: "Long-term success tracking", weight: 0.100720, equal: 0.083333, delta: 0.017386, stability: 0.950 },
+      { rank: 4, name: "Phased return-to-work plans", weight: 0.090584, equal: 0.083333, delta: 0.007251, stability: 0.950 },
+      { rank: 5, name: "Manager training on supporting team members during treatment/return", weight: 0.070321, equal: 0.083333, delta: -0.013012, stability: 0.845 },
+      { rank: 6, name: "Access to specialized work resumption professionals", weight: 0.063410, equal: 0.083333, delta: -0.019923, stability: 0.830 },
+      { rank: 7, name: "Online peer support forums", weight: 0.059435, equal: 0.083333, delta: -0.023898, stability: 0.800 },
+      { rank: 8, name: "Flexible work arrangements during treatment", weight: 0.052851, equal: 0.083333, delta: -0.030483, stability: 0.685 },
+      { rank: 9, name: "Flexibility for medical setbacks", weight: 0.051292, equal: 0.083333, delta: -0.032041, stability: 0.000 },
+      { rank: 10, name: "Access to occupational therapy/vocational rehabilitation", weight: 0.051292, equal: 0.083333, delta: -0.032041, stability: 0.000 },
+      { rank: 11, name: "Buddy/mentor pairing for support", weight: 0.051292, equal: 0.083333, delta: -0.032041, stability: 0.000 },
+      { rank: 12, name: "Contingency planning for treatment schedules", weight: 0.051292, equal: 0.083333, delta: -0.032041, stability: 0.000 },
     ]
   },
   9: {
     name: "Executive Commitment & Resources",
-    weight: 4,
-    elements: 12,
-    cvR2: 0.136,
+    weight: 10,
+    elements: 11,
+    cvR2: 0.451,
     alpha: 0.5,
-    n: 34,
+    n: 32,
     topElements: [
-      "Executive sponsors communicate regularly about workplac",
-      "ESG/CSR reporting inclusion",
-      "Public success story celebrations"
+      "Compensation tied to support outcomes",
+      "Dedicated budget allocation for serious illness su",
+      "Support programs included in investor/stakeholder ",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Executive sponsors communicate regularly about workplace support pr...",
-        weight: 0.177838,
-        equal: 0.083333,
-        delta: 0.094505,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "ESG/CSR reporting inclusion",
-        weight: 0.122962,
-        equal: 0.083333,
-        delta: 0.039629,
-        stability: 0.99
-      },
-      {
-        rank: 3,
-        name: "Public success story celebrations",
-        weight: 0.101589,
-        equal: 0.083333,
-        delta: 0.018256,
-        stability: 0.995
-      },
-      {
-        rank: 4,
-        name: "Executive-led town halls focused on health benefits and employee su...",
-        weight: 0.078106,
-        equal: 0.083333,
-        delta: -0.005227,
-        stability: 0.985
-      },
-      {
-        rank: 5,
-        name: "Year-over-year budget growth",
-        weight: 0.077801,
-        equal: 0.083333,
-        delta: -0.005532,
-        stability: 0.975
-      },
-      {
-        rank: 6,
-        name: "Support programs included in investor/stakeholder communications",
-        weight: 0.076953,
-        equal: 0.083333,
-        delta: -0.00638,
-        stability: 0.965
-      },
-      {
-        rank: 7,
-        name: "Compensation tied to support outcomes",
-        weight: 0.067727,
-        equal: 0.083333,
-        delta: -0.015606,
-        stability: 0.99
-      },
-      {
-        rank: 8,
-        name: "C-suite executive serves as program champion/sponsor",
-        weight: 0.063951,
-        equal: 0.083333,
-        delta: -0.019383,
-        stability: 0.99
-      },
-      {
-        rank: 9,
-        name: "Cross-functional executive steering committee for workplace support...",
-        weight: 0.060213,
-        equal: 0.083333,
-        delta: -0.023121,
-        stability: 0.955
-      },
-      {
-        rank: 10,
-        name: "Support metrics included in annual report/sustainability reporting",
-        weight: 0.058149,
-        equal: 0.083333,
-        delta: -0.025185,
-        stability: 0.98
-      },
-      {
-        rank: 11,
-        name: "Executive accountability metrics",
-        weight: 0.05755,
-        equal: 0.083333,
-        delta: -0.025784,
-        stability: 0.97
-      },
-      {
-        rank: 12,
-        name: "Dedicated budget allocation for serious illness support programs",
-        weight: 0.057162,
-        equal: 0.083333,
-        delta: -0.026172,
-        stability: 0.985
-      }
+      { rank: 1, name: "Compensation tied to support outcomes", weight: 0.155929, equal: 0.090909, delta: 0.065020, stability: 0.995 },
+      { rank: 2, name: "Dedicated budget allocation for serious illness support programs", weight: 0.154607, equal: 0.090909, delta: 0.063698, stability: 1.000 },
+      { rank: 3, name: "Support programs included in investor/stakeholder communications", weight: 0.138258, equal: 0.090909, delta: 0.047349, stability: 0.995 },
+      { rank: 4, name: "Cross-functional executive steering committee for workplace support...", weight: 0.108723, equal: 0.090909, delta: 0.017814, stability: 1.000 },
+      { rank: 5, name: "C-suite executive serves as program champion/sponsor", weight: 0.083603, equal: 0.090909, delta: -0.007306, stability: 0.980 },
+      { rank: 6, name: "Year-over-year budget growth", weight: 0.075930, equal: 0.090909, delta: -0.014979, stability: 0.955 },
+      { rank: 7, name: "Executive accountability metrics", weight: 0.068396, equal: 0.090909, delta: -0.022513, stability: 0.920 },
+      { rank: 8, name: "ESG/CSR reporting inclusion", weight: 0.066093, equal: 0.090909, delta: -0.024817, stability: 0.955 },
+      { rank: 9, name: "Support metrics included in annual report/sustainability reporting", weight: 0.056281, equal: 0.090909, delta: -0.034629, stability: 0.915 },
+      { rank: 10, name: "Public success story celebrations", weight: 0.046427, equal: 0.090909, delta: -0.044482, stability: 0.685 },
+      { rank: 11, name: "Executive sponsors communicate regularly about workplace support pr...", weight: 0.045753, equal: 0.090909, delta: -0.045156, stability: 0.565 },
     ]
   },
   10: {
     name: "Caregiver & Family Support",
-    weight: 4,
-    elements: 20,
-    cvR2: -0.063,
-    alpha: 0.3,
-    n: 40,
+    weight: 7,
+    elements: 19,
+    cvR2: 0.494,
+    alpha: 0.5,
+    n: 36,
     topElements: [
-      "Practical support for managing caregiving and work",
-      "Family navigation support",
-      "Eldercare consultation and referral services"
+      "Paid time off for care coordination appointments",
+      "Dependent care account matching/contributions",
+      "Emergency dependent care when regular arrangements",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Practical support for managing caregiving and work",
-        weight: 0.114708,
-        equal: 0.05,
-        delta: 0.064708,
-        stability: 0.995
-      },
-      {
-        rank: 2,
-        name: "Family navigation support",
-        weight: 0.080451,
-        equal: 0.05,
-        delta: 0.030451,
-        stability: 0.995
-      },
-      {
-        rank: 3,
-        name: "Eldercare consultation and referral services",
-        weight: 0.080031,
-        equal: 0.05,
-        delta: 0.030031,
-        stability: 0.99
-      },
-      {
-        rank: 4,
-        name: "Expanded caregiver leave eligibility beyond legal definitions (e.g....",
-        weight: 0.057402,
-        equal: 0.05,
-        delta: 0.007402,
-        stability: 1.0
-      },
-      {
-        rank: 5,
-        name: "Caregiver resource navigator/concierge",
-        weight: 0.052119,
-        equal: 0.05,
-        delta: 0.002119,
-        stability: 0.99
-      },
-      {
-        rank: 6,
-        name: "Concierge services to coordinate caregiving logistics (e.g., schedu...",
-        weight: 0.048148,
-        equal: 0.05,
-        delta: -0.001852,
-        stability: 0.975
-      },
-      {
-        rank: 7,
-        name: "Paid caregiver leave with expanded eligibility (beyond local legal ...",
-        weight: 0.046638,
-        equal: 0.05,
-        delta: -0.003362,
-        stability: 0.97
-      },
-      {
-        rank: 8,
-        name: "Flexible work arrangements for caregivers",
-        weight: 0.045747,
-        equal: 0.05,
-        delta: -0.004253,
-        stability: 0.975
-      },
-      {
-        rank: 9,
-        name: "Paid time off for care coordination appointments",
-        weight: 0.043873,
-        equal: 0.05,
-        delta: -0.006127,
-        stability: 0.99
-      },
-      {
-        rank: 10,
-        name: "Respite care funding/reimbursement",
-        weight: 0.04304,
-        equal: 0.05,
-        delta: -0.00696,
-        stability: 0.98
-      },
-      {
-        rank: 11,
-        name: "Emergency dependent care when regular arrangements unavailable",
-        weight: 0.042999,
-        equal: 0.05,
-        delta: -0.007001,
-        stability: 0.965
-      },
-      {
-        rank: 12,
-        name: "Unpaid leave job protection beyond local / legal requirements",
-        weight: 0.042978,
-        equal: 0.05,
-        delta: -0.007022,
-        stability: 0.985
-      },
-      {
-        rank: 13,
-        name: "Legal/financial planning assistance for caregivers",
-        weight: 0.041332,
-        equal: 0.05,
-        delta: -0.008668,
-        stability: 1.0
-      },
-      {
-        rank: 14,
-        name: "Mental health support specifically for caregivers",
-        weight: 0.04129,
-        equal: 0.05,
-        delta: -0.00871,
-        stability: 0.97
-      },
-      {
-        rank: 15,
-        name: "Manager training for supervising caregivers",
-        weight: 0.039363,
-        equal: 0.05,
-        delta: -0.010637,
-        stability: 0.975
-      },
-      {
-        rank: 16,
-        name: "Dependent care account matching/contributions",
-        weight: 0.038215,
-        equal: 0.05,
-        delta: -0.011785,
-        stability: 0.985
-      },
-      {
-        rank: 17,
-        name: "Caregiver peer support groups",
-        weight: 0.03714,
-        equal: 0.05,
-        delta: -0.01286,
-        stability: 0.99
-      },
-      {
-        rank: 18,
-        name: "Dependent care subsidies",
-        weight: 0.034974,
-        equal: 0.05,
-        delta: -0.015026,
-        stability: 0.975
-      },
-      {
-        rank: 19,
-        name: "Emergency caregiver funds",
-        weight: 0.034931,
-        equal: 0.05,
-        delta: -0.015069,
-        stability: 0.99
-      },
-      {
-        rank: 20,
-        name: "Modified job duties during peak caregiving periods",
-        weight: 0.034619,
-        equal: 0.05,
-        delta: -0.015381,
-        stability: 0.96
-      }
+      { rank: 1, name: "Paid time off for care coordination appointments", weight: 0.166349, equal: 0.052632, delta: 0.113717, stability: 1.000 },
+      { rank: 2, name: "Dependent care account matching/contributions", weight: 0.132188, equal: 0.052632, delta: 0.079557, stability: 1.000 },
+      { rank: 3, name: "Emergency dependent care when regular arrangements unavailable", weight: 0.121024, equal: 0.052632, delta: 0.068392, stability: 1.000 },
+      { rank: 4, name: "Practical support for managing caregiving and work", weight: 0.065544, equal: 0.052632, delta: 0.012912, stability: 1.000 },
+      { rank: 5, name: "Caregiver resource navigator/concierge", weight: 0.060391, equal: 0.052632, delta: 0.007759, stability: 0.995 },
+      { rank: 6, name: "Flexible work arrangements for caregivers", weight: 0.051760, equal: 0.052632, delta: -0.000872, stability: 0.985 },
+      { rank: 7, name: "Paid caregiver leave with expanded eligibility (beyond local legal ...", weight: 0.050174, equal: 0.052632, delta: -0.002457, stability: 0.980 },
+      { rank: 8, name: "Mental health support specifically for caregivers", weight: 0.043898, equal: 0.052632, delta: -0.008734, stability: 0.975 },
+      { rank: 9, name: "Unpaid leave job protection beyond local / legal requirements", weight: 0.035734, equal: 0.052632, delta: -0.016898, stability: 0.915 },
+      { rank: 10, name: "Expanded caregiver leave eligibility beyond legal definitions (e.g....", weight: 0.030444, equal: 0.052632, delta: -0.022188, stability: 0.880 },
+      { rank: 11, name: "Modified job duties during peak caregiving periods", weight: 0.029458, equal: 0.052632, delta: -0.023174, stability: 0.830 },
+      { rank: 12, name: "Manager training for supervising caregivers", weight: 0.028769, equal: 0.052632, delta: -0.023863, stability: 0.830 },
+      { rank: 13, name: "Respite care funding/reimbursement", weight: 0.026374, equal: 0.052632, delta: -0.026258, stability: 0.585 },
+      { rank: 14, name: "Eldercare consultation and referral services", weight: 0.026316, equal: 0.052632, delta: -0.026316, stability: 0.000 },
+      { rank: 15, name: "Caregiver peer support groups", weight: 0.026316, equal: 0.052632, delta: -0.026316, stability: 0.000 },
+      { rank: 16, name: "Dependent care subsidies", weight: 0.026316, equal: 0.052632, delta: -0.026316, stability: 0.000 },
+      { rank: 17, name: "Family navigation support", weight: 0.026316, equal: 0.052632, delta: -0.026316, stability: 0.000 },
+      { rank: 18, name: "Legal/financial planning assistance for caregivers", weight: 0.026316, equal: 0.052632, delta: -0.026316, stability: 0.000 },
+      { rank: 19, name: "Emergency caregiver funds", weight: 0.026316, equal: 0.052632, delta: -0.026316, stability: 0.000 },
     ]
   },
   11: {
     name: "Prevention & Wellness",
-    weight: 3,
+    weight: 7,
     elements: 13,
-    cvR2: 0.473,
+    cvR2: 0.169,
     alpha: 0.5,
-    n: 40,
+    n: 35,
     topElements: [
-      "Legal protections beyond requirements",
-      "Individual health assessments",
-      "Policies to support immuno-compromised colleagues"
+      "Workplace safety assessments to minimize health ri",
+      "Risk factor tracking/reporting",
+      "Regular health education sessions",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Legal protections beyond requirements",
-        weight: 0.1154,
-        equal: 0.076923,
-        delta: 0.038477,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Individual health assessments (online or in-person)",
-        weight: 0.112016,
-        equal: 0.076923,
-        delta: 0.035093,
-        stability: 0.995
-      },
-      {
-        rank: 3,
-        name: "Policies to support immuno-compromised colleagues (e.g., mask proto...",
-        weight: 0.104588,
-        equal: 0.076923,
-        delta: 0.027665,
-        stability: 1.0
-      },
-      {
-        rank: 4,
-        name: "Genetic screening/counseling",
-        weight: 0.096957,
-        equal: 0.076923,
-        delta: 0.020034,
-        stability: 0.995
-      },
-      {
-        rank: 5,
-        name: "At least 70% coverage for regionally / locally recommended screenings",
-        weight: 0.072063,
-        equal: 0.076923,
-        delta: -0.00486,
-        stability: 0.995
-      },
-      {
-        rank: 6,
-        name: "Full or partial coverage for annual health screenings/checkups",
-        weight: 0.070034,
-        equal: 0.076923,
-        delta: -0.006889,
-        stability: 1.0
-      },
-      {
-        rank: 7,
-        name: "On-site vaccinations",
-        weight: 0.069652,
-        equal: 0.076923,
-        delta: -0.007271,
-        stability: 0.99
-      },
-      {
-        rank: 8,
-        name: "Risk factor tracking/reporting",
-        weight: 0.06601,
-        equal: 0.076923,
-        delta: -0.010913,
-        stability: 0.995
-      },
-      {
-        rank: 9,
-        name: "Regular health education sessions",
-        weight: 0.063478,
-        equal: 0.076923,
-        delta: -0.013445,
-        stability: 0.985
-      },
-      {
-        rank: 10,
-        name: "Targeted risk-reduction programs",
-        weight: 0.061622,
-        equal: 0.076923,
-        delta: -0.015301,
-        stability: 0.99
-      },
-      {
-        rank: 11,
-        name: "Paid time off for preventive care appointments",
-        weight: 0.061405,
-        equal: 0.076923,
-        delta: -0.015518,
-        stability: 1.0
-      },
-      {
-        rank: 12,
-        name: "Workplace safety assessments to minimize health risks",
-        weight: 0.054855,
-        equal: 0.076923,
-        delta: -0.022068,
-        stability: 0.98
-      },
-      {
-        rank: 13,
-        name: "Lifestyle coaching programs",
-        weight: 0.05192,
-        equal: 0.076923,
-        delta: -0.025003,
-        stability: 0.965
-      }
+      { rank: 1, name: "Workplace safety assessments to minimize health risks", weight: 0.176911, equal: 0.076923, delta: 0.099988, stability: 0.995 },
+      { rank: 2, name: "Risk factor tracking/reporting", weight: 0.158489, equal: 0.076923, delta: 0.081566, stability: 1.000 },
+      { rank: 3, name: "Regular health education sessions", weight: 0.141034, equal: 0.076923, delta: 0.064111, stability: 1.000 },
+      { rank: 4, name: "Paid time off for preventive care appointments", weight: 0.125541, equal: 0.076923, delta: 0.048618, stability: 0.995 },
+      { rank: 5, name: "Genetic screening/counseling", weight: 0.085175, equal: 0.076923, delta: 0.008252, stability: 0.960 },
+      { rank: 6, name: "On-site vaccinations", weight: 0.040522, equal: 0.076923, delta: -0.036401, stability: 0.670 },
+      { rank: 7, name: "Lifestyle coaching programs", weight: 0.040444, equal: 0.076923, delta: -0.036479, stability: 0.725 },
+      { rank: 8, name: "Legal protections beyond requirements", weight: 0.039566, equal: 0.076923, delta: -0.037357, stability: 0.630 },
+      { rank: 9, name: "Full or partial coverage for annual health screenings/checkups", weight: 0.038471, equal: 0.076923, delta: -0.038452, stability: 0.485 },
+      { rank: 10, name: "Individual health assessments (online or in-person)", weight: 0.038462, equal: 0.076923, delta: -0.038462, stability: 0.000 },
+      { rank: 11, name: "At least 70% coverage for regionally / locally recommended screenings", weight: 0.038462, equal: 0.076923, delta: -0.038462, stability: 0.000 },
+      { rank: 12, name: "Policies to support immuno-compromised colleagues (e.g., mask proto...", weight: 0.038462, equal: 0.076923, delta: -0.038462, stability: 0.000 },
+      { rank: 13, name: "Targeted risk-reduction programs", weight: 0.038462, equal: 0.076923, delta: -0.038462, stability: 0.000 },
     ]
   },
   12: {
     name: "Continuous Improvement",
-    weight: 3,
-    elements: 9,
-    cvR2: 0.12,
+    weight: 7,
+    elements: 8,
+    cvR2: 0.484,
     alpha: 0.5,
-    n: 40,
+    n: 36,
     topElements: [
+      "External benchmarking",
+      "Program utilization analytics",
       "Regular program enhancements",
-      "Employee confidence in employer support",
-      "Innovation pilots"
     ],
     items: [
-      {
-        rank: 1,
-        name: "Regular program enhancements",
-        weight: 0.200034,
-        equal: 0.111111,
-        delta: 0.088923,
-        stability: 0.985
-      },
-      {
-        rank: 2,
-        name: "Employee confidence in employer support",
-        weight: 0.145168,
-        equal: 0.111111,
-        delta: 0.034057,
-        stability: 0.99
-      },
-      {
-        rank: 3,
-        name: "Innovation pilots",
-        weight: 0.111299,
-        equal: 0.111111,
-        delta: 0.000188,
-        stability: 0.995
-      },
-      {
-        rank: 4,
-        name: "External benchmarking",
-        weight: 0.111196,
-        equal: 0.111111,
-        delta: 8.5e-05,
-        stability: 0.98
-      },
-      {
-        rank: 5,
-        name: "Return-to-work success metrics",
-        weight: 0.101878,
-        equal: 0.111111,
-        delta: -0.009233,
-        stability: 0.975
-      },
-      {
-        rank: 6,
-        name: "Program utilization analytics",
-        weight: 0.100793,
-        equal: 0.111111,
-        delta: -0.010318,
-        stability: 0.98
-      },
-      {
-        rank: 7,
-        name: "Measure screening campaign ROI (e.g. participation rates, inquiries...",
-        weight: 0.077227,
-        equal: 0.111111,
-        delta: -0.033884,
-        stability: 0.945
-      },
-      {
-        rank: 8,
-        name: "Business impact/ROI assessment",
-        weight: 0.076737,
-        equal: 0.111111,
-        delta: -0.034374,
-        stability: 0.96
-      },
-      {
-        rank: 9,
-        name: "Employee satisfaction tracking",
-        weight: 0.075667,
-        equal: 0.111111,
-        delta: -0.035444,
-        stability: 0.955
-      }
+      { rank: 1, name: "External benchmarking", weight: 0.224169, equal: 0.125000, delta: 0.099169, stability: 1.000 },
+      { rank: 2, name: "Program utilization analytics", weight: 0.224169, equal: 0.125000, delta: 0.099169, stability: 1.000 },
+      { rank: 3, name: "Regular program enhancements", weight: 0.183925, equal: 0.125000, delta: 0.058925, stability: 1.000 },
+      { rank: 4, name: "Innovation pilots", weight: 0.087527, equal: 0.125000, delta: -0.037473, stability: 0.910 },
+      { rank: 5, name: "Employee satisfaction tracking", weight: 0.070053, equal: 0.125000, delta: -0.054947, stability: 0.000 },
+      { rank: 6, name: "Employee confidence in employer support", weight: 0.070053, equal: 0.125000, delta: -0.054947, stability: 0.000 },
+      { rank: 7, name: "Business impact/ROI assessment", weight: 0.070053, equal: 0.125000, delta: -0.054947, stability: 0.000 },
+      { rank: 8, name: "Return-to-work success metrics", weight: 0.070053, equal: 0.125000, delta: -0.054947, stability: 0.000 },
     ]
   },
   13: {
     name: "Communication & Awareness",
-    weight: 10,
-    elements: 11,
-    cvR2: 0.642,
-    alpha: 0.5,
-    n: 40,
+    weight: 7,
+    elements: 9,
+    cvR2: -0.722,
+    alpha: 0.3,
+    n: 36,
     topElements: [
-      "Family/caregiver communication inclusion",
-      "Employee testimonials/success stories",
-      "Proactive communication at point of diagnosis disclosur"
+      "Dedicated program website or portal",
+      "New hire orientation coverage",
+      "Ability to access program information and resource",
     ],
     items: [
-      {
-        rank: 1,
-        name: "Family/caregiver communication inclusion",
-        weight: 0.176781,
-        equal: 0.090909,
-        delta: 0.085872,
-        stability: 1.0
-      },
-      {
-        rank: 2,
-        name: "Employee testimonials/success stories",
-        weight: 0.120722,
-        equal: 0.090909,
-        delta: 0.029813,
-        stability: 1.0
-      },
-      {
-        rank: 3,
-        name: "Proactive communication at point of diagnosis disclosure",
-        weight: 0.114617,
-        equal: 0.090909,
-        delta: 0.023708,
-        stability: 1.0
-      },
-      {
-        rank: 4,
-        name: "Anonymous information access options",
-        weight: 0.107793,
-        equal: 0.090909,
-        delta: 0.016884,
-        stability: 0.995
-      },
-      {
-        rank: 5,
-        name: "Multi-channel communication strategy",
-        weight: 0.104833,
-        equal: 0.090909,
-        delta: 0.013924,
-        stability: 0.985
-      },
-      {
-        rank: 6,
-        name: "Ability to access program information and resources anonymously",
-        weight: 0.07692,
-        equal: 0.090909,
-        delta: -0.013989,
-        stability: 0.99
-      },
-      {
-        rank: 7,
-        name: "Dedicated program website or portal",
-        weight: 0.072307,
-        equal: 0.090909,
-        delta: -0.018602,
-        stability: 0.985
-      },
-      {
-        rank: 8,
-        name: "New hire orientation coverage",
-        weight: 0.058091,
-        equal: 0.090909,
-        delta: -0.032818,
-        stability: 0.98
-      },
-      {
-        rank: 9,
-        name: "Regular company-wide awareness campaigns (at least quarterly)",
-        weight: 0.056844,
-        equal: 0.090909,
-        delta: -0.034065,
-        stability: 0.945
-      },
-      {
-        rank: 10,
-        name: "Manager toolkit for cascade communications",
-        weight: 0.056627,
-        equal: 0.090909,
-        delta: -0.034282,
-        stability: 0.97
-      },
-      {
-        rank: 11,
-        name: "Cancer awareness month campaigns with resources",
-        weight: 0.054464,
-        equal: 0.090909,
-        delta: -0.036445,
-        stability: 0.965
-      }
+      { rank: 1, name: "Dedicated program website or portal", weight: 0.220590, equal: 0.111111, delta: 0.109479, stability: 0.875 },
+      { rank: 2, name: "New hire orientation coverage", weight: 0.139843, equal: 0.111111, delta: 0.028732, stability: 0.730 },
+      { rank: 3, name: "Ability to access program information and resources anonymously", weight: 0.123256, equal: 0.111111, delta: 0.012145, stability: 0.745 },
+      { rank: 4, name: "Manager toolkit for cascade communications", weight: 0.087384, equal: 0.111111, delta: -0.023727, stability: 0.600 },
+      { rank: 5, name: "Family/caregiver communication inclusion", weight: 0.085785, equal: 0.111111, delta: -0.025326, stability: 0.000 },
+      { rank: 6, name: "Employee testimonials/success stories", weight: 0.085785, equal: 0.111111, delta: -0.025326, stability: 0.000 },
+      { rank: 7, name: "Multi-channel communication strategy", weight: 0.085785, equal: 0.111111, delta: -0.025326, stability: 0.000 },
+      { rank: 8, name: "Proactive communication at point of diagnosis disclosure", weight: 0.085785, equal: 0.111111, delta: -0.025326, stability: 0.000 },
+      { rank: 9, name: "Regular company-wide awareness campaigns (at least quarterly)", weight: 0.085785, equal: 0.111111, delta: -0.025326, stability: 0.000 },
     ]
-  }
+  },
 };
 
 // ============================================
@@ -2869,7 +1743,7 @@ export default function ElementWeightingPage() {
             {/* Summary Cards */}
             <div className="grid grid-cols-4 gap-5">
               {[
-                { v: '159', l: 'Elements', d: 'Across 13 dimensions', color: 'from-violet-600 to-purple-700', icon: <IconLayers /> },
+                { v: '152', l: 'Elements', d: 'Across 13 dimensions', color: 'from-violet-600 to-purple-700', icon: <IconLayers /> },
                 { v: '13', l: 'Dimensions', d: 'All with adaptive blend', color: 'from-indigo-600 to-blue-700', icon: <IconGrid /> },
                 { v: '5-fold', l: 'Cross-Validation', d: 'Out-of-sample R\u00b2', color: 'from-sky-600 to-cyan-700', icon: <IconChart /> },
                 { v: '200', l: 'Bootstrap Resamples', d: 'For stability testing', color: 'from-emerald-600 to-teal-700', icon: <IconRefresh /> }
@@ -3153,7 +2027,7 @@ export default function ElementWeightingPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-1">Element-Level Weights</h2>
-              <p className="text-slate-600 text-sm">All 159 support elements across 13 dimensions. Click a dimension to expand.</p>
+              <p className="text-slate-600 text-sm">All 152 support elements across 13 dimensions. Click a dimension to expand.</p>
             </div>
 
             {DIMENSION_ORDER.map((d) => {
