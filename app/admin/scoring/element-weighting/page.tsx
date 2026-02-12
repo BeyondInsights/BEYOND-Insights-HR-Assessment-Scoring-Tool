@@ -2584,7 +2584,9 @@ export default function ElementWeightingPage() {
               if (dim === 10 && D10_EXCLUDED_ITEMS.includes(key)) return;
               if (!elemCounts[key]) elemCounts[key] = { offered: 0, answered: 0 };
               const { points, isUnsure } = statusToPoints(status);
-              if (!isUnsure && points !== null) {
+              if (isUnsure) {
+                elemCounts[key].answered++; // counts in denominator, not numerator
+              } else if (points !== null) {
                 elemCounts[key].answered++;
                 if (points === POINTS.CURRENTLY_OFFER) elemCounts[key].offered++;
               }
@@ -3186,10 +3188,10 @@ export default function ElementWeightingPage() {
                           <tr className="bg-slate-800 text-white text-xs uppercase tracking-wider">
                             <th className="pl-6 pr-2 py-2.5 text-left font-semibold w-10">#</th>
                             <th className="px-3 py-2.5 text-left font-semibold">Support Element</th>
-                            <th className="px-3 py-2.5 text-right font-semibold w-20">Equal</th>
+                            <th className="px-3 py-2.5 text-right font-semibold w-20 border-r-2 border-slate-600">% Offered</th>
                             <th className="px-3 py-2.5 text-right font-semibold w-24">Weight</th>
+                            <th className="px-3 py-2.5 text-right font-semibold w-20">Equal</th>
                             <th className="px-3 py-2.5 text-right font-semibold w-20">vs Equal</th>
-                            <th className="px-3 py-2.5 text-right font-semibold w-20">% Offered</th>
                             <th className="px-3 py-2.5 text-center font-semibold w-32">Stability</th>
                           </tr>
                         </thead>
@@ -3198,14 +3200,7 @@ export default function ElementWeightingPage() {
                             <tr key={item.rank} className={i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
                               <td className="pl-6 pr-2 py-2.5 text-slate-500 text-xs font-medium">{item.rank}</td>
                               <td className="px-3 py-2.5 text-slate-800">{item.name}</td>
-                              <td className="px-3 py-2.5 text-right text-slate-500 tabular-nums">{(item.equal * 100).toFixed(1)}%</td>
-                              <td className="px-3 py-2.5 text-right tabular-nums"><span className="font-bold text-slate-900">{(item.weight * 100).toFixed(1)}%</span></td>
-                              <td className="px-3 py-2.5 text-right tabular-nums">
-                                <span className={`text-xs font-bold ${item.delta >= 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
-                                  {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}%
-                                </span>
-                              </td>
-                              <td className="px-3 py-2.5 text-right tabular-nums">
+                              <td className="px-3 py-2.5 text-right tabular-nums border-r-2 border-slate-200">
                                 {(() => {
                                   const dimPcts = offeredPcts[d] || {};
                                   const keys = Object.keys(dimPcts);
@@ -3215,6 +3210,13 @@ export default function ElementWeightingPage() {
                                     <span className={`text-xs font-medium ${pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-slate-500'}`}>{pct}%</span>
                                   ) : <span className="text-slate-300">—</span>;
                                 })()}
+                              </td>
+                              <td className="px-3 py-2.5 text-right tabular-nums"><span className="font-bold text-slate-900">{(item.weight * 100).toFixed(1)}%</span></td>
+                              <td className="px-3 py-2.5 text-right text-slate-500 tabular-nums">{(item.equal * 100).toFixed(1)}%</td>
+                              <td className="px-3 py-2.5 text-right tabular-nums">
+                                <span className={`text-xs font-bold ${item.delta >= 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
+                                  {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}%
+                                </span>
                               </td>
                               <td className="px-3 py-2.5">
                                 <div className="flex items-center justify-center gap-2">
@@ -3230,9 +3232,10 @@ export default function ElementWeightingPage() {
                         <tfoot>
                           <tr className="bg-slate-100 border-t border-slate-200">
                             <td colSpan={2} className="pl-6 pr-3 py-2 text-xs text-slate-700 font-semibold">Dimension Total</td>
-                            <td className="px-3 py-2 text-right text-xs text-slate-600 tabular-nums font-medium">100.0%</td>
+                            <td className="px-3 py-2 text-right text-xs text-slate-400 tabular-nums border-r-2 border-slate-200">&mdash;</td>
                             <td className="px-3 py-2 text-right text-xs text-slate-900 font-bold tabular-nums">100.0%</td>
-                            <td colSpan={3} />
+                            <td className="px-3 py-2 text-right text-xs text-slate-600 tabular-nums font-medium">100.0%</td>
+                            <td colSpan={2} />
                           </tr>
                         </tfoot>
                       </table>
