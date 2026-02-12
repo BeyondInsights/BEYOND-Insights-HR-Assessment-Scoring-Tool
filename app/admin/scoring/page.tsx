@@ -3157,10 +3157,10 @@ export default function ElementWeightingPage() {
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="bg-slate-800 text-white">
-                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-28 min-w-[112px]" />
-                          <th className="px-2 py-3 text-center font-bold text-[10px] bg-slate-700 border-r border-slate-600 min-w-[50px]">Benchmark</th>
+                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
+                          <th className="px-2 py-3 text-center font-bold text-xs bg-slate-700 border-r border-slate-600 min-w-[65px]">Benchmark</th>
                           {filteredCompanies.map((c, i) => (
-                            <th key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-[9px] leading-tight min-w-[44px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
+                            <th key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-xs leading-tight min-w-[60px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
                               {c.companyName.length > 14
                                 ? c.companyName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
                                 : c.companyName}
@@ -3171,7 +3171,7 @@ export default function ElementWeightingPage() {
                       <tbody>
                         {/* Composite */}
                         <tr className="bg-slate-200 border-y-2 border-slate-400">
-                          <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-[10px] tracking-wider">Composite Score</td>
+                          <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
                         </tr>
                         <tr className="border-b border-slate-200">
                           <td className="sticky left-0 z-10 bg-white px-3 py-2.5 text-slate-800 font-semibold text-xs border-r border-slate-100">Equal</td>
@@ -3188,14 +3188,14 @@ export default function ElementWeightingPage() {
                           ))}
                         </tr>
                         <tr className="border-b-2 border-slate-400 bg-slate-100">
-                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-[10px] font-bold border-r border-slate-200">Δ</td>
-                          <td className="px-2 py-1.5 text-center text-[10px] font-bold bg-slate-100 border-r border-slate-200">
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">Δ</td>
+                          <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
                             {benchmark && <span className={(benchmark.wtC - benchmark.eqC) >= 0 ? 'text-emerald-700' : 'text-red-700'}>{(benchmark.wtC - benchmark.eqC) >= 0 ? '+' : ''}{benchmark.wtC - benchmark.eqC}</span>}
                           </td>
                           {filteredCompanies.map((c) => {
                             const d = c.wtComposite - c.eqComposite;
                             return (
-                              <td key={c.surveyId} className="px-1 py-1.5 text-center text-[10px] font-bold">
+                              <td key={c.surveyId} className="px-1 py-1.5 text-center text-xs font-bold">
                                 <span className={d > 0 ? 'text-emerald-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
                                   {d > 0 ? '+' : ''}{d}
                                 </span>
@@ -3208,22 +3208,22 @@ export default function ElementWeightingPage() {
                         {DIMENSION_ORDER.map((dim, idx) => (
                           <React.Fragment key={dim}>
                             <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
-                              <td colSpan={2 + filteredCompanies.length} className="px-3 py-1 text-[10px] font-bold text-slate-800">
+                              <td colSpan={2 + filteredCompanies.length} className="px-3 py-1 text-xs font-bold text-slate-800">
                                 D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
                               </td>
                             </tr>
                             <tr className="border-b border-slate-100">
-                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-[10px] font-medium border-r border-slate-100">Equal</td>
-                              <td className="px-2 py-1 text-center text-slate-600 text-[10px] bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.eq}</td>
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Equal</td>
+                              <td className="px-2 py-1 text-center text-slate-600 text-xs bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.eq}</td>
                               {filteredCompanies.map((c, i) => (
-                                <td key={c.surveyId} className={`px-1 py-1 text-center text-slate-600 text-[10px] ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
+                                <td key={c.surveyId} className={`px-1 py-1 text-center text-slate-600 text-xs ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
                               ))}
                             </tr>
                             <tr className="border-b border-slate-100 bg-emerald-50/30">
-                              <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-800 font-semibold pl-4 text-[10px] border-r border-emerald-100/50">Wt</td>
-                              <td className="px-2 py-1 text-center font-semibold text-[10px] bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.wt || 0) }}>{benchmark?.dims[dim]?.wt}</td>
+                              <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-800 font-semibold pl-4 text-xs border-r border-emerald-100/50">Wt</td>
+                              <td className="px-2 py-1 text-center font-semibold text-xs bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.wt || 0) }}>{benchmark?.dims[dim]?.wt}</td>
                               {filteredCompanies.map((c, i) => (
-                                <td key={c.surveyId} className={`px-1 py-1 text-center text-[10px] font-semibold ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.wt || 0) }}>
+                                <td key={c.surveyId} className={`px-1 py-1 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-emerald-50/40' : 'bg-emerald-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.wt || 0) }}>
                                   {c.dims[dim]?.wt}
                                 </td>
                               ))}
