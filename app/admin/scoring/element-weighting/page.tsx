@@ -2544,6 +2544,7 @@ const DIM_COLORS: Record<number, string> = {
 export default function ElementWeightingPage() {
   const [activeTab, setActiveTab] = useState<'overview' | 'statistical' | 'weights' | 'scoring' | 'combined'>('overview');
   const [expandedDim, setExpandedDim] = useState<number | null>(null);
+  const [offeredPcts, setOfferedPcts] = useState<Record<number, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<CompanyComparison[]>([]);
   const [combinedCompanies, setCombinedCompanies] = useState<CombinedCompanyResult[]>([]);
@@ -2569,6 +2570,32 @@ export default function ElementWeightingPage() {
           return false;
         });
         setCompanies(valid.map(a => calculateCompanyComparison(a)));
+
+        // Calculate % Currently Offered for each element
+        const pcts: Record<number, Record<string, number>> = {};
+        for (let dim = 1; dim <= 13; dim++) {
+          const elemCounts: Record<string, { offered: number; answered: number }> = {};
+          for (const a of valid) {
+            const dimData = a[`dimension${dim}_data`];
+            if (!dimData) continue;
+            const grid = dimData[`d${dim}a`];
+            if (!grid || typeof grid !== 'object') continue;
+            Object.entries(grid).forEach(([key, status]: [string, any]) => {
+              if (dim === 10 && D10_EXCLUDED_ITEMS.includes(key)) return;
+              if (!elemCounts[key]) elemCounts[key] = { offered: 0, answered: 0 };
+              const { points, isUnsure } = statusToPoints(status);
+              if (!isUnsure && points !== null) {
+                elemCounts[key].answered++;
+                if (points === POINTS.CURRENTLY_OFFER) elemCounts[key].offered++;
+              }
+            });
+          }
+          pcts[dim] = {};
+          Object.entries(elemCounts).forEach(([key, { offered, answered }]) => {
+            pcts[dim][key] = answered > 0 ? Math.round((offered / answered) * 100) : 0;
+          });
+        }
+        setOfferedPcts(pcts);
 
         // Calculate population means for combined scoring
         const popMeans: Record<number, number> = {};
@@ -3162,6 +3189,7 @@ export default function ElementWeightingPage() {
                             <th className="px-3 py-2.5 text-right font-semibold w-20">Equal</th>
                             <th className="px-3 py-2.5 text-right font-semibold w-24">Weight</th>
                             <th className="px-3 py-2.5 text-right font-semibold w-20">vs Equal</th>
+                            <th className="px-3 py-2.5 text-right font-semibold w-20">% Offered</th>
                             <th className="px-3 py-2.5 text-center font-semibold w-32">Stability</th>
                           </tr>
                         </thead>
@@ -3176,6 +3204,17 @@ export default function ElementWeightingPage() {
                                 <span className={`text-xs font-bold ${item.delta >= 0 ? 'text-emerald-700' : 'text-slate-400'}`}>
                                   {item.delta >= 0 ? '+' : ''}{(item.delta * 100).toFixed(1)}%
                                 </span>
+                              </td>
+                              <td className="px-3 py-2.5 text-right tabular-nums">
+                                {(() => {
+                                  const dimPcts = offeredPcts[d] || {};
+                                  const keys = Object.keys(dimPcts);
+                                  const match = keys.find(k => k.startsWith(item.name.substring(0, 30)) || item.name.startsWith(k.substring(0, 30)));
+                                  const pct = match ? dimPcts[match] : null;
+                                  return pct !== null ? (
+                                    <span className={`text-xs font-medium ${pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-slate-500'}`}>{pct}%</span>
+                                  ) : <span className="text-slate-300">—</span>;
+                                })()}
                               </td>
                               <td className="px-3 py-2.5">
                                 <div className="flex items-center justify-center gap-2">
@@ -3193,7 +3232,7 @@ export default function ElementWeightingPage() {
                             <td colSpan={2} className="pl-6 pr-3 py-2 text-xs text-slate-700 font-semibold">Dimension Total</td>
                             <td className="px-3 py-2 text-right text-xs text-slate-600 tabular-nums font-medium">100.0%</td>
                             <td className="px-3 py-2 text-right text-xs text-slate-900 font-bold tabular-nums">100.0%</td>
-                            <td colSpan={2} />
+                            <td colSpan={3} />
                           </tr>
                         </tfoot>
                       </table>
