@@ -949,12 +949,12 @@ export default function UnsureMethodologyPage() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-1">Overview</h2>
-              <p className="text-slate-600 text-sm">How the Index handles &ldquo;Unsure&rdquo; survey responses fairly and transparently</p>
+              <p className="text-slate-600">How the Index handles &ldquo;Unsure&rdquo; survey responses fairly and transparently</p>
             </div>
 
-            {/* Bottom Line Callout */}
-            <div className="bg-violet-50 border-l-4 border-violet-500 rounded-r-xl px-6 py-4">
-              <p className="text-violet-900 font-medium leading-relaxed"><strong>Bottom line:</strong> We distinguish &ldquo;unverified&rdquo; from &ldquo;not offered,&rdquo; apply discounted partial credit that decreases as unknowns accumulate, and cap its contribution&mdash;so a few unknowns are handled fairly while broad uncertainty cannot inflate scores.</p>
+            {/* Key Takeaway */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl px-8 py-6 shadow-sm">
+              <p className="text-lg text-white leading-relaxed">&ldquo;Unsure&rdquo; is not the same as &ldquo;Not Offered.&rdquo; When a respondent cannot verify whether a program exists, we provide limited partial credit based on what similar companies typically offer in that area&mdash;but that credit decreases as the number of unknowns grows, and is capped so it can never become a meaningful driver of the score.</p>
             </div>
 
             {/* Status Cards */}
@@ -962,48 +962,48 @@ export default function UnsureMethodologyPage() {
               {[
                 { v: confirmedCount.toString(), l: 'Confirmed', d: 'Score is final and the company is eligible for ranking.', color: 'from-emerald-600 to-emerald-700' },
                 { v: verifyCount.toString(), l: 'Provisional \u2014 Verify', d: 'Score is near-final. A small number of items in specific dimensions need verification before ranking.', color: 'from-amber-500 to-amber-600' },
-                { v: resolutionCount.toString(), l: 'Provisional \u2014 Resolve', d: 'Too many unresolved items to rank with confidence. Company must address open items before final placement.', color: 'from-orange-500 to-orange-600' },
-                { v: excludedCount.toString(), l: 'Excluded', d: 'Majority of the assessment is unconfirmed. Company receives a score but is not eligible for ranking.', color: 'from-slate-500 to-slate-600' },
+                { v: resolutionCount.toString(), l: 'Provisional \u2014 Resolve', d: 'Too many unresolved items to rank with confidence. Company should address open items before final placement.', color: 'from-orange-500 to-orange-600' },
+                { v: excludedCount.toString(), l: 'Excluded', d: 'Majority of the assessment is unconfirmed. Company receives a score but is not eligible for ranking.', color: 'from-slate-400 to-slate-500' },
               ].map((card, i) => (
                 <div key={i} className={`bg-gradient-to-br ${card.color} rounded-xl p-5 text-white shadow-sm`}>
                   <div className="text-3xl font-bold mb-1">{card.v}</div>
-                  <div className="text-sm font-semibold opacity-95">{card.l}</div>
-                  <div className="text-xs opacity-80 mt-1 leading-snug">{card.d}</div>
+                  <div className="font-semibold opacity-95">{card.l}</div>
+                  <div className="text-sm opacity-80 mt-1 leading-snug">{card.d}</div>
                 </div>
               ))}
             </div>
 
             {/* The Challenge */}
-            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-7">
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
               <h3 className="font-bold text-slate-900 text-lg mb-3">The Challenge</h3>
               <p className="text-slate-700 leading-relaxed">The Index covers 152 support elements across 13 dimensions. Even engaged respondents may not be able to confirm every element&mdash;especially in large organizations where program ownership is distributed across departments. &ldquo;Unsure&rdquo; signals that the respondent could not verify whether a program exists, which is different from confirming it does not. The scoring needs to reflect that distinction.</p>
             </section>
 
             {/* Two Types of Unsure */}
             <div className="grid grid-cols-2 gap-5">
-              <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
-                <h4 className="font-bold text-emerald-900 mb-2">Genuine Uncertainty</h4>
-                <p className="text-sm text-emerald-800 leading-relaxed">A small number of unknowns scattered across dimensions. The respondent engaged thoroughly but could not confirm everything&mdash;common in large organizations. This is a minor data gap, not a quality concern.</p>
+              <div className="bg-emerald-50/70 rounded-xl p-6 border border-emerald-200/80">
+                <h4 className="font-bold text-emerald-800 mb-2">Genuine Uncertainty</h4>
+                <p className="text-emerald-800 leading-relaxed">A small number of unknowns scattered across dimensions. The respondent engaged thoroughly but could not confirm everything&mdash;common in large organizations. This is a minor data gap, not a quality concern.</p>
               </div>
-              <div className="bg-orange-50 rounded-xl p-6 border border-orange-200">
-                <h4 className="font-bold text-orange-900 mb-2">Pervasive Uncertainty</h4>
-                <p className="text-sm text-orange-800 leading-relaxed">A high share of unknowns, often concentrated in specific dimensions. The score rests on a narrow base of confirmed information and must reflect that reduced confidence until items are verified.</p>
+              <div className="bg-amber-50/70 rounded-xl p-6 border border-amber-200/80">
+                <h4 className="font-bold text-amber-800 mb-2">Pervasive Uncertainty</h4>
+                <p className="text-amber-800 leading-relaxed">A high share of unknowns, often concentrated in specific dimensions. The score rests on a narrow base of confirmed information and should reflect that reduced confidence until items are verified.</p>
               </div>
             </div>
 
             {/* Resolve Before Scoring */}
-            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl px-7 py-5 text-white">
-              <h3 className="font-bold text-lg mb-2">Step 1: Resolve Before Scoring</h3>
-              <p className="text-slate-200 leading-relaxed">Before any scoring adjustment is applied, Cancer and Careers contacts every company with unresolved &ldquo;Unsure&rdquo; responses. Each company receives a list of their open items organized by dimension, along with guidance on how to verify them. The adjustments described below apply only after this outreach is complete.</p>
-            </div>
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
+              <h3 className="font-bold text-slate-900 text-lg mb-3">Step 1: Resolve Before Scoring</h3>
+              <p className="text-slate-700 leading-relaxed">Before any scoring adjustment is applied, Cancer and Careers contacts every company with unresolved &ldquo;Unsure&rdquo; responses. Each company receives a list of their open items organized by dimension, along with guidance on how to verify them. The adjustments described below apply only after this outreach is complete.</p>
+            </section>
 
             {/* Our Approach */}
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-violet-600 to-violet-700 px-7 py-5">
+              <div className="bg-gradient-to-r from-violet-500 to-violet-600 px-8 py-5">
                 <h3 className="font-bold text-white text-lg">Our Approach</h3>
-                <p className="text-violet-200 text-sm mt-1">Counting unsure as zero penalizes honesty. Ignoring it inflates scores. Giving it full credit fabricates data. We needed a middle ground.</p>
+                <p className="text-violet-100 mt-1">Counting unsure as zero penalizes honesty. Ignoring it inflates scores. Giving it full credit fabricates data. We needed a middle ground.</p>
               </div>
-              <div className="p-7">
+              <div className="p-8">
                 <div className="grid grid-cols-5 gap-4">
                   {[
                     { step: '1', text: 'Look at what confirmed companies typically score in each dimension\u2014that\u2019s our best estimate of what \u201cnormal\u201d looks like.' },
@@ -1012,9 +1012,9 @@ export default function UnsureMethodologyPage() {
                     { step: '4', text: 'The reduction accelerates\u2014so a few unknowns barely matter, but a large number significantly reduces the benefit.' },
                     { step: '5', text: 'Cap total unsure credit at 10% of the dimension\u2019s possible points, regardless of the math.' },
                   ].map((s) => (
-                    <div key={s.step} className="bg-violet-50 rounded-lg p-4 border border-violet-100">
-                      <div className="w-8 h-8 rounded-full bg-violet-600 text-white text-sm font-bold flex items-center justify-center mb-3">{s.step}</div>
-                      <p className="text-sm text-slate-700 leading-relaxed">{s.text}</p>
+                    <div key={s.step} className="bg-violet-50/60 rounded-lg p-5 border border-violet-100">
+                      <div className="w-8 h-8 rounded-full bg-violet-500 text-white text-sm font-bold flex items-center justify-center mb-3">{s.step}</div>
+                      <p className="text-slate-700 leading-relaxed">{s.text}</p>
                     </div>
                   ))}
                 </div>
@@ -1022,9 +1022,9 @@ export default function UnsureMethodologyPage() {
             </section>
 
             {/* In Practice */}
-            <section className="bg-slate-50 rounded-xl border border-slate-200 px-7 py-5">
-              <h3 className="font-bold text-slate-900 mb-2">In Practice</h3>
-              <p className="text-slate-700 leading-relaxed">A company with a few unknowns sees almost no change to their score. As the number of unknowns increases, the partial credit shrinks quickly, and the 10% cap ensures that unsure responses can never become a significant driver of the score. This preserves a clear distinction between &ldquo;we couldn&apos;t verify this&rdquo; and &ldquo;we confirmed it doesn&apos;t exist.&rdquo; The same methodology applies to every company and to the benchmark.</p>
+            <section className="bg-slate-50 rounded-xl border border-slate-200 p-8">
+              <h3 className="font-bold text-slate-900 text-lg mb-3">In Practice</h3>
+              <p className="text-slate-700 leading-relaxed">A company with a few unknowns sees almost no change to their score. As the number of unknowns increases, the partial credit shrinks, and the 10% cap ensures that unsure responses can never become a meaningful driver of the score. This preserves a clear distinction between &ldquo;we couldn&apos;t verify this&rdquo; and &ldquo;we confirmed it doesn&apos;t exist.&rdquo; The same methodology applies to every company and to the benchmark.</p>
             </section>
           </div>
         )}
