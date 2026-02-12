@@ -1326,21 +1326,51 @@ export default function UnsureMethodologyPage() {
                   </div>
                 </div>
 
-                {/* Score Table — same layout as element weighting */}
+                {/* Score Table — top scrollbar, vertical scroll, frozen header + row labels */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
+                  <div
+                    className="overflow-auto max-h-[78vh]"
+                    style={{ overflowX: 'auto', overflowY: 'auto' }}
+                    ref={(el) => {
+                      if (el) {
+                        // Duplicate horizontal scrollbar at top
+                        const existing = el.parentElement?.querySelector('.top-scroll-bar') as HTMLElement;
+                        if (!existing) {
+                          const topScroll = document.createElement('div');
+                          topScroll.className = 'top-scroll-bar';
+                          topScroll.style.cssText = 'overflow-x:auto;overflow-y:hidden;height:14px;border-bottom:1px solid #e2e8f0;';
+                          const inner = document.createElement('div');
+                          inner.style.height = '1px';
+                          topScroll.appendChild(inner);
+                          el.parentElement?.insertBefore(topScroll, el);
+                          // Sync scrolling
+                          topScroll.addEventListener('scroll', () => { el.scrollLeft = topScroll.scrollLeft; });
+                          el.addEventListener('scroll', () => { topScroll.scrollLeft = el.scrollLeft; });
+                          // Match width after render
+                          const obs = new ResizeObserver(() => {
+                            const table = el.querySelector('table');
+                            if (table) inner.style.width = table.scrollWidth + 'px';
+                          });
+                          obs.observe(el);
+                        }
+                      }
+                    }}
+                  >
+                    <table className="w-full text-sm border-collapse">
+                      <thead className="sticky top-0 z-30">
                         <tr className="bg-slate-800 text-white">
-                          <th className="sticky left-0 z-20 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
+                          <th className="sticky left-0 top-0 z-40 bg-slate-800 px-3 py-3 text-left font-bold text-xs border-r border-slate-700 w-36 min-w-[140px]" />
                           <th className="px-2 py-3 text-center font-bold text-xs bg-slate-700 border-r border-slate-600 min-w-[65px]">Benchmark</th>
-                          {filteredCompanies.map((c, i) => (
+                          {filteredCompanies.map((c, i) => {
+                            const displayName = c.companyName.replace(/ International$/i, '').replace(/ Corporation$/i, '');
+                            return (
                             <th key={c.surveyId || c.companyName} className={`px-1 py-3 text-center font-semibold text-xs leading-tight min-w-[60px] ${i % 2 === 0 ? 'bg-slate-700' : 'bg-slate-800'}`}>
-                              {c.companyName.length > 14
-                                ? c.companyName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
-                                : c.companyName}
+                              {displayName.length > 14
+                                ? displayName.split(' ').slice(0, 2).map((w, j) => <span key={j} className="block">{w}</span>)
+                                : displayName}
                             </th>
-                          ))}
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody>
