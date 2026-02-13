@@ -636,7 +636,6 @@ ${impactHTML}
 <div style="text-align:center;padding-top:20px;border-top:2px solid #e2e8f0;margin-top:28px">
 <div style="font-size:11px;font-weight:600;color:#7a34a3">Best Companies for Working with Cancer Index&trade;</div>
 <div style="font-size:10px;color:#94a3b8;margin-top:4px">Company Profile Report &bull; Survey ID: ${h(data.surveyId || 'N/A')}</div>
-<div style="font-size:10px;color:#cbd5e1;margin-top:6px">&copy; ${new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation. Confidential.</div>
 </div></div></body></html>`;
 
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
