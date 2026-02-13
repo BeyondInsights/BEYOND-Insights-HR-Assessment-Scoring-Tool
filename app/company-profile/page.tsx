@@ -470,7 +470,6 @@ function downloadHTML(data: any) {
     fieldRow('Headquarters', data.firmo?.s9),
     fieldRow('Countries', data.firmo?.s9a),
     fieldRow('Revenue', data.firmo?.c4 || data.firmo?.c5),
-    fieldRow('Benefits Eligibility', data.firmo?.c3),
     fieldRow('Remote/Hybrid', data.firmo?.c6),
   ].filter(Boolean).join('');
 
@@ -581,7 +580,7 @@ function downloadHTML(data: any) {
     impactInner += `<div class="sec-head" style="color:#7a34a3">Program Impact by Outcome Area</div><table>${rows}</table>`;
   }
   Object.entries(impact).forEach(([k, v]) => {
-    if (k !== 'ei1' && k !== 'cd1a' && k !== 'cd1b' && k !== 'cd2' && !k.endsWith('_none')) {
+    if (k !== 'ei1' && !k.endsWith('_none')) {
       const row = fieldRow(formatLabel(k), v);
       if (row) impactInner += `<table>${row}</table>`;
     }
