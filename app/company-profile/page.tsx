@@ -231,16 +231,23 @@ const FIELD_LABELS: Record<string, string> = {
   d13aa: 'Geographic Scope',
   d13b: 'Additional Methods Not Listed',
   d13_1: 'Communication Frequency',
-  
+
   // Sub-field labels for conditional follow-ups
   d1_4a_weeks: 'Additional Remote Work (Weeks)',
   d1_4a_months: 'Additional Remote Work (Months)',
+  d1_4a_type: 'Remote Work Duration Type',
   d4_1a_other: 'Navigation Provider (Other)',
   d4_1b_other: 'Navigation Services (Other)',
-  d6_2_other: 'Psychological Safety Measurement (Other)',
-  d11_1_screening_other: 'Early Detection Screening (Other)',
-  d11_1_genetic_other: 'Genetic Testing Services (Other)',
+  d6_2_other: 'Measurement Method (Other)',
+  d11_1_screening_other: 'Screening (Other)',
+  d11_1_genetic_other: 'Genetic Testing (Other)',
   d11_1_vaccine_other: 'Vaccine Services (Other)',
+  // FP-format keys (no underscore)
+  d31: 'Manager Training Completion Rate',
+  d31a: 'Training Requirement Type',
+  d41a: 'Navigation Provider Type',
+  d41b: 'Navigation Services Available',
+  d41a_other: 'Navigation Provider (Other)',
 };
 
 /* =========================
@@ -429,295 +436,208 @@ function parseDimensionData(dimNumber: number, data: Record<string, any>): {
 ========================= */
 function downloadHTML(data: any) {
 
-  /* ── helper: render a table field row ── */
-  const fieldRow = (label: string, value: any): string => {
-    if (value == null) return '';
-    const v = selectedOnly(value);
+  /* ── helpers ── */
+  const h = (s: any) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const displayVal = (val: any): string => {
+    const v = selectedOnly(val);
     if (!v) return '';
-    const display = Array.isArray(v) ? v.join(', ') : String(v);
-    return `<tr><td style="padding:10px 16px;font-size:12px;font-weight:600;color:#475569;white-space:nowrap;vertical-align:top;border-bottom:1px solid #f1f5f9;width:260px;">${label}</td><td style="padding:10px 16px;font-size:14px;color:#0f172a;border-bottom:1px solid #f1f5f9;">${display}</td></tr>`;
+    if (Array.isArray(v) && v.length > 1) {
+      return v.map(x => `<div style="padding:1px 0;font-size:13px;color:#1e293b">&bull; ${h(x)}</div>`).join('');
+    }
+    if (Array.isArray(v)) return h(v[0]);
+    return h(String(v));
   };
 
-  /* ── helper: section card ── */
-  const sectionCard = (title: string, accent: string, innerContent: string): string => {
-    if (!innerContent.trim()) return '';
-    return `
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:24px;overflow:hidden;page-break-inside:avoid;">
-        <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;border-left:4px solid ${accent};">
-          <h2 style="font-size:16px;font-weight:700;color:#0f172a;margin:0;">${title}</h2>
-        </div>
-        <div style="padding:0;">${innerContent}</div>
-      </div>`;
+  const fieldRow = (label: string, val: any): string => {
+    const d = displayVal(val);
+    if (!d) return '';
+    return `<tr><td class="fl">${h(label)}</td><td class="fv">${d}</td></tr>`;
   };
 
-  const table = (rows: string): string =>
-    `<table style="width:100%;border-collapse:collapse;">${rows}</table>`;
-
-  /* ────────────────────────────
-     1. CONTACT & COMPANY INFO
-  ──────────────────────────── */
+  /* ── CONTACT & COMPANY ── */
   const contactRows = [
     data.firmo?.firstName || data.firmo?.lastName ? fieldRow('Name', `${data.firmo?.firstName || ''} ${data.firmo?.lastName || ''}`.trim()) : '',
     fieldRow('Title', data.firmo?.title || data.firmo?.s4b),
     fieldRow('Email', data.email),
-    fieldRow('Level in Organization', data.firmo?.s5),
-    fieldRow('Influence on Benefits', data.firmo?.s7),
+    fieldRow('Level', data.firmo?.s5),
+    fieldRow('Benefits Influence', data.firmo?.s7),
   ].filter(Boolean).join('');
 
   const companyRows = [
     fieldRow('Industry', data.firmo?.c2),
     fieldRow('Total Employees', data.firmo?.s8),
     fieldRow('Headquarters', data.firmo?.s9),
-    fieldRow('Countries of Operation', data.firmo?.s9a),
-    fieldRow('Annual Revenue', data.firmo?.c4 || data.firmo?.c5),
+    fieldRow('Countries', data.firmo?.s9a),
+    fieldRow('Revenue', data.firmo?.c4 || data.firmo?.c5),
     fieldRow('Benefits Eligibility', data.firmo?.c3),
-    fieldRow('Remote / Hybrid Policy', data.firmo?.c6),
+    fieldRow('Remote/Hybrid', data.firmo?.c6),
   ].filter(Boolean).join('');
 
-  /* ────────────────────────────
-     2. GENERAL BENEFITS
-  ──────────────────────────── */
-  const generalRows = Object.entries(data.general || {})
-    .map(([k, v]) => fieldRow(formatLabel(k), v))
-    .filter(Boolean).join('');
+  /* ── GENERAL BENEFITS ── */
+  const genRows = Object.entries(data.general || {})
+    .map(([k, v]) => fieldRow(formatLabel(k), v)).filter(Boolean).join('');
 
-  /* ────────────────────────────
-     3. CURRENT SUPPORT
-  ──────────────────────────── */
-  const currentRows = Object.entries(data.current || {})
-    .map(([k, v]) => fieldRow(formatLabel(k), v))
-    .filter(Boolean).join('');
+  /* ── CURRENT SUPPORT ── */
+  const curRows = Object.entries(data.current || {})
+    .map(([k, v]) => fieldRow(formatLabel(k), v)).filter(Boolean).join('');
 
-  /* ────────────────────────────
-     4. 13 DIMENSIONS
-  ──────────────────────────── */
+  /* ── 13 DIMENSIONS ── */
   let dimensionsHTML = '';
-
-  const statusStyle = (s: string) => {
-    const sl = s.toLowerCase();
-    if (sl.includes('currently')) return { bg: '#f0fdf4', fg: '#166534' };
-    if (sl.includes('planning'))  return { bg: '#eff6ff', fg: '#1e40af' };
-    if (sl.includes('assessing')) return { bg: '#fffbeb', fg: '#92400e' };
-    if (sl.includes('not able'))  return { bg: '#fef2f2', fg: '#991b1b' };
-    return { bg: '#f9fafb', fg: '#6b7280' };
-  };
 
   data.dimensions.forEach((dim: any) => {
     const { programs, items } = parseDimensionData(dim.number, dim.data);
     if (programs.length === 0 && items.length === 0) return;
 
-    const dimColor = DIM_COLORS[dim.number - 1];
-    const activeKey = dim.number === 3 ? 'Currently provide to managers' :
-                      dim.number === 12 ? 'Currently measure / track' :
-                      dim.number === 13 ? 'Currently use' : 'Currently offer';
+    const color = DIM_COLORS[dim.number - 1];
 
-    let byStatus: Record<string, string[]> = {};
-    let opts = RESPONSE_OPTIONS;
-    if (dim.number === 13) opts = RESPONSE_OPTIONS_D13;
-    else if (dim.number === 12) opts = RESPONSE_OPTIONS_D12;
-    else if (dim.number === 3) opts = RESPONSE_OPTIONS_D3;
-    opts.forEach(o => (byStatus[o] = []));
-    programs.forEach(({ program, status }) => {
-      if (!byStatus[status]) byStatus[status] = [];
-      byStatus[status].push(program);
-    });
-
-    const offered = byStatus[activeKey]?.length || 0;
-    const total = programs.length;
-    const pct = total > 0 ? Math.round((offered / total) * 100) : 0;
-
-    /* ── program status table ── */
-    let programsHTML = '';
-    if (programs.length > 0) {
-      const rows = programs.map(({ program, status }) => {
-        const sc = statusStyle(status);
-        const short = status.replace(' in foreseeable future', '').replace('In active planning / development', 'Planning / Development');
-        return `<tr><td style="padding:8px 16px;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;">${program}</td><td style="padding:8px 16px;border-bottom:1px solid #f1f5f9;text-align:right;"><span style="display:inline-block;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;background:${sc.bg};color:${sc.fg};white-space:nowrap;">${short}</span></td></tr>`;
-      }).join('');
-
-      programsHTML = `
-        <div style="margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px 8px;">
-            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#ea580c;">Program Status</span>
-            <span style="font-size:12px;font-weight:600;color:#475569;background:#f1f5f9;padding:3px 10px;border-radius:4px;">${offered} of ${total} active (${pct}%)</span>
-          </div>
-          <table style="width:100%;border-collapse:collapse;">${rows}</table>
-        </div>`;
-    }
-
-    /* ── geo scope (pulled out of items for prominent display) ── */
+    // Separate geo from other items
     const geoItem = items.find(it => it.question === 'Geographic Scope');
     const otherItems = items.filter(it => it.question !== 'Geographic Scope');
 
+    // Geo banner
     let geoHTML = '';
     if (geoItem) {
       const gl = geoItem.response.toLowerCase();
-      const geoBg = gl.includes('consistent') ? '#f0fdf4' : gl.includes('var') ? '#fffbeb' : gl.includes('select') ? '#fef2f2' : '#f8fafc';
-      const geoFg = gl.includes('consistent') ? '#166534' : gl.includes('var') ? '#92400e' : gl.includes('select') ? '#991b1b' : '#475569';
-      geoHTML = `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:${geoBg};border-bottom:1px solid #e2e8f0;">
-          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#64748b;">Geographic Scope</span>
-          <span style="font-size:13px;font-weight:600;color:${geoFg};">${geoItem.response}</span>
-        </div>`;
+      const bg = gl.includes('consistent') ? '#f0fdf4' : gl.includes('var') ? '#fffbeb' : gl.includes('select') ? '#fef2f2' : '#f8fafc';
+      const fg = gl.includes('consistent') ? '#166534' : gl.includes('var') ? '#92400e' : gl.includes('select') ? '#991b1b' : '#475569';
+      geoHTML = `<div class="geo" style="background:${bg}"><span style="font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#64748b">Geographic Scope</span><span style="font-weight:600;color:${fg}">${h(geoItem.response)}</span></div>`;
     }
 
-    /* ── follow-up details ── */
+    // Programs table
+    let progsHTML = '';
+    if (programs.length > 0) {
+      const activeKey = dim.number === 3 ? 'currently provide' : dim.number === 12 ? 'currently measure' : dim.number === 13 ? 'currently use' : 'currently offer';
+      const offered = programs.filter(p => p.status.toLowerCase().includes(activeKey)).length;
+      const total = programs.length;
+      const pct = total > 0 ? Math.round((offered / total) * 100) : 0;
+
+      const rows = programs.map(({ program, status }) => {
+        const sl = status.toLowerCase();
+        const fg = sl.includes('currently') ? '#166534' : sl.includes('planning') ? '#1e40af' : sl.includes('assessing') ? '#92400e' : sl.includes('not able') ? '#991b1b' : '#6b7280';
+        const short = status.replace(/ in foreseeable future/g, '').replace('In active planning / development', 'Planning / Development');
+        return `<tr class="status-row"><td>${h(program)}</td><td class="status-label" style="color:${fg}">${h(short)}</td></tr>`;
+      }).join('');
+
+      progsHTML = `
+        <div style="padding:10px 16px 4px;display:flex;justify-content:space-between;align-items:center">
+          <span class="sec-head" style="padding:0;color:#ea580c">Program Status</span>
+          <span style="font-size:11px;font-weight:600;color:#475569;background:#f1f5f9;padding:2px 8px;border-radius:4px">${offered} of ${total} active (${pct}%)</span>
+        </div>
+        <table>${rows}</table>`;
+    }
+
+    // Follow-up details
     let followUpHTML = '';
     if (otherItems.length > 0) {
-      const fuRows = otherItems.map(it =>
-        `<tr><td style="padding:8px 16px;font-size:12px;font-weight:600;color:#475569;vertical-align:top;border-bottom:1px solid #f1f5f9;width:260px;">${it.question}</td><td style="padding:8px 16px;font-size:13px;color:#0f172a;border-bottom:1px solid #f1f5f9;">${it.response}</td></tr>`
+      const rows = otherItems.map(it =>
+        `<tr><td class="fl">${h(it.question)}</td><td class="fv">${h(it.response)}</td></tr>`
       ).join('');
-      followUpHTML = `
-        <div style="border-top:1px solid #e2e8f0;">
-          <div style="padding:12px 16px 4px;"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;">Follow-Up Details</span></div>
-          <table style="width:100%;border-collapse:collapse;">${fuRows}</table>
-        </div>`;
+      followUpHTML = `<div class="sec-head" style="color:#7c3aed">Follow-Up Details</div><table>${rows}</table>`;
     }
 
     dimensionsHTML += `
-      <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:16px;overflow:hidden;border-left:5px solid ${dimColor};page-break-inside:avoid;">
-        <div style="padding:14px 18px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:14px;">
-          <div style="width:36px;height:36px;border-radius:50%;background:${dimColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;">${dim.number}</div>
+      <div class="card" style="border-left:5px solid ${color}">
+        <div style="padding:12px 16px;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:12px">
+          <div style="width:32px;height:32px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">${dim.number}</div>
           <div>
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#94a3b8;">Dimension ${dim.number}</div>
-            <div style="font-size:15px;font-weight:700;color:#0f172a;">${DIM_TITLE[dim.number]}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#94a3b8">Dimension ${dim.number}</div>
+            <div style="font-size:14px;font-weight:700;color:#0f172a">${DIM_TITLE[dim.number]}</div>
           </div>
         </div>
         ${geoHTML}
-        <div style="padding:8px 0;">
-          ${programsHTML}
-          ${followUpHTML}
-        </div>
+        ${progsHTML}
+        ${followUpHTML}
       </div>`;
   });
 
-  /* ────────────────────────────
-     5. CROSS-DIMENSIONAL
-  ──────────────────────────── */
-  const fmtList = (val: any): string => {
-    if (!val) return '<em style="color:#94a3b8;">Not provided</em>';
-    if (Array.isArray(val)) return val.map((v: string) => `<div style="font-size:13px;padding:3px 0;">&bull; ${v}</div>`).join('');
-    return `<div style="font-size:13px;">${String(val)}</div>`;
-  };
+  /* ── CROSS-DIMENSIONAL ── */
   const cross = data.cross || {};
+  const fmtList = (val: any): string => {
+    if (!val) return '<em style="color:#94a3b8">Not provided</em>';
+    if (Array.isArray(val)) return val.map((v: string) => `<div style="font-size:13px;padding:2px 0">&bull; ${h(v)}</div>`).join('');
+    return `<div style="font-size:13px">${h(String(val))}</div>`;
+  };
   const crossHTML = Object.keys(cross).length === 0 ? '' : `
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:24px;overflow:hidden;page-break-inside:avoid;">
-      <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;border-left:4px solid #10b981;">
-        <h2 style="font-size:16px;font-weight:700;color:#0f172a;margin:0;">Cross-Dimensional Assessment</h2>
-      </div>
-      <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-        <div style="border:1px solid #bbf7d0;border-radius:8px;padding:16px;background:#f0fdf4;">
-          <div style="font-size:12px;font-weight:700;color:#166534;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Top 3 Priority Dimensions</div>
-          ${fmtList(cross.cd1a)}
-        </div>
-        <div style="border:1px solid #fde68a;border-radius:8px;padding:16px;background:#fffbeb;">
-          <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Bottom 3 Priority Dimensions</div>
-          ${fmtList(cross.cd1b)}
-        </div>
-        <div style="border:1px solid #fecaca;border-radius:8px;padding:16px;background:#fef2f2;">
-          <div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em;">Implementation Challenges</div>
-          ${fmtList(cross.cd2)}
-        </div>
+    <div class="card">
+      <div class="card-head" style="border-left-color:#10b981"><h2>Cross-Dimensional Assessment</h2></div>
+      <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div style="border:1px solid #bbf7d0;border-radius:6px;padding:12px;background:#f0fdf4"><div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em">Top 3 Priorities</div>${fmtList(cross.cd1a)}</div>
+        <div style="border:1px solid #fde68a;border-radius:6px;padding:12px;background:#fffbeb"><div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em">Bottom 3 Priorities</div>${fmtList(cross.cd1b)}</div>
+        <div style="border:1px solid #fecaca;border-radius:6px;padding:12px;background:#fef2f2"><div style="font-size:11px;font-weight:700;color:#991b1b;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em">Challenges</div>${fmtList(cross.cd2)}</div>
       </div>
     </div>`;
 
-  /* ────────────────────────────
-     6. EMPLOYEE IMPACT
-  ──────────────────────────── */
+  /* ── EMPLOYEE IMPACT ── */
   const impact = data.impact || {};
-  const hasImpact = Object.keys(impact).length > 0;
   let impactInner = '';
-  if (hasImpact) {
-    if (impact.ei1 && typeof impact.ei1 === 'object') {
-      const impactRows = Object.entries(impact.ei1).map(([item, rating]) => {
-        const r = String(rating);
-        const displayR = FIELD_LABELS[r] || r.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
-        const bg = r === 'significant' ? '#dcfce7' : r === 'moderate' ? '#dbeafe' : r === 'minimal' ? '#fef3c7' : '#f3f4f6';
-        const fg = r === 'significant' ? '#166534' : r === 'moderate' ? '#1e40af' : r === 'minimal' ? '#92400e' : '#475569';
-        return `<tr><td style="padding:8px 16px;font-size:13px;color:#1e293b;border-bottom:1px solid #f1f5f9;">${FIELD_LABELS[item] || item}</td><td style="padding:8px 16px;border-bottom:1px solid #f1f5f9;text-align:right;"><span style="font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;background:${bg};color:${fg};">${displayR}</span></td></tr>`;
-      }).join('');
-      impactInner += `<div style="padding:12px 16px 4px;"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7a34a3;">Program Impact by Outcome Area</span></div><table style="width:100%;border-collapse:collapse;">${impactRows}</table>`;
-    }
-    const otherImpact = Object.entries(impact)
-      .filter(([k]) => k !== 'ei1' && !k.endsWith('_none'))
-      .map(([k, v]) => fieldRow(formatLabel(k), v))
-      .filter(Boolean).join('');
-    if (otherImpact) {
-      impactInner += `<div style="border-top:1px solid #e2e8f0;"><table style="width:100%;border-collapse:collapse;">${otherImpact}</table></div>`;
-    }
+  if (impact.ei1 && typeof impact.ei1 === 'object') {
+    const rows = Object.entries(impact.ei1).map(([item, rating]) => {
+      const r = String(rating);
+      const dr = FIELD_LABELS[r] || r.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+      const fg = r === 'significant' ? '#166534' : r === 'moderate' ? '#1e40af' : r === 'minimal' ? '#92400e' : '#475569';
+      return `<tr class="status-row"><td>${h(FIELD_LABELS[item] || item)}</td><td class="status-label" style="color:${fg}">${h(dr)}</td></tr>`;
+    }).join('');
+    impactInner += `<div class="sec-head" style="color:#7a34a3">Program Impact by Outcome Area</div><table>${rows}</table>`;
   }
-  const impactHTML = !hasImpact ? '' : `
-    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:24px;overflow:hidden;page-break-inside:avoid;">
-      <div style="padding:16px 20px;border-bottom:1px solid #e2e8f0;border-left:4px solid #f97316;">
-        <h2 style="font-size:16px;font-weight:700;color:#0f172a;margin:0;">Employee Impact Assessment</h2>
-      </div>
+  Object.entries(impact).forEach(([k, v]) => {
+    if (k !== 'ei1' && k !== 'cd1a' && k !== 'cd1b' && k !== 'cd2' && !k.endsWith('_none')) {
+      const row = fieldRow(formatLabel(k), v);
+      if (row) impactInner += `<table>${row}</table>`;
+    }
+  });
+  const impactHTML = !impactInner ? '' : `
+    <div class="card">
+      <div class="card-head" style="border-left-color:#f97316"><h2>Employee Impact Assessment</h2></div>
       ${impactInner}
     </div>`;
 
-  /* ────────────────────────────
-     ASSEMBLE FULL HTML DOCUMENT
-  ──────────────────────────── */
-  const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${data.companyName} — Assessment Survey Summary</title>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Roboto','Helvetica Neue',sans-serif;line-height:1.6;color:#1a1a1a;background:#fff;padding:40px 48px;}
-    .wrap{max-width:1100px;margin:0 auto;}
-    @media print{body{padding:20px;font-size:11px;} div[style*="page-break"]{page-break-inside:avoid;}}
-  </style>
-</head>
-<body>
-<div class="wrap">
+  /* ── ASSEMBLE ── */
+  const htmlContent = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+<title>${h(data.companyName)} — Assessment Summary</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.5;color:#1e293b;background:#fff;padding:32px 40px}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font-size:26px;font-weight:800;color:#0f172a;margin-bottom:4px}
+h2{font-size:15px;font-weight:700;color:#0f172a;margin:0}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:20px;overflow:hidden;page-break-inside:avoid}
+.card-head{padding:12px 16px;border-bottom:1px solid #e2e8f0;border-left:4px solid #94a3b8}
+table{width:100%;border-collapse:collapse}
+.fl{padding:8px 16px;font-size:12px;font-weight:600;color:#64748b;vertical-align:top;border-bottom:1px solid #f1f5f9;width:220px}
+.fv{padding:8px 16px;font-size:13px;color:#0f172a;border-bottom:1px solid #f1f5f9}
+.geo{display:flex;align-items:center;gap:8px;padding:8px 16px;border-bottom:1px solid #e2e8f0;font-size:12px}
+.sec-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:10px 16px 4px}
+.status-row td{padding:6px 16px;font-size:13px;border-bottom:1px solid #f1f5f9}
+.status-label{font-weight:600;font-size:12px;text-align:right;white-space:nowrap}
+@media print{body{padding:16px;font-size:11px} .card{page-break-inside:avoid}}
+</style></head><body><div class="wrap">
 
-  <!-- HEADER -->
-  <div style="border-bottom:3px solid #7a34a3;padding-bottom:20px;margin-bottom:32px;">
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#7a34a3;">Best Companies for Working with Cancer</div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:2px;">2026 Employer Index &mdash; Company Profile &amp; Assessment Summary</div>
-    </div>
-    <h1 style="font-size:28px;font-weight:800;color:#0f172a;margin-bottom:4px;">${data.companyName}</h1>
-    <div style="font-size:13px;color:#64748b;">${data.surveyId || ''} &nbsp;&bull;&nbsp; ${data.email || ''} &nbsp;&bull;&nbsp; Generated ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-  </div>
+<div style="border-bottom:3px solid #7a34a3;padding-bottom:16px;margin-bottom:24px">
+<div style="text-align:center;margin-bottom:12px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#7a34a3">Best Companies for Working with Cancer</div>
+<div style="font-size:11px;color:#94a3b8">2026 Employer Index &mdash; Assessment Summary</div></div>
+<h1>${h(data.companyName)}</h1>
+<div style="font-size:12px;color:#64748b">${h(data.surveyId || '')} &bull; ${h(data.email || '')}</div></div>
 
-  <!-- CONTACT & COMPANY -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
-    ${sectionCard('Point of Contact', '#7a34a3', table(contactRows))}
-    ${sectionCard('Company Profile', '#3b82f6', table(companyRows))}
-  </div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+<div class="card"><div class="card-head" style="border-left-color:#7a34a3"><h2>Point of Contact</h2></div><table>${contactRows}</table></div>
+<div class="card"><div class="card-head" style="border-left-color:#3b82f6"><h2>Company Profile</h2></div><table>${companyRows}</table></div></div>
 
-  <!-- GENERAL BENEFITS -->
-  ${generalRows ? sectionCard('Benefits Landscape', '#6366f1', table(generalRows)) : ''}
+${genRows ? `<div class="card"><div class="card-head" style="border-left-color:#6366f1"><h2>Benefits Landscape</h2></div><table>${genRows}</table></div>` : ''}
 
-  <!-- CURRENT SUPPORT -->
-  ${currentRows ? sectionCard('Current Support for Employees Managing Cancer', '#ec4899', table(currentRows)) : ''}
+${curRows ? `<div class="card"><div class="card-head" style="border-left-color:#ec4899"><h2>Current Support for Employees Managing Cancer</h2></div><table>${curRows}</table></div>` : ''}
 
-  <!-- 13 DIMENSIONS -->
-  <div style="margin:32px 0 16px;padding-bottom:10px;border-bottom:2px solid #e2e8f0;">
-    <h2 style="font-size:20px;font-weight:800;color:#0f172a;">13 Dimensions of Support</h2>
-    <p style="font-size:12px;color:#64748b;margin-top:4px;">Comprehensive assessment across all workplace support dimensions</p>
-  </div>
-  ${dimensionsHTML}
+<div style="margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e8f0"><h2 style="font-size:18px;font-weight:800;color:#0f172a">13 Dimensions of Support</h2></div>
+${dimensionsHTML}
 
-  <!-- CROSS-DIMENSIONAL -->
-  ${crossHTML}
+${crossHTML}
+${impactHTML}
 
-  <!-- EMPLOYEE IMPACT -->
-  ${impactHTML}
-
-  <!-- FOOTER -->
-  <div style="text-align:center;padding-top:24px;border-top:2px solid #e2e8f0;margin-top:32px;">
-    <div style="font-size:11px;font-weight:600;color:#7a34a3;">Best Companies for Working with Cancer Index&trade;</div>
-    <div style="font-size:10px;color:#94a3b8;margin-top:4px;">Company Profile Report &nbsp;&bull;&nbsp; Survey ID: ${data.surveyId || 'N/A'} &nbsp;&bull;&nbsp; ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-    <div style="font-size:10px;color:#cbd5e1;margin-top:8px;">&copy; ${new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation. All rights reserved. This report is confidential.</div>
-  </div>
-
-</div>
-</body>
-</html>`;
+<div style="text-align:center;padding-top:20px;border-top:2px solid #e2e8f0;margin-top:28px">
+<div style="font-size:11px;font-weight:600;color:#7a34a3">Best Companies for Working with Cancer Index&trade;</div>
+<div style="font-size:10px;color:#94a3b8;margin-top:4px">Company Profile Report &bull; Survey ID: ${h(data.surveyId || 'N/A')}</div>
+<div style="font-size:10px;color:#cbd5e1;margin-top:6px">&copy; ${new Date().getFullYear()} Cancer and Careers &amp; CEW Foundation. Confidential.</div>
+</div></div></body></html>`;
 
   const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
   const url = URL.createObjectURL(blob);
