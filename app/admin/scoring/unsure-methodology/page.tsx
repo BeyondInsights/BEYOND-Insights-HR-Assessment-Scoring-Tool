@@ -736,8 +736,11 @@ function calculateUnsureCompanyResult(
 const DISCOUNT_TABLE = [
   { label: '10% (1 of 10)', oneMinusR: 0.90, squared: 0.81, perItem: 2.50, total: 2.50, pctMax: 5.0 },
   { label: '20% (2 of 10)', oneMinusR: 0.80, squared: 0.64, perItem: 1.98, total: 3.95, pctMax: 7.9 },
-  { label: '33% (3 of 10)', oneMinusR: 0.67, squared: 0.45, perItem: 1.39, total: 4.16, pctMax: 8.3 },
+  { label: '30% (3 of 10)', oneMinusR: 0.70, squared: 0.49, perItem: 1.51, total: 4.54, pctMax: 9.1, peak: true },
+  { label: '40% (4 of 10)', oneMinusR: 0.60, squared: 0.36, perItem: 1.11, total: 4.45, pctMax: 8.9 },
   { label: '50% (5 of 10)', oneMinusR: 0.50, squared: 0.25, perItem: 0.77, total: 3.86, pctMax: 7.7 },
+  { label: '60% (6 of 10)', oneMinusR: 0.40, squared: 0.16, perItem: 0.49, total: 2.97, pctMax: 5.9 },
+  { label: '70% (7 of 10)', oneMinusR: 0.30, squared: 0.09, perItem: 0.28, total: 1.94, pctMax: 3.9 },
   { label: '80% (8 of 10)', oneMinusR: 0.20, squared: 0.04, perItem: 0.12, total: 0.99, pctMax: 2.0 },
   { label: '100% (10 of 10)', oneMinusR: 0.00, squared: 0.00, perItem: 0.00, total: 0.00, pctMax: 0.0 },
 ];
@@ -1062,7 +1065,7 @@ export default function UnsureMethodologyPage() {
             <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="px-8 py-5 border-b border-slate-100">
                 <h3 className="font-bold text-slate-900 text-lg">Discount Schedule</h3>
-                <p className="text-slate-500 text-sm mt-1">The squared term ensures total credit peaks around r = 33% then declines, avoiding the &ldquo;hump problem&rdquo; that a linear discount creates at r = 50%. Illustrative values use &mu;<sub>d</sub> = 3.09.</p>
+                <p className="text-slate-500 text-sm mt-1">The squared term ensures total credit peaks around r = 30% then declines, avoiding the &ldquo;hump problem&rdquo; that a linear discount creates at r = 50%. Illustrative values use &mu;<sub>d</sub> = 3.09.</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -1077,17 +1080,20 @@ export default function UnsureMethodologyPage() {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {DISCOUNT_TABLE.map((row) => (
-                      <tr key={row.label} className="hover:bg-slate-50">
-                        <td className="px-5 py-3 font-semibold text-slate-800">{row.label}</td>
+                      <tr key={row.label} className={`hover:bg-slate-50 ${(row as any).peak ? 'bg-violet-50 border-l-4 border-l-violet-500' : ''}`}>
+                        <td className="px-5 py-3 font-semibold text-slate-800">
+                          {row.label}
+                          {(row as any).peak && <span className="ml-2 text-violet-600 text-xs font-bold">← PEAK</span>}
+                        </td>
                         <td className="px-5 py-3 text-center font-mono font-bold text-slate-900">{row.squared.toFixed(2)}</td>
                         <td className="px-5 py-3 text-center font-mono text-slate-700">{row.perItem.toFixed(2)}</td>
-                        <td className="px-5 py-3 text-center font-mono text-slate-700">{row.total.toFixed(2)}</td>
+                        <td className={`px-5 py-3 text-center font-mono ${(row as any).peak ? 'text-violet-700 font-bold' : 'text-slate-700'}`}>{row.total.toFixed(2)}</td>
                         <td className="px-5 py-3 text-center">
                           <div className="flex items-center justify-center gap-2">
                             <div className="w-20 h-3 bg-slate-100 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bg-violet-500" style={{ width: `${row.pctMax * 10}%` }} />
+                              <div className={`h-full rounded-full ${(row as any).peak ? 'bg-violet-600' : 'bg-violet-500'}`} style={{ width: `${row.pctMax * 10}%` }} />
                             </div>
-                            <span className="font-mono font-bold text-slate-800 w-12 text-right">{row.pctMax.toFixed(1)}%</span>
+                            <span className={`font-mono font-bold w-12 text-right ${(row as any).peak ? 'text-violet-700' : 'text-slate-800'}`}>{row.pctMax.toFixed(1)}%</span>
                           </div>
                         </td>
                       </tr>
