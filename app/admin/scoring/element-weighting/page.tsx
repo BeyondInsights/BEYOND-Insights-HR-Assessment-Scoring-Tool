@@ -1818,8 +1818,8 @@ export default function ElementWeightingPage() {
                 <div className="grid grid-cols-4 gap-3 mb-3">
                   {[
                     { title: 'Ordinal Encoding', detail: '0 / 2 / 3 / 5', color: 'bg-violet-700' },
-                    { title: 'Company Filtering', detail: '226560% observed', color: 'bg-indigo-700' },
-                    { title: 'Ridge Regression', detail: '03b1 = 1.0, z-scored', color: 'bg-blue-700' },
+                    { title: 'Company Filtering', detail: '\u226560% observed', color: 'bg-indigo-700' },
+                    { title: 'Ridge Regression', detail: '\u03B1 = 1.0, z-scored', color: 'bg-blue-700' },
                     { title: 'Permutation Importance', detail: '100 repetitions', color: 'bg-sky-700' },
                   ].map((s, i) => (
                     <div key={i} className="relative">
@@ -1840,8 +1840,8 @@ export default function ElementWeightingPage() {
                 </div>
                 <div className="grid grid-cols-4 gap-3">
                   {[
-                    { title: 'Soft Attenuation', detail: 'w 00d7 s(j)^1.5', color: 'bg-amber-700' },
-                    { title: 'Adaptive 03b1 Blend', detail: 'Signal → α', color: 'bg-orange-700' },
+                    { title: 'Soft Attenuation', detail: 'w \u00D7 s(j)^1.5', color: 'bg-amber-700' },
+                    { title: 'Adaptive \u03B1 Blend', detail: 'Signal \u2192 \u03B1', color: 'bg-orange-700' },
                     { title: '20% Hard Cap', detail: 'Redistribute excess', color: 'bg-red-700' },
                   ].map((s, i) => (
                     <div key={i} className="relative">
