@@ -606,27 +606,33 @@ interface CompanyComparison {
   isComplete: boolean;
   isPanel: boolean;
   isFoundingPartner: boolean;
-  dims: Record<number, { eq: number; wt: number }>;
-  eqComposite: number;
+  dims: Record<number, { oldEq: number; newEq: number; wt: number }>;
+  oldEqComposite: number;
+  newEqComposite: number;
   wtComposite: number;
   maturityScore: number;
   breadthScore: number;
 }
 
 function calculateCompanyComparison(assessment: Record<string, any>): CompanyComparison {
-  // EQUAL-WEIGHT: Use the EXACT same function as page_146_ scoring page
+  // NEW dim weights baseline
   const eqScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
+  // OLD dim weights baseline
+  const oldEqScores = calculateCompanyScores(assessment, OLD_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
   
   // ELEMENT-WEIGHTED: Calculate weighted dimension scores
-  const dims: Record<number, { eq: number; wt: number }> = {};
+  const dims: Record<number, { oldEq: number; newEq: number; wt: number }> = {};
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
     const wtResult = calculateElementWeightedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS);
-    // Equal side comes from the original scoring function (guaranteed correct)
-    dims[i] = { eq: eqScores.dimensions[i]?.blendedScore || 0, wt: wtResult.blendedWeighted };
+    dims[i] = {
+      oldEq: oldEqScores.dimensions[i]?.blendedScore || 0,
+      newEq: eqScores.dimensions[i]?.blendedScore || 0,
+      wt: wtResult.blendedWeighted,
+    };
   }
   
-  // Element-weighted composite: apply dimension weights to weighted dim scores, then 90/5/5
+  // Element-weighted composite: apply NEW dimension weights to weighted dim scores, then 90/5/5
   let wtWeightedDim = 0;
   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
   if (eqScores.isComplete) {
@@ -648,7 +654,8 @@ function calculateCompanyComparison(assessment: Record<string, any>): CompanyCom
     isPanel: eqScores.isPanel,
     isFoundingPartner: eqScores.isFoundingPartner,
     dims,
-    eqComposite: eqScores.compositeScore,  // From original scoring function
+    oldEqComposite: oldEqScores.compositeScore,
+    newEqComposite: eqScores.compositeScore,
     wtComposite,
     maturityScore: eqScores.maturityScore,
     breadthScore: eqScores.breadthScore,
@@ -1533,20 +1540,26 @@ export default function ElementWeightingPage() {
   const filteredCompanies = useMemo(() => {
     let list = companies.filter(c => c.isComplete);
     list = list.filter(c => !c.isPanel);
-    return list.sort((a, b) => b.eqComposite - a.eqComposite);
+    return list.sort((a, b) => b.newEqComposite - a.newEqComposite);
   }, [companies]);
 
   const benchmark = useMemo(() => {
     if (filteredCompanies.length === 0) return null;
-    const dims: Record<number, { eq: number; wt: number }> = {};
+    const dims: Record<number, { oldEq: number; newEq: number; wt: number }> = {};
     for (let i = 1; i <= 13; i++) {
-      const eqs = filteredCompanies.map(c => c.dims[i]?.eq || 0);
+      const oldEqs = filteredCompanies.map(c => c.dims[i]?.oldEq || 0);
+      const newEqs = filteredCompanies.map(c => c.dims[i]?.newEq || 0);
       const wts = filteredCompanies.map(c => c.dims[i]?.wt || 0);
-      dims[i] = { eq: Math.round(eqs.reduce((a, b) => a + b, 0) / eqs.length), wt: Math.round(wts.reduce((a, b) => a + b, 0) / wts.length) };
+      dims[i] = {
+        oldEq: Math.round(oldEqs.reduce((a, b) => a + b, 0) / oldEqs.length),
+        newEq: Math.round(newEqs.reduce((a, b) => a + b, 0) / newEqs.length),
+        wt: Math.round(wts.reduce((a, b) => a + b, 0) / wts.length),
+      };
     }
-    const eqC = Math.round(filteredCompanies.reduce((s, c) => s + c.eqComposite, 0) / filteredCompanies.length);
+    const oldEqC = Math.round(filteredCompanies.reduce((s, c) => s + c.oldEqComposite, 0) / filteredCompanies.length);
+    const newEqC = Math.round(filteredCompanies.reduce((s, c) => s + c.newEqComposite, 0) / filteredCompanies.length);
     const wtC = Math.round(filteredCompanies.reduce((s, c) => s + c.wtComposite, 0) / filteredCompanies.length);
-    return { dims, eqC, wtC };
+    return { dims, oldEqC, newEqC, wtC };
   }, [filteredCompanies]);
 
   const filteredCombined = useMemo(() => {
@@ -2163,7 +2176,11 @@ export default function ElementWeightingPage() {
                 <div className="flex items-center gap-8">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-white border-2 border-slate-300" />
-                    <span className="text-slate-700 text-sm font-medium">Equal Weight</span>
+                    <span className="text-slate-700 text-sm font-medium">Old Dim Weights</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded bg-sky-500" />
+                    <span className="text-slate-700 text-sm font-medium">New Dim Weights</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-emerald-600" />
@@ -2171,12 +2188,12 @@ export default function ElementWeightingPage() {
                   </div>
                   <div className="ml-auto flex items-center gap-6">
                     <div>
-                      <span className="text-2xl font-bold text-emerald-700">{filteredCompanies.filter(c => c.wtComposite > c.eqComposite).length}</span>
+                      <span className="text-2xl font-bold text-emerald-700">{filteredCompanies.filter(c => c.wtComposite > c.newEqComposite).length}</span>
                       <span className="text-sm text-slate-600 ml-1">score higher</span>
                     </div>
                     <div>
                       <span className="text-2xl font-bold text-slate-800">
-                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.wtComposite - c.eqComposite), 0) / filteredCompanies.length).toFixed(1)}
+                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.wtComposite - c.newEqComposite), 0) / filteredCompanies.length).toFixed(1)}
                       </span>
                       <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
                     </div>
@@ -2236,13 +2253,23 @@ export default function ElementWeightingPage() {
                         <tr className="bg-slate-200 border-y-2 border-slate-400">
                           <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
                         </tr>
+                        {/* Old Dim Weights */}
                         <tr className="border-b border-slate-200">
-                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Equal</td>
-                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{benchmark?.eqC}</td>
+                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Old Dim Weights</td>
+                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{benchmark?.oldEqC}</td>
                           {filteredCompanies.map((c, i) => (
-                            <td key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.eqComposite}</td>
+                            <td key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.oldEqComposite}</td>
                           ))}
                         </tr>
+                        {/* New Dim Weights */}
+                        <tr className="border-b border-slate-200 bg-sky-50">
+                          <td className="sticky left-0 z-10 bg-sky-50 px-3 py-3 text-sky-800 font-bold text-sm border-r border-sky-100">New Dim Weights</td>
+                          <td className="px-2 py-3 text-center font-bold text-sky-800 text-sm bg-sky-100 border-r border-sky-100">{benchmark?.newEqC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-3 text-center font-bold text-sky-800 ${i % 2 === 0 ? 'bg-sky-50' : 'bg-sky-50/50'}`}>{c.newEqComposite}</td>
+                          ))}
+                        </tr>
+                        {/* Element-Weighted */}
                         <tr className="border-b border-slate-200 bg-emerald-50">
                           <td className="sticky left-0 z-10 bg-emerald-50 px-3 py-3 text-emerald-800 font-bold text-sm border-r border-emerald-100">Weighted</td>
                           <td className="px-2 py-2.5 text-center font-bold bg-emerald-100 border-r border-emerald-100" style={{ color: getScoreColor(benchmark?.wtC || 0) }}>{benchmark?.wtC}</td>
@@ -2251,12 +2278,12 @@ export default function ElementWeightingPage() {
                           ))}
                         </tr>
                         <tr className="border-b-2 border-slate-400 bg-slate-100">
-                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">Δ</td>
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta; vs New</td>
                           <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
-                            {benchmark && <span className={(benchmark.wtC - benchmark.eqC) >= 0 ? 'text-emerald-700' : 'text-red-700'}>{(benchmark.wtC - benchmark.eqC) >= 0 ? '+' : ''}{benchmark.wtC - benchmark.eqC}</span>}
+                            {benchmark && <span className={(benchmark.wtC - benchmark.newEqC) >= 0 ? 'text-emerald-700' : 'text-red-700'}>{(benchmark.wtC - benchmark.newEqC) >= 0 ? '+' : ''}{benchmark.wtC - benchmark.newEqC}</span>}
                           </td>
                           {filteredCompanies.map((c) => {
-                            const d = c.wtComposite - c.eqComposite;
+                            const d = c.wtComposite - c.newEqComposite;
                             return (
                               <td key={c.surveyId} className="px-1 py-1.5 text-center text-xs font-bold">
                                 <span className={d > 0 ? 'text-emerald-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
@@ -2275,13 +2302,25 @@ export default function ElementWeightingPage() {
                                 D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
                               </td>
                             </tr>
+                            {/* Old Dim Wt */}
                             <tr className="border-b border-slate-100">
-                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Equal</td>
-                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.eq}</td>
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Old Dim Wt</td>
+                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{benchmark?.dims[dim]?.oldEq}</td>
                               {filteredCompanies.map((c, i) => (
-                                <td key={c.surveyId} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.oldEq}</td>
                               ))}
                             </tr>
+                            {/* New Dim Wt */}
+                            <tr className="border-b border-slate-100 bg-sky-50/30">
+                              <td className="sticky left-0 z-10 bg-sky-50/30 px-3 py-1 text-sky-800 font-semibold pl-4 text-xs border-r border-sky-100/50">New Dim Wt</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-sky-100/30 border-r border-sky-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.newEq || 0) }}>{benchmark?.dims[dim]?.newEq}</td>
+                              {filteredCompanies.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-sky-50/40' : 'bg-sky-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.newEq || 0) }}>
+                                  {c.dims[dim]?.newEq}
+                                </td>
+                              ))}
+                            </tr>
+                            {/* Element-Weighted */}
                             <tr className="border-b border-slate-100 bg-emerald-50/30">
                               <td className="sticky left-0 z-10 bg-emerald-50/30 px-3 py-1 text-emerald-800 font-semibold pl-4 text-xs border-r border-emerald-100/50">Wt</td>
                               <td className="px-2 py-2 text-center font-semibold text-xs bg-emerald-100/30 border-r border-emerald-100/50" style={{ color: getScoreColor(benchmark?.dims[dim]?.wt || 0) }}>{benchmark?.dims[dim]?.wt}</td>
@@ -2291,17 +2330,18 @@ export default function ElementWeightingPage() {
                                 </td>
                               ))}
                             </tr>
+                            {/* Delta */}
                             <tr className="border-b border-slate-200 bg-slate-50/50">
-                              <td className="sticky left-0 z-10 bg-slate-50/50 px-3 py-1 text-slate-500 pl-4 text-[10px] font-bold border-r border-slate-100">Δ</td>
+                              <td className="sticky left-0 z-10 bg-slate-50/50 px-3 py-1 text-slate-500 pl-4 text-[10px] font-bold border-r border-slate-100">&Delta;</td>
                               <td className="px-2 py-1 text-center text-[10px] font-bold bg-slate-50/50 border-r border-slate-100">
-                                {benchmark?.dims[dim]?.eq != null && benchmark?.dims[dim]?.wt != null && (
-                                  <span className={(benchmark.dims[dim].wt - benchmark.dims[dim].eq) >= 0 ? 'text-emerald-600' : 'text-red-600'}>
-                                    {(benchmark.dims[dim].wt - benchmark.dims[dim].eq) >= 0 ? '+' : ''}{benchmark.dims[dim].wt - benchmark.dims[dim].eq}
+                                {benchmark?.dims[dim]?.newEq != null && benchmark?.dims[dim]?.wt != null && (
+                                  <span className={(benchmark.dims[dim].wt - benchmark.dims[dim].newEq) >= 0 ? 'text-emerald-600' : 'text-red-600'}>
+                                    {(benchmark.dims[dim].wt - benchmark.dims[dim].newEq) >= 0 ? '+' : ''}{benchmark.dims[dim].wt - benchmark.dims[dim].newEq}
                                   </span>
                                 )}
                               </td>
                               {filteredCompanies.map((c) => {
-                                const eqVal = c.dims[dim]?.eq;
+                                const eqVal = c.dims[dim]?.newEq;
                                 const wtVal = c.dims[dim]?.wt;
                                 const delta = (eqVal != null && wtVal != null) ? wtVal - eqVal : null;
                                 return (
