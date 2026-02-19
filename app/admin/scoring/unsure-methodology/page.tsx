@@ -11,8 +11,12 @@ const D10_EXCLUDED_ITEMS = [
   'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
 ];
 
-const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
+const OLD_DIMENSION_WEIGHTS: Record<number, number> = {
   4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
+};
+
+const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
+  3: 12, 8: 12, 13: 11, 2: 10, 5: 10, 1: 10, 4: 8, 6: 7, 7: 5, 10: 4, 9: 4, 12: 4, 11: 3,
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, depth: 0, maturity: 5, breadth: 5 };
@@ -633,8 +637,9 @@ interface UnsureCompanyResult {
   isPanel: boolean;
   isFoundingPartner: boolean;
   dims: Record<number, UnsureDimensionResult>;
-  rawComposite: number;     // Current scoring method
-  adjustedComposite: number; // With (1-r)² unsure handling
+  oldRawComposite: number;   // Old dim weights, no unsure sub
+  newRawComposite: number;   // New dim weights, no unsure sub
+  adjustedComposite: number; // New dim weights + (1-r)² unsure handling
   totalUnsure: number;
   totalItems: number;
   overallUnsurePct: number;
@@ -650,8 +655,10 @@ function calculateUnsureCompanyResult(
   assessment: Record<string, any>,
   populationMeans: Record<number, number>
 ): UnsureCompanyResult {
-  // Use original scoring for raw composite (guaranteed match with scoring page)
+  // Use NEW dimension weights for raw composite
   const rawScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
+  // Also compute with OLD dimension weights
+  const oldRawScores = calculateCompanyScores(assessment, OLD_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
 
   // Calculate unsure-adjusted dimension scores
   const dims: Record<number, UnsureDimensionResult> = {};
@@ -680,7 +687,7 @@ function calculateUnsureCompanyResult(
 
   const overallUnsurePct = totalItems > 0 ? (totalUnsure / totalItems) * 100 : 0;
 
-  // Adjusted composite: dimension-weighted average then 90/5/5
+  // Adjusted composite using NEW dimension weights: dimension-weighted average then 90/5/5
   let adjWeightedDim = 0;
   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
   if (rawScores.isComplete && totalWeight > 0) {
@@ -718,7 +725,8 @@ function calculateUnsureCompanyResult(
     isPanel: rawScores.isPanel,
     isFoundingPartner: rawScores.isFoundingPartner,
     dims,
-    rawComposite: rawScores.compositeScore,
+    oldRawComposite: oldRawScores.compositeScore,
+    newRawComposite: rawScores.compositeScore,
     adjustedComposite,
     totalUnsure,
     totalItems,
@@ -878,9 +886,10 @@ export default function UnsureMethodologyPage() {
         adj: Math.round(adjs.reduce((a, b) => a + b, 0) / adjs.length),
       };
     }
-    const rawC = Math.round(filteredCompanies.reduce((s, c) => s + c.rawComposite, 0) / filteredCompanies.length);
+    const oldRawC = Math.round(filteredCompanies.reduce((s, c) => s + c.oldRawComposite, 0) / filteredCompanies.length);
+    const newRawC = Math.round(filteredCompanies.reduce((s, c) => s + c.newRawComposite, 0) / filteredCompanies.length);
     const adjC = Math.round(filteredCompanies.reduce((s, c) => s + c.adjustedComposite, 0) / filteredCompanies.length);
-    return { dims, rawC, adjC };
+    return { dims, oldRawC, newRawC, adjC };
   }, [filteredCompanies]);
 
   const DIMENSION_ORDER = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
@@ -1158,12 +1167,12 @@ export default function UnsureMethodologyPage() {
                   </div>
                   <div className="ml-auto flex items-center gap-6">
                     <div>
-                      <span className="text-2xl font-bold text-violet-700">{filteredCompanies.filter(c => c.adjustedComposite > c.rawComposite).length}</span>
+                      <span className="text-2xl font-bold text-violet-700">{filteredCompanies.filter(c => c.adjustedComposite > c.newRawComposite).length}</span>
                       <span className="text-sm text-slate-600 ml-1">score higher</span>
                     </div>
                     <div>
                       <span className="text-2xl font-bold text-slate-800">
-                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.adjustedComposite - c.rawComposite), 0) / filteredCompanies.length).toFixed(1)}
+                        {(filteredCompanies.reduce((s, c) => s + Math.abs(c.adjustedComposite - c.newRawComposite), 0) / filteredCompanies.length).toFixed(1)}
                       </span>
                       <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
                     </div>
@@ -1227,10 +1236,17 @@ export default function UnsureMethodologyPage() {
                           <td colSpan={2 + filteredCompanies.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
                         </tr>
                         <tr className="border-b border-slate-200">
-                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Current</td>
-                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{benchmark?.rawC}</td>
+                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Old Dim Weights</td>
+                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{benchmark?.oldRawC}</td>
                           {filteredCompanies.map((c, i) => (
-                            <td key={c.surveyId || c.companyName} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.rawComposite}</td>
+                            <td key={c.surveyId || c.companyName} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.oldRawComposite}</td>
+                          ))}
+                        </tr>
+                        <tr className="border-b border-slate-200 bg-sky-50">
+                          <td className="sticky left-0 z-10 bg-sky-50 px-3 py-3 text-sky-800 font-bold text-sm border-r border-sky-100">New Dim Weights</td>
+                          <td className="px-2 py-3 text-center font-bold text-sky-800 text-sm bg-sky-100 border-r border-sky-100">{benchmark?.newRawC}</td>
+                          {filteredCompanies.map((c, i) => (
+                            <td key={c.surveyId || c.companyName} className={`px-1 py-3 text-center font-bold text-sky-800 ${i % 2 === 0 ? 'bg-sky-50' : 'bg-sky-50/50'}`}>{c.newRawComposite}</td>
                           ))}
                         </tr>
                         <tr className="border-b border-slate-200 bg-violet-50">
@@ -1241,12 +1257,12 @@ export default function UnsureMethodologyPage() {
                           ))}
                         </tr>
                         <tr className="border-b-2 border-slate-400 bg-slate-100">
-                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta;</td>
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta; vs New</td>
                           <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
-                            {benchmark && <span className={(benchmark.adjC - benchmark.rawC) >= 0 ? 'text-violet-700' : 'text-red-700'}>{(benchmark.adjC - benchmark.rawC) >= 0 ? '+' : ''}{benchmark.adjC - benchmark.rawC}</span>}
+                            {benchmark && <span className={(benchmark.adjC - benchmark.newRawC) >= 0 ? 'text-violet-700' : 'text-red-700'}>{(benchmark.adjC - benchmark.newRawC) >= 0 ? '+' : ''}{benchmark.adjC - benchmark.newRawC}</span>}
                           </td>
                           {filteredCompanies.map((c) => {
-                            const d = c.adjustedComposite - c.rawComposite;
+                            const d = c.adjustedComposite - c.newRawComposite;
                             return (
                               <td key={c.surveyId || c.companyName} className="px-1 py-1.5 text-center text-xs font-bold">
                                 <span className={d > 0 ? 'text-violet-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
@@ -1273,7 +1289,7 @@ export default function UnsureMethodologyPage() {
                           <React.Fragment key={dim}>
                             <tr className={`${idx === 0 ? '' : 'border-t-2 border-slate-200'} bg-slate-100`}>
                               <td colSpan={2 + filteredCompanies.length} className="px-3 py-1 text-xs font-bold text-slate-800">
-                                D{dim}: {DIMENSION_NAMES[dim]}
+                                D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
                               </td>
                             </tr>
                             <tr className="border-b border-slate-100">
