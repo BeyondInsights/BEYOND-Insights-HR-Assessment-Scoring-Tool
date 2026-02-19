@@ -95,7 +95,7 @@ const DIMENSION_NAMES_SCORING: Record<number, string> = {
 };
 
 const DEFAULT_WEIGHTS: Record<number, number> = {
-  4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
+  3: 12, 8: 12, 13: 11, 2: 10, 5: 10, 1: 10, 4: 8, 6: 7, 7: 5, 10: 4, 9: 4, 12: 4, 11: 3,
 };
 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
