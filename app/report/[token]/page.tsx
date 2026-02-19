@@ -7114,36 +7114,6 @@ export default function ExportReportPage() {
             </div>
           )}
           
-          {/* ============ IMPACT-RANKED PRIORITIES ============ */}
-          {(() => {
-            const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
-            const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-            const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
-            const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
-            const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
-            
-            // Calculate max contribution for bar scaling
-            const maxContribution = Math.max(...rankings.slice(0, 5).map(r => r.potentialGain12));
-            
-            const displayedRankings = showAllImpactDimensions ? rankings.slice(0, 5) : rankings.slice(0, 3);
-            const dimColors = [
-              { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600', bar: 'bg-indigo-500' },
-              { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600', bar: 'bg-teal-500' },
-              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-500' },
-              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600', bar: 'bg-amber-500' },
-              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600', bar: 'bg-rose-500' },
-            ];
-            
-            // Helper to get benchmark % for an element
-            const getElementBenchmark = (dimNum: number, elementName: string) => {
-              const dimBench = elementBenchmarks[dimNum];
-              if (!dimBench) return null;
-              const el = dimBench[elementName];
-              if (!el || !el.total) return null;
-              return Math.round((el.currently / el.total) * 100);
-            };
-            
-            return (
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
@@ -8322,6 +8292,36 @@ export default function ExportReportPage() {
             </div>
           </div>
           
+          {/* ============ IMPACT-RANKED PRIORITIES ============ */}
+          {(() => {
+            const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
+            const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
+            const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
+            const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
+            const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
+            
+            // Calculate max contribution for bar scaling
+            const maxContribution = Math.max(...rankings.slice(0, 5).map(r => r.potentialGain12));
+            
+            const displayedRankings = showAllImpactDimensions ? rankings.slice(0, 5) : rankings.slice(0, 3);
+            const dimColors = [
+              { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600', bar: 'bg-indigo-500' },
+              { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600', bar: 'bg-teal-500' },
+              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-500' },
+              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600', bar: 'bg-amber-500' },
+              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600', bar: 'bg-rose-500' },
+            ];
+            
+            // Helper to get benchmark % for an element
+            const getElementBenchmark = (dimNum: number, elementName: string) => {
+              const dimBench = elementBenchmarks[dimNum];
+              if (!dimBench) return null;
+              const el = dimBench[elementName];
+              if (!el || !el.total) return null;
+              return Math.round((el.currently / el.total) * 100);
+            };
+            
+            return (
               <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
                 {/* Header */}
                 <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
