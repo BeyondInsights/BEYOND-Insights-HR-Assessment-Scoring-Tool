@@ -22,8 +22,12 @@ const D10_EXCLUDED_ITEMS = [
   'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
 ];
 
-const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
+const OLD_DIMENSION_WEIGHTS: Record<number, number> = {
   4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
+};
+
+const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
+  3: 12, 8: 12, 13: 11, 2: 10, 5: 10, 1: 10, 4: 8, 6: 7, 7: 5, 10: 4, 9: 4, 12: 4, 11: 3,
 };
 
 const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, depth: 0, maturity: 5, breadth: 5 };
@@ -660,11 +664,12 @@ interface CombinedCompanyResult {
   surveyId: string;
   isComplete: boolean;
   isPanel: boolean;
-  dims: Record<number, { eq: number; wt: number; unsure: number; combined: number }>;
-  eqComposite: number;      // Equal-weight, unsure=0
-  wtComposite: number;      // Element-weighted, unsure=0
-  unsureComposite: number;  // Equal-weight + unsure substitution
-  combinedComposite: number; // Element-weighted + unsure substitution
+  dims: Record<number, { oldEq: number; newEq: number; wt: number; unsure: number; combined: number }>;
+  oldEqComposite: number;    // Old dim weights, equal element weights, unsure=0
+  newEqComposite: number;    // New dim weights, equal element weights, unsure=0
+  wtComposite: number;       // New dim weights, element-weighted, unsure=0
+  unsureComposite: number;   // New dim weights, equal element weights + unsure substitution
+  combinedComposite: number; // New dim weights, element-weighted + unsure substitution
   maturityScore: number;
   breadthScore: number;
 }
@@ -673,23 +678,27 @@ function calculateCombinedScore(
   assessment: Record<string, any>,
   populationMeans: Record<number, number>
 ): CombinedCompanyResult {
-  // Get baseline scores
+  // Get baseline scores using NEW dimension weights
   const eqScores = calculateCompanyScores(assessment, DEFAULT_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
+  // Also compute with OLD dimension weights for comparison
+  const oldEqScores = calculateCompanyScores(assessment, OLD_DIMENSION_WEIGHTS, DEFAULT_COMPOSITE_WEIGHTS, DEFAULT_BLEND_WEIGHTS);
 
-  const dims: Record<number, { eq: number; wt: number; unsure: number; combined: number }> = {};
+  const dims: Record<number, { oldEq: number; newEq: number; wt: number; unsure: number; combined: number }> = {};
 
   for (let i = 1; i <= 13; i++) {
     const dimData = assessment[`dimension${i}_data`];
 
-    // Equal-weight score (from original function)
-    const eqScore = eqScores.dimensions[i]?.blendedScore || 0;
+    // Old equal-weight score (from old dimension weights scoring - dimension scores are the same, composite differs)
+    const oldEqScore = oldEqScores.dimensions[i]?.blendedScore || 0;
+    // New equal-weight score (same dimension scores, but will use new dim weights for composite)
+    const newEqScore = eqScores.dimensions[i]?.blendedScore || 0;
 
     // Element-weighted score (unsure=0)
     const wtResult = calculateElementWeightedDimensionScore(i, dimData, assessment, DEFAULT_BLEND_WEIGHTS);
     const wtScore = wtResult.blendedWeighted;
 
     // Unsure-only: Equal-weight base + unsure substitution (no element weighting)
-    let unsureScore = eqScore;
+    let unsureScore = newEqScore;
     if (dimData) {
       const uGrid = dimData[`d${i}a`];
       if (uGrid && typeof uGrid === 'object') {
@@ -797,18 +806,24 @@ function calculateCombinedScore(
       }
     }
 
-    dims[i] = { eq: eqScore, wt: wtScore, unsure: unsureScore, combined: combinedScore };
+    dims[i] = { oldEq: oldEqScore, newEq: newEqScore, wt: wtScore, unsure: unsureScore, combined: combinedScore };
   }
 
-  // Composites
+  // Composites using NEW dimension weights
   const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
+  const oldTotalWeight = Object.values(OLD_DIMENSION_WEIGHTS).reduce((s, w) => s + w, 0);
 
+  let oldEqWeightedDim = 0;
+  let newEqWeightedDim = 0;
   let wtWeightedDim = 0;
   let unsureWeightedDim = 0;
   let combinedWeightedDim = 0;
   if (eqScores.isComplete && totalWeight > 0) {
     for (let d = 1; d <= 13; d++) {
       const w = DEFAULT_DIMENSION_WEIGHTS[d] || 0;
+      const oldW = OLD_DIMENSION_WEIGHTS[d] || 0;
+      oldEqWeightedDim += dims[d].oldEq * (oldW / oldTotalWeight);
+      newEqWeightedDim += dims[d].newEq * (w / totalWeight);
       wtWeightedDim += dims[d].wt * (w / totalWeight);
       unsureWeightedDim += dims[d].unsure * (w / totalWeight);
       combinedWeightedDim += dims[d].combined * (w / totalWeight);
@@ -827,7 +842,8 @@ function calculateCombinedScore(
     isComplete: eqScores.isComplete,
     isPanel: eqScores.isPanel,
     dims,
-    eqComposite: eqScores.compositeScore,
+    oldEqComposite: calcComposite(oldEqWeightedDim),
+    newEqComposite: calcComposite(newEqWeightedDim),
     wtComposite: calcComposite(wtWeightedDim),
     unsureComposite: calcComposite(unsureWeightedDim),
     combinedComposite: calcComposite(combinedWeightedDim),
@@ -1035,7 +1051,7 @@ const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
 const DIMENSIONS: Record<number, DimensionData> = {
   1: {
     name: "Medical Leave & Flexible Work",
-    weight: 7,
+    weight: 10,
     elements: 12,
     cvR2: -0.131,
     alpha: 0.3,
@@ -1062,7 +1078,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   2: {
     name: "Insurance & Financial Protection",
-    weight: 11,
+    weight: 10,
     elements: 17,
     cvR2: 0.022,
     alpha: 0.4,
@@ -1119,7 +1135,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   4: {
     name: "Cancer Support Resources",
-    weight: 14,
+    weight: 8,
     elements: 10,
     cvR2: 0.413,
     alpha: 0.5,
@@ -1144,7 +1160,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   5: {
     name: "Workplace Accommodations",
-    weight: 7,
+    weight: 10,
     elements: 11,
     cvR2: 0.453,
     alpha: 0.5,
@@ -1170,7 +1186,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   6: {
     name: "Culture & Psychological Safety",
-    weight: 8,
+    weight: 7,
     elements: 12,
     cvR2: 0.361,
     alpha: 0.5,
@@ -1197,7 +1213,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   7: {
     name: "Career Continuity & Advancement",
-    weight: 4,
+    weight: 5,
     elements: 9,
     cvR2: 0.33,
     alpha: 0.5,
@@ -1221,7 +1237,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   8: {
     name: "Work Continuation & Resumption",
-    weight: 13,
+    weight: 12,
     elements: 12,
     cvR2: 0.53,
     alpha: 0.5,
@@ -1338,7 +1354,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   12: {
     name: "Continuous Improvement",
-    weight: 3,
+    weight: 4,
     elements: 9,
     cvR2: 0.131,
     alpha: 0.5,
@@ -1362,7 +1378,7 @@ const DIMENSIONS: Record<number, DimensionData> = {
   },
   13: {
     name: "Communication & Awareness",
-    weight: 10,
+    weight: 11,
     elements: 10,
     cvR2: 0.644,
     alpha: 0.5,
@@ -1536,27 +1552,32 @@ export default function ElementWeightingPage() {
   const filteredCombined = useMemo(() => {
     let list = combinedCompanies.filter(c => c.isComplete);
     list = list.filter(c => !c.isPanel);
-    return list.sort((a, b) => b.eqComposite - a.eqComposite);
+    return list.sort((a, b) => b.newEqComposite - a.newEqComposite);
   }, [combinedCompanies]);
 
   const combinedBenchmark = useMemo(() => {
     if (filteredCombined.length === 0) return null;
-    const dims: Record<number, { eq: number; wt: number; unsure: number; combined: number }> = {};
+    const dims: Record<number, { oldEq: number; newEq: number; wt: number; unsure: number; combined: number }> = {};
     for (let i = 1; i <= 13; i++) {
-      const eqs = filteredCombined.map(c => c.dims[i]?.eq || 0);
+      const oldEqs = filteredCombined.map(c => c.dims[i]?.oldEq || 0);
+      const newEqs = filteredCombined.map(c => c.dims[i]?.newEq || 0);
       const wts = filteredCombined.map(c => c.dims[i]?.wt || 0);
+      const uns = filteredCombined.map(c => c.dims[i]?.unsure || 0);
       const cbs = filteredCombined.map(c => c.dims[i]?.combined || 0);
       dims[i] = {
-        eq: Math.round(eqs.reduce((a, b) => a + b, 0) / eqs.length),
+        oldEq: Math.round(oldEqs.reduce((a, b) => a + b, 0) / oldEqs.length),
+        newEq: Math.round(newEqs.reduce((a, b) => a + b, 0) / newEqs.length),
         wt: Math.round(wts.reduce((a, b) => a + b, 0) / wts.length),
+        unsure: Math.round(uns.reduce((a, b) => a + b, 0) / uns.length),
         combined: Math.round(cbs.reduce((a, b) => a + b, 0) / cbs.length),
       };
     }
-    const eqC = Math.round(filteredCombined.reduce((s, c) => s + c.eqComposite, 0) / filteredCombined.length);
+    const oldEqC = Math.round(filteredCombined.reduce((s, c) => s + c.oldEqComposite, 0) / filteredCombined.length);
+    const newEqC = Math.round(filteredCombined.reduce((s, c) => s + c.newEqComposite, 0) / filteredCombined.length);
     const wtC = Math.round(filteredCombined.reduce((s, c) => s + c.wtComposite, 0) / filteredCombined.length);
     const unC = Math.round(filteredCombined.reduce((s, c) => s + c.unsureComposite, 0) / filteredCombined.length);
     const cbC = Math.round(filteredCombined.reduce((s, c) => s + c.combinedComposite, 0) / filteredCombined.length);
-    return { dims, eqC, wtC, unC, cbC };
+    return { dims, oldEqC, newEqC, wtC, unC, cbC };
   }, [filteredCombined]);
 
   const tabs = [
@@ -2339,12 +2360,12 @@ export default function ElementWeightingPage() {
                   </div>
                   <div className="ml-auto flex items-center gap-6">
                     <div>
-                      <span className="text-2xl font-bold text-violet-700">{filteredCombined.filter(c => c.combinedComposite > c.eqComposite).length}</span>
+                      <span className="text-2xl font-bold text-violet-700">{filteredCombined.filter(c => c.combinedComposite > c.newEqComposite).length}</span>
                       <span className="text-sm text-slate-600 ml-1">score higher</span>
                     </div>
                     <div>
                       <span className="text-2xl font-bold text-slate-800">
-                        {(filteredCombined.reduce((s, c) => s + Math.abs(c.combinedComposite - c.eqComposite), 0) / filteredCombined.length).toFixed(1)}
+                        {(filteredCombined.reduce((s, c) => s + Math.abs(c.combinedComposite - c.newEqComposite), 0) / filteredCombined.length).toFixed(1)}
                       </span>
                       <span className="text-sm text-slate-600 ml-1">avg shift (pts)</span>
                     </div>
@@ -2403,12 +2424,20 @@ export default function ElementWeightingPage() {
                         <tr className="bg-slate-200 border-y-2 border-slate-400">
                           <td colSpan={2 + filteredCombined.length} className="px-3 py-1.5 font-bold text-slate-900 uppercase text-xs tracking-wider">Composite Score</td>
                         </tr>
-                        {/* Equal */}
+                        {/* Old Dim Weights */}
                         <tr className="border-b border-slate-200">
-                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Equal</td>
-                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{combinedBenchmark?.eqC}</td>
+                          <td className="sticky left-0 z-10 bg-white px-3 py-3 text-slate-800 font-semibold text-sm border-r border-slate-100">Old Dim Weights</td>
+                          <td className="px-2 py-3 text-center font-bold text-slate-800 text-sm bg-slate-50 border-r border-slate-100">{combinedBenchmark?.oldEqC}</td>
                           {filteredCombined.map((c, i) => (
-                            <td key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.eqComposite}</td>
+                            <td key={c.surveyId} className={`px-1 py-3 text-center font-semibold text-slate-800 ${i % 2 === 0 ? 'bg-slate-50/50' : ''}`}>{c.oldEqComposite}</td>
+                          ))}
+                        </tr>
+                        {/* New Dim Weights */}
+                        <tr className="border-b border-slate-200 bg-sky-50">
+                          <td className="sticky left-0 z-10 bg-sky-50 px-3 py-3 text-sky-800 font-bold text-sm border-r border-sky-100">New Dim Weights</td>
+                          <td className="px-2 py-3 text-center font-bold text-sky-800 text-sm bg-sky-100 border-r border-sky-100">{combinedBenchmark?.newEqC}</td>
+                          {filteredCombined.map((c, i) => (
+                            <td key={c.surveyId} className={`px-1 py-3 text-center font-bold text-sky-800 ${i % 2 === 0 ? 'bg-sky-50' : 'bg-sky-50/50'}`}>{c.newEqComposite}</td>
                           ))}
                         </tr>
                         {/* Element-Weighted */}
@@ -2435,14 +2464,14 @@ export default function ElementWeightingPage() {
                             <td key={c.surveyId} className={`px-1 py-2.5 text-center font-bold ${i % 2 === 0 ? 'bg-violet-50' : 'bg-violet-50/50'}`} style={{ color: getScoreColor(c.combinedComposite) }}>{c.combinedComposite}</td>
                           ))}
                         </tr>
-                        {/* Delta: Combined vs Equal */}
+                        {/* Delta: Combined vs New Dim Weights */}
                         <tr className="border-b-2 border-slate-400 bg-slate-100">
-                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta; vs Equal</td>
+                          <td className="sticky left-0 z-10 bg-slate-100 px-3 py-1.5 text-slate-600 text-xs font-bold border-r border-slate-200">&Delta; vs New</td>
                           <td className="px-2 py-1.5 text-center text-xs font-bold bg-slate-100 border-r border-slate-200">
-                            {combinedBenchmark && <span className={(combinedBenchmark.cbC - combinedBenchmark.eqC) >= 0 ? 'text-violet-700' : 'text-red-700'}>{(combinedBenchmark.cbC - combinedBenchmark.eqC) >= 0 ? '+' : ''}{combinedBenchmark.cbC - combinedBenchmark.eqC}</span>}
+                            {combinedBenchmark && <span className={(combinedBenchmark.cbC - combinedBenchmark.newEqC) >= 0 ? 'text-violet-700' : 'text-red-700'}>{(combinedBenchmark.cbC - combinedBenchmark.newEqC) >= 0 ? '+' : ''}{combinedBenchmark.cbC - combinedBenchmark.newEqC}</span>}
                           </td>
                           {filteredCombined.map((c) => {
-                            const d = c.combinedComposite - c.eqComposite;
+                            const d = c.combinedComposite - c.newEqComposite;
                             return (
                               <td key={c.surveyId} className="px-1 py-1.5 text-center text-xs font-bold">
                                 <span className={d > 0 ? 'text-violet-700' : d < 0 ? 'text-red-700' : 'text-slate-400'}>
@@ -2461,12 +2490,22 @@ export default function ElementWeightingPage() {
                                 D{dim}: {DIMENSION_NAMES[dim]} <span className="text-slate-500 font-medium">({DEFAULT_DIMENSION_WEIGHTS[dim]}%)</span>
                               </td>
                             </tr>
-                            {/* Equal */}
+                            {/* Old Dim Weights */}
                             <tr className="border-b border-slate-100">
-                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Equal</td>
-                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{combinedBenchmark?.dims[dim]?.eq}</td>
+                              <td className="sticky left-0 z-10 bg-white px-3 py-1 text-slate-600 pl-4 text-xs font-medium border-r border-slate-100">Old Dim Wt</td>
+                              <td className="px-2 py-2 text-center text-slate-700 text-sm bg-slate-50/50 border-r border-slate-100">{combinedBenchmark?.dims[dim]?.oldEq}</td>
                               {filteredCombined.map((c, i) => (
-                                <td key={c.surveyId} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.eq}</td>
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-slate-700 text-sm ${i % 2 === 0 ? 'bg-slate-50/30' : ''}`}>{c.dims[dim]?.oldEq}</td>
+                              ))}
+                            </tr>
+                            {/* New Dim Weights */}
+                            <tr className="border-b border-slate-100 bg-sky-50/30">
+                              <td className="sticky left-0 z-10 bg-sky-50/30 px-3 py-1 text-sky-800 font-semibold pl-4 text-xs border-r border-sky-100/50">New Dim Wt</td>
+                              <td className="px-2 py-2 text-center font-semibold text-xs bg-sky-100/30 border-r border-sky-100/50" style={{ color: getScoreColor(combinedBenchmark?.dims[dim]?.newEq || 0) }}>{combinedBenchmark?.dims[dim]?.newEq}</td>
+                              {filteredCombined.map((c, i) => (
+                                <td key={c.surveyId} className={`px-1 py-2 text-center text-xs font-semibold ${i % 2 === 0 ? 'bg-sky-50/40' : 'bg-sky-50/20'}`} style={{ color: getScoreColor(c.dims[dim]?.newEq || 0) }}>
+                                  {c.dims[dim]?.newEq}
+                                </td>
                               ))}
                             </tr>
                             {/* Element-Weighted */}
@@ -2503,14 +2542,14 @@ export default function ElementWeightingPage() {
                             <tr className="border-b border-slate-200 bg-slate-50/50">
                               <td className="sticky left-0 z-10 bg-slate-50/50 px-3 py-1 text-slate-500 pl-4 text-[10px] font-bold border-r border-slate-100">&Delta;</td>
                               <td className="px-2 py-1 text-center text-[10px] font-bold bg-slate-50/50 border-r border-slate-100">
-                                {combinedBenchmark?.dims[dim]?.eq != null && combinedBenchmark?.dims[dim]?.combined != null && (
-                                  <span className={(combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].eq) >= 0 ? 'text-violet-600' : 'text-red-600'}>
-                                    {(combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].eq) >= 0 ? '+' : ''}{combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].eq}
+                                {combinedBenchmark?.dims[dim]?.newEq != null && combinedBenchmark?.dims[dim]?.combined != null && (
+                                  <span className={(combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].newEq) >= 0 ? 'text-violet-600' : 'text-red-600'}>
+                                    {(combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].newEq) >= 0 ? '+' : ''}{combinedBenchmark.dims[dim].combined - combinedBenchmark.dims[dim].newEq}
                                   </span>
                                 )}
                               </td>
                               {filteredCombined.map((c) => {
-                                const eqVal = c.dims[dim]?.eq;
+                                const eqVal = c.dims[dim]?.newEq;
                                 const cbVal = c.dims[dim]?.combined;
                                 const delta = (eqVal != null && cbVal != null) ? cbVal - eqVal : null;
                                 return (
