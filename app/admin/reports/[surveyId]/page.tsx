@@ -2716,7 +2716,7 @@ export default function ExportReportPage() {
     };
     for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
     for (let i = 19; i <= 28; i++) names[i] = `Strategic Content ${i - 18}`;
-    for (let i = 29; i <= 32; i++) names[i] = `Recommendation ${i - 28}`;
+    for (let i = 27; i <= 30; i++) names[i] = `Recommendation ${i - 26}`;
     for (let i = 0; i < addDimCount; i++) {
       const dimNum = additionalAnalyzedDims[i];
       names[33 + i] = `Additional: Dimension ${dimNum}`;
@@ -2888,7 +2888,7 @@ export default function ExportReportPage() {
     // Strategic content: slides 19-30
     for (let i = 19; i <= 28; i++) slideNames[i] = `Strategic Content ${i - 18}`;
     // Recommendation slides 29-32
-    for (let i = 29; i <= 32; i++) slideNames[i] = `Recommendation ${i - 28}`;
+    for (let i = 27; i <= 30; i++) slideNames[i] = `Recommendation ${i - 26}`;
     // Additional analyzed dimensions: slides 33 to 33+addDimCount-1
     for (let i = 0; i < addDimCount; i++) {
       const dimNum = additionalAnalyzedDims[i];
@@ -2920,10 +2920,12 @@ export default function ExportReportPage() {
       24: 'These initiatives represent momentum - work already underway. Confirm timelines and owners for each initiative. Ask what is blocking completion and how can we accelerate. Keep the takeaway simple: above benchmark means defend and maintain, while below benchmark means focus and improve.',
       25: 'Introduce the strategic recommendations framework. These are tailored based on assessment findings. Each recommendation ties to specific dimension gaps. Set up the audience for the detailed recommendations that follow.',
       26: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming the uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
-      27: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
-      28: 'Continue with the second recommendation. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
-      29: 'Detail the third recommendation. Connect to the tier progression guidance and what improvement would look like. Define minimum viable launch and owners for each action item.',
-      30: 'Complete the fourth recommendation. Give the executive takeaway by summarizing what this would change, what is pending confirmation, and what comes next. This helps create a board-ready action plan.'
+      27: 'Walk through this recommendation in detail. Each recommendation ties to specific dimension gaps and opportunities.',
+      28: 'Continue with the next recommendation. Explain why these gaps matter.',
+      29: 'Continue with the next recommendation.',
+      30: 'Continue with the next recommendation.',
+      31: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
+      32: 'Continue with impact-ranked priorities. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
     };
     // Additional analyzed dimensions get notes (slides 33 to 33+addDimCount-1)
     for (let i = 0; i < addDimCount; i++) {
@@ -10749,7 +10751,7 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slide 28: Impact-Ranked Priorities (Dims 1-3) */}
-                {currentSlide === 27 && (() => {
+                {currentSlide === 31 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -11017,7 +11019,7 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Slide 29: Impact-Ranked Priorities (Dims 4-5) */}
-                {currentSlide === 28 && (() => {
+                {currentSlide === 32 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -11694,8 +11696,8 @@ export default function ExportReportPage() {
                 )}
 
                 {/* Slides 29-32: 4 Strategic Rec Cards */}
-                {currentSlide >= 29 && currentSlide <= 32 && (() => {
-                  const recIdx = currentSlide - 29;
+                {currentSlide >= 27 && currentSlide <= 30 && (() => {
+                  const recIdx = currentSlide - 27;
                   const d = strategicPriorityDims[recIdx];
                   if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
                   
@@ -13186,7 +13188,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 27 && (
+                  {currentSlide === 31 && (
                     <div>
                       <p className="mb-2"><strong>Impact-ranked priorities (Dims 1-3):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13196,7 +13198,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 28 && (
+                  {currentSlide === 32 && (
                     <div>
                       <p className="mb-2"><strong>Impact-ranked priorities (Dims 4-5):</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13246,7 +13248,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide >= 29 && currentSlide <= 32 && (
+                  {currentSlide >= 27 && currentSlide <= 30 && (
                     <div>
                       <p className="mb-2"><strong>Recommendation {currentSlide - 29}:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -13357,10 +13359,10 @@ export default function ExportReportPage() {
                            i === 23 ? 'Areas for Growth' :
                            i === 24 ? 'Initiatives In Progress' :
                            i === 25 ? 'Strategic Recommendations' :
-                           i === 26 ? 'Strategic Recommendations' :
-                           i === 27 ? 'Impact-Ranked Priorities' :
-                           i === 28 ? 'Impact-Ranked Priorities (4-5)' :
-                           i >= 29 && i <= 32 ? `Recommendation ${i - 28}` :
+                           i === 26 ? 'From Insight to Action' :
+                           i >= 27 && i <= 30 ? `Recommendation ${i - 26}` :
+                           i === 31 ? 'Impact-Ranked Priorities' :
+                           i === 32 ? 'Impact-Ranked Priorities (4-5)' :
                            i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
                            i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
                            i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
