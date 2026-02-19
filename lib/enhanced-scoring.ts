@@ -24,19 +24,19 @@
 
 // Dimension weights for base score (sum = 100)
 export const DIMENSION_WEIGHTS: Record<number, number> = {
-  4: 14,   // Cancer Support Resources
-  8: 13,   // Work Continuation & Resumption  
   3: 12,   // Manager Preparedness
-  2: 11,   // Insurance & Financial
-  13: 10,  // Communication & Awareness
-  6: 8,    // Culture & Psychological Safety
-  1: 7,    // Medical Leave & Flexibility
-  5: 7,    // Workplace Accommodations
-  7: 4,    // Career Continuity
-  9: 4,    // Executive Commitment
+  8: 12,   // Return-to-Work
+  13: 11,  // Communication & Awareness
+  2: 10,   // Insurance & Financial
+  5: 10,   // Workplace Accommodations
+  1: 10,   // Medical Leave & Flexibility
+  4: 8,    // Cancer Support Resources
+  6: 7,    // Culture & Psychological Safety
+  7: 5,    // Career Continuity
   10: 4,   // Caregiver & Family
+  9: 4,    // Executive Commitment
+  12: 4,   // Continuous Improvement
   11: 3,   // Prevention & Wellness
-  12: 3,   // Continuous Improvement
 };
 
 // Component weights for enhanced composite (sum = 100%)
