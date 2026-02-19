@@ -4725,6 +4725,7 @@ export default function ExportReportPage() {
                         ].map((d) => {
                           const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
                           const elementCount = dimData?.elements?.length || 0;
+                          const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
                           return (
                             <div 
                               key={d.dim}
@@ -4740,9 +4741,12 @@ export default function ExportReportPage() {
                                 <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
                               </div>
                               <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
-                              <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                <span>{elementCount} support elements</span>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                  <span>{elementCount} support elements</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
                               </div>
                             </div>
                           );
@@ -5508,15 +5512,15 @@ export default function ExportReportPage() {
                   
                   {/* Top 3 Opportunities */}
                   <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
-                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Primary Opportunities for Improvement</p>
+                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Highest-Impact Employee Experience Opportunities</p>
                     <div className="space-y-2">
-                      {[...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map((d, idx) => (
-                        <div key={d.dim} className="flex items-center justify-between">
+                      {rankings.slice(0, 3).map((r, idx) => (
+                        <div key={r.dimNum} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
-                            <span className="text-white font-semibold">{d.name}</span>
+                            <span className="text-white font-semibold">{r.dimName}</span>
                           </div>
-                          <span className="text-amber-400 font-bold">Score: {d.score}</span>
+                          <span className="text-amber-400 font-bold">Score: {r.currentScore}</span>
                         </div>
                       ))}
                     </div>
@@ -5827,8 +5831,7 @@ export default function ExportReportPage() {
             <div className="px-12 py-4">
               {/* Table Header */}
               <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                <div className="w-20 text-center">Weight</div>
-                <div className="w-64">Dimension</div>
+                <div className="w-64 pl-2">Dimension</div>
                 <div className="flex-1 text-center">Performance</div>
                 <div className="w-24 text-center">Your Score</div>
                 <div className="w-28 text-center">Benchmark</div>
@@ -5843,10 +5846,7 @@ export default function ExportReportPage() {
                       onClick={() => setDimensionDetailModal(d.dim)}
                       className={`flex items-center py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
                     >
-                      <div className="w-20 text-center">
-                        <span className="text-sm font-medium text-slate-600">{d.weight}%</span>
-                      </div>
-                      <div className="w-64 flex items-center gap-3">
+                      <div className="w-64 flex items-center gap-3 pl-2">
                         <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
                           {d.dim}
                         </span>
@@ -9881,6 +9881,7 @@ export default function ExportReportPage() {
                           ].map((d) => {
                             const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
                             const elementCount = dimData?.elements?.length || 0;
+                            const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
                             return (
                               <div 
                                 key={d.dim}
@@ -9896,8 +9897,11 @@ export default function ExportReportPage() {
                                   <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
                                 </div>
                                 <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
-                                <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: d.color }}>
-                                  <span>{elementCount} support elements</span>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: d.color }}>
+                                    <span>{elementCount} support elements</span>
+                                  </div>
+                                  <span className="text-xs font-bold text-slate-400">{weightPct}%</span>
                                 </div>
                               </div>
                             );
@@ -10081,15 +10085,15 @@ export default function ExportReportPage() {
                           
                           {/* Top 3 Opportunities */}
                           <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
-                            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Primary Opportunities for Improvement</p>
+                            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Highest-Impact Employee Experience Opportunities</p>
                             <div className="space-y-3">
-                              {[...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map((d, idx) => (
-                                <div key={d.dim} className="flex items-center justify-between">
+                              {rankings.slice(0, 3).map((r, idx) => (
+                                <div key={r.dimNum} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
-                                    <span className="text-white font-semibold">{d.name}</span>
+                                    <span className="text-white font-semibold">{r.dimName}</span>
                                   </div>
-                                  <span className="text-amber-400 font-bold">Score: {d.score}</span>
+                                  <span className="text-amber-400 font-bold">Score: {r.currentScore}</span>
                                 </div>
                               ))}
                             </div>
@@ -10131,8 +10135,7 @@ export default function ExportReportPage() {
                     <div className="p-8 pt-6">
                     {/* Table Header */}
                     <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      <div className="w-20 text-center">Weight</div>
-                      <div className="w-64">Dimension</div>
+                      <div className="w-64 pl-2">Dimension</div>
                       <div className="flex-1 text-center">Performance</div>
                       <div className="w-20 text-center">Your Score</div>
                       <div className="w-28 text-center">Benchmark</div>
@@ -10148,10 +10151,7 @@ export default function ExportReportPage() {
                             key={d.dim} 
                             className={`flex items-center py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
                           >
-                            <div className="w-20 text-center">
-                              <span className="text-sm text-slate-500">{d.weight}%</span>
-                            </div>
-                            <div className="w-64 flex items-center gap-3">
+                            <div className="w-64 flex items-center gap-3 pl-2">
                               <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
                                 {d.dim}
                               </span>
