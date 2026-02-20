@@ -4500,7 +4500,6 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 italic mb-5">Research conducted by BEYOND Insights, an independent research and consulting firm specializing in workplace assessment.</p>
                   
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in your composite score. Dimensions that 
@@ -4508,6 +4507,9 @@ export default function ExportReportPage() {
                     While some dimensions are more heavily weighted, <strong className="text-slate-800">all dimensions can have a lasting impact</strong> on 
                     employees facing serious health challenges.
                   </p>
+
+                  <p className="text-[10px] text-slate-400 italic mb-5">Research conducted by BEYOND Insights, an independent research and consulting firm.</p>
+
                 </div>
                 
                 <div className="px-6 py-5 bg-slate-800">
