@@ -7856,6 +7856,15 @@ export default function ExportReportPage() {
                               </div>
                             </div>
                           )}
+                          {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
+                            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                              <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Roadmap Pending Confirmation
+                              </h5>
+                              <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
+                            </div>
+                          )}
                           
                           {/* COMMENTED OUT - May restore later
                           <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
@@ -8126,6 +8135,16 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
                             )}
+
+                          {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
+                            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                              <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Roadmap Pending Confirmation
+                              </h5>
+                              <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
+                            </div>
+                          )}
                             
                             {/* COMMENTED OUT - May restore later
                             <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
@@ -11913,6 +11932,13 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
                             )}
+
+                            {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
+                              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
+                                <h5 className="font-bold text-slate-500 mb-1 text-xs uppercase tracking-wide">Roadmap Pending Confirmation</h5>
+                                <p className="text-[10px] text-slate-500 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension need{d.unsure.length > 1 ? '' : 's'} confirmation before specific recommendations can be provided.</p>
+                              </div>
+                            )}
                             
                             {/* COMMENTED OUT - May restore later
                             <div className="border border-violet-200 rounded-xl p-3 bg-violet-50">
@@ -12119,6 +12145,13 @@ export default function ExportReportPage() {
                                     </div>
                                   )}
                                 </div>
+                              </div>
+                            )}
+
+                            {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
+                              <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
+                                <h5 className="font-bold text-slate-500 mb-1 text-xs uppercase tracking-wide">Roadmap Pending Confirmation</h5>
+                                <p className="text-[10px] text-slate-500 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension need{d.unsure.length > 1 ? '' : 's'} confirmation before specific recommendations can be provided.</p>
                               </div>
                             )}
                             {/* COMMENTED OUT - May restore later
