@@ -2801,6 +2801,7 @@ export default function ExportReportPage() {
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
+  const [showImpactRanked, setShowImpactRanked] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -8225,24 +8226,26 @@ export default function ExportReportPage() {
           </div>
           
           {/* Impact-Ranked Priorities Teaser Card */}
-          <div className="max-w-[1280px] mx-auto mb-8">
+          <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
             <button
-              onClick={() => scrollToSection('impact-ranked-priorities')}
+              onClick={() => setShowImpactRanked(!showImpactRanked)}
               className="w-full group px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 border border-slate-600 rounded-xl transition-all flex items-center justify-center gap-4 shadow-md"
             >
               <div className="w-11 h-11 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
                 <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <span className="text-white font-semibold text-base block">Impact-Ranked Improvement Priorities</span>
-                <span className="text-slate-300 group-hover:text-slate-200 text-sm">See which dimensions will have the highest potential impact on employee experiences and your overall score — and which elements to prioritize in each</span>
+                <span className="text-slate-300 group-hover:text-slate-200 text-sm">Which dimensions will have the highest potential impact on employee experiences and your overall score, and which elements to prioritize in each</span>
               </div>
-              <svg className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              <div className={`w-7 h-7 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-200 ${showImpactRanked ? 'rotate-180' : ''}`}>
+                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
             </button>
           </div>
 
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
-          {(() => {
+          {showImpactRanked && (() => {
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
             const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
             const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
@@ -8271,7 +8274,7 @@ export default function ExportReportPage() {
             };
             
             return (
-              <div id="impact-ranked-priorities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
                 {/* Header */}
                 <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-center justify-between">
