@@ -4374,15 +4374,18 @@ export default function ExportReportPage() {
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
               <div className="flex items-start gap-10 mb-8">
-                <div className="flex-shrink-0 flex gap-4">
-                  <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                    <p className="text-4xl font-bold text-violet-600">40%</p>
-                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
+                <div className="flex-shrink-0">
+                  <div className="flex gap-4">
+                    <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
+                      <p className="text-4xl font-bold text-violet-600">40%*</p>
+                      <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
+                    </div>
+                    <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
+                      <p className="text-4xl font-bold text-violet-600">72%*</p>
+                      <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
+                    </div>
                   </div>
-                  <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                    <p className="text-4xl font-bold text-violet-600">42%</p>
-                    <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
-                  </div>
+                  <p className="text-[10px] text-slate-400 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
                 </div>
                 <div className="pt-1">
                   <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
@@ -4403,11 +4406,11 @@ export default function ExportReportPage() {
                 <div className="p-6">
                   <p className="text-sm text-slate-700 leading-relaxed mb-5">
                     The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong className="text-slate-800">qualitative 
-                    and quantitative research</strong> with the people who live this every day, and guided by an organization with 
-                    decades of frontline experience in cancer and the workplace.
+                    and quantitative research</strong> with the people who live this every day — HR leaders, employees managing cancer, 
+                    and the general workforce.
                   </p>
                   
-                  <div className="grid grid-cols-4 gap-4 mb-5">
+                  <div className="grid grid-cols-3 gap-4 mb-4">
                     <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -4429,14 +4432,8 @@ export default function ExportReportPage() {
                       <p className="text-sm font-bold text-sky-800">General Workforce</p>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
                     </div>
-                    <div className="bg-orange-50 rounded-xl p-4 border border-orange-200 text-center">
-                      <div className="w-10 h-10 flex items-center justify-center mx-auto mb-3">
-                        <img src="/cac-icon.png" alt="Cancer and Careers" className="w-10 h-10 object-contain" />
-                      </div>
-                      <p className="text-sm font-bold text-orange-800">Cancer and Careers Leadership</p>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Guided the development of the framework, drawing on decades of frontline experience</p>
-                    </div>
                   </div>
+                  <p className="text-[10px] text-slate-400 italic mb-5">Research conducted by BEYOND Insights, an independent research and consulting firm specializing in workplace assessment.</p>
                   
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in your composite score. Dimensions that 
@@ -4452,7 +4449,7 @@ export default function ExportReportPage() {
                     <span className="text-slate-500 mx-2">•</span>
                     <strong className="text-violet-400">Research-driven weights.</strong>
                     <span className="text-slate-500 mx-2">•</span>
-                    <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and Cancer and Careers leadership.</span>
+                    <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and the general workforce.</span>
                   </p>
                 </div>
               </div>
@@ -9537,15 +9534,18 @@ export default function ExportReportPage() {
                     {/* Bottom section - WHITE background like the report */}
                     <div className="bg-white px-12 py-10">
                       <div className="flex items-start gap-10">
-                        <div className="flex-shrink-0 flex gap-4">
-                          <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
-                            <p className="text-5xl font-bold text-violet-600">40%</p>
-                            <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
+                        <div className="flex-shrink-0">
+                          <div className="flex gap-4">
+                            <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
+                              <p className="text-5xl font-bold text-violet-600">40%*</p>
+                              <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
+                            </div>
+                            <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
+                              <p className="text-5xl font-bold text-violet-600">72%*</p>
+                              <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
+                            </div>
                           </div>
-                          <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
-                            <p className="text-5xl font-bold text-violet-600">42%</p>
-                            <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of diagnoses during<br/>working years (20-64)</p>
-                          </div>
+                          <p className="text-[10px] text-slate-400 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
                         </div>
                         <div className="pt-2">
                           <h3 className="text-xl font-bold text-slate-800 mb-3">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
@@ -9571,12 +9571,12 @@ export default function ExportReportPage() {
                     {/* Intro text */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
                       The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong className="text-slate-800">qualitative 
-                      and quantitative research</strong> with the people who live this every day, and guided by an organization with 
-                      decades of frontline experience in cancer and the workplace.
+                      and quantitative research</strong> with the people who live this every day — HR leaders, employees managing cancer, 
+                      and the general workforce.
                     </p>
                     
-                    {/* 4 Research Cards - exact match to report */}
-                    <div className="grid grid-cols-4 gap-4 mb-6">
+                    {/* 3 Research Cards */}
+                    <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="bg-violet-50 rounded-xl p-5 border border-violet-100 text-center">
                         <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -9598,14 +9598,8 @@ export default function ExportReportPage() {
                         <p className="text-sm font-bold text-sky-800 mb-2">General Workforce</p>
                         <p className="text-xs text-slate-600 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
                       </div>
-                      <div className="bg-cyan-50 rounded-xl p-5 border border-cyan-200 text-center">
-                        <div className="w-12 h-12 flex items-center justify-center mx-auto mb-3">
-                          <img src="/cac-icon.png" alt="Cancer and Careers" className="w-12 h-12 object-contain" />
-                        </div>
-                        <p className="text-sm font-bold text-cyan-800 mb-2">Cancer and Careers Leadership</p>
-                        <p className="text-xs text-slate-600 leading-relaxed">Guided the development of the framework, drawing on decades of frontline experience</p>
-                      </div>
                     </div>
+                    <p className="text-[10px] text-slate-400 italic mb-6">Research conducted by BEYOND Insights, an independent research and consulting firm specializing in workplace assessment.</p>
                     
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
@@ -9621,7 +9615,7 @@ export default function ExportReportPage() {
                         <span className="text-slate-500 mx-2">•</span>
                         <strong className="text-amber-400">Research-driven weights.</strong>
                         <span className="text-slate-500 mx-2">•</span>
-                        <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and Cancer and Careers leadership.</span>
+                        <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and the general workforce.</span>
                       </p>
                     </div>
                   </div>
