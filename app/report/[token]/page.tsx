@@ -4444,11 +4444,11 @@ export default function ExportReportPage() {
                 <div className="flex-shrink-0">
                   <div className="flex gap-4">
                     <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                      <p className="text-4xl font-bold text-violet-600">40%*</p>
+                      <p className="text-4xl font-bold text-violet-600">40%<span className="text-lg align-top">*</span></p>
                       <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
                     </div>
                     <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                      <p className="text-4xl font-bold text-violet-600">72%*</p>
+                      <p className="text-4xl font-bold text-violet-600">72%<span className="text-lg align-top">*</span></p>
                       <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
                     </div>
                   </div>
@@ -8291,6 +8291,23 @@ export default function ExportReportPage() {
             </div>
           </div>
           
+          {/* Impact-Ranked Priorities Teaser Card */}
+          <div className="max-w-[1280px] mx-auto mb-8">
+            <button
+              onClick={() => scrollToSection('impact-ranked-priorities')}
+              className="w-full group px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 border border-slate-600 rounded-xl transition-all flex items-center justify-center gap-4 shadow-md"
+            >
+              <div className="w-11 h-11 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
+                <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+              <div className="text-left">
+                <span className="text-white font-semibold text-base block">Impact-Ranked Improvement Priorities</span>
+                <span className="text-slate-300 group-hover:text-slate-200 text-sm">See which dimensions will have the highest potential impact on employee experiences and your overall score — and which elements to prioritize in each</span>
+              </div>
+              <svg className="w-5 h-5 text-slate-400 group-hover:text-white transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+            </button>
+          </div>
+
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
           {(() => {
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
@@ -8341,7 +8358,7 @@ export default function ExportReportPage() {
                 
                 <div className="px-8 py-5 pb-8">
                   {/* Intro text explaining the 5 priority dimensions */}
-                  <p className="text-slate-600 text-base mb-5">Based on your assessment, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on your overall score. Recommendations are prioritized by <span className="font-semibold text-slate-700">improvement opportunity</span> and <span className="font-semibold text-slate-700">implementation readiness</span>.</p>
+                  <p className="text-slate-600 text-base mb-5">Based on your assessment, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on employee experiences and your overall score. Recommendations are prioritized by <span className="font-semibold text-slate-700">improvement opportunity</span> and <span className="font-semibold text-slate-700">implementation readiness</span>.</p>
                   
                   {/* 2x2 grid - Top: Accelerate/Build, Bottom: Roadmap/Impact */}
                   <div className="mb-5 grid grid-cols-2 gap-4">
@@ -9604,11 +9621,11 @@ export default function ExportReportPage() {
                         <div className="flex-shrink-0">
                           <div className="flex gap-4">
                             <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
-                              <p className="text-5xl font-bold text-violet-600">40%*</p>
+                              <p className="text-5xl font-bold text-violet-600">40%<span className="text-xl align-top">*</span></p>
                               <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
                             </div>
                             <div className="bg-slate-50 rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[140px]">
-                              <p className="text-5xl font-bold text-violet-600">72%*</p>
+                              <p className="text-5xl font-bold text-violet-600">72%<span className="text-xl align-top">*</span></p>
                               <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
                             </div>
                           </div>
@@ -10846,7 +10863,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="p-5 flex-1">
                       {/* Intro text */}
-                      <p className="text-slate-600 text-sm mb-3">Based on your assessment, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on your overall score.</p>
+                      <p className="text-slate-600 text-sm mb-3">Based on your assessment, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on employee experiences and your overall score.</p>
                       
                       {/* 2x2 grid matching main report - Slide 23 */}
                       <div className="mb-4 grid grid-cols-2 gap-3">
