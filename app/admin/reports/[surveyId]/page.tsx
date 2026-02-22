@@ -2845,6 +2845,24 @@ function AdvancedSupportIcon({ size = 20, color = '#7C3AED' }: { size?: number; 
   );
 }
 
+// Per-tier population means (μ) for unsure substitution — from confirmed responses
+// Values on 0-5 scale. credit = μ × confirm_rate² (capped at 10% of dim max)
+const TIER_MEANS: Record<number, Record<string, number>> = {
+  1: { core: 3.92, enhanced: 2.85, advanced: 2.27 },
+  2: { core: 3.95, enhanced: 2.89, advanced: 1.99 },
+  3: { core: 4.05, enhanced: 3.12, advanced: 2.13 },
+  4: { core: 4.19, enhanced: 3.12, advanced: 1.96 },
+  5: { core: 4.21, enhanced: 3.27, advanced: 2.36 },
+  6: { core: 4.11, enhanced: 3.37, advanced: 2.47 },
+  7: { core: 3.72, enhanced: 2.85, advanced: 2.13 },
+  8: { core: 3.98, enhanced: 2.95, advanced: 2.19 },
+  9: { core: 0.00, enhanced: 2.96, advanced: 1.91 },
+  10: { core: 3.77, enhanced: 2.71, advanced: 1.67 },
+  11: { core: 3.85, enhanced: 3.15, advanced: 2.49 },
+  12: { core: 3.74, enhanced: 3.16, advanced: 2.59 },
+  13: { core: 3.75, enhanced: 3.44, advanced: 0.00 },
+};
+
 // Element within-dimension weights for WSI — v6.1 (ridge + permutation importance + adaptive shrinkage)
 // Key = element name, value = [dimension_number, within_dim_weight]
 // Within each dimension, weights sum to 1.0
@@ -4564,18 +4582,36 @@ export default function ExportReportPage() {
     return SUPPORT_RATINGS[1];
   })();
   
-  // WSI — weighted element-level computation using dimension × element weights
+  // WSI — weighted element-level computation using dimension × element weights + unsure substitution
   const _dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
+  // Compute per-dimension confirm rates
+  const _dimConfirmRates: Record<number, number> = {};
+  for (let d = 1; d <= 13; d++) {
+    const dimElems = _allElemsForRating.filter((e: any) => {
+      const ew = ELEMENT_DIM_WEIGHTS[e.name];
+      return ew ? ew[0] === d : false;
+    });
+    if (dimElems.length === 0) { _dimConfirmRates[d] = 1; continue; }
+    const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
+    _dimConfirmRates[d] = confirmed / dimElems.length;
+  }
   let _wsiHeaderContrib = 0;
   _allElemsForRating.forEach((e: any) => {
     const ew = ELEMENT_DIM_WEIGHTS[e.name];
     if (ew) {
       const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _dimWtTotal;
-      const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
-      _wsiHeaderContrib += dimWt * ew[1] * statusNorm;
+      const level = getElementLevel(e.name);
+      if (e.isUnsure) {
+        const mu = TIER_MEANS[ew[0]]?.[level] || 0;
+        const cr = _dimConfirmRates[ew[0]] || 0;
+        _wsiHeaderContrib += dimWt * ew[1] * (mu * cr * cr / 5);
+      } else {
+        const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
+        _wsiHeaderContrib += dimWt * ew[1] * statusNorm;
+      }
     }
   });
-  const wsiScoreHeader = Math.round(_wsiHeaderContrib * 1000) / 10;
+  const wsiScoreHeader = Math.round(_wsiHeaderContrib * 100);
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
@@ -6091,27 +6127,53 @@ export default function ExportReportPage() {
                   const maxPts = elems.length * 5;
                   let pts = 0;
                   let inPlace = 0, inDev = 0, review = 0, toConfirm = 0, gaps = 0;
-                  // Weighted contribution: Σ W_d × w_{e|d} × (points/5)
                   let weightedContrib = 0;
                   const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                  
+                  // Compute per-dimension confirm rates for unsure substitution
+                  const dimConfirmRates: Record<number, number> = {};
+                  for (let d = 1; d <= 13; d++) {
+                    const dimElems = allElems.filter((e: any) => e.dim === d);
+                    if (dimElems.length === 0) { dimConfirmRates[d] = 1; continue; }
+                    const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
+                    dimConfirmRates[d] = confirmed / dimElems.length;
+                  }
+                  
                   elems.forEach((e: any) => {
-                    if (e.isStrength) { pts += 5; inPlace++; }
+                    const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                    const dimNum = ew ? ew[0] : (e.dim || 1);
+                    
+                    if (e.isUnsure) {
+                      toConfirm++;
+                      // Unsure substitution: credit = μ_tier,dim × confirm_rate²
+                      const mu = TIER_MEANS[dimNum]?.[level] || 0;
+                      const cr = dimConfirmRates[dimNum] || 0;
+                      const credit = mu * cr * cr; // on 0-5 scale
+                      pts += credit;
+                      // Weighted contribution for WSI
+                      if (ew) {
+                        const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
+                        weightedContrib += dimWt * ew[1] * (credit / 5);
+                      }
+                    } else if (e.isStrength) { pts += 5; inPlace++; }
                     else if (e.isPlanning) { pts += 3; inDev++; }
                     else if (e.isAssessing) { pts += 2; review++; }
-                    else if (e.isUnsure) { toConfirm++; }
-                    else { gaps++; }
-                    // Weighted contribution for WSI
-                    const ew = ELEMENT_DIM_WEIGHTS[e.name];
-                    if (ew) {
+                    else {
+                      gaps++;
+                      // Gap = 0 points, 0 weighted contribution
+                    }
+                    
+                    // Weighted contribution for WSI (non-Unsure elements)
+                    if (!e.isUnsure && ew) {
                       const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
                       const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
                       weightedContrib += dimWt * ew[1] * statusNorm;
                     }
                   });
                   return { 
-                    score: maxPts > 0 ? Math.round((pts / maxPts) * 1000) / 10 : 0, 
+                    score: maxPts > 0 ? Math.round(pts / maxPts * 100) : 0, 
                     total: elems.length, inPlace, inDev, review, toConfirm, gaps,
-                    wsiContrib: Math.round(weightedContrib * 1000) / 10  // contribution to WSI (0-100 scale)
+                    wsiContrib: Math.round(weightedContrib * 100)  // contribution to WSI (0-100 scale, whole number)
                   };
                 };
                 
@@ -6129,9 +6191,12 @@ export default function ExportReportPage() {
                 };
                 
                 // WSI = sum of three weighted level contributions (equals Full Composite when all elements matched)
-                // Each tier's wsiContrib = Σ_d W_d × Σ_{e in d ∩ L} w_{e|d} × s_e, already scaled to 0-100
-                const wsiScore = Math.round((coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib) * 10) / 10;
-                const beyondCoreScore = Math.round((enhData.wsiContrib + advData.wsiContrib) * 10) / 10;
+                const wsiScore = coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib;
+                // Implied level weights for display (from element × dimension weight framework)
+                const totalWeight = (coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib) || 1;
+                const M_CORE_PCT = wsiScore > 0 ? Math.round(coreData.wsiContrib / wsiScore * 100) : 35;
+                const M_ENH_PCT = wsiScore > 0 ? Math.round(enhData.wsiContrib / wsiScore * 100) : 50;
+                const M_ADV_PCT = wsiScore > 0 ? Math.round(100 - M_CORE_PCT - M_ENH_PCT) : 15;
                 const rating = getRating();
                 
                 // Benchmark: compute tier scores for ALL complete companies
@@ -6151,7 +6216,7 @@ export default function ExportReportPage() {
                         lElems.forEach((e: any) => {
                           if (e.isStrength) p += 5; else if (e.isPlanning) p += 3; else if (e.isAssessing) p += 2;
                         });
-                        tierBenchmarks[level].push(max > 0 ? Math.round((p / max) * 1000) / 10 : 0);
+                        tierBenchmarks[level].push(max > 0 ? Math.round(p / max * 100) : 0);
                       });
                     } catch {}
                   });
@@ -6164,8 +6229,8 @@ export default function ExportReportPage() {
                   const belowCount = scores.filter(s => s < myScore).length;
                   const pctl = Math.round((belowCount / scores.length) * 100);
                   const index = avg > 0 ? Math.round((myScore / avg) * 100) : 100;
-                  const diff = Math.round((myScore - avg) * 10) / 10;
-                  return { avg: Math.round(avg * 10) / 10, pctl, index, diff };
+                  const diff = Math.round(myScore - avg);
+                  return { avg: Math.round(avg), pctl, index, diff };
                 };
                 
                 const coreBench = getBenchStats('core', coreData.score);
@@ -6186,9 +6251,9 @@ export default function ExportReportPage() {
                         <div>
                           <h3 className="text-lg font-bold text-slate-900">Workplace Support Index</h3>
                           <p className="text-sm text-slate-500 mt-0.5">
-                            Weighted score using dimension and element importance weights, decomposed by support level
-                            <span className="text-slate-400 ml-2">|</span>
-                            <span className="text-slate-400 ml-2">Benchmark (n=43): {59.0}</span>
+                            Benchmark: 59
+                            <span className="text-slate-400 mx-2">|</span>
+                            Weighted across 13 dimensions and {coreData.total + enhData.total + advData.total} support elements
                           </p>
                         </div>
                         <div className="flex items-center gap-5">
@@ -6196,7 +6261,7 @@ export default function ExportReportPage() {
                             <p className="text-5xl font-bold text-white">{wsiScore}</p>
                             <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mt-1">Index Score</p>
                             {(() => {
-                              const diff = Math.round((wsiScore - 59.0) * 10) / 10;
+                              const diff = wsiScore - 59;
                               return diff !== 0 ? (
                                 <p className={`text-xs font-semibold mt-0.5 ${diff > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
                                   {diff > 0 ? '+' : ''}{diff} vs benchmark
@@ -6208,21 +6273,6 @@ export default function ExportReportPage() {
                             <p className="text-xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
                             <p className="text-xs text-slate-500 font-medium">Support Rating</p>
                           </div>
-                        </div>
-                      </div>
-                      {/* Beyond Core chip */}
-                      <div className="mt-3 flex items-center gap-4">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Beyond Core</span>
-                          <span className="text-sm font-bold text-slate-800">{beyondCoreScore}</span>
-                          <span className="text-xs text-slate-400">Enhanced + Advanced contribution</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-slate-400">
-                          <span>Core: {coreData.wsiContrib} pts</span>
-                          <span>·</span>
-                          <span>Enhanced: {enhData.wsiContrib} pts</span>
-                          <span>·</span>
-                          <span>Advanced: {advData.wsiContrib} pts</span>
                         </div>
                       </div>
                     </div>
@@ -6287,10 +6337,10 @@ export default function ExportReportPage() {
                                 <div className="h-full rounded-full" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                               </div>
                               {benchAvg > 0 && (
-                                <p className="text-xs text-slate-400 text-right mb-3">▲ Benchmark avg: {benchAvg}</p>
+                                <p className="text-xs text-slate-400 text-right mb-3">▲ Benchmark avg: {Math.round(benchAvg)}</p>
                               )}
                               
-                              {/* Stats row: percentile, index, diff */}
+                              {/* Stats row: percentile, diff, level weight */}
                               <div className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-2.5 mb-3">
                                 <div className="text-center flex-1">
                                   <p className="text-lg font-bold text-slate-800">{t.bench.pctl}<sup className="text-xs text-slate-400">th</sup></p>
@@ -6299,9 +6349,16 @@ export default function ExportReportPage() {
                                 <div className="w-px h-8 bg-slate-200" />
                                 <div className="text-center flex-1">
                                   <p className={`text-lg font-bold ${t.bench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                                    {t.bench.diff >= 0 ? '+' : ''}{t.bench.diff}
+                                    {t.bench.diff >= 0 ? '+' : ''}{Math.round(t.bench.diff)}
                                   </p>
                                   <p className="text-xs text-slate-400">vs benchmark</p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-200" />
+                                <div className="text-center flex-1">
+                                  <p className="text-lg font-bold" style={{ color: t.color }}>
+                                    {t.key === 'core' ? M_CORE_PCT : t.key === 'enhanced' ? M_ENH_PCT : M_ADV_PCT}%
+                                  </p>
+                                  <p className="text-xs text-slate-400">WSI weight</p>
                                 </div>
                               </div>
                               
