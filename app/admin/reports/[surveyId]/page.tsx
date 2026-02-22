@@ -6394,14 +6394,19 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                       </div>
-                      {/* Rating description — integrated as a quiet footnote */}
-                      <div className="mt-4 pt-4 border-t border-slate-100 flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: rating.color }}>
-                          <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                      {/* Rating description */}
+                      <div className="mt-5 flex items-center gap-4 px-5 py-4 rounded-xl" style={{ backgroundColor: rating.color + '08', border: `1px solid ${rating.color}20` }}>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: rating.color }}>
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                         </div>
-                        <p className="text-sm text-slate-500 leading-relaxed">
-                          <span className="font-semibold" style={{ color: rating.color }}>{rating.label}:</span> {rating.desc}
-                        </p>
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Overall Support Rating</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">
+                            <span className="font-bold" style={{ color: rating.color }}>{rating.label}</span>
+                            <span className="mx-1.5 text-slate-300">—</span>
+                            {rating.desc}
+                          </p>
+                        </div>
                       </div>
                     </div>
                     
@@ -6484,20 +6489,19 @@ export default function ExportReportPage() {
                             
                             {/* Element Status */}
                             <div className="px-5 py-3" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                              <div className="grid grid-cols-5 gap-1 text-center">
+                              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Element Status</p>
+                              <div className="space-y-1">
                                 {[
-                                  { label: 'In Place', count: t.inPlace, dot: '#10B981', text: 'text-emerald-700' },
-                                  { label: 'In Dev', count: t.inDev, dot: '#3B82F6', text: 'text-blue-700' },
-                                  { label: 'Review', count: t.review, dot: '#F59E0B', text: 'text-amber-700' },
-                                  { label: 'Not Planned', count: t.gaps, dot: '#F87171', text: 'text-red-600' },
-                                  { label: 'Confirm', count: t.toConfirm, dot: '#8B5CF6', text: 'text-violet-700' },
+                                  { label: 'In Place', count: t.inPlace, color: '#10B981', textColor: 'text-emerald-700' },
+                                  { label: 'In Development', count: t.inDev, color: '#3B82F6', textColor: 'text-blue-700' },
+                                  { label: 'Under Review', count: t.review, color: '#F59E0B', textColor: 'text-amber-700' },
+                                  { label: 'Not Planned', count: t.gaps, color: '#F87171', textColor: 'text-red-600' },
+                                  { label: 'To Confirm', count: t.toConfirm, color: '#8B5CF6', textColor: 'text-violet-700' },
                                 ].map(s => (
-                                  <div key={s.label}>
-                                    <p className={`text-sm font-bold ${s.count > 0 ? s.text : 'text-slate-300'}`}>{s.count}</p>
-                                    <div className="flex items-center justify-center gap-1 mt-0.5">
-                                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.dot : '#CBD5E1' }} />
-                                      <span className="text-[9px] text-slate-400 leading-tight">{s.label}</span>
-                                    </div>
+                                  <div key={s.label} className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
+                                    <span className="text-xs text-slate-500 flex-1">{s.label}</span>
+                                    <span className={`text-xs font-bold tabular-nums ${s.count > 0 ? s.textColor : 'text-slate-300'}`}>{s.count}</span>
                                   </div>
                                 ))}
                               </div>
