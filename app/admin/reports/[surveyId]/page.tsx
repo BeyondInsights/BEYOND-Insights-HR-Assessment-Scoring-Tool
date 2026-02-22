@@ -5786,7 +5786,7 @@ export default function ExportReportPage() {
                     {companyName}&apos;s Workplace Support Index is <strong>{compositeScore}</strong>
                     {percentileRank !== null && totalCompanies > 1 && (
                       <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among participating companies</span>
-                    )}. Performance is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
+                    )}. Support is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
                   </p>
                   
 
@@ -5960,22 +5960,37 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Overall Support Rating — prominent */}
-                    <div className="px-8 py-5 border-b border-slate-200" style={{ background: `linear-gradient(135deg, ${rating.color}08 0%, white 100%)` }}>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md" style={{ backgroundColor: rating.color }}>
-                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          </div>
-                          <div>
-                            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Overall Support Rating</p>
-                            <p className="text-2xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
-                          </div>
-                        </div>
-                        <div className="flex-1 ml-4">
-                          <p className="text-sm text-slate-600 leading-relaxed">{rating.desc}</p>
-                        </div>
+                    {/* Overall Support Rating — single row */}
+                    <div className="px-8 py-4 border-b border-slate-200 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${rating.color}06 0%, white 100%)` }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: rating.color }}>
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       </div>
+                      <div className="flex-1">
+                        <p className="text-sm">
+                          <span className="font-bold" style={{ color: rating.color }}>Overall Support Rating: {rating.label}</span>
+                          <span className="text-slate-500 ml-2">— {rating.desc}</span>
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* At a glance — consultant takeaway */}
+                    <div className="px-8 py-4 border-b border-slate-100">
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        <span className="font-semibold text-slate-800">At a glance:</span>{' '}
+                        {coreScoreCalc >= 70 
+                          ? 'Your overall score is driven by strong Core coverage' 
+                          : coreScoreCalc >= 50 
+                          ? 'Core coverage provides a moderate foundation'
+                          : 'Building Core coverage is the first priority'
+                        }
+                        {enhancedScoreCalc >= 50 
+                          ? ' and solid Enhanced supports' 
+                          : ' with developing Enhanced supports'
+                        }; the biggest lift will come from {advancedScoreCalc < coreScoreCalc * 0.6 
+                          ? 'selectively expanding Advanced practices' 
+                          : 'deepening consistency across Enhanced and Advanced supports'
+                        }.
+                      </p>
                     </div>
                     
                     {/* Three Level Cards — rich detail */}
@@ -6024,22 +6039,17 @@ export default function ExportReportPage() {
                               )}
                               
                               {/* Stats row: percentile, index, diff */}
-                              <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 mb-3">
-                                <div className="text-center">
+                              <div className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-2.5 mb-3">
+                                <div className="text-center flex-1">
                                   <p className="text-lg font-bold text-slate-800">{t.bench.pctl}<sup className="text-xs text-slate-400">th</sup></p>
-                                  <p className="text-xs text-slate-400">pctl</p>
+                                  <p className="text-xs text-slate-400">percentile</p>
                                 </div>
                                 <div className="w-px h-8 bg-slate-200" />
-                                <div className="text-center">
-                                  <p className="text-lg font-bold text-slate-800">{t.bench.index}</p>
-                                  <p className="text-xs text-slate-400">index</p>
-                                </div>
-                                <div className="w-px h-8 bg-slate-200" />
-                                <div className="text-center">
+                                <div className="text-center flex-1">
                                   <p className={`text-lg font-bold ${t.bench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                     {t.bench.diff >= 0 ? '+' : ''}{t.bench.diff}
                                   </p>
-                                  <p className="text-xs text-slate-400">vs avg</p>
+                                  <p className="text-xs text-slate-400">vs benchmark</p>
                                 </div>
                               </div>
                               
