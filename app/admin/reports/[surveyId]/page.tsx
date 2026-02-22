@@ -2850,21 +2850,21 @@ const SUPPORT_LEVELS = {
     name: 'Core Support', abbr: 'Core', tagline: 'Essential supports',
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
-    desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs. These elements form the baseline supports most organizations aim to have in place.',
+    desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs. These elements <strong>form the baseline supports most organizations aim to have in place</strong>.',
     italic: 'Establishes clear access to essential supports when employees need them most.',
   },
   enhanced: {
     name: 'Enhanced Support', abbr: 'Enh', tagline: 'Expanded supports',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
-    desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness \u2014 making support easier to access and more reliable across teams and situations.',
+    desc: 'Expanded practices that <strong>strengthen consistency, coordination, and manager readiness</strong> \u2014 making support easier to access and more reliable across teams and situations.',
     italic: 'Strengthens day-to-day consistency and ease of access across teams and managers.',
   },
   advanced: {
     name: 'Advanced Support', abbr: 'Adv', tagline: 'Differentiating supports',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care \u2014 often involving dedicated resources, cross-functional ownership, or innovative design.',
+    desc: 'Advanced practices that are <strong>less commonly offered and proactively strengthen continuity of work and care</strong> \u2014 often involving dedicated resources, cross-functional ownership, or innovative design.',
     italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
   },
 } as const;
@@ -5821,7 +5821,7 @@ export default function ExportReportPage() {
               )}
               
               {/* Tier Progress */}
-              {(() => {
+              {!tierView && (() => {
                 const topGrowthDims = allDimensionsByScore.slice(0, 3).map(d => d.name);
                 const dimList = topGrowthDims.length === 3 
                   ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
@@ -5833,8 +5833,6 @@ export default function ExportReportPage() {
                   <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
                     <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      {tierView ? null : (
-                        <>
                           {nextTierUp && pointsToNextTier ? (
                             <>
                               <p className="text-base font-bold text-violet-800">
@@ -5851,8 +5849,6 @@ export default function ExportReportPage() {
                               <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
                             </>
                           )}
-                        </>
-                      )}
                     </div>
                   </div>
                 );
@@ -6011,17 +6007,20 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
                               
-                              {/* Score bar with benchmark marker */}
-                              <div className="relative w-full h-3 bg-slate-200 rounded-full overflow-visible mb-1">
-                                <div className="h-full rounded-full" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
-                                {benchAvg > 0 && (
-                                  <div className="absolute top-0" style={{ left: `${Math.min(benchPct, 100)}%`, transform: 'translateX(-50%)' }}>
-                                    <div style={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '7px solid #475569', marginTop: '-1px' }} />
+                              {/* Benchmark marker above bar */}
+                              {benchAvg > 0 && (
+                                <div className="relative w-full h-4 mb-0.5">
+                                  <div className="absolute" style={{ left: `${Math.min(benchPct, 100)}%`, transform: 'translateX(-50%)', bottom: 0 }}>
+                                    <div style={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '6px solid #475569' }} />
                                   </div>
-                                )}
+                                </div>
+                              )}
+                              {/* Score bar */}
+                              <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-1">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                               </div>
                               {benchAvg > 0 && (
-                                <p className="text-xs text-slate-400 text-right mb-3">▲ Benchmark: {benchAvg}</p>
+                                <p className="text-xs text-slate-400 text-right mb-3">▲ Benchmark avg: {benchAvg}</p>
                               )}
                               
                               {/* Stats row: percentile, index, diff */}
@@ -6045,17 +6044,47 @@ export default function ExportReportPage() {
                               </div>
                               
                               {/* Description */}
-                              <p className="text-xs text-slate-600 leading-relaxed mb-2">{t.desc}</p>
+                              <p className="text-xs text-slate-600 leading-relaxed mb-2" dangerouslySetInnerHTML={{ __html: t.desc }} />
                               <p className="text-xs italic mb-3" style={{ color: t.color, opacity: 0.75 }}>{t.italic}</p>
                             </div>
                             
-                            {/* Status counts footer */}
-                            <div className="px-5 py-3 flex flex-wrap gap-2" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                              {t.inPlace > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{t.inPlace} In Place</span>}
-                              {t.inDev > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">{t.inDev} In Dev</span>}
-                              {t.review > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700">{t.review} Under Review</span>}
-                              {t.toConfirm > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-violet-100 text-violet-700">{t.toConfirm} To Confirm</span>}
-                              {t.gaps > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">{t.gaps} Not Planned</span>}
+                            {/* Status counts footer - row per status */}
+                            <div className="px-5 py-3 space-y-1.5" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
+                              {t.inPlace > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                                  <span className="text-xs text-slate-600">In Place:</span>
+                                  <span className="text-xs font-bold text-emerald-700">{t.inPlace}</span>
+                                </div>
+                              )}
+                              {t.inDev > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+                                  <span className="text-xs text-slate-600">In Development:</span>
+                                  <span className="text-xs font-bold text-blue-700">{t.inDev}</span>
+                                </div>
+                              )}
+                              {t.review > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
+                                  <span className="text-xs text-slate-600">Under Review:</span>
+                                  <span className="text-xs font-bold text-amber-700">{t.review}</span>
+                                </div>
+                              )}
+                              {t.gaps > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
+                                  <span className="text-xs text-slate-600">Not Planned:</span>
+                                  <span className="text-xs font-bold text-red-600">{t.gaps}</span>
+                                </div>
+                              )}
+                              {t.toConfirm > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />
+                                  <span className="text-xs text-slate-600">To Confirm:</span>
+                                  <span className="text-xs font-bold text-violet-700">{t.toConfirm}</span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -6065,9 +6094,7 @@ export default function ExportReportPage() {
                     {/* Methodology footnote */}
                     <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
                       <p className="text-xs text-slate-400">
-                        <strong className="text-slate-500">Methodology:</strong> Core (&gt;55% adoption) · Enhanced (25–55% + clustering) · Advanced (&lt;25% + expert overrides). 
-                        Level scores are unweighted flat percentages. Composite uses dimension impact weights. 
-                        Overall Support Rating summarizes performance using minimum thresholds across Core, Enhanced, and Advanced Support.
+                        <strong className="text-slate-500">Methodology:</strong> Each of the 152 program elements is classified into one of three support levels based on clustering by maturity status (In Place, In Development, Under Review, Not Planned) across participating organizations. Level scores are unweighted flat percentages. Composite uses dimension impact weights. Overall Support Rating reflects minimum thresholds across Core, Enhanced, and Advanced Support.
                       </p>
                     </div>
                   </div>
