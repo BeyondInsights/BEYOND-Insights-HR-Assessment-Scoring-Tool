@@ -3750,7 +3750,8 @@ export default function ExportReportPage() {
             return completedDims === 13;
           });
           
-          const allComposites = completeAssessments.map(a => {
+                    (window as any).__allAssessments = completeAssessments;
+            const allComposites = completeAssessments.map(a => {
             try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
           }).filter(s => s !== null) as number[];
           
@@ -5140,7 +5141,7 @@ export default function ExportReportPage() {
                       <strong className="text-slate-600"> Core</strong> elements are offered by more than 55% of participants.
                       <strong className="text-slate-600"> Advanced</strong> elements are offered by fewer than 25%.
                       <strong className="text-slate-600"> Enhanced</strong> elements fall between those ranges.
-                      Scores reflect the share of practices in place within each level; benchmarks reflect participating organizations (n={dimensionAnalysis?.length || 43}).
+                      Scores reflect the share of practices in place within each level; benchmarks reflect participating organizations.
                     </p>
                   </div>
                 </div>
@@ -5788,19 +5789,7 @@ export default function ExportReportPage() {
                     )}. Performance is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
                   </p>
                   
-                  {/* Part B: What's driving it */}
-                  {topDimension && bottomDimension && (
-                    <p className="text-slate-700 leading-relaxed text-lg mb-3">
-                      Current strengths are most evident in <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) represents the largest opportunity for improvement.
-                    </p>
-                  )}
-                  
-                  {/* Part C: Next steps */}
-                  {unsureItems > 0 && (
-                    <p className="text-slate-600 leading-relaxed text-base">
-                      Confirming the {unsureItems} &ldquo;To Confirm&rdquo; elements will finalize scores and improve precision across affected dimensions.
-                    </p>
-                  )}
+
                 </div>
               ) : (
                 <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
@@ -5844,21 +5833,7 @@ export default function ExportReportPage() {
                   <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
                     <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      {tierView ? (
-                        <>
-                          {supportRatingHeader === 'Exemplary' ? (
-                            <>
-                              <p className="text-base font-bold text-violet-800">Exemplary Support Rating achieved</p>
-                              <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to sustain comprehensive support across all levels.</p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-base font-bold text-violet-800">Path to a higher Overall Support Rating</p>
-                              <p className="text-sm text-violet-600 mt-1">Improving {dimList} would have the largest impact on the overall rating.</p>
-                            </>
-                          )}
-                        </>
-                      ) : (
+                      {tierView ? null : (
                         <>
                           {nextTierUp && pointsToNextTier ? (
                             <>
@@ -5883,7 +5858,7 @@ export default function ExportReportPage() {
                 );
               })()}
               
-              {/* Tier Score Breakdown (Tier View only) */}
+              {/* Workplace Support Index — Tier Score Breakdown (Tier View only) */}
               {tierView && (() => {
                 // Compute tier-level scores from element data
                 const allElems = dimensionAnalysis?.flatMap((d: any) => 
@@ -5910,90 +5885,175 @@ export default function ExportReportPage() {
                 const enhData = tierCalc('enhanced');
                 const advData = tierCalc('advanced');
                 
-                // Stage calculation (simplified gated maturity)
-                const getStage = () => {
-                  if (coreData.score >= 80 && enhData.score >= 60 && advData.score >= 40) return { num: 5, label: 'Exemplary' };
-                  if (coreData.score >= 70 && enhData.score >= 50 && advData.score >= 25) return { num: 4, label: 'Strong' };
-                  if (coreData.score >= 60 && enhData.score >= 35) return { num: 3, label: 'Established' };
-                  if (coreData.score >= 40) return { num: 2, label: 'Building' };
-                  return { num: 1, label: 'Emerging' };
+                // Rating calculation
+                const getRating = () => {
+                  if (coreData.score >= 80 && enhData.score >= 60 && advData.score >= 40) return SUPPORT_RATINGS[5];
+                  if (coreData.score >= 70 && enhData.score >= 50 && advData.score >= 25) return SUPPORT_RATINGS[4];
+                  if (coreData.score >= 60 && enhData.score >= 35) return SUPPORT_RATINGS[3];
+                  if (coreData.score >= 40) return SUPPORT_RATINGS[2];
+                  return SUPPORT_RATINGS[1];
                 };
-                const stage = getStage();
+                const rating = getRating();
                 
-                const ratingColor = stage.num >= 5 ? '#5B21B6' : stage.num >= 4 ? '#047857' : stage.num >= 3 ? '#1D4ED8' : stage.num >= 2 ? '#B45309' : '#B91C1C';
+                // Benchmark: compute tier scores for ALL complete companies
+                const tierBenchmarks = { core: [] as number[], enhanced: [] as number[], advanced: [] as number[] };
+                try {
+                  const allAssessments = (window as any).__allAssessments || [];
+                  allAssessments.forEach((a: any) => {
+                    try {
+                      const compScores = calculateCompanyScores(a);
+                      if (!compScores?.elements) return;
+                      const compElems = Object.values(compScores.elements).flat() as any[];
+                      (['core', 'enhanced', 'advanced'] as const).forEach(level => {
+                        const lElems = compElems.filter((e: any) => getElementLevel(e.name) === level);
+                        if (lElems.length === 0) return;
+                        const max = lElems.length * 5;
+                        let p = 0;
+                        lElems.forEach((e: any) => {
+                          if (e.isStrength) p += 5; else if (e.isPlanning) p += 3; else if (e.isAssessing) p += 2;
+                        });
+                        tierBenchmarks[level].push(max > 0 ? Math.round((p / max) * 1000) / 10 : 0);
+                      });
+                    } catch {}
+                  });
+                } catch {}
+                
+                const getBenchStats = (level: 'core' | 'enhanced' | 'advanced', myScore: number) => {
+                  const scores = tierBenchmarks[level];
+                  if (scores.length === 0) return { avg: 0, pctl: 0, index: 100, diff: 0 };
+                  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+                  const belowCount = scores.filter(s => s < myScore).length;
+                  const pctl = Math.round((belowCount / scores.length) * 100);
+                  const index = avg > 0 ? Math.round((myScore / avg) * 100) : 100;
+                  const diff = Math.round((myScore - avg) * 10) / 10;
+                  return { avg: Math.round(avg * 10) / 10, pctl, index, diff };
+                };
+                
+                const coreBench = getBenchStats('core', coreData.score);
+                const enhBench = getBenchStats('enhanced', enhData.score);
+                const advBench = getBenchStats('advanced', advData.score);
                 
                 const tiers = [
-                  { key: 'core', ...coreData, ...SUPPORT_LEVELS.core },
-                  { key: 'enhanced', ...enhData, ...SUPPORT_LEVELS.enhanced },
-                  { key: 'advanced', ...advData, ...SUPPORT_LEVELS.advanced },
+                  { key: 'core' as const, ...coreData, ...SUPPORT_LEVELS.core, bench: coreBench },
+                  { key: 'enhanced' as const, ...enhData, ...SUPPORT_LEVELS.enhanced, bench: enhBench },
+                  { key: 'advanced' as const, ...advData, ...SUPPORT_LEVELS.advanced, bench: advBench },
                 ];
                 
                 return (
                   <div className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    {/* Header bar */}
+                    {/* Header: Composite = Core + Enhanced + Advanced + Rating */}
                     <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-base font-bold text-slate-900">Workplace Support Index</h3>
                           <p className="text-sm text-slate-500 mt-0.5">Composite performance across Core, Enhanced, and Advanced Support</p>
                         </div>
-                        <div className="flex items-center gap-6">
-                          {/* Composite */}
+                        <div className="flex items-center gap-5">
                           <div className="text-center px-5 py-2 rounded-xl bg-slate-900">
                             <p className="text-3xl font-bold text-white">{compositeScore}</p>
                             <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">Composite</p>
                           </div>
-                          {/* = sign */}
                           <span className="text-slate-300 text-xl">=</span>
-                          {/* Three tier scores */}
                           {tiers.map((t) => (
                             <div key={t.key} className="text-center px-3 py-2 rounded-lg border" style={{ borderColor: t.border, backgroundColor: t.light }}>
                               <p className="text-2xl font-bold" style={{ color: t.color }}>{t.score}</p>
                               <p className="text-xs font-semibold" style={{ color: t.color }}>{t.name.split(' ')[0]}</p>
                             </div>
                           ))}
-                          {/* Overall Support Rating */}
-                          <div className="text-center px-5 py-2 rounded-xl border-2" style={{ borderColor: ratingColor, backgroundColor: ratingColor + '08' }}>
-                            <p className="text-lg font-bold" style={{ color: ratingColor }}>{stage.label}</p>
-                            <p className="text-xs text-slate-500 font-medium">Support Rating</p>
-                          </div>
                         </div>
                       </div>
                     </div>
                     
-                    {/* Three tier cards */}
+                    {/* Overall Support Rating — prominent */}
+                    <div className="px-8 py-5 border-b border-slate-200" style={{ background: `linear-gradient(135deg, ${rating.color}08 0%, white 100%)` }}>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-md" style={{ backgroundColor: rating.color }}>
+                            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                          <div>
+                            <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Overall Support Rating</p>
+                            <p className="text-2xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
+                          </div>
+                        </div>
+                        <div className="flex-1 ml-4">
+                          <p className="text-sm text-slate-600 leading-relaxed">{rating.desc}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Three Level Cards — rich detail */}
                     <div className="p-6 grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
                         const Icon = t.icon;
                         const scoreColor = t.score >= 75 ? '#047857' : t.score >= 50 ? '#1D4ED8' : t.score >= 25 ? '#B45309' : '#B91C1C';
+                        const benchAvg = t.bench.avg;
+                        const benchPct = benchAvg > 0 ? Math.min((benchAvg / 100) * 100, 100) : 0;
+                        
                         return (
-                          <div key={t.key} className="rounded-xl border-2 p-5" style={{ borderColor: t.border, backgroundColor: t.light + '40' }}>
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: t.color }}>
-                                  <Icon size={22} color="white" />
+                          <div key={t.key} className="rounded-xl border-2 overflow-hidden" style={{ borderColor: t.border }}>
+                            {/* Card header: icon + name + score + stats */}
+                            <div className="px-5 pt-5 pb-4" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
+                              {/* Top row: icon+name left, score+stats right */}
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: t.color }}>
+                                    <Icon size={24} color="white" />
+                                  </div>
+                                  <div>
+                                    <h4 className="font-bold text-sm" style={{ color: t.color }}>{t.name}</h4>
+                                    <span className="text-xs text-slate-500">{t.total} elements · {t.tagline}</span>
+                                  </div>
                                 </div>
-                                <div>
-                                  <h4 className="font-bold text-sm" style={{ color: t.color }}>{t.name}</h4>
-                                  <span className="text-xs text-slate-500">{t.total} elements</span>
+                                <div className="text-right">
+                                  <p className="text-3xl font-bold leading-none" style={{ color: scoreColor }}>{t.score}</p>
+                                  <p className="text-xs text-slate-400 mt-0.5">/ 100</p>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                <p className="text-3xl font-bold" style={{ color: scoreColor }}>{t.score}</p>
-                                <p className="text-xs text-slate-400">/ 100</p>
+                              
+                              {/* Score bar with benchmark marker */}
+                              <div className="relative w-full h-3 bg-slate-200 rounded-full overflow-visible mb-1">
+                                <div className="h-full rounded-full" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
+                                {benchAvg > 0 && (
+                                  <div className="absolute top-0" style={{ left: `${Math.min(benchPct, 100)}%`, transform: 'translateX(-50%)' }}>
+                                    <div style={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderTop: '7px solid #475569', marginTop: '-1px' }} />
+                                  </div>
+                                )}
                               </div>
+                              {benchAvg > 0 && (
+                                <p className="text-xs text-slate-400 text-right mb-3">▲ Benchmark: {benchAvg}</p>
+                              )}
+                              
+                              {/* Stats row: percentile, index, diff */}
+                              <div className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 mb-3">
+                                <div className="text-center">
+                                  <p className="text-lg font-bold text-slate-800">{t.bench.pctl}<sup className="text-xs text-slate-400">th</sup></p>
+                                  <p className="text-xs text-slate-400">pctl</p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-200" />
+                                <div className="text-center">
+                                  <p className="text-lg font-bold text-slate-800">{t.bench.index}</p>
+                                  <p className="text-xs text-slate-400">index</p>
+                                </div>
+                                <div className="w-px h-8 bg-slate-200" />
+                                <div className="text-center">
+                                  <p className={`text-lg font-bold ${t.bench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                    {t.bench.diff >= 0 ? '+' : ''}{t.bench.diff}
+                                  </p>
+                                  <p className="text-xs text-slate-400">vs avg</p>
+                                </div>
+                              </div>
+                              
+                              {/* Description */}
+                              <p className="text-xs text-slate-600 leading-relaxed mb-2">{t.desc}</p>
+                              <p className="text-xs italic mb-3" style={{ color: t.color, opacity: 0.75 }}>{t.italic}</p>
                             </div>
                             
-                            {/* Score bar */}
-                            <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden mb-3">
-                              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
-                            </div>
-                            
-                            {/* Status counts */}
-                            <div className="flex flex-wrap gap-2">
+                            {/* Status counts footer */}
+                            <div className="px-5 py-3 flex flex-wrap gap-2" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
                               {t.inPlace > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{t.inPlace} In Place</span>}
                               {t.inDev > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">{t.inDev} In Dev</span>}
-                              {t.review > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700">{t.review} Review</span>}
+                              {t.review > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700">{t.review} Under Review</span>}
                               {t.toConfirm > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-violet-100 text-violet-700">{t.toConfirm} To Confirm</span>}
                               {t.gaps > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">{t.gaps} Not Planned</span>}
                             </div>
@@ -6002,26 +6062,12 @@ export default function ExportReportPage() {
                       })}
                     </div>
                     
-                    {/* Overall Support Rating description */}
-                    <div className="px-8 py-4 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white">
-                      <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: ratingColor + '15' }}>
-                          <svg className="w-4 h-4" style={{ color: ratingColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold" style={{ color: ratingColor }}>Overall Support Rating: {stage.label}</p>
-                          <p className="text-sm text-slate-600 mt-0.5">{SUPPORT_RATINGS[stage.num as keyof typeof SUPPORT_RATINGS]?.desc}</p>
-                        </div>
-                      </div>
-                    </div>
-                    
                     {/* Methodology footnote */}
                     <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
                       <p className="text-xs text-slate-400">
                         <strong className="text-slate-500">Methodology:</strong> Core (&gt;55% adoption) · Enhanced (25–55% + clustering) · Advanced (&lt;25% + expert overrides). 
                         Level scores are unweighted flat percentages. Composite uses dimension impact weights. 
-                        Overall Support Rating summarizes performance using minimum thresholds across Core, Enhanced, and Advanced Support. 
-                        Ratings reflect participating organizations (n=43) and will be recalibrated as the benchmark expands.
+                        Overall Support Rating summarizes performance using minimum thresholds across Core, Enhanced, and Advanced Support.
                       </p>
                     </div>
                   </div>
