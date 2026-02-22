@@ -2873,11 +2873,11 @@ const SUPPORT_LEVELS = {
 } as const;
 
 const SUPPORT_RATINGS = {
-  5: { label: 'Exemplary', color: '#5B21B6', desc: 'Consistently high performance across Core, Enhanced, and Advanced Support, reflecting a comprehensive, well-integrated support ecosystem.' },
-  4: { label: 'Strong', color: '#047857', desc: 'High Core and Enhanced Support with meaningful Advanced practices in place, indicating reliable support delivery and depth.' },
-  3: { label: 'Established', color: '#1D4ED8', desc: 'Core supports are in place with moderate Enhanced Support, forming a stable baseline with room to expand program depth.' },
-  2: { label: 'Building', color: '#B45309', desc: 'Core supports are emerging, with Enhanced and Advanced practices still developing across the organization.' },
-  1: { label: 'Emerging', color: '#B91C1C', desc: 'Early supports are currently in place; priority is typically establishing core access, navigation, and policy fundamentals.' },
+  5: { label: 'Exemplary', color: '#5B21B6', desc: 'Comprehensive support across all three levels, with strong Core coverage, consistent Enhanced delivery, and meaningful Advanced practices in place.' },
+  4: { label: 'Strong', color: '#047857', desc: 'Strong Core coverage with solid Enhanced and Advanced practices, indicating reliable support delivery and growing program depth.' },
+  3: { label: 'Established', color: '#1D4ED8', desc: 'Core supports are well in place, forming a stable baseline with room to expand Enhanced and Advanced program depth.' },
+  2: { label: 'Building', color: '#B45309', desc: 'Core supports are developing, with Enhanced and Advanced practices still emerging across the organization.' },
+  1: { label: 'Emerging', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing core access, navigation, and policy fundamentals.' },
 } as const;
 
 function SupportLevelBadge({ level }: { level: string }) {
@@ -4382,10 +4382,18 @@ export default function ExportReportPage() {
   const coreScoreCalc = _tierCalc('core');
   const enhancedScoreCalc = _tierCalc('enhanced');
   const advancedScoreCalc = _tierCalc('advanced');
+  // Prog+Innov combined score (Enhanced + Advanced elements together)
+  const _enhElems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === 'enhanced');
+  const _advElems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === 'advanced');
+  const _piMax = (_enhElems.length + _advElems.length) * 5;
+  let _piPts = 0;
+  [..._enhElems, ..._advElems].forEach((e: any) => { if (e.isStrength) _piPts += 5; else if (e.isPlanning) _piPts += 3; else if (e.isAssessing) _piPts += 2; });
+  const progInnovScoreCalc = _piMax > 0 ? Math.round((_piPts / _piMax) * 1000) / 10 : 0;
+
   const supportRatingObj = (() => {
-    if (coreScoreCalc >= 80 && enhancedScoreCalc >= 60 && advancedScoreCalc >= 40) return SUPPORT_RATINGS[5];
-    if (coreScoreCalc >= 70 && enhancedScoreCalc >= 50 && advancedScoreCalc >= 25) return SUPPORT_RATINGS[4];
-    if (coreScoreCalc >= 60 && enhancedScoreCalc >= 35) return SUPPORT_RATINGS[3];
+    if (coreScoreCalc >= 80 && progInnovScoreCalc >= 65 && advancedScoreCalc >= 40) return SUPPORT_RATINGS[5];
+    if (coreScoreCalc >= 80 && progInnovScoreCalc >= 50) return SUPPORT_RATINGS[4];
+    if (coreScoreCalc >= 65) return SUPPORT_RATINGS[3];
     if (coreScoreCalc >= 40) return SUPPORT_RATINGS[2];
     return SUPPORT_RATINGS[1];
   })();
@@ -4810,7 +4818,7 @@ export default function ExportReportPage() {
                         {tierView ? (
                           <>
                             <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                              Your <span className="font-semibold text-violet-700">Workplace Support Index</span> summarizes the share of support practices your organization has in place across <strong className="text-slate-800">13 dimensions</strong>. It combines performance across three Levels of Workplace Support (Core, Enhanced, and Advanced) to provide a clear view of your overall support ecosystem for employees managing cancer.
+                              Your <span className="font-semibold text-violet-700">Workplace Support Index</span> summarizes the share of support practices your organization has in place across <strong className="text-slate-800">13 dimensions</strong>. It combines results across three Levels of Workplace Support (Core, Enhanced, and Advanced) to provide a clear view of your overall support ecosystem for employees managing cancer.
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
                               <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
@@ -5919,10 +5927,18 @@ export default function ExportReportPage() {
                 const advData = tierCalc('advanced');
                 
                 // Rating calculation
+                // Prog+Innov combined score
+                const piMax = (enhData.total + advData.total) * 5;
+                let piPts = 0;
+                allElems.filter((e: any) => ['enhanced', 'advanced'].includes(getElementLevel(e.name))).forEach((e: any) => {
+                  if (e.isStrength) piPts += 5; else if (e.isPlanning) piPts += 3; else if (e.isAssessing) piPts += 2;
+                });
+                const piScore = piMax > 0 ? Math.round((piPts / piMax) * 1000) / 10 : 0;
+                
                 const getRating = () => {
-                  if (coreData.score >= 80 && enhData.score >= 60 && advData.score >= 40) return SUPPORT_RATINGS[5];
-                  if (coreData.score >= 70 && enhData.score >= 50 && advData.score >= 25) return SUPPORT_RATINGS[4];
-                  if (coreData.score >= 60 && enhData.score >= 35) return SUPPORT_RATINGS[3];
+                  if (coreData.score >= 80 && piScore >= 65 && advData.score >= 40) return SUPPORT_RATINGS[5];
+                  if (coreData.score >= 80 && piScore >= 50) return SUPPORT_RATINGS[4];
+                  if (coreData.score >= 65) return SUPPORT_RATINGS[3];
                   if (coreData.score >= 40) return SUPPORT_RATINGS[2];
                   return SUPPORT_RATINGS[1];
                 };
@@ -5978,13 +5994,13 @@ export default function ExportReportPage() {
                     <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-base font-bold text-slate-900">Workplace Support Index</h3>
-                          <p className="text-sm text-slate-500 mt-0.5">Composite performance across Core, Enhanced, and Advanced Support Elements</p>
+                          <h3 className="text-lg font-bold text-slate-900">Workplace Support Index</h3>
+                          <p className="text-sm text-slate-500 mt-0.5">Composite score across Core, Enhanced, and Advanced Support Elements</p>
                         </div>
                         <div className="flex items-center gap-5">
-                          <div className="text-center px-6 py-3 rounded-xl bg-slate-900">
-                            <p className="text-4xl font-bold text-white">{compositeScore}</p>
-                            <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">Index Score</p>
+                          <div className="text-center px-7 py-4 rounded-xl bg-slate-900 shadow-lg">
+                            <p className="text-5xl font-bold text-white">{compositeScore}</p>
+                            <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mt-1">Index Score</p>
                           </div>
                           <div className="text-center px-5 py-3 rounded-xl border-2" style={{ borderColor: rating.color, backgroundColor: rating.color + '08' }}>
                             <p className="text-xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
@@ -6023,7 +6039,7 @@ export default function ExportReportPage() {
                         return (
                           <div key={t.key} className="rounded-xl border-2 overflow-hidden" style={{ borderColor: t.border }}>
                             {/* Card header: icon + name + score + stats */}
-                            <div className="px-5 pt-5 pb-4" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
+                            <div className="px-5 pt-5 pb-4 flex flex-col" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)`, minHeight: '380px' }}>
                               {/* Top row: icon+name left, score+stats right */}
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-3">
@@ -6073,13 +6089,16 @@ export default function ExportReportPage() {
                               </div>
                               
                               {/* Description */}
-                              <p className="text-xs text-slate-600 leading-relaxed mb-1">{t.desc}</p>
-                              {t.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{t.boldPhrase}</p>}
-                              <p className="text-xs italic mb-3" style={{ color: t.color, opacity: 0.75 }}>{t.italic}</p>
+                              <div className="flex-1">
+                                <p className="text-xs text-slate-600 leading-relaxed mb-1">{t.desc}</p>
+                                {t.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{t.boldPhrase}</p>}
+                                <p className="text-xs italic" style={{ color: t.color, opacity: 0.75 }}>{t.italic}</p>
+                              </div>
                             </div>
                             
                             {/* Status counts footer - row per status */}
-                            <div className="px-5 py-3 space-y-1.5" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
+                            <div className="px-5 pt-3 pb-3 space-y-1.5" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Element Status</p>
                               {t.inPlace > 0 && (
                                 <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
@@ -10443,7 +10462,7 @@ export default function ExportReportPage() {
                             <ul className="space-y-1.5">
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                {tierView ? "Dimension contributions follow Cancer and Careers' expert-derived weights, informed by qualitative and quantitative research." : 'Each dimension is weighted by real-world impact on employee experience and organizational outcomes.'}
+                                {tierView ? "Dimension contributions follow Cancer and Careers' expert-derived weights, based on research with HR leaders, employees managing cancer, and the general population workforce." : 'Each dimension is weighted by real-world impact on employee experience and organizational outcomes.'}
                               </li>
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
