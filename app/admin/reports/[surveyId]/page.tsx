@@ -2801,46 +2801,46 @@ const ELEMENT_MATURITY_LEVEL: Record<string, string> = {
 
 // ═══ THREE LEVELS OF WORKPLACE SUPPORT ═══
 // Custom SVG Icons for Core / Enhanced / Advanced levels
-function CoreSupportIcon({ size = 20 }: { size?: number }) {
+function CoreSupportIcon({ size = 20, color = '#047857' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <rect x="2" y="18" width="20" height="4" rx="1" fill="#047857" opacity="0.9" />
-      <rect x="4" y="13" width="7" height="4" rx="0.5" fill="#047857" opacity="0.7" />
-      <rect x="13" y="13" width="7" height="4" rx="0.5" fill="#047857" opacity="0.7" />
-      <rect x="6" y="8" width="5" height="4" rx="0.5" fill="#047857" opacity="0.5" />
-      <rect x="13" y="8" width="5" height="4" rx="0.5" fill="#047857" opacity="0.5" />
-      <rect x="9" y="4" width="6" height="3" rx="0.5" fill="#047857" opacity="0.35" />
+      <rect x="2" y="18" width="20" height="4" rx="1" fill={color} opacity="0.9" />
+      <rect x="4" y="13" width="7" height="4" rx="0.5" fill={color} opacity="0.7" />
+      <rect x="13" y="13" width="7" height="4" rx="0.5" fill={color} opacity="0.7" />
+      <rect x="6" y="8" width="5" height="4" rx="0.5" fill={color} opacity="0.5" />
+      <rect x="13" y="8" width="5" height="4" rx="0.5" fill={color} opacity="0.5" />
+      <rect x="9" y="4" width="6" height="3" rx="0.5" fill={color} opacity="0.35" />
     </svg>
   );
 }
 
-function EnhancedSupportIcon({ size = 20 }: { size?: number }) {
+function EnhancedSupportIcon({ size = 20, color = '#B45309' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M3 20 L12 4 L21 20 Z" fill="#B45309" opacity="0.12" />
-      <path d="M5 18 h14" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
-      <path d="M7 14 h10" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
-      <path d="M9 10 h6" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
-      <path d="M10.5 6 h3" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.35" />
-      <circle cx="12" cy="3.5" r="1.5" fill="#B45309" opacity="0.9" />
+      <path d="M3 20 L12 4 L21 20 Z" fill={color} opacity="0.12" />
+      <path d="M5 18 h14" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+      <path d="M7 14 h10" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+      <path d="M9 10 h6" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+      <path d="M10.5 6 h3" stroke={color} strokeWidth="2" strokeLinecap="round" opacity="0.35" />
+      <circle cx="12" cy="3.5" r="1.5" fill={color} opacity="0.9" />
     </svg>
   );
 }
 
-function AdvancedSupportIcon({ size = 20 }: { size?: number }) {
+function AdvancedSupportIcon({ size = 20, color = '#7C3AED' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="4" fill="#7C3AED" opacity="0.15" />
-      <circle cx="12" cy="12" r="2" fill="#7C3AED" opacity="0.4" />
-      <circle cx="12" cy="12" r="0.8" fill="#7C3AED" />
-      <line x1="12" y1="2" x2="12" y2="6" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
-      <line x1="12" y1="18" x2="12" y2="22" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
-      <line x1="2" y1="12" x2="6" y2="12" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
-      <line x1="18" y1="12" x2="22" y2="12" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
-      <line x1="5.1" y1="5.1" x2="7.9" y2="7.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-      <line x1="16.1" y1="16.1" x2="18.9" y2="18.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-      <line x1="18.9" y1="5.1" x2="16.1" y2="7.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
-      <line x1="7.9" y1="16.1" x2="5.1" y2="18.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <circle cx="12" cy="12" r="4" fill={color} opacity="0.15" />
+      <circle cx="12" cy="12" r="2" fill={color} opacity="0.4" />
+      <circle cx="12" cy="12" r="0.8" fill={color} />
+      <line x1="12" y1="2" x2="12" y2="6" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="12" y1="18" x2="12" y2="22" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="2" y1="12" x2="6" y2="12" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="18" y1="12" x2="22" y2="12" stroke={color} strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="5.1" y1="5.1" x2="7.9" y2="7.9" stroke={color} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line x1="16.1" y1="16.1" x2="18.9" y2="18.9" stroke={color} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line x1="18.9" y1="5.1" x2="16.1" y2="7.9" stroke={color} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line x1="7.9" y1="16.1" x2="5.1" y2="18.9" stroke={color} strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
     </svg>
   );
 }
@@ -5004,13 +5004,13 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-4">
                   <div className="relative w-10 h-10 flex-shrink-0">
                     <div className="absolute bottom-0 left-0 w-7 h-7 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: '#047857' }}>
-                      <CoreSupportIcon size={16} />
+                      <CoreSupportIcon size={16} color="white" />
                     </div>
                     <div className="absolute bottom-1 left-3 w-5 h-5 rounded flex items-center justify-center shadow-sm" style={{ backgroundColor: '#B45309' }}>
-                      <EnhancedSupportIcon size={12} />
+                      <EnhancedSupportIcon size={12} color="white" />
                     </div>
                     <div className="absolute top-0 right-0 w-4 h-4 rounded flex items-center justify-center shadow-sm" style={{ backgroundColor: '#7C3AED' }}>
-                      <AdvancedSupportIcon size={10} />
+                      <AdvancedSupportIcon size={10} color="white" />
                     </div>
                   </div>
                   <div className="text-left">
@@ -5052,7 +5052,7 @@ export default function ExportReportPage() {
                           <div className="px-5 pt-5 pb-4" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)` }}>
                             <div className="flex items-center gap-3 mb-3">
                               <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: L.color }}>
-                                <Icon size={24} />
+                                <Icon size={24} color="white" />
                               </div>
                               <div>
                                 <h4 className="font-bold text-sm" style={{ color: L.color }}>{L.name}</h4>
@@ -5084,7 +5084,7 @@ export default function ExportReportPage() {
                                   const dimInfo = dimensionAnalysis?.find((da: any) => da.dim === d);
                                   return (
                                     <div key={d} className="flex items-center gap-2">
-                                      <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: DIMENSION_COLORS[d] || '#64748B', fontSize: 9 }}>{d}</div>
+                                      <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{d}</div>
                                       <span className="text-xs text-slate-600 flex-1 truncate" style={{ minWidth: 0 }}>{dimInfo?.name || `Dimension ${d}`}</span>
                                       <span className="text-xs font-bold flex-shrink-0 w-10 text-right" style={{ color: L.color }}>{cnt.count}</span>
                                       <span className="text-xs text-slate-400 flex-shrink-0">of {cnt.total}</span>
