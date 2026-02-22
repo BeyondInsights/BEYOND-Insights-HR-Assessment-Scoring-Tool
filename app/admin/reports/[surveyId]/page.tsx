@@ -2060,7 +2060,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 </td>
                                 {tierView && (
                                   <td className="px-3 py-3 text-center">
-                                    <SupportLevelBadge level={getElementLevel(elem.name)} />
+                                    <SupportLevelBadge level={getElementLevel(elem.name)} full />
                                   </td>
                                 )}
                                 <td className="px-4 py-3 text-center bg-slate-50 border-l-2 border-r-2 border-slate-200">
@@ -2415,7 +2415,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               </td>
                               {tierView && (
                                 <td className="px-3 py-3 text-center">
-                                  <SupportLevelBadge level={getElementLevel(el.name)} />
+                                  <SupportLevelBadge level={getElementLevel(el.name)} full />
                                 </td>
                               )}
                               <td className="px-4 py-3">
@@ -2850,21 +2850,24 @@ const SUPPORT_LEVELS = {
     name: 'Core Support', abbr: 'Core', tagline: 'Essential supports',
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
-    desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs. These elements <strong>form the baseline supports most organizations aim to have in place</strong>.',
+    desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs.',
+    boldPhrase: 'These elements form the baseline supports most organizations aim to have in place.',
     italic: 'Establishes clear access to essential supports when employees need them most.',
   },
   enhanced: {
     name: 'Enhanced Support', abbr: 'Enh', tagline: 'Expanded supports',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
-    desc: 'Expanded practices that <strong>strengthen consistency, coordination, and manager readiness</strong> \u2014 making support easier to access and more reliable across teams and situations.',
+    desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness \u2014 making support easier to access and more reliable across teams and situations.',
+    boldPhrase: 'Strengthen consistency, coordination, and manager readiness.',
     italic: 'Strengthens day-to-day consistency and ease of access across teams and managers.',
   },
   advanced: {
     name: 'Advanced Support', abbr: 'Adv', tagline: 'Differentiating supports',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    desc: 'Advanced practices that are <strong>less commonly offered and proactively strengthen continuity of work and care</strong> \u2014 often involving dedicated resources, cross-functional ownership, or innovative design.',
+    desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care \u2014 often involving dedicated resources, cross-functional ownership, or innovative design.',
+    boldPhrase: 'Less commonly offered, proactively strengthen continuity of work and care.',
     italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
   },
 } as const;
@@ -5002,7 +5005,8 @@ export default function ExportReportPage() {
                                 <span className="text-xs text-slate-500">{L.tagline}</span>
                               </div>
                             </div>
-                            <p className="text-xs text-slate-600 leading-relaxed mb-2">{L.desc}</p>
+                            <p className="text-xs text-slate-600 leading-relaxed mb-1">{L.desc}</p>
+                            {L.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{L.boldPhrase}</p>}
                             <p className="text-xs italic" style={{ color: L.color, opacity: 0.75 }}>{L.italic}</p>
                           </div>
                           <div className="px-5 py-3 flex items-center justify-between" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
@@ -6036,7 +6040,8 @@ export default function ExportReportPage() {
                               </div>
                               
                               {/* Description */}
-                              <p className="text-xs text-slate-600 leading-relaxed mb-2" dangerouslySetInnerHTML={{ __html: t.desc }} />
+                              <p className="text-xs text-slate-600 leading-relaxed mb-1">{t.desc}</p>
+                              {t.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{t.boldPhrase}</p>}
                               <p className="text-xs italic mb-3" style={{ color: t.color, opacity: 0.75 }}>{t.italic}</p>
                             </div>
                             
@@ -6962,9 +6967,9 @@ export default function ExportReportPage() {
                     <div className={tierView ? 'col-span-4 text-center' : 'col-span-5 text-center'}>
                       <div>Benchmark Distribution</div>
                       <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">Planning</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">Assessing</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{tierView ? 'In Place' : 'Offering'}</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">{tierView ? 'In Development' : 'Planning'}</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">{tierView ? 'Under Review' : 'Assessing'}</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
                       </div>
                     </div>
@@ -6993,7 +6998,7 @@ export default function ExportReportPage() {
                           {/* Element Type (Tier View only) */}
                           {tierView && (
                             <div className="col-span-1 flex justify-center">
-                              <SupportLevelBadge level={getElementLevel(elem.name)} />
+                              <SupportLevelBadge level={getElementLevel(elem.name)} full />
                             </div>
                           )}
                           
@@ -10972,9 +10977,9 @@ export default function ExportReportPage() {
                         <div className="col-span-5 text-center">
                           <div>Benchmark Distribution</div>
                           <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span>Offering</span></div>
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span>Planning</span></div>
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span>Assessing</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span>{tierView ? 'In Place' : 'Offering'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span>{tierView ? 'In Development' : 'Planning'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span>{tierView ? 'Under Review' : 'Assessing'}</span></div>
                             <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span>Not Planned</span></div>
                           </div>
                         </div>
