@@ -6421,26 +6421,26 @@ export default function ExportReportPage() {
                         
                         return (
                           <div key={t.key} className="rounded-xl overflow-hidden flex flex-col" style={{ border: `2px solid ${t.border}` }}>
-                            {/* Score header band */}
+                            {/* Score header */}
                             <div className="px-5 py-4" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
-                              <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: t.color }}>
+                              <div className="flex items-center justify-between" style={{ minHeight: '48px' }}>
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
                                     <Icon size={20} color="white" />
                                   </div>
-                                  <div>
-                                    <h4 className="font-bold text-sm" style={{ color: t.color }}>{t.name}</h4>
-                                    <span className="text-xs text-slate-400">{t.total} elements · {t.tagline}</span>
+                                  <div className="min-w-0">
+                                    <h4 className="font-bold text-sm leading-tight" style={{ color: t.color }}>{t.name}</h4>
+                                    <span className="text-xs text-slate-400 leading-tight">{t.total} elements</span>
                                   </div>
                                 </div>
-                                <div className="text-right pl-3">
+                                <div className="text-right flex-shrink-0 pl-2">
                                   <p className="text-4xl font-bold leading-none" style={{ color: scoreColor }}>{t.score}</p>
                                   <p className="text-[10px] text-slate-400 mt-0.5">/ 100</p>
                                 </div>
                               </div>
                               
                               {/* Score bar with benchmark line */}
-                              <div className="relative">
+                              <div className="relative mt-4">
                                 <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
                                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                                 </div>
@@ -6450,14 +6450,14 @@ export default function ExportReportPage() {
                                   </div>
                                 )}
                               </div>
-                              {benchAvg > 0 && (
-                                <div className="flex items-center justify-end gap-2 mt-1.5">
+                              <div className="h-5 flex items-center justify-end">
+                                {benchAvg > 0 && (
                                   <div className="flex items-center gap-1">
                                     <div className="w-3 h-0.5 rounded-full bg-slate-500" />
                                     <span className="text-[10px] text-slate-400">Benchmark: {Math.round(benchAvg)}</span>
                                   </div>
-                                </div>
-                              )}
+                                )}
+                              </div>
                             </div>
                             
                             {/* Metrics strip */}
@@ -6481,7 +6481,7 @@ export default function ExportReportPage() {
                             </div>
                             
                             {/* Description */}
-                            <div className="px-5 py-4 flex-1">
+                            <div className="px-5 py-4 flex-1" style={{ minHeight: '140px' }}>
                               <p className="text-xs text-slate-600 leading-relaxed mb-1.5">{t.desc}</p>
                               {t.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-1.5">{t.boldPhrase}</p>}
                               <p className="text-xs italic leading-relaxed" style={{ color: t.color, opacity: 0.7 }}>{t.italic}</p>
