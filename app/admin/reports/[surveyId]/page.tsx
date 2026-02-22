@@ -2858,7 +2858,7 @@ const SUPPORT_LEVELS = {
     name: 'Enhanced Support', abbr: 'Enh', tagline: 'Expanded supports',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
-    desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness \u2014 making support easier to access and more reliable across teams and situations.',
+    desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness, making support easier to access and more reliable across teams and situations.',
     boldPhrase: 'Strengthen consistency, coordination, and manager readiness.',
     italic: 'Strengthens day-to-day consistency and ease of access across teams and managers.',
   },
@@ -2866,7 +2866,7 @@ const SUPPORT_LEVELS = {
     name: 'Advanced Support', abbr: 'Adv', tagline: 'Differentiating supports',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care \u2014 often involving dedicated resources, cross-functional ownership, or innovative design.',
+    desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care. These often involve dedicated resources, cross-functional ownership, or innovative design.',
     boldPhrase: 'Less commonly offered, proactively strengthen continuity of work and care.',
     italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
   },
@@ -2981,7 +2981,7 @@ export default function ExportReportPage() {
     const names: Record<number, string> = {
       0: 'Title & Overview',
       1: 'How Index Was Developed', 
-      2: 'Understanding Your Composite Score',
+      2: tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score',
       3: 'The 13 Dimensions',
       4: 'Executive Summary',
       5: 'Dimension Performance'
@@ -3151,7 +3151,7 @@ export default function ExportReportPage() {
     const slideNames: Record<number, string> = {
       0: 'Title & Overview',
       1: 'How Index Was Developed', 
-      2: 'Understanding Your Composite Score',
+      2: tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score',
       3: 'The 13 Dimensions',
       4: 'Executive Summary',
       5: 'Dimension Performance'
@@ -3181,7 +3181,7 @@ export default function ExportReportPage() {
     const defaultNotes: Record<number, string> = {
       0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
-      2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
+      2: 'Explain what the Workplace Support Index represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
       3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
       4: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
       5: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
@@ -4779,7 +4779,7 @@ export default function ExportReportPage() {
             </div>
             
             
-            {/* Understanding Your Composite Score — Collapsible */}
+            {/* Understanding Your Workplace Support Index / Composite Score — Collapsible */}
             <div id="score-composition-section" className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
@@ -4790,7 +4790,7 @@ export default function ExportReportPage() {
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">Understanding Your Composite Score</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">{tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score'}</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center transition-transform duration-200 ${showCompositeScoreGuide ? 'rotate-180' : ''}`}>
@@ -4802,28 +4802,61 @@ export default function ExportReportPage() {
                 <div className="mt-4 pb-1">
                   <div className="bg-gradient-to-br from-violet-50/80 via-white to-slate-50 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="p-6">
-                      {/* What This Score Represents - Tightened */}
                       <div className="mb-6">
                         <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                           <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                          What This Score Represents
+                          {tierView ? 'What This Score Represents' : 'What This Score Represents'}
                         </h4>
-                        <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                          Your <span className="font-semibold text-violet-700">Composite Score</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
-                        </p>
-                        <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                          <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
-                          <ul className="space-y-1.5">
-                            <li className="text-sm text-slate-600 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                              Each dimension is weighted by real-world impact on employee experience and organizational outcomes.
-                            </li>
-                            <li className="text-sm text-slate-600 flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                              Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.
-                            </li>
-                          </ul>
-                        </div>
+                        {tierView ? (
+                          <>
+                            <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                              Your <span className="font-semibold text-violet-700">Workplace Support Index</span> summarizes the share of support practices your organization has in place across <strong className="text-slate-800">13 dimensions</strong>. It combines performance across three Levels of Workplace Support (Core, Enhanced, and Advanced) to provide a clear view of your overall support ecosystem for employees managing cancer.
+                            </p>
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
+                              <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
+                              <ul className="space-y-1.5">
+                                <li className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  The Index combines your Core, Enhanced, and Advanced Support scores into a single overall measure.
+                                </li>
+                                <li className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  Scores reflect the share of practices in place within each level, using the assessment&apos;s standard scoring rules and benchmarks.
+                                </li>
+                                <li className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  Dimension contributions follow Cancer and Careers&apos; expert-derived weights, informed by qualitative and quantitative research.
+                                </li>
+                                <li className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.
+                                </li>
+                              </ul>
+                            </div>
+                            <p className="text-xs text-slate-500 italic">
+                              Tip: Use the three level scores to understand where your results are coming from. Core measures essential access, Enhanced measures consistent delivery, and Advanced captures deeper, less commonly offered practices.
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                              Your <span className="font-semibold text-violet-700">{tierView ? 'Workplace Support Index' : 'Composite Score'}</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
+                            </p>
+                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                              <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
+                              <ul className="space-y-1.5">
+                                <li className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  Each dimension is weighted by real-world impact on employee experience and organizational outcomes.
+                                </li>
+                                <li className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.
+                                </li>
+                              </ul>
+                            </div>
+                          </>
+                        )}
                       </div>
                       
                       {/* Two column: Tiers + Journey */}
@@ -4832,7 +4865,7 @@ export default function ExportReportPage() {
                         <div className="w-[480px] flex-shrink-0">
                           <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                             <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                            Composite Score Tiers
+                            {tierView ? 'Workplace Support Index Tiers' : 'Composite Score Tiers'}
                           </h4>
                           
                           {/* Column Headers */}
@@ -5278,7 +5311,7 @@ export default function ExportReportPage() {
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                                   </div>
-                                  <span className="text-xs text-slate-600">Composite Score</span>
+                                  <span className="text-xs text-slate-600">{tierView ? 'Workplace Support Index' : 'Composite Score'}</span>
                                 </div>
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
@@ -5458,7 +5491,7 @@ export default function ExportReportPage() {
                       {/* Compact Grid of Sections */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
-                          { id: 'composite', name: 'Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
+                          { id: 'composite', name: tierView ? 'Workplace Support Index' : 'Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
                           { id: 'dimensions', name: 'Dimension Scores', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
                           { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
@@ -10385,7 +10418,7 @@ export default function ExportReportPage() {
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                       </div>
                       <div className="text-left">
-                        <span className="text-sm font-bold text-slate-800">Understanding Your Composite Score</span>
+                        <span className="text-sm font-bold text-slate-800">{tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score'}</span>
                         <span className="text-sm text-slate-600 ml-3 font-medium">How your overall performance is measured</span>
                       </div>
                       <div className="ml-auto w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center rotate-180">
@@ -10403,18 +10436,18 @@ export default function ExportReportPage() {
                             What This Score Represents
                           </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                            Your <span className="font-semibold text-violet-700">Composite Score</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
+                            Your <span className="font-semibold text-violet-700">{tierView ? 'Workplace Support Index' : 'Composite Score'}</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
                           </p>
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                             <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
                             <ul className="space-y-1.5">
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                Each dimension is weighted by real-world impact on employee experience and organizational outcomes.
+                                {tierView ? "Dimension contributions follow Cancer and Careers' expert-derived weights, informed by qualitative and quantitative research." : 'Each dimension is weighted by real-world impact on employee experience and organizational outcomes.'}
                               </li>
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.
+                                {tierView ? 'Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.' : 'Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.'}
                               </li>
                             </ul>
                           </div>
@@ -10426,7 +10459,7 @@ export default function ExportReportPage() {
                           <div className="w-[480px] flex-shrink-0">
                             <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                               <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                              Composite Score Tiers
+                              {tierView ? 'Workplace Support Index Tiers' : 'Composite Score Tiers'}
                             </h4>
                             
                             {/* Column Headers */}
@@ -10546,7 +10579,7 @@ export default function ExportReportPage() {
                     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                       <div className="p-5">
                         <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                          Your Composite Score is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
+                          Your {tierView ? 'Workplace Support Index' : 'Composite Score'} is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
                           <span className="font-semibold text-slate-800"> 152 individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
                         </p>
                         
@@ -10632,7 +10665,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex items-center gap-8">
                           <div className="text-right">
-                            <p className="text-slate-500 text-sm font-medium">Composite Score</p>
+                            <p className="text-slate-500 text-sm font-medium">{tierView ? 'Workplace Support Index' : 'Composite Score'}</p>
                             <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
                           </div>
                           {tier && (
@@ -14108,7 +14141,7 @@ export default function ExportReportPage() {
                         <div className="text-[10px] text-slate-500 leading-tight truncate">
                           {i === 0 ? 'Title & Overview' : 
                            i === 1 ? 'How Index Was Developed' :
-                           i === 2 ? 'Composite Score' :
+                           i === 2 ? (tierView ? 'Workplace Support Index' : 'Composite Score') :
                            i === 3 ? 'The 13 Dimensions' :
                            i === 4 ? 'Executive Summary' :
                            i === 5 ? 'Dimension Scores' :
