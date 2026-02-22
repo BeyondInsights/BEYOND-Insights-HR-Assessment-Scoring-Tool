@@ -151,7 +151,7 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
           <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-400 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-400 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-400 uppercase w-20">Pts</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
+          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = tierView ? 'In Place' : 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = tierView ? 'In Development' : 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = tierView ? 'Under Review' : 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = tierView ? 'To Confirm' : 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
         </div>
       </div>
     </div>
@@ -1860,11 +1860,12 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
 
   const STATUS = {
-    currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'Offering' },
-    planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'Planning' },
-    assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Assessing' },
+    currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: tierView ? 'In Place' : 'Offering' },
+    planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: tierView ? 'In Development' : 'Planning' },
+    assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: tierView ? 'Under Review' : 'Assessing' },
     notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Planned' }
   };
+  const UNSURE_LABEL = tierView ? 'To Confirm' : 'Needs Confirmation';
 
   const getStatusInfo = (elem: any) => {
     if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
@@ -2032,6 +2033,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           {/* Two-row header for clarity */}
                           <tr className="bg-slate-100 border-b border-slate-200">
                             <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Element</th>
+                            {tierView && <th rowSpan={2} className="px-3 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24 align-bottom">Element Type</th>}
                             <th rowSpan={2} className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28 align-bottom bg-slate-200 border-l-2 border-r-2 border-slate-300">Your Status</th>
                             <th colSpan={4} className="px-4 py-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 bg-slate-50">Benchmark Distribution</th>
                             <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Insight</th>
@@ -2056,6 +2058,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 <td className="px-4 py-3">
                                   <span className="text-sm text-slate-700">{elem.name}</span>
                                 </td>
+                                {tierView && (
+                                  <td className="px-3 py-3 text-center">
+                                    <SupportLevelBadge level={getElementLevel(elem.name)} />
+                                  </td>
+                                )}
                                 <td className="px-4 py-3 text-center bg-slate-50 border-l-2 border-r-2 border-slate-200">
                                   <span 
                                     className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
@@ -2375,6 +2382,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       <thead>
                         <tr className="border-b-2 border-slate-200">
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
+                          {tierView && <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Type</th>}
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>Offering</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>Planning</th>
@@ -2405,6 +2413,11 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               <td className="px-4 py-3">
                                 <span className="text-sm font-medium text-slate-700">{el.name}</span>
                               </td>
+                              {tierView && (
+                                <td className="px-3 py-3 text-center">
+                                  <SupportLevelBadge level={getElementLevel(el.name)} />
+                                </td>
+                              )}
                               <td className="px-4 py-3">
                                 <span 
                                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -2631,6 +2644,251 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
 // MAIN COMPONENT
 // ============================================
 
+const ELEMENT_MATURITY_LEVEL: Record<string, string> = {
+  "$0 copay for specialty drugs": "advanced",
+  "AI-powered guidance tools": "advanced",
+  "Ability to access program information and resources anonymously": "core",
+  "Accelerated life insurance benefits (partial payout for terminal / critical illness)": "enhanced",
+  "Access to occupational therapy/vocational rehabilitation": "core",
+  "Access to specialized work resumption professionals": "advanced",
+  "Adjusted performance goals/deliverables during treatment and recovery": "enhanced",
+  "Anonymous benefits navigation tool or website (no login required)": "enhanced",
+  "Assistive technology catalog": "advanced",
+  "At least 70% coverage for regionally / locally recommended screenings": "enhanced",
+  "Benefits optimization assistance (maximizing coverage, minimizing costs)": "enhanced",
+  "Buddy/mentor pairing for support": "enhanced",
+  "Business impact/ROI assessment": "enhanced",
+  "C-suite executive serves as program champion/sponsor": "enhanced",
+  "Care coordination concierge": "enhanced",
+  "Career coaching for employees managing cancer or other serious health conditions": "advanced",
+  "Caregiver peer support groups": "enhanced",
+  "Caregiver resource navigator/concierge": "enhanced",
+  "Clear escalation protocol for manager response": "enhanced",
+  "Clear process for confidential health disclosures": "core",
+  "Clinical trial matching service": "advanced",
+  "Cognitive / fatigue support tools": "enhanced",
+  "Compensation tied to support outcomes": "advanced",
+  "Confidential HR channel for health benefits, policies and insurance-related questions": "core",
+  "Contingency planning for treatment schedules": "enhanced",
+  "Continued access to training/development": "core",
+  "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance": "advanced",
+  "Coverage for clinical trials and experimental treatments not covered by standard health insurance": "advanced",
+  "Cross-functional executive steering committee for workplace support programs": "enhanced",
+  "Dedicated budget allocation for serious illness support programs": "enhanced",
+  "Dedicated manager resource hub": "enhanced",
+  "Dedicated navigation support to help employees understand benefits and access medical care": "core",
+  "Dedicated program website or portal": "enhanced",
+  "Dependent care account matching/contributions": "advanced",
+  "Dependent care subsidies": "advanced",
+  "Disability pay top-up (employer adds to disability insurance)": "advanced",
+  "ESG/CSR reporting inclusion": "enhanced",
+  "Eldercare consultation and referral services": "enhanced",
+  "Emergency caregiver funds": "advanced",
+  "Emergency dependent care when regular arrangements unavailable": "enhanced",
+  "Emergency leave within 24 hours": "core",
+  "Empathy/communication skills training": "core",
+  "Employee confidence in employer support": "core",
+  "Employee peer support groups (internal employees with shared experience)": "core",
+  "Employee satisfaction tracking": "enhanced",
+  "Employee testimonials/success stories": "core",
+  "Employer-paid disability insurance supplements": "enhanced",
+  "Ergonomic equipment funding": "core",
+  "Executive accountability metrics": "advanced",
+  "Executive sponsors communicate regularly about workplace support programs": "enhanced",
+  "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)": "enhanced",
+  "External benchmarking": "enhanced",
+  "Family navigation support": "enhanced",
+  "Family/caregiver communication inclusion": "enhanced",
+  "Financial counseling services": "enhanced",
+  "Flexibility for medical setbacks": "core",
+  "Flexible scheduling options": "core",
+  "Flexible work arrangements during treatment": "core",
+  "Flexible work arrangements for caregivers": "core",
+  "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)": "core",
+  "Full or partial coverage for annual health screenings/checkups": "core",
+  "Genetic screening/counseling": "advanced",
+  "Guaranteed job protection": "core",
+  "Hardship grants program funded by employer": "advanced",
+  "Inclusive communication guidelines": "core",
+  "Individual health assessments (online or in-person)": "core",
+  "Innovation pilots": "advanced",
+  "Insurance advocacy/appeals support": "enhanced",
+  "Insurance advocacy/pre-authorization support": "core",
+  "Intermittent leave beyond local / legal requirements": "enhanced",
+  "Job protection beyond local / legal requirements": "core",
+  "Leave donation bank (employees can donate PTO to colleagues)": "enhanced",
+  "Legal compliance training": "core",
+  "Legal protections beyond requirements": "enhanced",
+  "Legal/financial planning assistance for caregivers": "enhanced",
+  "Lifestyle coaching programs": "enhanced",
+  "Long-term disability covering 60%+ of salary": "core",
+  "Long-term success tracking": "advanced",
+  "Manager evaluations include how well they support impacted employees": "advanced",
+  "Manager peer support / community building": "enhanced",
+  "Manager toolkit for cascade communications": "enhanced",
+  "Manager training for supervising caregivers": "advanced",
+  "Manager training on handling sensitive health information": "enhanced",
+  "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams": "enhanced",
+  "Manager training on supporting team members during treatment/return": "enhanced",
+  "Mental health support specifically for caregivers": "core",
+  "Modified job duties during peak caregiving periods": "enhanced",
+  "Multi-channel communication strategy": "core",
+  "New hire orientation coverage": "enhanced",
+  "Nutrition coaching": "enhanced",
+  "Occupational therapy/vocational rehabilitation": "enhanced",
+  "On-site vaccinations": "core",
+  "Online peer support forums": "enhanced",
+  "Online tools, apps, or portals for health/benefits support": "core",
+  "Optional open health dialogue forums": "advanced",
+  "Optional stay-connected program": "advanced",
+  "PTO accrual during leave": "enhanced",
+  "Paid caregiver leave with expanded eligibility (beyond local legal requirements)": "enhanced",
+  "Paid medical leave beyond local / legal requirements": "core",
+  "Paid micro-breaks for medical-related side effects": "advanced",
+  "Paid time off for care coordination appointments": "core",
+  "Paid time off for clinical trial participation": "enhanced",
+  "Paid time off for preventive care appointments": "core",
+  "Peer mentorship program (employees who had similar condition mentoring current employees)": "enhanced",
+  "Phased return-to-work plans": "core",
+  "Physical rehabilitation support": "enhanced",
+  "Physical workspace modifications": "core",
+  "Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)": "enhanced",
+  "Policy accommodations (e.g., dress code flexibility, headphone use)": "core",
+  "Practical support for managing caregiving and work": "enhanced",
+  "Priority parking": "core",
+  "Privacy protection and confidentiality management": "core",
+  "Proactive communication at point of diagnosis disclosure": "enhanced",
+  "Professional coach/mentor for employees managing cancer or other serious health conditions": "enhanced",
+  "Professional-led support groups (external facilitator/counselor)": "enhanced",
+  "Program utilization analytics": "enhanced",
+  "Project continuity protocols": "advanced",
+  "Public success story celebrations": "advanced",
+  "Real-time cost estimator tools": "enhanced",
+  "Reduced schedule/part-time with full benefits": "enhanced",
+  "Regular company-wide awareness campaigns (at least quarterly)": "enhanced",
+  "Regular health education sessions": "enhanced",
+  "Regular program enhancements": "enhanced",
+  "Remote work capability": "core",
+  "Remote work options for on-site employees": "core",
+  "Respite care funding/reimbursement": "advanced",
+  "Rest areas / quiet spaces": "core",
+  "Return-to-work success metrics": "advanced",
+  "Risk factor tracking/reporting": "enhanced",
+  "Senior leader coaching on supporting impacted employees": "enhanced",
+  "Set out-of-pocket maximums (for in-network single coverage)": "enhanced",
+  "Short-term disability covering 60%+ of salary": "core",
+  "Specialized emotional counseling": "enhanced",
+  "Stigma-reduction initiatives": "enhanced",
+  "Strong anti-discrimination policies specific to health conditions": "core",
+  "Structured progress reviews": "enhanced",
+  "Structured reintegration programs": "enhanced",
+  "Succession planning protections": "enhanced",
+  "Support metrics included in annual report/sustainability reporting": "enhanced",
+  "Support programs included in investor/stakeholder communications": "enhanced",
+  "Survivorship planning assistance": "advanced",
+  "Targeted risk-reduction programs": "advanced",
+  "Tax/estate planning assistance": "enhanced",
+  "Temporary role redesigns": "enhanced",
+  "Transportation reimbursement": "advanced",
+  "Travel/lodging reimbursement for specialized care beyond insurance coverage": "advanced",
+  "Unpaid leave job protection beyond local / legal requirements": "enhanced",
+  "Voluntary supplemental illness insurance (with employer contribution)": "enhanced",
+  "Workload adjustments during treatment": "core",
+  "Workplace safety assessments to minimize health risks": "core",
+  "Written anti-retaliation policies for health disclosures": "core",
+  "Year-over-year budget growth": "enhanced",
+};
+
+// ═══ THREE LEVELS OF WORKPLACE SUPPORT ═══
+// Custom SVG Icons for Core / Enhanced / Advanced levels
+function CoreSupportIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="2" y="18" width="20" height="4" rx="1" fill="#047857" opacity="0.9" />
+      <rect x="4" y="13" width="7" height="4" rx="0.5" fill="#047857" opacity="0.7" />
+      <rect x="13" y="13" width="7" height="4" rx="0.5" fill="#047857" opacity="0.7" />
+      <rect x="6" y="8" width="5" height="4" rx="0.5" fill="#047857" opacity="0.5" />
+      <rect x="13" y="8" width="5" height="4" rx="0.5" fill="#047857" opacity="0.5" />
+      <rect x="9" y="4" width="6" height="3" rx="0.5" fill="#047857" opacity="0.35" />
+    </svg>
+  );
+}
+
+function EnhancedSupportIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M3 20 L12 4 L21 20 Z" fill="#B45309" opacity="0.12" />
+      <path d="M5 18 h14" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.9" />
+      <path d="M7 14 h10" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.7" />
+      <path d="M9 10 h6" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+      <path d="M10.5 6 h3" stroke="#B45309" strokeWidth="2" strokeLinecap="round" opacity="0.35" />
+      <circle cx="12" cy="3.5" r="1.5" fill="#B45309" opacity="0.9" />
+    </svg>
+  );
+}
+
+function AdvancedSupportIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="4" fill="#7C3AED" opacity="0.15" />
+      <circle cx="12" cy="12" r="2" fill="#7C3AED" opacity="0.4" />
+      <circle cx="12" cy="12" r="0.8" fill="#7C3AED" />
+      <line x1="12" y1="2" x2="12" y2="6" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="12" y1="18" x2="12" y2="22" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="2" y1="12" x2="6" y2="12" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="18" y1="12" x2="22" y2="12" stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" opacity="0.8" />
+      <line x1="5.1" y1="5.1" x2="7.9" y2="7.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line x1="16.1" y1="16.1" x2="18.9" y2="18.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line x1="18.9" y1="5.1" x2="16.1" y2="7.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+      <line x1="7.9" y1="16.1" x2="5.1" y2="18.9" stroke="#7C3AED" strokeWidth="1.2" strokeLinecap="round" opacity="0.5" />
+    </svg>
+  );
+}
+
+const SUPPORT_LEVELS = {
+  core: {
+    name: 'Core Support', abbr: 'Core', tagline: 'Essential supports',
+    color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
+    icon: CoreSupportIcon,
+    desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs. These elements form the baseline supports most organizations aim to have in place.',
+    italic: 'Establishes clear access to essential supports when employees need them most.',
+  },
+  enhanced: {
+    name: 'Enhanced Support', abbr: 'Enh', tagline: 'Expanded supports',
+    color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
+    icon: EnhancedSupportIcon,
+    desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness \u2014 making support easier to access and more reliable across teams and situations.',
+    italic: 'Strengthens day-to-day consistency and ease of access across teams and managers.',
+  },
+  advanced: {
+    name: 'Advanced Support', abbr: 'Adv', tagline: 'Differentiating supports',
+    color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
+    icon: AdvancedSupportIcon,
+    desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care \u2014 often involving dedicated resources, cross-functional ownership, or innovative design.',
+    italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
+  },
+} as const;
+
+function SupportLevelBadge({ level }: { level: string }) {
+  const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
+  const Icon = config.icon;
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded"
+      style={{ backgroundColor: config.light, color: config.color, border: `1px solid ${config.border}` }}
+      title={config.name}
+    >
+      <Icon size={12} />
+      {config.abbr}
+    </span>
+  );
+}
+
+function getElementLevel(elementName: string): string {
+  return ELEMENT_MATURITY_LEVEL[elementName] || 'enhanced';
+}
+
+
 export default function ExportReportPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -2662,6 +2920,9 @@ export default function ExportReportPage() {
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
+  const [tierView, setTierView] = useState(false);
+  const [showLevelsOverview, setShowLevelsOverview] = useState(false);
+  const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
@@ -4236,6 +4497,31 @@ export default function ExportReportPage() {
               )}
             </div>
             <div className="flex items-center gap-4">
+              {/* Tier View Toggle */}
+              {!editMode && (
+                <button
+                  onClick={() => setTierView(!tierView)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                    tierView 
+                      ? 'bg-violet-50 border-violet-300 text-violet-700' 
+                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                  }`}
+                  title={tierView ? 'Switch to Classic View' : 'Switch to Tier View'}
+                >
+                  {tierView ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <rect x="2" y="18" width="20" height="4" rx="1" fill="currentColor" opacity="0.9" />
+                      <rect x="6" y="8" width="5" height="4" rx="0.5" fill="currentColor" opacity="0.5" />
+                      <rect x="13" y="8" width="5" height="4" rx="0.5" fill="currentColor" opacity="0.5" />
+                      <rect x="9" y="4" width="6" height="3" rx="0.5" fill="currentColor" opacity="0.35" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z" /></svg>
+                  )}
+                  {tierView ? 'Tier View' : 'Classic'}
+                </button>
+              )}
+              
               {/* Edit Mode Toggle */}
               <button
                 onClick={() => setEditMode(!editMode)}
@@ -4702,6 +4988,134 @@ export default function ExportReportPage() {
               )}
             </div>
             
+                        {/* The Three Levels of Workplace Support — Collapsible (Tier View only) */}
+            {tierView && (
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowLevelsOverview(!showLevelsOverview)}
+                className="w-full flex items-center justify-between px-5 py-4 rounded-xl border transition-all group"
+                style={{
+                  background: showLevelsOverview
+                    ? 'linear-gradient(135deg, #ECFDF5 0%, #FFFBEB 50%, #F5F3FF 100%)'
+                    : 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
+                  borderColor: showLevelsOverview ? '#A7F3D0' : '#E2E8F0',
+                }}
+              >
+                <div className="flex items-center gap-4">
+                  <div className="relative w-10 h-10 flex-shrink-0">
+                    <div className="absolute bottom-0 left-0 w-7 h-7 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: '#047857' }}>
+                      <CoreSupportIcon size={16} />
+                    </div>
+                    <div className="absolute bottom-1 left-3 w-5 h-5 rounded flex items-center justify-center shadow-sm" style={{ backgroundColor: '#B45309' }}>
+                      <EnhancedSupportIcon size={12} />
+                    </div>
+                    <div className="absolute top-0 right-0 w-4 h-4 rounded flex items-center justify-center shadow-sm" style={{ backgroundColor: '#7C3AED' }}>
+                      <AdvancedSupportIcon size={10} />
+                    </div>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The Three Levels of Workplace Support</span>
+                    <span className="text-xs text-slate-500 block mt-0.5">How 152 program elements are classified — from core coverage to advanced practices</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showLevelsOverview ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showLevelsOverview && (
+                <div className="mt-5">
+                  <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
+                    Each of the 152 program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span> based on how widely it is offered among participating organizations — showing your support ecosystem from core coverage to advanced practices.
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-5 mb-5">
+                    {(['core', 'enhanced', 'advanced'] as const).map((key) => {
+                      const L = SUPPORT_LEVELS[key];
+                      const Icon = L.icon;
+                      const isExp = expandedLevel === key;
+                      const allElems = Object.values(elementDetails || {}).flat() as any[];
+                      const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === key);
+                      const count = levelElems.length;
+                      const pct = allElems.length > 0 ? Math.round((count / allElems.length) * 100) : 0;
+
+                      // Per-dimension counts for this level
+                      const dimCounts: Record<number, { count: number; total: number }> = {};
+                      dimensionAnalysis?.forEach((d: any) => {
+                        const total = d.elements?.length || 0;
+                        const c = (d.elements || []).filter((e: any) => getElementLevel(e.name) === key).length;
+                        if (c > 0) dimCounts[d.dim] = { count: c, total };
+                      });
+
+                      return (
+                        <div key={key} className="rounded-xl overflow-hidden" style={{ border: `2px solid ${isExp ? L.color : L.border}`, boxShadow: isExp ? `0 4px 24px ${L.color}18` : '0 1px 3px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>
+                          <div className="px-5 pt-5 pb-4" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)` }}>
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: L.color }}>
+                                <Icon size={24} />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-sm" style={{ color: L.color }}>{L.name}</h4>
+                                <span className="text-xs text-slate-500">{L.tagline}</span>
+                              </div>
+                            </div>
+                            <p className="text-xs text-slate-600 leading-relaxed mb-2">{L.desc}</p>
+                            <p className="text-xs italic" style={{ color: L.color, opacity: 0.75 }}>{L.italic}</p>
+                          </div>
+                          <div className="px-5 py-3 flex items-center justify-between" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-lg font-bold" style={{ color: L.color }}>{count}</span>
+                                <span className="text-xs text-slate-500">elements</span>
+                              </div>
+                              <span className="text-xs text-slate-400">&middot;</span>
+                              <span className="text-xs text-slate-500">{pct}% of elements</span>
+                            </div>
+                            <button onClick={() => setExpandedLevel(isExp ? null : key)} className="text-xs font-medium flex items-center gap-1" style={{ color: L.color }}>
+                              {isExp ? 'Hide' : 'Explore'} by dimension
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isExp ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                          </div>
+                          {isExp && (
+                            <div className="px-5 py-3" style={{ borderTop: `1px solid ${L.border}`, backgroundColor: 'white' }}>
+                              <div className="space-y-1.5">
+                                {Object.entries(dimCounts).sort(([,a],[,b]) => b.count - a.count).map(([dStr, cnt]) => {
+                                  const d = parseInt(dStr);
+                                  const dimInfo = dimensionAnalysis?.find((da: any) => da.dim === d);
+                                  return (
+                                    <div key={d} className="flex items-center gap-2">
+                                      <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: DIMENSION_COLORS[d] || '#64748B', fontSize: 9 }}>{d}</div>
+                                      <span className="text-xs text-slate-600 flex-1 truncate" style={{ minWidth: 0 }}>{dimInfo?.name || `Dimension ${d}`}</span>
+                                      <span className="text-xs font-bold flex-shrink-0 w-10 text-right" style={{ color: L.color }}>{cnt.count}</span>
+                                      <span className="text-xs text-slate-400 flex-shrink-0">of {cnt.total}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-start gap-3 px-4 py-3 bg-slate-50 rounded-lg border border-slate-200">
+                    <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </div>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Levels are based on adoption patterns across participating organizations, with expert review for face validity.
+                      <strong className="text-slate-600"> Core</strong> elements are offered by more than 55% of participants.
+                      <strong className="text-slate-600"> Advanced</strong> elements are offered by fewer than 25%.
+                      <strong className="text-slate-600"> Enhanced</strong> elements fall between those ranges.
+                      Scores reflect the share of practices in place within each level; benchmarks reflect participating organizations (n={dimensionAnalysis?.length || 43}).
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+            )}
+
             {/* How to Use This Report — Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
@@ -6178,7 +6592,7 @@ export default function ExportReportPage() {
               planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
               assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
               notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
-              unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Needs Confirmation' }
+              unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: tierView ? 'To Confirm' : 'Needs Confirmation' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -6252,9 +6666,10 @@ export default function ExportReportPage() {
                   
                   {/* Table Header Row */}
                   <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                    <div className="col-span-3">Support Element</div>
+                    <div className={tierView ? 'col-span-3' : 'col-span-3'}>Support Element</div>
+                    {tierView && <div className="col-span-1 text-center">Type</div>}
                     <div className="col-span-1 text-center">Your Status</div>
-                    <div className="col-span-5 text-center">
+                    <div className={tierView ? 'col-span-4 text-center' : 'col-span-5 text-center'}>
                       <div>Benchmark Distribution</div>
                       <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">Offering</span></div>
@@ -6285,6 +6700,13 @@ export default function ExportReportPage() {
                             <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
                           </div>
                           
+                          {/* Element Type (Tier View only) */}
+                          {tierView && (
+                            <div className="col-span-1 flex justify-center">
+                              <SupportLevelBadge level={getElementLevel(elem.name)} />
+                            </div>
+                          )}
+                          
                           {/* Your Status */}
                           <div className="col-span-1 flex justify-center">
                             <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
@@ -6293,7 +6715,7 @@ export default function ExportReportPage() {
                           </div>
                           
                           {/* Benchmark Distribution - Wide Stacked Bar */}
-                          <div className="col-span-5">
+                          <div className={tierView ? 'col-span-4' : 'col-span-5'}>
                             <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
                               {/* Offering */}
                               <div 
@@ -8135,15 +8557,14 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
                             )}
-
-                          {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
-                            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                              <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
+                            {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
+                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
+                                <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
                                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 Roadmap Pending Confirmation
                               </h5>
-                              <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
-                            </div>
+                                <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
+                              </div>
                           )}
                             
                             {/* COMMENTED OUT - May restore later
@@ -10190,7 +10611,7 @@ export default function ExportReportPage() {
                     planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
                     assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
                     notAble: { bg: '#CBD5E1', light: '#F1F5F9', text: '#475569', label: 'Not Planned' },
-                    unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Needs Confirmation' }
+                    unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: tierView ? 'To Confirm' : 'Needs Confirmation' }
                   };
                   
                   const getStatusInfo = (elem: any) => {
@@ -11932,7 +12353,6 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
                             )}
-
                             {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
                               <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
                                 <h5 className="font-bold text-slate-500 mb-1 text-xs uppercase tracking-wide">Roadmap Pending Confirmation</h5>
@@ -12147,7 +12567,6 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
                             )}
-
                             {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
                               <div className="border border-slate-200 rounded-xl p-3 bg-slate-50">
                                 <h5 className="font-bold text-slate-500 mb-1 text-xs uppercase tracking-wide">Roadmap Pending Confirmation</h5>
