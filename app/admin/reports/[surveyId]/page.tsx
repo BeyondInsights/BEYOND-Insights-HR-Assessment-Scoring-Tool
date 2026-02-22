@@ -145,9 +145,9 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
         </div>
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 100px)' }}>
           <div className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100 flex-wrap">
-            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-emerald-100 text-emerald-700">{dimension.strengths?.length || 0}</span><span className="text-xs text-slate-500">Offering</span></div>
-            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-blue-100 text-blue-700">{dimension.planning?.length || 0}</span><span className="text-xs text-slate-500">Planning</span></div>
-            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-violet-100 text-violet-700">{dimension.assessing?.length || 0}</span><span className="text-xs text-slate-500">Assessing</span></div>
+            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-emerald-100 text-emerald-700">{dimension.strengths?.length || 0}</span><span className="text-xs text-slate-500">{tierView ? 'In Place' : 'Offering'}</span></div>
+            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-blue-100 text-blue-700">{dimension.planning?.length || 0}</span><span className="text-xs text-slate-500">{tierView ? 'In Development' : 'Planning'}</span></div>
+            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-violet-100 text-violet-700">{dimension.assessing?.length || 0}</span><span className="text-xs text-slate-500">{tierView ? 'Under Review' : 'Assessing'}</span></div>
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
           <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-400 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-400 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-400 uppercase w-20">Pts</th></tr></thead>
@@ -2039,9 +2039,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Insight</th>
                           </tr>
                           <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>Offering</th>
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>Planning</th>
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>{tierView ? 'In Place' : 'Offering'}</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>{tierView ? 'In Development' : 'Planning'}</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>{tierView ? 'Under Review' : 'Assessing'}</th>
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Planned</th>
                           </tr>
                         </thead>
@@ -2384,9 +2384,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
                           {tierView && <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Type</th>}
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>Offering</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>Planning</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.assessing.bg }}>Assessing</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>{tierView ? 'In Place' : 'Offering'}</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>{tierView ? 'In Development' : 'Planning'}</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.assessing.bg }}>{tierView ? 'Under Review' : 'Assessing'}</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.notAble.bg }}>Not Currently Planned</th>
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Observation</th>
                         </tr>
@@ -6878,9 +6878,9 @@ export default function ExportReportPage() {
             const diff = d.benchmark !== null ? d.score - d.benchmark : null;
             
             const STATUS = {
-              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
-              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
-              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
+              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: tierView ? 'In Place' : 'Offering' },
+              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: tierView ? 'In Development' : 'Planning' },
+              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: tierView ? 'Under Review' : 'Assessing' },
               notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
               unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: tierView ? 'To Confirm' : 'Needs Confirmation' }
             };
@@ -7376,9 +7376,9 @@ export default function ExportReportPage() {
                   const hasChanges = changesCount > 0;
                   
                   const statusOptions = [
-                    { value: 'currently', label: 'Offering', color: 'emerald' },
-                    { value: 'planning', label: 'Planning', color: 'blue' },
-                    { value: 'assessing', label: 'Assessing', color: 'amber' },
+                    { value: 'currently', label: tierView ? 'In Place' : 'Offering', color: 'emerald' },
+                    { value: 'planning', label: tierView ? 'In Development' : 'Planning', color: 'blue' },
+                    { value: 'assessing', label: tierView ? 'Under Review' : 'Assessing', color: 'amber' },
                     { value: 'not_able', label: 'Not Planned', color: 'slate' }
                   ];
                   
@@ -10897,9 +10897,9 @@ export default function ExportReportPage() {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   
                   const STATUS = {
-                    currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'Offering' },
-                    planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'Planning' },
-                    assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Assessing' },
+                    currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: tierView ? 'In Place' : 'Offering' },
+                    planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: tierView ? 'In Development' : 'Planning' },
+                    assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: tierView ? 'Under Review' : 'Assessing' },
                     notAble: { bg: '#CBD5E1', light: '#F1F5F9', text: '#475569', label: 'Not Planned' },
                     unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: tierView ? 'To Confirm' : 'Needs Confirmation' }
                   };
