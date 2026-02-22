@@ -4626,6 +4626,26 @@ export default function ExportReportPage() {
     }
   });
   const wsiScoreHeader = Math.round(_wsiHeaderContrib * 100);
+  // Per-level WSI contributions (computed once, reused in WSI section)
+  const _wsiLevelContribs = { core: 0, enhanced: 0, advanced: 0 };
+  _allElemsForRating.forEach((e: any) => {
+    const ew = ELEMENT_DIM_WEIGHTS[e.name];
+    if (!ew) return;
+    const level = getElementLevel(e.name) as 'core' | 'enhanced' | 'advanced';
+    if (!(level in _wsiLevelContribs)) return;
+    const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _dimWtTotal;
+    if (e.isUnsure) {
+      const mu = TIER_MEANS[ew[0]]?.[level] || 0;
+      const cr = _dimConfirmRates[ew[0]] || 0;
+      _wsiLevelContribs[level] += dimWt * ew[1] * (mu * cr * cr / 5);
+    } else {
+      const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
+      _wsiLevelContribs[level] += dimWt * ew[1] * statusNorm;
+    }
+  });
+  const wsiCoreContrib = Math.round(_wsiLevelContribs.core * 100);
+  const wsiEnhContrib = Math.round(_wsiLevelContribs.enhanced * 100);
+  const wsiAdvContrib = Math.round(_wsiLevelContribs.advanced * 100);
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
@@ -5054,15 +5074,15 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  The Index combines your Core, Enhanced, and Advanced Support scores using research-derived weights: Core (33%), Enhanced (52%), and Advanced (15%).
+                                  The Index combines your Core, Enhanced, and Advanced Support scores using research-derived weights: Core (35%), Enhanced (50%), and Advanced (15%).
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  These weights are not arbitrary — they derive directly from the element importance weights within each dimension, partitioned by support level. The WSI is the same weighted composite decomposed into three level contributions.
+                                  These weights are not arbitrary — they derive directly from the element importance weights within each dimension, partitioned by support level.
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  Dimension contributions follow Cancer and Careers&apos; expert-derived weights, informed by qualitative and quantitative research.
+                                  Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce.
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
@@ -5102,9 +5122,52 @@ export default function ExportReportPage() {
                         <div className="w-[480px] flex-shrink-0">
                           <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                             <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                            {tierView ? 'Workplace Support Index Tiers' : 'Composite Score Tiers'}
+                            {tierView ? 'Overall Support Rating Criteria' : 'Composite Score Tiers'}
                           </h4>
                           
+                          {tierView ? (
+                            <>
+                              {/* Support Rating criteria */}
+                              <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                                <div className="w-28">Rating</div>
+                                <div className="flex-1">Criteria</div>
+                              </div>
+                              <div className="space-y-2">
+                                {[
+                                  { label: 'Exemplary', criteria: 'Core ≥ 80, Enhanced ≥ 65, Advanced ≥ 40', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700' },
+                                  { label: 'Strong', criteria: 'Core ≥ 80, Enhanced ≥ 50', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700' },
+                                  { label: 'Established', criteria: 'Core ≥ 65', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700' },
+                                  { label: 'Building', criteria: 'Core ≥ 40', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700' },
+                                  { label: 'Emerging', criteria: 'Core < 40', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700' },
+                                ].map((r) => {
+                                  const isCurrent = supportRatingHeader === r.label;
+                                  return (
+                                    <div key={r.label} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrent ? 'bg-white shadow-md' : r.bg} ${isCurrent ? '' : r.border}`} style={isCurrent ? { borderColor: r.color, boxShadow: `0 4px 12px ${r.color}25` } : {}}>
+                                      {isCurrent && (
+                                        <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
+                                          <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: r.color }}>
+                                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                                          </div>
+                                        </div>
+                                      )}
+                                      <div className="w-28">
+                                        <span className={`font-bold text-sm ${isCurrent ? '' : r.text}`} style={isCurrent ? { color: r.color } : {}}>{r.label}</span>
+                                      </div>
+                                      <div className="flex-1">
+                                        <span className="text-sm text-slate-600">{r.criteria}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                              <div className="mt-4 pt-4 border-t border-slate-200 text-center">
+                                <p className="text-sm text-slate-600">
+                                  <span className="font-semibold text-slate-800">{companyName}</span> WSI: <span className="font-bold text-lg" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span> · <span className="font-semibold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <>
                           {/* Column Headers */}
                           <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                             <div className="w-28">Tier</div>
@@ -5163,6 +5226,8 @@ export default function ExportReportPage() {
                             </p>
                           </div>
                         </div>
+                          </>
+                        )}
                         
                         {/* Right: Journey message - Better balanced layout */}
                         <div className="flex-1 min-w-0">
@@ -5265,7 +5330,7 @@ export default function ExportReportPage() {
 
                       return (
                         <div key={key} className="rounded-xl overflow-hidden" style={{ border: `2px solid ${isExp ? L.color : L.border}`, boxShadow: isExp ? `0 4px 24px ${L.color}18` : '0 1px 3px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>
-                          <div className="px-5 pt-5 pb-4" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)` }}>
+                          <div className="px-5 pt-5 pb-4 flex flex-col" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)`, minHeight: '200px' }}>
                             <div className="flex items-center gap-3 mb-3">
                               <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: L.color }}>
                                 <Icon size={24} color="white" />
@@ -5275,9 +5340,11 @@ export default function ExportReportPage() {
                                 <span className="text-xs text-slate-500">{L.tagline}</span>
                               </div>
                             </div>
-                            <p className="text-xs text-slate-600 leading-relaxed mb-1">{L.desc}</p>
-                            {L.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{L.boldPhrase}</p>}
-                            <p className="text-xs italic" style={{ color: L.color, opacity: 0.75 }}>{L.italic}</p>
+                            <div className="flex-1">
+                              <p className="text-xs text-slate-600 leading-relaxed mb-1">{L.desc}</p>
+                              {L.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{L.boldPhrase}</p>}
+                              <p className="text-xs italic" style={{ color: L.color, opacity: 0.75 }}>{L.italic}</p>
+                            </div>
                           </div>
                           <div className="px-5 py-3 flex items-center justify-between" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
                             <div className="flex items-center gap-4">
@@ -5321,7 +5388,7 @@ export default function ExportReportPage() {
                       <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     </div>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                      Levels are based on adoption patterns across participating organizations, with expert review for face validity.
+                      Levels are based on adoption patterns across participating organizations using cluster analysis.
                       <strong className="text-slate-600"> Core</strong> elements are offered by more than 55% of participants.
                       <strong className="text-slate-600"> Advanced</strong> elements are offered by fewer than 25%.
                       <strong className="text-slate-600"> Enhanced</strong> elements fall between those ranges.
@@ -5835,7 +5902,7 @@ export default function ExportReportPage() {
                     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm" onClick={() => setShowTierOverlay(false)}>
                       <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl shadow-2xl p-8 max-w-xl mx-4 border border-slate-200" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6 gap-4">
-                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">Composite & Dimension Tier Ranges</h3>
+                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">{tierView ? 'Overall Support Rating Criteria' : 'Composite & Dimension Tier Ranges'}</h3>
                           <button onClick={() => setShowTierOverlay(false)} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -5843,58 +5910,96 @@ export default function ExportReportPage() {
                           </button>
                         </div>
                         
-                        {/* Header row */}
-                        <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                          <div className="w-32">Tier</div>
-                          <div className="w-24 text-center">Score Range</div>
-                          <div className="flex-1 text-center">% of Participants</div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          {[
-                            { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: tierDistribution?.exemplary ?? 0 },
-                            { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
-                            { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.progressing ?? 0 },
-                            { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.emerging ?? 0 },
-                            { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.developing ?? 0 }
-                          ].map((t) => {
-                            const isCurrentTier = tier?.name === t.name;
-                            return (
-                              <div 
-                                key={t.name}
-                                className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}
-                              >
-                                <div className="w-32 flex items-center gap-2">
-                                  {isCurrentTier && (
-                                    <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color }}>
-                                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                    </span>
-                                  )}
-                                  <span className={`font-bold ${t.text} ${isCurrentTier ? 'text-base' : 'text-sm'}`}>{t.name}</span>
-                                </div>
-                                <div className="w-24 text-center">
-                                  <span className={`text-sm font-medium ${t.text}`}>{t.range}</span>
-                                </div>
-                                <div className="flex-1 flex items-center gap-2">
-                                  <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200">
-                                    <div 
-                                      className="h-full rounded-full transition-all duration-500"
-                                      style={{ width: `${Math.max(t.pct, 2)}%`, backgroundColor: t.color }}
-                                    />
+                        {tierView ? (
+                          <>
+                            {/* Support Rating criteria table */}
+                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                              <div className="w-32">Rating</div>
+                              <div className="flex-1">Criteria</div>
+                            </div>
+                            <div className="space-y-2">
+                              {[
+                                { label: 'Exemplary', criteria: 'Core ≥ 80 and Enhanced ≥ 65 and Advanced ≥ 40', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400' },
+                                { label: 'Strong', criteria: 'Core ≥ 80 and Enhanced ≥ 50', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400' },
+                                { label: 'Established', criteria: 'Core ≥ 65', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400' },
+                                { label: 'Building', criteria: 'Core ≥ 40', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400' },
+                                { label: 'Emerging', criteria: 'Core < 40', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400' },
+                              ].map((r) => {
+                                const isCurrent = supportRatingHeader === r.label;
+                                return (
+                                  <div key={r.label} className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${r.bg} ${isCurrent ? `${r.border} ring-2 ${r.ring} shadow-md` : 'border-transparent'}`}>
+                                    <div className="w-32 flex items-center gap-2">
+                                      {isCurrent && (
+                                        <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: r.color }}>
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                        </span>
+                                      )}
+                                      <span className={`font-bold ${r.text} ${isCurrent ? 'text-base' : 'text-sm'}`}>{r.label}</span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <span className="text-sm text-slate-600">{r.criteria}</span>
+                                    </div>
                                   </div>
-                                  <span className={`text-sm font-bold w-10 text-right ${t.text}`}>{t.pct}%</span>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-                          <p className="text-sm text-slate-600">
-                            Your current score: <span className="font-bold" style={{ color: tier?.color }}>{compositeScore}</span>
-                            <span className="mx-2">·</span>
-                            <span className="font-bold" style={{ color: tier?.color }}>{tier?.name}</span>
-                          </p>
-                        </div>
+                                );
+                              })}
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+                              <p className="text-sm text-slate-600">
+                                Your WSI: <span className="font-bold" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span>
+                                <span className="mx-2">·</span>
+                                Core: {coreScoreCalc} · Enhanced: {enhancedScoreCalc} · Advanced: {advancedScoreCalc}
+                                <span className="mx-2">·</span>
+                                <span className="font-bold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            {/* Original composite tier ranges */}
+                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                              <div className="w-32">Tier</div>
+                              <div className="w-24 text-center">Score Range</div>
+                              <div className="flex-1 text-center">% of Participants</div>
+                            </div>
+                            <div className="space-y-2">
+                              {[
+                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: tierDistribution?.exemplary ?? 0 },
+                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
+                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.progressing ?? 0 },
+                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.emerging ?? 0 },
+                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.developing ?? 0 }
+                              ].map((t) => {
+                                const isCurrentTier = tier?.name === t.name;
+                                return (
+                                  <div key={t.name} className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}>
+                                    <div className="w-32 flex items-center gap-2">
+                                      {isCurrentTier && (
+                                        <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color }}>
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                        </span>
+                                      )}
+                                      <span className={`font-bold ${t.text} ${isCurrentTier ? 'text-base' : 'text-sm'}`}>{t.name}</span>
+                                    </div>
+                                    <div className="w-24 text-center"><span className={`text-sm font-medium ${t.text}`}>{t.range}</span></div>
+                                    <div className="flex-1 flex items-center gap-2">
+                                      <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200">
+                                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct, 2)}%`, backgroundColor: t.color }} />
+                                      </div>
+                                      <span className={`text-sm font-bold w-10 text-right ${t.text}`}>{t.pct}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+                              <p className="text-sm text-slate-600">
+                                Your current score: <span className="font-bold" style={{ color: tier?.color }}>{compositeScore}</span>
+                                <span className="mx-2">·</span>
+                                <span className="font-bold" style={{ color: tier?.color }}>{tier?.name}</span>
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )}
@@ -6204,8 +6309,8 @@ export default function ExportReportPage() {
                   return SUPPORT_RATINGS[1];
                 };
                 
-                // WSI = sum of three weighted level contributions (equals Full Composite when all elements matched)
-                const wsiScore = coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib;
+                // WSI = precomputed at header level (single source of truth)
+                const wsiScore = wsiScoreHeader;
                 // Fixed implied level weights from element × dimension weight framework
                 const M_CORE_PCT = 35;
                 const M_ENH_PCT = 50;
@@ -10745,7 +10850,7 @@ export default function ExportReportPage() {
                             <ul className="space-y-1.5">
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                {tierView ? "Dimension contributions follow Cancer and Careers' expert-derived weights, based on research with HR leaders, employees managing cancer, and the general population workforce." : 'Each dimension is weighted by real-world impact on employee experience and organizational outcomes.'}
+                                {tierView ? "Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce." : 'Each dimension is weighted by real-world impact on employee experience and organizational outcomes.'}
                               </li>
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
@@ -10761,7 +10866,7 @@ export default function ExportReportPage() {
                           <div className="w-[480px] flex-shrink-0">
                             <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                               <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                              {tierView ? 'Workplace Support Index Tiers' : 'Composite Score Tiers'}
+                              {tierView ? 'Overall Support Rating Criteria' : 'Composite Score Tiers'}
                             </h4>
                             
                             {/* Column Headers */}
