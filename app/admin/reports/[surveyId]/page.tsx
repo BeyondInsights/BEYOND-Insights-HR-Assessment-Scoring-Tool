@@ -5803,6 +5803,137 @@ export default function ExportReportPage() {
                 );
               })()}
               
+              {/* Tier Score Breakdown (Tier View only) */}
+              {tierView && (() => {
+                // Compute tier-level scores from element data
+                const allElems = dimensionAnalysis?.flatMap((d: any) => 
+                  (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))
+                ) || [];
+                
+                const tierCalc = (level: string) => {
+                  const elems = allElems.filter((e: any) => getElementLevel(e.name) === level);
+                  if (elems.length === 0) return { score: 0, total: 0, inPlace: 0, inDev: 0, review: 0, toConfirm: 0, gaps: 0 };
+                  const maxPts = elems.length * 5;
+                  let pts = 0;
+                  let inPlace = 0, inDev = 0, review = 0, toConfirm = 0, gaps = 0;
+                  elems.forEach((e: any) => {
+                    if (e.isStrength) { pts += 5; inPlace++; }
+                    else if (e.isPlanning) { pts += 3; inDev++; }
+                    else if (e.isAssessing) { pts += 2; review++; }
+                    else if (e.isUnsure) { toConfirm++; }
+                    else { gaps++; }
+                  });
+                  return { score: maxPts > 0 ? Math.round((pts / maxPts) * 1000) / 10 : 0, total: elems.length, inPlace, inDev, review, toConfirm, gaps };
+                };
+                
+                const coreData = tierCalc('core');
+                const enhData = tierCalc('enhanced');
+                const advData = tierCalc('advanced');
+                
+                // Stage calculation (simplified gated maturity)
+                const getStage = () => {
+                  if (coreData.score >= 80 && enhData.score >= 60 && advData.score >= 40) return { num: 5, label: 'Leader' };
+                  if (coreData.score >= 70 && enhData.score >= 50 && advData.score >= 25) return { num: 4, label: 'Advanced' };
+                  if (coreData.score >= 60 && enhData.score >= 35) return { num: 3, label: 'Established' };
+                  if (coreData.score >= 40) return { num: 2, label: 'Building' };
+                  return { num: 1, label: 'Developing' };
+                };
+                const stage = getStage();
+                
+                const stageColor = stage.num >= 4 ? '#047857' : stage.num >= 3 ? '#1D4ED8' : stage.num >= 2 ? '#B45309' : '#B91C1C';
+                
+                const tiers = [
+                  { key: 'core', ...coreData, ...SUPPORT_LEVELS.core },
+                  { key: 'enhanced', ...enhData, ...SUPPORT_LEVELS.enhanced },
+                  { key: 'advanced', ...advData, ...SUPPORT_LEVELS.advanced },
+                ];
+                
+                return (
+                  <div className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                    {/* Header bar */}
+                    <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900">Support Level Scores</h3>
+                          <p className="text-sm text-slate-500 mt-0.5">Performance across Core, Enhanced, and Advanced support elements</p>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          {/* Composite */}
+                          <div className="text-center px-5 py-2 rounded-xl bg-slate-900">
+                            <p className="text-3xl font-bold text-white">{compositeScore}</p>
+                            <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">Composite</p>
+                          </div>
+                          {/* = sign */}
+                          <span className="text-slate-300 text-xl">=</span>
+                          {/* Three tier scores */}
+                          {tiers.map((t) => (
+                            <div key={t.key} className="text-center px-3 py-2 rounded-lg border" style={{ borderColor: t.border, backgroundColor: t.light }}>
+                              <p className="text-2xl font-bold" style={{ color: t.color }}>{t.score}</p>
+                              <p className="text-xs font-semibold" style={{ color: t.color }}>{t.name.split(' ')[0]}</p>
+                            </div>
+                          ))}
+                          {/* Stage */}
+                          <div className="text-center px-4 py-2 rounded-lg border-2" style={{ borderColor: stageColor }}>
+                            <p className="text-xs font-bold text-slate-500">Stage {stage.num}</p>
+                            <p className="text-sm font-bold uppercase" style={{ color: stageColor }}>{stage.label}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Three tier cards */}
+                    <div className="p-6 grid grid-cols-3 gap-5">
+                      {tiers.map((t) => {
+                        const Icon = t.icon;
+                        const scoreColor = t.score >= 75 ? '#047857' : t.score >= 50 ? '#1D4ED8' : t.score >= 25 ? '#B45309' : '#B91C1C';
+                        return (
+                          <div key={t.key} className="rounded-xl border-2 p-5" style={{ borderColor: t.border, backgroundColor: t.light + '40' }}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: t.color }}>
+                                  <Icon size={22} color="white" />
+                                </div>
+                                <div>
+                                  <h4 className="font-bold text-sm" style={{ color: t.color }}>{t.name}</h4>
+                                  <span className="text-xs text-slate-500">{t.total} elements</span>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-3xl font-bold" style={{ color: scoreColor }}>{t.score}</p>
+                                <p className="text-xs text-slate-400">/ 100</p>
+                              </div>
+                            </div>
+                            
+                            {/* Score bar */}
+                            <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden mb-3">
+                              <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
+                            </div>
+                            
+                            {/* Status counts */}
+                            <div className="flex flex-wrap gap-2">
+                              {t.inPlace > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700">{t.inPlace} In Place</span>}
+                              {t.inDev > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-100 text-blue-700">{t.inDev} In Dev</span>}
+                              {t.review > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-amber-100 text-amber-700">{t.review} Review</span>}
+                              {t.toConfirm > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-violet-100 text-violet-700">{t.toConfirm} To Confirm</span>}
+                              {t.gaps > 0 && <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-500">{t.gaps} Not Planned</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Methodology footnote */}
+                    <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
+                      <p className="text-xs text-slate-400">
+                        <strong className="text-slate-500">Methodology:</strong> Core (&gt;55% adoption) · Enhanced (25–55% + clustering) · Advanced (&lt;25% + expert overrides). 
+                        Tier scores are unweighted flat percentages. Composite uses dimension impact weights. 
+                        Stage uses gated maturity model (Core must clear threshold before Enhanced/Advanced count).
+                      </p>
+                    </div>
+                  </div>
+                );
+              })()}
+              
               {/* Combined Key Findings Section */}
               <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
@@ -5811,14 +5942,14 @@ export default function ExportReportPage() {
                 <div className="grid grid-cols-4 gap-4 mb-6">
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
                     <p className="text-4xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
-                    <p className="text-base text-slate-400 mt-2">of {totalElements} support elements offered</p>
+                    <p className="text-base text-slate-400 mt-2">of {totalElements} support elements {tierView ? 'in place' : 'offered'}</p>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
                     <p className="text-4xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
                     <p className="text-base text-slate-400 mt-2">support elements in development</p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-sm text-sky-400">{planningItems} planned</p>
-                      <p className="text-sm text-sky-400">{assessingItems} assessing</p>
+                      <p className="text-sm text-sky-400">{planningItems} {tierView ? 'in development' : 'planned'}</p>
+                      <p className="text-sm text-sky-400">{assessingItems} {tierView ? 'under review' : 'assessing'}</p>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
@@ -5826,7 +5957,7 @@ export default function ExportReportPage() {
                     <p className="text-base text-slate-400 mt-2">identified support element gaps</p>
                     <div className="mt-2 space-y-1">
                       <p className="text-sm text-amber-400">{notPlannedItems} not planned</p>
-                      <p className="text-sm text-amber-400">{unsureItems} need confirmation</p>
+                      <p className="text-sm text-amber-400">{unsureItems} {tierView ? 'to confirm' : 'need confirmation'}</p>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
