@@ -2869,6 +2869,14 @@ const SUPPORT_LEVELS = {
   },
 } as const;
 
+const SUPPORT_RATINGS = {
+  5: { label: 'Exemplary', color: '#5B21B6', desc: 'Consistently high performance across Core, Enhanced, and Advanced Support, reflecting a comprehensive, well-integrated support ecosystem.' },
+  4: { label: 'Strong', color: '#047857', desc: 'High Core and Enhanced Support with meaningful Advanced practices in place, indicating reliable support delivery and depth.' },
+  3: { label: 'Established', color: '#1D4ED8', desc: 'Core supports are in place with moderate Enhanced Support, forming a stable baseline with room to expand program depth.' },
+  2: { label: 'Building', color: '#B45309', desc: 'Core supports are emerging, with Enhanced and Advanced practices still developing across the organization.' },
+  1: { label: 'Emerging', color: '#B91C1C', desc: 'Early supports are currently in place; priority is typically establishing core access, navigation, and policy fundamentals.' },
+} as const;
+
 function SupportLevelBadge({ level }: { level: string }) {
   const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
   const Icon = config.icon;
