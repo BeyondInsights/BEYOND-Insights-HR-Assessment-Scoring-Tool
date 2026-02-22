@@ -4382,7 +4382,7 @@ export default function ExportReportPage() {
   const coreScoreCalc = _tierCalc('core');
   const enhancedScoreCalc = _tierCalc('enhanced');
   const advancedScoreCalc = _tierCalc('advanced');
-  // Prog+Innov combined score (Enhanced + Advanced elements together)
+  // Prog+Innov combined score (for reference only — NOT used in gates)
   const _enhElems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === 'enhanced');
   const _advElems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === 'advanced');
   const _piMax = (_enhElems.length + _advElems.length) * 5;
@@ -4390,13 +4390,18 @@ export default function ExportReportPage() {
   [..._enhElems, ..._advElems].forEach((e: any) => { if (e.isStrength) _piPts += 5; else if (e.isPlanning) _piPts += 3; else if (e.isAssessing) _piPts += 2; });
   const progInnovScoreCalc = _piMax > 0 ? Math.round((_piPts / _piMax) * 1000) / 10 : 0;
 
+  // Rating gates use Enhanced alone (validated against v3.0 spreadsheet)
   const supportRatingObj = (() => {
-    if (coreScoreCalc >= 80 && progInnovScoreCalc >= 65 && advancedScoreCalc >= 40) return SUPPORT_RATINGS[5];
-    if (coreScoreCalc >= 80 && progInnovScoreCalc >= 50) return SUPPORT_RATINGS[4];
+    if (coreScoreCalc >= 80 && enhancedScoreCalc >= 65 && advancedScoreCalc >= 40) return SUPPORT_RATINGS[5];
+    if (coreScoreCalc >= 80 && enhancedScoreCalc >= 50) return SUPPORT_RATINGS[4];
     if (coreScoreCalc >= 65) return SUPPORT_RATINGS[3];
     if (coreScoreCalc >= 40) return SUPPORT_RATINGS[2];
     return SUPPORT_RATINGS[1];
   })();
+  
+  // WSI — implied weights from element × dimension weight framework
+  const _M_CORE = 0.3282, _M_ENH = 0.5208, _M_ADV = 0.1510;
+  const wsiScoreHeader = Math.round((_M_CORE * coreScoreCalc + _M_ENH * enhancedScoreCalc + _M_ADV * advancedScoreCalc) * 10) / 10;
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
@@ -4825,11 +4830,11 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  The Index combines your Core, Enhanced, and Advanced Support scores into a single overall measure.
+                                  The Index combines your Core, Enhanced, and Advanced Support scores using research-derived weights: Core (33%), Enhanced (52%), and Advanced (15%).
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  Scores reflect the share of practices in place within each level, using the assessment&apos;s standard scoring rules and benchmarks.
+                                  These weights are not arbitrary — they derive directly from the element importance weights within each dimension, partitioned by support level. The WSI is the same weighted composite decomposed into three level contributions.
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
@@ -5583,7 +5588,7 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-8">
                   <div className="text-right">
                     <p className="text-slate-500 text-sm font-medium">{tierView ? 'Workplace Support Index' : 'Composite Score'}</p>
-                    <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
+                    <p className="text-6xl font-bold mt-1" style={{ color: tierView ? (wsiScoreHeader >= 70 ? '#047857' : wsiScoreHeader >= 50 ? '#1D4ED8' : '#B45309') : (tier?.color || '#666') }} data-export="composite-score">{tierView ? wsiScoreHeader : (compositeScore ?? '—')}</p>
                   </div>
                   {tier && (
                     <div className={`px-6 py-4 rounded-xl ${tierView ? '' : tier.bgColor} border-2 ${tierView ? '' : tier.borderColor}`} style={tierView ? { borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' } : {}}>
@@ -5926,22 +5931,20 @@ export default function ExportReportPage() {
                 const enhData = tierCalc('enhanced');
                 const advData = tierCalc('advanced');
                 
-                // Rating calculation
-                // Prog+Innov combined score
-                const piMax = (enhData.total + advData.total) * 5;
-                let piPts = 0;
-                allElems.filter((e: any) => ['enhanced', 'advanced'].includes(getElementLevel(e.name))).forEach((e: any) => {
-                  if (e.isStrength) piPts += 5; else if (e.isPlanning) piPts += 3; else if (e.isAssessing) piPts += 2;
-                });
-                const piScore = piMax > 0 ? Math.round((piPts / piMax) * 1000) / 10 : 0;
-                
+                // Rating calculation — gates use Enhanced alone (validated against v3.0 spreadsheet)
                 const getRating = () => {
-                  if (coreData.score >= 80 && piScore >= 65 && advData.score >= 40) return SUPPORT_RATINGS[5];
-                  if (coreData.score >= 80 && piScore >= 50) return SUPPORT_RATINGS[4];
+                  if (coreData.score >= 80 && enhData.score >= 65 && advData.score >= 40) return SUPPORT_RATINGS[5];
+                  if (coreData.score >= 80 && enhData.score >= 50) return SUPPORT_RATINGS[4];
                   if (coreData.score >= 65) return SUPPORT_RATINGS[3];
                   if (coreData.score >= 40) return SUPPORT_RATINGS[2];
                   return SUPPORT_RATINGS[1];
                 };
+                
+                // WSI = implied weighted average of three level scores
+                // Weights derived from element × dimension weight framework (sum to 1.0)
+                const M_CORE = 0.3282, M_ENH = 0.5208, M_ADV = 0.1510;
+                const wsiScore = Math.round((M_CORE * coreData.score + M_ENH * enhData.score + M_ADV * advData.score) * 10) / 10;
+                const beyondCoreScore = Math.round(((M_ENH * enhData.score + M_ADV * advData.score) / (M_ENH + M_ADV)) * 10) / 10;
                 const rating = getRating();
                 
                 // Benchmark: compute tier scores for ALL complete companies
@@ -5990,22 +5993,49 @@ export default function ExportReportPage() {
                 
                 return (
                   <div className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    {/* Header: Composite = Core + Enhanced + Advanced + Rating */}
+                    {/* Header: WSI = Core + Enhanced + Advanced + Rating */}
                     <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-bold text-slate-900">Workplace Support Index</h3>
-                          <p className="text-sm text-slate-500 mt-0.5">Composite score across Core, Enhanced, and Advanced Support Elements</p>
+                          <p className="text-sm text-slate-500 mt-0.5">
+                            {Math.round(M_CORE * 100)}% Core + {Math.round(M_ENH * 100)}% Enhanced + {Math.round(M_ADV * 100)}% Advanced
+                            <span className="text-slate-400 ml-2">|</span>
+                            <span className="text-slate-400 ml-2">Benchmark (n=43): {59.0}</span>
+                          </p>
                         </div>
                         <div className="flex items-center gap-5">
                           <div className="text-center px-7 py-4 rounded-xl bg-slate-900 shadow-lg">
-                            <p className="text-5xl font-bold text-white">{compositeScore}</p>
+                            <p className="text-5xl font-bold text-white">{wsiScore}</p>
                             <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mt-1">Index Score</p>
+                            {(() => {
+                              const diff = Math.round((wsiScore - 59.0) * 10) / 10;
+                              return diff !== 0 ? (
+                                <p className={`text-xs font-semibold mt-0.5 ${diff > 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                  {diff > 0 ? '+' : ''}{diff} vs benchmark
+                                </p>
+                              ) : null;
+                            })()}
                           </div>
                           <div className="text-center px-5 py-3 rounded-xl border-2" style={{ borderColor: rating.color, backgroundColor: rating.color + '08' }}>
                             <p className="text-xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
                             <p className="text-xs text-slate-500 font-medium">Support Rating</p>
                           </div>
+                        </div>
+                      </div>
+                      {/* Beyond Core chip */}
+                      <div className="mt-3 flex items-center gap-4">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Beyond Core</span>
+                          <span className="text-sm font-bold text-slate-800">{beyondCoreScore}</span>
+                          <span className="text-xs text-slate-400">Enhanced + Advanced combined</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-slate-400">
+                          <span>Core: {Math.round(M_CORE * coreData.score * 10) / 10} pts</span>
+                          <span>·</span>
+                          <span>Enhanced: {Math.round(M_ENH * enhData.score * 10) / 10} pts</span>
+                          <span>·</span>
+                          <span>Advanced: {Math.round(M_ADV * advData.score * 10) / 10} pts</span>
                         </div>
                       </div>
                     </div>
