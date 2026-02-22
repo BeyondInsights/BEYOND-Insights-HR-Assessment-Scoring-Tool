@@ -4599,8 +4599,6 @@ export default function ExportReportPage() {
   const progInnovScoreCalc = _piMax > 0 ? Math.round((_piPts / _piMax) * 1000) / 10 : 0;
 
   // Rating gates use Enhanced alone (validated against v3.0 spreadsheet)
-  const supportRatingObj = getWSIRating(wsiScoreHeader);
-  
   // WSI — weighted element-level computation using dimension × element weights + unsure substitution
   const _dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
   // Compute per-dimension confirm rates using element .dim
@@ -4648,6 +4646,7 @@ export default function ExportReportPage() {
   const wsiCoreContrib = Math.round(_wsiLevelContribs.core * 100);
   const wsiEnhContrib = Math.round(_wsiLevelContribs.enhanced * 100);
   const wsiAdvContrib = Math.round(_wsiLevelContribs.advanced * 100);
+  const supportRatingObj = getWSIRating(wsiScoreHeader);
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
