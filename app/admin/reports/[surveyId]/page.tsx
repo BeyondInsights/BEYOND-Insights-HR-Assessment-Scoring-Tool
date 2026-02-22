@@ -2869,14 +2869,6 @@ const SUPPORT_LEVELS = {
   },
 } as const;
 
-const SUPPORT_RATINGS = {
-  5: { label: 'Exemplary', color: '#5B21B6', desc: 'Consistently high performance across Core, Enhanced, and Advanced Support, reflecting a comprehensive, well-integrated support ecosystem.' },
-  4: { label: 'Strong', color: '#047857', desc: 'High Core and Enhanced Support with meaningful Advanced practices in place, indicating reliable support delivery and depth.' },
-  3: { label: 'Established', color: '#1D4ED8', desc: 'Core supports are in place with moderate Enhanced Support, forming a stable baseline with room to expand program depth.' },
-  2: { label: 'Building', color: '#B45309', desc: 'Core supports are emerging, with Enhanced and Advanced practices still developing across the organization.' },
-  1: { label: 'Emerging', color: '#B91C1C', desc: 'Early supports are currently in place; priority is typically establishing core access, navigation, and policy fundamentals.' },
-} as const;
-
 function SupportLevelBadge({ level }: { level: string }) {
   const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
   const Icon = config.icon;
@@ -4364,6 +4356,30 @@ export default function ExportReportPage() {
   const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
+
+  // === TIER VIEW: Overall Support Rating computation ===
+  const _allElemsForRating = dimensionAnalysis?.flatMap((d: any) => (d.elements || []).map((e: any) => ({ ...e }))) || [];
+  const _tierCalc = (level: string) => {
+    const elems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === level);
+    if (elems.length === 0) return 0;
+    const maxPts = elems.length * 5;
+    let pts = 0;
+    elems.forEach((e: any) => { if (e.isStrength) pts += 5; else if (e.isPlanning) pts += 3; else if (e.isAssessing) pts += 2; });
+    return maxPts > 0 ? Math.round((pts / maxPts) * 1000) / 10 : 0;
+  };
+  const coreScoreCalc = _tierCalc('core');
+  const enhancedScoreCalc = _tierCalc('enhanced');
+  const advancedScoreCalc = _tierCalc('advanced');
+  const supportRatingObj = (() => {
+    if (coreScoreCalc >= 80 && enhancedScoreCalc >= 60 && advancedScoreCalc >= 40) return SUPPORT_RATINGS[5];
+    if (coreScoreCalc >= 70 && enhancedScoreCalc >= 50 && advancedScoreCalc >= 25) return SUPPORT_RATINGS[4];
+    if (coreScoreCalc >= 60 && enhancedScoreCalc >= 35) return SUPPORT_RATINGS[3];
+    if (coreScoreCalc >= 40) return SUPPORT_RATINGS[2];
+    return SUPPORT_RATINGS[1];
+  })();
+  const supportRatingHeader = supportRatingObj.label;
+  const ratingColorHeader = supportRatingObj.color;
+
   
   // STRATEGIC PRIORITY DIMENSIONS: 2+2 Hybrid Selection with headroom threshold
   const avgWeight = dimensionAnalysis.reduce((sum, d) => sum + d.weight, 0) / dimensionAnalysis.length;
@@ -5512,13 +5528,13 @@ export default function ExportReportPage() {
                 </div>
                 <div className="flex items-center gap-8">
                   <div className="text-right">
-                    <p className="text-slate-500 text-sm font-medium">Composite Score</p>
+                    <p className="text-slate-500 text-sm font-medium">{tierView ? 'Workplace Support Index' : 'Composite Score'}</p>
                     <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
                   </div>
                   {tier && (
-                    <div className={`px-6 py-4 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
-                      <p className="text-2xl font-bold" style={{ color: tier.color }} data-export="tier-name">{tier.name}</p>
-                      <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                    <div className={`px-6 py-4 rounded-xl ${tierView ? '' : tier.bgColor} border-2 ${tierView ? '' : tier.borderColor}`} style={tierView ? { borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' } : {}}>
+                      <p className="text-2xl font-bold" style={{ color: tierView ? ratingColorHeader : tier.color }} data-export="tier-name">{tierView ? supportRatingHeader : tier.name}</p>
+                      <p className="text-sm text-slate-500 font-medium">{tierView ? 'Overall Support Rating' : 'Performance Tier'}</p>
                       {isProvisional && (
                         <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
                       )}
@@ -5526,7 +5542,7 @@ export default function ExportReportPage() {
                         onClick={() => setShowTierOverlay(true)}
                         className="mt-3 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
                       >
-                        Show All Tiers
+                        {tierView ? 'View Rating Criteria' : 'Show All Tiers'}
                       </button>
                     </div>
                   )}
@@ -5750,17 +5766,47 @@ export default function ExportReportPage() {
             {/* Executive Summary */}
             <div className="px-12 py-10 bg-slate-50">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-              <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
-                {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-                in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
-                {percentileRank !== null && totalCompanies > 1 && (
-                  <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
-                )}.
-                {topDimension && bottomDimension && (
-                  <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
-                  while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
-                )}
-              </p>
+              
+              {tierView ? (
+                <div data-export="executive-summary-text">
+                  {/* Index definition */}
+                  <p className="text-sm text-slate-500 mb-4">The Workplace Support Index summarizes the share of support practices in place across 13 dimensions, weighted by their impact on employee wellbeing and organizational outcomes.</p>
+                  
+                  {/* Part A: What this score means */}
+                  <p className="text-slate-700 leading-relaxed text-lg mb-3">
+                    {companyName}&apos;s Workplace Support Index is <strong>{compositeScore}</strong>
+                    {percentileRank !== null && totalCompanies > 1 && (
+                      <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among participating companies</span>
+                    )}. Performance is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
+                  </p>
+                  
+                  {/* Part B: What's driving it */}
+                  {topDimension && bottomDimension && (
+                    <p className="text-slate-700 leading-relaxed text-lg mb-3">
+                      Current strengths are most evident in <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) represents the largest opportunity for improvement.
+                    </p>
+                  )}
+                  
+                  {/* Part C: Next steps */}
+                  {unsureItems > 0 && (
+                    <p className="text-slate-600 leading-relaxed text-base">
+                      Confirming the {unsureItems} &ldquo;To Confirm&rdquo; elements will finalize scores and improve precision across affected dimensions.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
+                  {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
+                  in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
+                  {percentileRank !== null && totalCompanies > 1 && (
+                    <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
+                  )}.
+                  {topDimension && bottomDimension && (
+                    <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
+                    while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
+                  )}
+                </p>
+              )}
               
               {/* Provisional Classification Notice */}
               {isProvisional && (
@@ -5790,20 +5836,38 @@ export default function ExportReportPage() {
                   <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
                     <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
                     <div>
-                      {nextTierUp && pointsToNextTier ? (
+                      {tierView ? (
                         <>
-                          <p className="text-base font-bold text-violet-800">
-                            {pointsToNextTier} points away from {nextTierUp.name} tier
-                            {nextTierUp.name !== 'Exemplary' && (
-                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points away from Exemplary</span>
-                            )}
-                          </p>
-                          <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
+                          {supportRatingHeader === 'Exemplary' ? (
+                            <>
+                              <p className="text-base font-bold text-violet-800">Exemplary Support Rating achieved</p>
+                              <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to sustain comprehensive support across all levels.</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-base font-bold text-violet-800">Path to a higher Overall Support Rating</p>
+                              <p className="text-sm text-violet-600 mt-1">Improving {dimList} would have the largest impact on the overall rating.</p>
+                            </>
+                          )}
                         </>
                       ) : (
                         <>
-                          <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
-                          <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
+                          {nextTierUp && pointsToNextTier ? (
+                            <>
+                              <p className="text-base font-bold text-violet-800">
+                                {pointsToNextTier} points away from {nextTierUp.name} tier
+                                {nextTierUp.name !== 'Exemplary' && (
+                                  <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points away from Exemplary</span>
+                                )}
+                              </p>
+                              <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                              <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
+                            </>
+                          )}
                         </>
                       )}
                     </div>
