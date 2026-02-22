@@ -2845,6 +2845,171 @@ function AdvancedSupportIcon({ size = 20, color = '#7C3AED' }: { size?: number; 
   );
 }
 
+// Element within-dimension weights for WSI — v6.1 (ridge + permutation importance + adaptive shrinkage)
+// Key = element name, value = [dimension_number, within_dim_weight]
+// Within each dimension, weights sum to 1.0
+const ELEMENT_DIM_WEIGHTS: Record<string, [number, number]> = {
+  "Emergency leave within 24 hours": [1, 0.143114],
+  "Remote work options for on-site employees": [1, 0.128729],
+  "Intermittent leave beyond local / legal requirements": [1, 0.113574],
+  "Paid micro-breaks for side effects": [1, 0.081779],
+  "Flexible work hours during treatment (e.g., varying start/end times, compressed schedules)": [1, 0.075997],
+  "Job protection beyond local / legal requirements": [1, 0.062303],
+  "Paid medical leave beyond local / legal requirements": [1, 0.058979],
+  "Reduced schedule/part-time with full benefits": [1, 0.057912],
+  "Paid micro-breaks for medical-related side effects": [1, 0.056012],
+  "PTO accrual during leave": [1, 0.055810],
+  "Full salary (100%) continuation during cancer-related short-term disability leave": [1, 0.055342],
+  "Disability pay top-up (employer adds to disability insurance)": [1, 0.055325],
+  "Leave donation bank (employees can donate PTO to colleagues)": [1, 0.055124],
+  "Accelerated life insurance benefits (partial payout for terminal / critical illness)": [2, 0.172389],
+  "Tax/estate planning assistance": [2, 0.134633],
+  "Real-time cost estimator tools": [2, 0.074168],
+  "Insurance advocacy/pre-authorization support": [2, 0.071963],
+  "$0 copay for specialty drugs": [2, 0.055324],
+  "Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy) not covered by standard health insurance": [2, 0.046307],
+  "Financial counseling services": [2, 0.044892],
+  "Long-term disability covering 60%+ of salary": [2, 0.044791],
+  "Paid time off for clinical trial participation": [2, 0.043340],
+  "Coverage for clinical trials and experimental treatments not covered by standard health insurance": [2, 0.042387],
+  "Short-term disability covering 60%+ of salary": [2, 0.042358],
+  "Hardship grants program funded by employer": [2, 0.039505],
+  "Guaranteed job protection": [2, 0.038521],
+  "Employer-paid disability insurance supplements": [2, 0.037982],
+  "Voluntary supplemental illness insurance (with employer contribution)": [2, 0.037766],
+  "Set out-of-pocket maximums (for in-network single coverage)": [2, 0.036936],
+  "Travel/lodging reimbursement for specialized care beyond insurance coverage": [2, 0.036738],
+  "Manager peer support / community building": [3, 0.200023],
+  "Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams": [3, 0.195794],
+  "Empathy/communication skills training": [3, 0.163854],
+  "Dedicated manager resource hub": [3, 0.080184],
+  "Clear escalation protocol for manager response": [3, 0.070664],
+  "Manager evaluations include how well they support impacted employees": [3, 0.063243],
+  "Privacy protection and confidentiality management": [3, 0.058364],
+  "AI-powered guidance tools": [3, 0.057976],
+  "Legal compliance training": [3, 0.055458],
+  "Senior leader coaching on supporting impacted employees": [3, 0.054440],
+  "Physical rehabilitation support": [4, 0.200125],
+  "Nutrition coaching": [4, 0.131656],
+  "Insurance advocacy/appeals support": [4, 0.102413],
+  "Dedicated navigation support to help employees understand benefits and access medical care": [4, 0.086665],
+  "Online tools, apps, or portals for health/benefits support": [4, 0.081798],
+  "Occupational therapy/vocational rehabilitation": [4, 0.080645],
+  "Care coordination concierge": [4, 0.080454],
+  "Survivorship planning assistance": [4, 0.080114],
+  "Benefits optimization assistance (maximizing coverage, minimizing costs)": [4, 0.078971],
+  "Clinical trial matching service": [4, 0.077159],
+  "Flexible scheduling options": [5, 0.200035],
+  "Ergonomic equipment funding": [5, 0.139896],
+  "Temporary role redesigns": [5, 0.112509],
+  "Rest areas / quiet spaces": [5, 0.112477],
+  "Assistive technology catalog": [5, 0.089373],
+  "Cognitive / fatigue support tools": [5, 0.067977],
+  "Priority parking": [5, 0.065539],
+  "Policy accommodations (e.g., dress code flexibility, headphone use)": [5, 0.057740],
+  "Remote work capability": [5, 0.053923],
+  "Physical workspace modifications": [5, 0.052283],
+  "Transportation reimbursement": [5, 0.048248],
+  "Employee peer support groups (internal employees with shared experience)": [6, 0.200031],
+  "Stigma-reduction initiatives": [6, 0.162809],
+  "Anonymous benefits navigation tool or website (no login required)": [6, 0.103945],
+  "Specialized emotional counseling": [6, 0.074586],
+  "Manager training on handling sensitive health information": [6, 0.066401],
+  "Strong anti-discrimination policies specific to health conditions": [6, 0.063477],
+  "Inclusive communication guidelines": [6, 0.062323],
+  "Professional-led support groups (external facilitator/counselor)": [6, 0.059115],
+  "Written anti-retaliation policies for health disclosures": [6, 0.056448],
+  "Confidential HR channel for health benefits, policies and insurance-related questions": [6, 0.050846],
+  "Clear process for confidential health disclosures": [6, 0.050421],
+  "Optional open health dialogue forums": [6, 0.049599],
+  "Peer mentorship program (employees who had similar condition mentoring current employees)": [7, 0.200073],
+  "Continued access to training/development": [7, 0.179655],
+  "Adjusted performance goals/deliverables during treatment and recovery": [7, 0.100582],
+  "Succession planning protections": [7, 0.097295],
+  "Optional stay-connected program": [7, 0.096012],
+  "Structured reintegration programs": [7, 0.093588],
+  "Career coaching for employees managing cancer or other serious health conditions": [7, 0.082887],
+  "Professional coach/mentor for employees managing cancer or other serious health conditions": [7, 0.076365],
+  "Project continuity protocols": [7, 0.073542],
+  "Flexibility for medical setbacks": [8, 0.192209],
+  "Long-term success tracking": [8, 0.142762],
+  "Manager training on supporting team members during treatment/return": [8, 0.137150],
+  "Workload adjustments during treatment": [8, 0.091974],
+  "Access to occupational therapy/vocational rehabilitation": [8, 0.079713],
+  "Buddy/mentor pairing for support": [8, 0.058763],
+  "Structured progress reviews": [8, 0.057281],
+  "Flexible work arrangements during treatment": [8, 0.054804],
+  "Online peer support forums": [8, 0.053836],
+  "Phased return-to-work plans": [8, 0.044535],
+  "Contingency planning for treatment schedules": [8, 0.044362],
+  "Access to specialized work resumption professionals": [8, 0.042611],
+  "Executive sponsors communicate regularly about workplace support programs": [9, 0.200065],
+  "ESG/CSR reporting inclusion": [9, 0.143032],
+  "Public success story celebrations": [9, 0.132297],
+  "Year-over-year budget growth": [9, 0.087296],
+  "Executive-led town halls focused on health benefits and employee support": [9, 0.076675],
+  "Support programs included in investor/stakeholder communications": [9, 0.061193],
+  "Compensation tied to support outcomes": [9, 0.054609],
+  "Executive accountability metrics": [9, 0.050253],
+  "C-suite executive serves as program champion/sponsor": [9, 0.049465],
+  "Cross-functional executive steering committee for workplace support programs": [9, 0.048861],
+  "Support metrics included in annual report/sustainability reporting": [9, 0.048602],
+  "Dedicated budget allocation for serious illness support programs": [9, 0.047651],
+  "Practical support for managing caregiving and work": [10, 0.125861],
+  "Eldercare consultation and referral services": [10, 0.098757],
+  "Family navigation support": [10, 0.074286],
+  "Caregiver resource navigator/concierge": [10, 0.048522],
+  "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)": [10, 0.046535],
+  "Paid caregiver leave with expanded eligibility (beyond local legal requirements)": [10, 0.046529],
+  "Unpaid leave job protection beyond local / legal requirements": [10, 0.043064],
+  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)": [10, 0.042984],
+  "Flexible work arrangements for caregivers": [10, 0.041600],
+  "Emergency dependent care when regular arrangements unavailable": [10, 0.041356],
+  "Respite care funding/reimbursement": [10, 0.041004],
+  "Paid time off for care coordination appointments": [10, 0.040964],
+  "Legal/financial planning assistance for caregivers": [10, 0.040789],
+  "Manager training for supervising caregivers": [10, 0.039568],
+  "Caregiver peer support groups": [10, 0.039551],
+  "Dependent care subsidies": [10, 0.038963],
+  "Mental health support specifically for caregivers": [10, 0.038949],
+  "Modified job duties during peak caregiving periods": [10, 0.037552],
+  "Emergency caregiver funds": [10, 0.036692],
+  "Dependent care account matching/contributions": [10, 0.036474],
+  "Legal protections beyond requirements": [11, 0.165547],
+  "Individual health assessments (online or in-person)": [11, 0.145301],
+  "Policies to support immuno-compromised colleagues (e.g., mask protocols, ventilation)": [11, 0.125210],
+  "Genetic screening/counseling": [11, 0.117179],
+  "Full or partial coverage for annual health screenings/checkups": [11, 0.059233],
+  "Regular health education sessions": [11, 0.054959],
+  "Paid time off for preventive care appointments": [11, 0.054171],
+  "At least 70% coverage for regionally / locally recommended screenings": [11, 0.053351],
+  "On-site vaccinations": [11, 0.049866],
+  "Workplace safety assessments to minimize health risks": [11, 0.045736],
+  "Targeted risk-reduction programs": [11, 0.045514],
+  "Risk factor tracking/reporting": [11, 0.044358],
+  "Lifestyle coaching programs": [11, 0.039574],
+  "Regular program enhancements": [12, 0.200028],
+  "Employee confidence in employer support": [12, 0.152164],
+  "Innovation pilots": [12, 0.141923],
+  "External benchmarking": [12, 0.128859],
+  "Program utilization analytics": [12, 0.098957],
+  "Return-to-work success metrics": [12, 0.079713],
+  "Employee satisfaction tracking": [12, 0.068297],
+  "Business impact/ROI assessment": [12, 0.065119],
+  "Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)": [12, 0.064940],
+  "Family/caregiver communication inclusion": [13, 0.200081],
+  "Employee testimonials/success stories": [13, 0.136827],
+  "Proactive communication at point of diagnosis disclosure": [13, 0.131536],
+  "Multi-channel communication strategy": [13, 0.098369],
+  "Anonymous information access options": [13, 0.098095],
+  "Ability to access program information and resources anonymously": [13, 0.094749],
+  "Dedicated program website or portal": [13, 0.053243],
+  "Regular company-wide awareness campaigns (at least quarterly)": [13, 0.047333],
+  "New hire orientation coverage": [13, 0.047072],
+  "Manager toolkit for cascade communications": [13, 0.046482],
+  "Cancer awareness month campaigns with resources": [13, 0.046213],
+};
+
 const SUPPORT_LEVELS = {
   core: {
     name: 'Core Support', abbr: 'Core', tagline: 'Essential supports',
@@ -4399,9 +4564,18 @@ export default function ExportReportPage() {
     return SUPPORT_RATINGS[1];
   })();
   
-  // WSI — implied weights from element × dimension weight framework
-  const _M_CORE = 0.3282, _M_ENH = 0.5208, _M_ADV = 0.1510;
-  const wsiScoreHeader = Math.round((_M_CORE * coreScoreCalc + _M_ENH * enhancedScoreCalc + _M_ADV * advancedScoreCalc) * 10) / 10;
+  // WSI — weighted element-level computation using dimension × element weights
+  const _dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
+  let _wsiHeaderContrib = 0;
+  _allElemsForRating.forEach((e: any) => {
+    const ew = ELEMENT_DIM_WEIGHTS[e.name];
+    if (ew) {
+      const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _dimWtTotal;
+      const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
+      _wsiHeaderContrib += dimWt * ew[1] * statusNorm;
+    }
+  });
+  const wsiScoreHeader = Math.round(_wsiHeaderContrib * 1000) / 10;
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
@@ -5913,18 +6087,32 @@ export default function ExportReportPage() {
                 
                 const tierCalc = (level: string) => {
                   const elems = allElems.filter((e: any) => getElementLevel(e.name) === level);
-                  if (elems.length === 0) return { score: 0, total: 0, inPlace: 0, inDev: 0, review: 0, toConfirm: 0, gaps: 0 };
+                  if (elems.length === 0) return { score: 0, total: 0, inPlace: 0, inDev: 0, review: 0, toConfirm: 0, gaps: 0, wsiContrib: 0 };
                   const maxPts = elems.length * 5;
                   let pts = 0;
                   let inPlace = 0, inDev = 0, review = 0, toConfirm = 0, gaps = 0;
+                  // Weighted contribution: Σ W_d × w_{e|d} × (points/5)
+                  let weightedContrib = 0;
+                  const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
                   elems.forEach((e: any) => {
                     if (e.isStrength) { pts += 5; inPlace++; }
                     else if (e.isPlanning) { pts += 3; inDev++; }
                     else if (e.isAssessing) { pts += 2; review++; }
                     else if (e.isUnsure) { toConfirm++; }
                     else { gaps++; }
+                    // Weighted contribution for WSI
+                    const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                    if (ew) {
+                      const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
+                      const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
+                      weightedContrib += dimWt * ew[1] * statusNorm;
+                    }
                   });
-                  return { score: maxPts > 0 ? Math.round((pts / maxPts) * 1000) / 10 : 0, total: elems.length, inPlace, inDev, review, toConfirm, gaps };
+                  return { 
+                    score: maxPts > 0 ? Math.round((pts / maxPts) * 1000) / 10 : 0, 
+                    total: elems.length, inPlace, inDev, review, toConfirm, gaps,
+                    wsiContrib: Math.round(weightedContrib * 1000) / 10  // contribution to WSI (0-100 scale)
+                  };
                 };
                 
                 const coreData = tierCalc('core');
@@ -5940,11 +6128,10 @@ export default function ExportReportPage() {
                   return SUPPORT_RATINGS[1];
                 };
                 
-                // WSI = implied weighted average of three level scores
-                // Weights derived from element × dimension weight framework (sum to 1.0)
-                const M_CORE = 0.3282, M_ENH = 0.5208, M_ADV = 0.1510;
-                const wsiScore = Math.round((M_CORE * coreData.score + M_ENH * enhData.score + M_ADV * advData.score) * 10) / 10;
-                const beyondCoreScore = Math.round(((M_ENH * enhData.score + M_ADV * advData.score) / (M_ENH + M_ADV)) * 10) / 10;
+                // WSI = sum of three weighted level contributions (equals Full Composite when all elements matched)
+                // Each tier's wsiContrib = Σ_d W_d × Σ_{e in d ∩ L} w_{e|d} × s_e, already scaled to 0-100
+                const wsiScore = Math.round((coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib) * 10) / 10;
+                const beyondCoreScore = Math.round((enhData.wsiContrib + advData.wsiContrib) * 10) / 10;
                 const rating = getRating();
                 
                 // Benchmark: compute tier scores for ALL complete companies
@@ -5999,7 +6186,7 @@ export default function ExportReportPage() {
                         <div>
                           <h3 className="text-lg font-bold text-slate-900">Workplace Support Index</h3>
                           <p className="text-sm text-slate-500 mt-0.5">
-                            {Math.round(M_CORE * 100)}% Core + {Math.round(M_ENH * 100)}% Enhanced + {Math.round(M_ADV * 100)}% Advanced
+                            Weighted score using dimension and element importance weights, decomposed by support level
                             <span className="text-slate-400 ml-2">|</span>
                             <span className="text-slate-400 ml-2">Benchmark (n=43): {59.0}</span>
                           </p>
@@ -6028,14 +6215,14 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
                           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Beyond Core</span>
                           <span className="text-sm font-bold text-slate-800">{beyondCoreScore}</span>
-                          <span className="text-xs text-slate-400">Enhanced + Advanced combined</span>
+                          <span className="text-xs text-slate-400">Enhanced + Advanced contribution</span>
                         </div>
                         <div className="flex items-center gap-3 text-xs text-slate-400">
-                          <span>Core: {Math.round(M_CORE * coreData.score * 10) / 10} pts</span>
+                          <span>Core: {coreData.wsiContrib} pts</span>
                           <span>·</span>
-                          <span>Enhanced: {Math.round(M_ENH * enhData.score * 10) / 10} pts</span>
+                          <span>Enhanced: {enhData.wsiContrib} pts</span>
                           <span>·</span>
-                          <span>Advanced: {Math.round(M_ADV * advData.score * 10) / 10} pts</span>
+                          <span>Advanced: {advData.wsiContrib} pts</span>
                         </div>
                       </div>
                     </div>
