@@ -5832,15 +5832,15 @@ export default function ExportReportPage() {
                 
                 // Stage calculation (simplified gated maturity)
                 const getStage = () => {
-                  if (coreData.score >= 80 && enhData.score >= 60 && advData.score >= 40) return { num: 5, label: 'Leader' };
-                  if (coreData.score >= 70 && enhData.score >= 50 && advData.score >= 25) return { num: 4, label: 'Advanced' };
+                  if (coreData.score >= 80 && enhData.score >= 60 && advData.score >= 40) return { num: 5, label: 'Exemplary' };
+                  if (coreData.score >= 70 && enhData.score >= 50 && advData.score >= 25) return { num: 4, label: 'Strong' };
                   if (coreData.score >= 60 && enhData.score >= 35) return { num: 3, label: 'Established' };
                   if (coreData.score >= 40) return { num: 2, label: 'Building' };
-                  return { num: 1, label: 'Developing' };
+                  return { num: 1, label: 'Emerging' };
                 };
                 const stage = getStage();
                 
-                const stageColor = stage.num >= 4 ? '#047857' : stage.num >= 3 ? '#1D4ED8' : stage.num >= 2 ? '#B45309' : '#B91C1C';
+                const ratingColor = stage.num >= 5 ? '#5B21B6' : stage.num >= 4 ? '#047857' : stage.num >= 3 ? '#1D4ED8' : stage.num >= 2 ? '#B45309' : '#B91C1C';
                 
                 const tiers = [
                   { key: 'core', ...coreData, ...SUPPORT_LEVELS.core },
@@ -5854,8 +5854,8 @@ export default function ExportReportPage() {
                     <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="text-base font-bold text-slate-900">Support Level Scores</h3>
-                          <p className="text-sm text-slate-500 mt-0.5">Performance across Core, Enhanced, and Advanced support elements</p>
+                          <h3 className="text-base font-bold text-slate-900">Workplace Support Index</h3>
+                          <p className="text-sm text-slate-500 mt-0.5">Composite performance across Core, Enhanced, and Advanced Support</p>
                         </div>
                         <div className="flex items-center gap-6">
                           {/* Composite */}
@@ -5872,10 +5872,10 @@ export default function ExportReportPage() {
                               <p className="text-xs font-semibold" style={{ color: t.color }}>{t.name.split(' ')[0]}</p>
                             </div>
                           ))}
-                          {/* Stage */}
-                          <div className="text-center px-4 py-2 rounded-lg border-2" style={{ borderColor: stageColor }}>
-                            <p className="text-xs font-bold text-slate-500">Stage {stage.num}</p>
-                            <p className="text-sm font-bold uppercase" style={{ color: stageColor }}>{stage.label}</p>
+                          {/* Overall Support Rating */}
+                          <div className="text-center px-5 py-2 rounded-xl border-2" style={{ borderColor: ratingColor, backgroundColor: ratingColor + '08' }}>
+                            <p className="text-lg font-bold" style={{ color: ratingColor }}>{stage.label}</p>
+                            <p className="text-xs text-slate-500 font-medium">Support Rating</p>
                           </div>
                         </div>
                       </div>
@@ -5922,12 +5922,26 @@ export default function ExportReportPage() {
                       })}
                     </div>
                     
+                    {/* Overall Support Rating description */}
+                    <div className="px-8 py-4 border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ backgroundColor: ratingColor + '15' }}>
+                          <svg className="w-4 h-4" style={{ color: ratingColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold" style={{ color: ratingColor }}>Overall Support Rating: {stage.label}</p>
+                          <p className="text-sm text-slate-600 mt-0.5">{SUPPORT_RATINGS[stage.num as keyof typeof SUPPORT_RATINGS]?.desc}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
                     {/* Methodology footnote */}
                     <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
                       <p className="text-xs text-slate-400">
                         <strong className="text-slate-500">Methodology:</strong> Core (&gt;55% adoption) · Enhanced (25–55% + clustering) · Advanced (&lt;25% + expert overrides). 
-                        Tier scores are unweighted flat percentages. Composite uses dimension impact weights. 
-                        Stage uses gated maturity model (Core must clear threshold before Enhanced/Advanced count).
+                        Level scores are unweighted flat percentages. Composite uses dimension impact weights. 
+                        Overall Support Rating summarizes performance using minimum thresholds across Core, Enhanced, and Advanced Support. 
+                        Ratings reflect participating organizations (n=43) and will be recalibrated as the benchmark expands.
                       </p>
                     </div>
                   </div>
