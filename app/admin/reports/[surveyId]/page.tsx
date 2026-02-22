@@ -5225,9 +5225,9 @@ export default function ExportReportPage() {
                               <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
                             </p>
                           </div>
-                        </div>
                           </>
                         )}
+                        </div>
                         
                         {/* Right: Journey message - Better balanced layout */}
                         <div className="flex-1 min-w-0">
