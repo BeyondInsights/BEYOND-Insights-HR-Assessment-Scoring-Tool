@@ -3125,6 +3125,7 @@ export default function ExportReportPage() {
   const [tierView, setTierView] = useState(false);
   const [showLevelsOverview, setShowLevelsOverview] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
+  const [expandedWSICard, setExpandedWSICard] = useState<string | null>(null);
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
@@ -6505,7 +6506,58 @@ export default function ExportReportPage() {
                                   </div>
                                 ))}
                               </div>
+                              {/* View Elements toggle */}
+                              <button 
+                                onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
+                                className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-white/60"
+                                style={{ color: t.color }}
+                              >
+                                {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                              </button>
                             </div>
+                            
+                            {/* Expanded element list by dimension */}
+                            {expandedWSICard === t.key && (() => {
+                              const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === t.key);
+                              const dimGroups: Record<number, any[]> = {};
+                              levelElems.forEach((e: any) => {
+                                if (!dimGroups[e.dim]) dimGroups[e.dim] = [];
+                                dimGroups[e.dim].push(e);
+                              });
+                              const sortedDims = Object.entries(dimGroups).sort(([a], [b]) => parseInt(a) - parseInt(b));
+                              
+                              return (
+                                <div className="px-4 py-3 max-h-80 overflow-y-auto" style={{ borderTop: `1px solid ${t.border}`, backgroundColor: 'white' }}>
+                                  {sortedDims.map(([dimStr, elems]) => {
+                                    const dimNum = parseInt(dimStr);
+                                    const dimInfo = dimensionAnalysis?.find((d: any) => d.dim === dimNum);
+                                    return (
+                                      <div key={dimNum} className="mb-3 last:mb-0">
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                          <span className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{dimNum}</span>
+                                          <span className="text-xs font-semibold text-slate-700 truncate">{dimInfo?.name || `Dimension ${dimNum}`}</span>
+                                          <span className="text-[10px] text-slate-400 flex-shrink-0">{elems.length} element{elems.length !== 1 ? 's' : ''}</span>
+                                        </div>
+                                        <div className="pl-7 space-y-0.5">
+                                          {elems.map((e: any) => {
+                                            const statusColor = e.isStrength ? '#10B981' : e.isPlanning ? '#3B82F6' : e.isAssessing ? '#F59E0B' : e.isUnsure ? '#8B5CF6' : '#F87171';
+                                            const statusLabel = e.isStrength ? 'In Place' : e.isPlanning ? 'In Dev' : e.isAssessing ? 'Review' : e.isUnsure ? 'Confirm' : 'Not Planned';
+                                            return (
+                                              <div key={e.name} className="flex items-start gap-2 py-0.5">
+                                                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: statusColor }} />
+                                                <span className="text-[11px] text-slate-600 flex-1 leading-tight">{e.name}</span>
+                                                <span className="text-[10px] font-medium flex-shrink-0" style={{ color: statusColor }}>{statusLabel}</span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })()}
                           </div>
                         );
                       })}
