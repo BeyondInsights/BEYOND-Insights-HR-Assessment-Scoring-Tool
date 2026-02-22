@@ -4930,96 +4930,6 @@ export default function ExportReportPage() {
               )}
             </div>
             
-            {/* The 13 Dimensions Overview — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
-              <button 
-                onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The 13 Dimensions of Workplace Cancer Support</span>
-                  </div>
-                </div>
-                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showDimensionsOverview ? 'rotate-180' : ''}`}>
-                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </button>
-              
-              {showDimensionsOverview && (
-                <div className="mt-4 pb-1">
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <div className="p-6">
-                      {/* Lead-in text */}
-                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                        Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
-                      </p>
-                      
-                      {/* Dimensions Grid - 3x4 + 1 */}
-                      <div className="grid grid-cols-3 gap-4">
-                        {[
-                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
-                          { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
-                          { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
-                          { dim: 4, name: 'Cancer Support Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
-                          { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
-                          { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
-                          { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
-                          { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
-                          { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
-                          { dim: 10, name: 'Caregiver & Family Support', color: '#F59E0B', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
-                          { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
-                          { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
-                          { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
-                        ].map((d) => {
-                          const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
-                          const elementCount = dimData?.elements?.length || 0;
-                          const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
-                          return (
-                            <div 
-                              key={d.dim}
-                              className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all"
-                            >
-                              <div className="flex items-center gap-3 mb-2">
-                                <div 
-                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
-                                  style={{ backgroundColor: d.color }}
-                                >
-                                  {d.dim}
-                                </div>
-                                <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
-                              </div>
-                              <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                  <span>{elementCount} support elements</span>
-                                </div>
-                                <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <p className="text-sm text-slate-600">
-                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
             
                         {/* The Three Levels of Workplace Support — Collapsible (Tier View only) */}
             {tierView && (
@@ -5148,6 +5058,96 @@ export default function ExportReportPage() {
               )}
             </div>
             )}
+            {/* The 13 Dimensions Overview — Collapsible */}
+            <div className="px-12 py-5 bg-white border-b border-slate-200">
+              <button 
+                onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The 13 Dimensions of Workplace Cancer Support</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showDimensionsOverview ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showDimensionsOverview && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-6">
+                      {/* Lead-in text */}
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
+                      </p>
+                      
+                      {/* Dimensions Grid - 3x4 + 1 */}
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
+                          { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
+                          { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
+                          { dim: 4, name: 'Cancer Support Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
+                          { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
+                          { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
+                          { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
+                          { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
+                          { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
+                          { dim: 10, name: 'Caregiver & Family Support', color: '#F59E0B', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
+                          { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
+                          { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
+                          { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
+                        ].map((d) => {
+                          const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
+                          const elementCount = dimData?.elements?.length || 0;
+                          const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
+                          return (
+                            <div 
+                              key={d.dim}
+                              className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all"
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <div 
+                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
+                                  style={{ backgroundColor: d.color }}
+                                >
+                                  {d.dim}
+                                </div>
+                                <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
+                              </div>
+                              <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                  <span>{elementCount} support elements</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <p className="text-sm text-slate-600">
+                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* How to Use This Report — Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
@@ -5942,20 +5942,17 @@ export default function ExportReportPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-base font-bold text-slate-900">Workplace Support Index</h3>
-                          <p className="text-sm text-slate-500 mt-0.5">Composite performance across Core, Enhanced, and Advanced Support</p>
+                          <p className="text-sm text-slate-500 mt-0.5">Composite performance across Core, Enhanced, and Advanced Support Elements</p>
                         </div>
                         <div className="flex items-center gap-5">
-                          <div className="text-center px-5 py-2 rounded-xl bg-slate-900">
-                            <p className="text-3xl font-bold text-white">{compositeScore}</p>
-                            <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">Composite</p>
+                          <div className="text-center px-6 py-3 rounded-xl bg-slate-900">
+                            <p className="text-4xl font-bold text-white">{compositeScore}</p>
+                            <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold">Index Score</p>
                           </div>
-                          <span className="text-slate-300 text-xl">=</span>
-                          {tiers.map((t) => (
-                            <div key={t.key} className="text-center px-3 py-2 rounded-lg border" style={{ borderColor: t.border, backgroundColor: t.light }}>
-                              <p className="text-2xl font-bold" style={{ color: t.color }}>{t.score}</p>
-                              <p className="text-xs font-semibold" style={{ color: t.color }}>{t.name.split(' ')[0]}</p>
-                            </div>
-                          ))}
+                          <div className="text-center px-5 py-3 rounded-xl border-2" style={{ borderColor: rating.color, backgroundColor: rating.color + '08' }}>
+                            <p className="text-xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
+                            <p className="text-xs text-slate-500 font-medium">Support Rating</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -5973,24 +5970,9 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* At a glance — consultant takeaway */}
-                    <div className="px-8 py-4 border-b border-slate-100">
-                      <p className="text-sm text-slate-600 leading-relaxed">
-                        <span className="font-semibold text-slate-800">At a glance:</span>{' '}
-                        {coreScoreCalc >= 70 
-                          ? 'Your overall score is driven by strong Core coverage' 
-                          : coreScoreCalc >= 50 
-                          ? 'Core coverage provides a moderate foundation'
-                          : 'Building Core coverage is the first priority'
-                        }
-                        {enhancedScoreCalc >= 50 
-                          ? ' and solid Enhanced supports' 
-                          : ' with developing Enhanced supports'
-                        }; the biggest lift will come from {advancedScoreCalc < coreScoreCalc * 0.6 
-                          ? 'selectively expanding Advanced practices' 
-                          : 'deepening consistency across Enhanced and Advanced supports'
-                        }.
-                      </p>
+                    {/* Score breakdown intro */}
+                    <div className="px-8 py-3 border-b border-slate-100">
+                      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Score Breakdown by Support Level</p>
                     </div>
                     
                     {/* Three Level Cards — rich detail */}
@@ -6024,9 +6006,9 @@ export default function ExportReportPage() {
                               
                               {/* Benchmark marker above bar */}
                               {benchAvg > 0 && (
-                                <div className="relative w-full h-4 mb-0.5">
+                                <div className="relative w-full h-3 mb-0">
                                   <div className="absolute" style={{ left: `${Math.min(benchPct, 100)}%`, transform: 'translateX(-50%)', bottom: 0 }}>
-                                    <div style={{ width: 0, height: 0, borderLeft: '5px solid transparent', borderRight: '5px solid transparent', borderBottom: '6px solid #475569' }} />
+                                    <div style={{ width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: '5px solid #64748B' }} />
                                   </div>
                                 </div>
                               )}
