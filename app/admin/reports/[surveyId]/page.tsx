@@ -6539,7 +6539,7 @@ export default function ExportReportPage() {
                                           <span className="text-xs font-semibold text-slate-700 truncate">{dimInfo?.name || `Dimension ${dimNum}`}</span>
                                           <span className="text-[10px] text-slate-400 flex-shrink-0">{elems.length} element{elems.length !== 1 ? 's' : ''}</span>
                                         </div>
-                                        <div className="pl-7 space-y-0.5">
+                                        <div className="pl-2 space-y-0.5 mt-1">
                                           {elems.map((e: any) => {
                                             const statusColor = e.isStrength ? '#10B981' : e.isPlanning ? '#3B82F6' : e.isAssessing ? '#F59E0B' : e.isUnsure ? '#8B5CF6' : '#F87171';
                                             const statusLabel = e.isStrength ? 'In Place' : e.isPlanning ? 'In Dev' : e.isAssessing ? 'Review' : e.isUnsure ? 'Confirm' : 'Not Planned';
