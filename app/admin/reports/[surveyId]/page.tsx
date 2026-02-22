@@ -4553,14 +4553,31 @@ export default function ExportReportPage() {
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
 
   // === TIER VIEW: Overall Support Rating computation ===
-  const _allElemsForRating = dimensionAnalysis?.flatMap((d: any) => (d.elements || []).map((e: any) => ({ ...e }))) || [];
+  const _allElemsForRating = dimensionAnalysis?.flatMap((d: any) => (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))) || [];
   const _tierCalc = (level: string) => {
     const elems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === level);
     if (elems.length === 0) return 0;
     const maxPts = elems.length * 5;
     let pts = 0;
-    elems.forEach((e: any) => { if (e.isStrength) pts += 5; else if (e.isPlanning) pts += 3; else if (e.isAssessing) pts += 2; });
-    return maxPts > 0 ? Math.round((pts / maxPts) * 1000) / 10 : 0;
+    // Include unsure substitution for flat scores
+    const _dimCR: Record<number, number> = {};
+    for (let d = 1; d <= 13; d++) {
+      const de = _allElemsForRating.filter((e: any) => e.dim === d);
+      if (de.length === 0) { _dimCR[d] = 1; continue; }
+      _dimCR[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
+    }
+    elems.forEach((e: any) => {
+      if (e.isUnsure) {
+        const ew = ELEMENT_DIM_WEIGHTS[e.name];
+        const dn = ew ? ew[0] : (e.dim || 1);
+        const mu = TIER_MEANS[dn]?.[level] || 0;
+        const cr = _dimCR[dn] || 0;
+        pts += mu * cr * cr;
+      } else if (e.isStrength) pts += 5;
+      else if (e.isPlanning) pts += 3;
+      else if (e.isAssessing) pts += 2;
+    });
+    return maxPts > 0 ? Math.round(pts / maxPts * 100) : 0;
   };
   const coreScoreCalc = _tierCalc('core');
   const enhancedScoreCalc = _tierCalc('enhanced');
@@ -4584,13 +4601,10 @@ export default function ExportReportPage() {
   
   // WSI — weighted element-level computation using dimension × element weights + unsure substitution
   const _dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
-  // Compute per-dimension confirm rates
+  // Compute per-dimension confirm rates using element .dim
   const _dimConfirmRates: Record<number, number> = {};
   for (let d = 1; d <= 13; d++) {
-    const dimElems = _allElemsForRating.filter((e: any) => {
-      const ew = ELEMENT_DIM_WEIGHTS[e.name];
-      return ew ? ew[0] === d : false;
-    });
+    const dimElems = _allElemsForRating.filter((e: any) => e.dim === d);
     if (dimElems.length === 0) { _dimConfirmRates[d] = 1; continue; }
     const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
     _dimConfirmRates[d] = confirmed / dimElems.length;
@@ -6192,11 +6206,10 @@ export default function ExportReportPage() {
                 
                 // WSI = sum of three weighted level contributions (equals Full Composite when all elements matched)
                 const wsiScore = coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib;
-                // Implied level weights for display (from element × dimension weight framework)
-                const totalWeight = (coreData.wsiContrib + enhData.wsiContrib + advData.wsiContrib) || 1;
-                const M_CORE_PCT = wsiScore > 0 ? Math.round(coreData.wsiContrib / wsiScore * 100) : 35;
-                const M_ENH_PCT = wsiScore > 0 ? Math.round(enhData.wsiContrib / wsiScore * 100) : 50;
-                const M_ADV_PCT = wsiScore > 0 ? Math.round(100 - M_CORE_PCT - M_ENH_PCT) : 15;
+                // Fixed implied level weights from element × dimension weight framework
+                const M_CORE_PCT = 35;
+                const M_ENH_PCT = 50;
+                const M_ADV_PCT = 15;
                 const rating = getRating();
                 
                 // Benchmark: compute tier scores for ALL complete companies
@@ -6245,18 +6258,20 @@ export default function ExportReportPage() {
                 
                 return (
                   <div className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-                    {/* Header: WSI = Core + Enhanced + Advanced + Rating */}
-                    <div className="px-8 py-5 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
+                    {/* Header: WSI + Benchmark + Rating */}
+                    <div className="px-8 py-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-200">
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-bold text-slate-900">Workplace Support Index</h3>
-                          <p className="text-sm text-slate-500 mt-0.5">
-                            Benchmark: 59
-                            <span className="text-slate-400 mx-2">|</span>
-                            Weighted across 13 dimensions and {coreData.total + enhData.total + advData.total} support elements
-                          </p>
+                          <p className="text-sm text-slate-500 mt-0.5">Weighted across 13 dimensions and {coreData.total + enhData.total + advData.total} support elements</p>
                         </div>
-                        <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-4">
+                          {/* Benchmark box */}
+                          <div className="text-center px-5 py-3 rounded-xl bg-slate-200 border border-slate-300">
+                            <p className="text-3xl font-bold text-slate-600">59</p>
+                            <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold mt-0.5">Benchmark</p>
+                          </div>
+                          {/* Score box */}
                           <div className="text-center px-7 py-4 rounded-xl bg-slate-900 shadow-lg">
                             <p className="text-5xl font-bold text-white">{wsiScore}</p>
                             <p className="text-xs text-slate-400 uppercase tracking-wide font-semibold mt-1">Index Score</p>
@@ -6269,6 +6284,7 @@ export default function ExportReportPage() {
                               ) : null;
                             })()}
                           </div>
+                          {/* Rating box */}
                           <div className="text-center px-5 py-3 rounded-xl border-2" style={{ borderColor: rating.color, backgroundColor: rating.color + '08' }}>
                             <p className="text-xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
                             <p className="text-xs text-slate-500 font-medium">Support Rating</p>
@@ -6277,16 +6293,19 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Overall Support Rating — single row */}
-                    <div className="px-8 py-4 border-b border-slate-200 flex items-center gap-4" style={{ background: `linear-gradient(135deg, ${rating.color}06 0%, white 100%)` }}>
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: rating.color }}>
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm">
-                          <span className="font-bold" style={{ color: rating.color }}>Overall Support Rating: {rating.label}</span>
-                          <span className="text-slate-500 ml-2">— {rating.desc}</span>
-                        </p>
+                    {/* Overall Support Rating — polished */}
+                    <div className="px-8 py-5 border-b border-slate-200" style={{ background: `linear-gradient(135deg, ${rating.color}05 0%, white 50%, ${rating.color}03 100%)` }}>
+                      <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: rating.color }}>
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Overall Support Rating</span>
+                            <span className="text-base font-bold" style={{ color: rating.color }}>{rating.label}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 leading-relaxed">{rating.desc}</p>
+                        </div>
                       </div>
                     </div>
                     
@@ -6337,7 +6356,7 @@ export default function ExportReportPage() {
                                 <div className="h-full rounded-full" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                               </div>
                               {benchAvg > 0 && (
-                                <p className="text-xs text-slate-400 text-right mb-3">▲ Benchmark avg: {Math.round(benchAvg)}</p>
+                                <p className="text-xs text-slate-400 text-right mb-3">▼ Benchmark avg: {Math.round(benchAvg)}</p>
                               )}
                               
                               {/* Stats row: percentile, diff, level weight */}
@@ -6373,41 +6392,31 @@ export default function ExportReportPage() {
                             {/* Status counts footer - row per status */}
                             <div className="px-5 pt-3 pb-3 space-y-1.5" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
                               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Element Status</p>
-                              {t.inPlace > 0 && (
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-                                  <span className="text-xs text-slate-600">In Place:</span>
+                                  <span className="text-xs text-slate-600 flex-1">In Place</span>
                                   <span className="text-xs font-bold text-emerald-700">{t.inPlace}</span>
                                 </div>
-                              )}
-                              {t.inDev > 0 && (
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-                                  <span className="text-xs text-slate-600">In Development:</span>
-                                  <span className="text-xs font-bold text-blue-700">{t.inDev}</span>
+                                  <span className="text-xs text-slate-600 flex-1">In Development</span>
+                                  <span className={`text-xs font-bold ${t.inDev > 0 ? 'text-blue-700' : 'text-slate-300'}`}>{t.inDev}</span>
                                 </div>
-                              )}
-                              {t.review > 0 && (
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" />
-                                  <span className="text-xs text-slate-600">Under Review:</span>
-                                  <span className="text-xs font-bold text-amber-700">{t.review}</span>
+                                  <span className="text-xs text-slate-600 flex-1">Under Review</span>
+                                  <span className={`text-xs font-bold ${t.review > 0 ? 'text-amber-700' : 'text-slate-300'}`}>{t.review}</span>
                                 </div>
-                              )}
-                              {t.gaps > 0 && (
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0" />
-                                  <span className="text-xs text-slate-600">Not Planned:</span>
-                                  <span className="text-xs font-bold text-red-600">{t.gaps}</span>
+                                  <span className="text-xs text-slate-600 flex-1">Not Planned</span>
+                                  <span className={`text-xs font-bold ${t.gaps > 0 ? 'text-red-600' : 'text-slate-300'}`}>{t.gaps}</span>
                                 </div>
-                              )}
-                              {t.toConfirm > 0 && (
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-violet-500 flex-shrink-0" />
-                                  <span className="text-xs text-slate-600">To Confirm:</span>
-                                  <span className="text-xs font-bold text-violet-700">{t.toConfirm}</span>
+                                  <span className="text-xs text-slate-600 flex-1">To Confirm</span>
+                                  <span className={`text-xs font-bold ${t.toConfirm > 0 ? 'text-violet-700' : 'text-slate-300'}`}>{t.toConfirm}</span>
                                 </div>
-                              )}
                             </div>
                           </div>
                         );
