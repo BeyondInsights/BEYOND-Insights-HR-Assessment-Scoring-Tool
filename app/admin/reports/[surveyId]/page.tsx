@@ -4608,25 +4608,70 @@ export default function ExportReportPage() {
   [..._enhElems, ..._advElems].forEach((e: any) => { if (e.isStrength) _piPts += 5; else if (e.isPlanning) _piPts += 3; else if (e.isAssessing) _piPts += 2; });
   const progInnovScoreCalc = _piMax > 0 ? Math.round((_piPts / _piMax) * 1000) / 10 : 0;
 
-  // WSI — weighted element-level computation using dimension × element weights + unsure substitution
-  let _wsiHeaderContrib = 0;
-  _allElemsForRating.forEach((e: any) => {
-    const ew = ELEMENT_DIM_WEIGHTS[e.name];
-    if (ew) {
-      const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _dimWtTotal;
-      const level = getElementLevel(e.name);
+  // WSI — matches page 166 scoring: per-dimension element-weighted scores + geo + follow-up + maturity/breadth
+  // Step 1: Compute per-dimension element-weighted raw scores with unsure substitution
+  const _dimElemScores: Record<number, number> = {};
+  for (let d = 1; d <= 13; d++) {
+    const dimElems = _allElemsForRating.filter((e: any) => e.dim === d);
+    if (dimElems.length === 0) { _dimElemScores[d] = 0; continue; }
+    let wEarned = 0, wMax = 0;
+    dimElems.forEach((e: any) => {
+      const ew = ELEMENT_DIM_WEIGHTS[e.name];
+      const elemWt = ew ? ew[1] : (1 / dimElems.length);
       if (e.isUnsure) {
-        const mu = TIER_MEANS[ew[0]]?.[level] || 0;
-        const cr = _dimConfirmRates[ew[0]] || 0;
-        _wsiHeaderContrib += dimWt * ew[1] * (mu * cr * cr / 5);
+        // Unsure substitution: credit based on tier mean × confirm rate²
+        const level = getElementLevel(e.name);
+        const mu = TIER_MEANS[d]?.[level] || 0;
+        const cr = _dimConfirmRates[d] || 0;
+        wEarned += (mu * cr * cr) * elemWt; // on 0-5 scale
+        wMax += 5 * elemWt;
       } else {
-        const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
-        _wsiHeaderContrib += dimWt * ew[1] * statusNorm;
+        const pts = e.isStrength ? 5 : e.isPlanning ? 3 : e.isAssessing ? 2 : 0;
+        wEarned += pts * elemWt;
+        wMax += 5 * elemWt;
       }
-    }
-  });
-  const wsiScoreHeader = Math.round(_wsiHeaderContrib * 100);
+    });
+    _dimElemScores[d] = wMax > 0 ? Math.round((wEarned / wMax) * 100) : 0;
+  }
+  
+  // Step 2: Apply geo multipliers
+  for (let d = 1; d <= 13; d++) {
+    const geoMult = geoMultipliers?.[d] ?? 1.0;
+    _dimElemScores[d] = Math.round(_dimElemScores[d] * geoMult);
+  }
+  
+  // Step 3: Apply follow-up blending for D1, D3, D12, D13
+  if (company) {
+    [1, 3, 12, 13].forEach(d => {
+      const followUp = calculateFollowUpScore(d, company);
+      if (followUp !== null) {
+        const key = `d${d}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+        const gridPct = DEFAULT_BLEND_WEIGHTS[key]?.grid ?? 85;
+        const followUpPct = DEFAULT_BLEND_WEIGHTS[key]?.followUp ?? 15;
+        _dimElemScores[d] = Math.round((_dimElemScores[d] * (gridPct / 100)) + (followUp * (followUpPct / 100)));
+      }
+    });
+  }
+  
+  // Step 4: Combine dimensions using dimension weights
+  let _wsiWeightedDim = 0;
+  for (let d = 1; d <= 13; d++) {
+    const dimWt = (DEFAULT_DIMENSION_WEIGHTS[d] || 0) / _dimWtTotal;
+    _wsiWeightedDim += _dimElemScores[d] * dimWt;
+  }
+  _wsiWeightedDim = Math.round(_wsiWeightedDim);
+  
+  // Step 5: Final composite = weightedDim × 90% + maturity × 5% + breadth × 5%
+  const _wsiMaturity = typeof maturityScore === 'number' ? maturityScore : 0;
+  const _wsiBreadth = typeof breadthScore === 'number' ? breadthScore : 0;
+  const wsiScoreHeader = Math.round(
+    (_wsiWeightedDim * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+    (_wsiMaturity * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+    (_wsiBreadth * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+  );
+  
   // Per-level WSI contributions (computed once, reused in WSI section)
+  // These use the raw element × dimension weighted approach for level breakdown
   const _wsiLevelContribs = { core: 0, enhanced: 0, advanced: 0 };
   _allElemsForRating.forEach((e: any) => {
     const ew = ELEMENT_DIM_WEIGHTS[e.name];
