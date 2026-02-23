@@ -3953,7 +3953,9 @@ export default function ExportReportPage() {
               try {
                 const compResult = calculateCompanyScores(a);
                 if (!compResult?.scores || !compResult?.elements) return null;
-                const compElems = Object.values(compResult.elements).flat() as any[];
+                const compElems = Object.entries(compResult.elements).flatMap(([dimStr, elems]: [string, any]) => 
+                  (elems as any[]).map((e: any) => ({ ...e, dim: parseInt(dimStr) }))
+                );
                 
                 // Per-dimension confirm rates
                 const crRates: Record<number, number> = {};
@@ -6452,7 +6454,9 @@ export default function ExportReportPage() {
                     try {
                       const compScores = calculateCompanyScores(a);
                       if (!compScores?.elements) return;
-                      const compElems = Object.values(compScores.elements).flat() as any[];
+                      const compElems = Object.entries(compScores.elements).flatMap(([dimStr, elems]: [string, any]) => 
+                        (elems as any[]).map((e: any) => ({ ...e, dim: parseInt(dimStr) }))
+                      );
                       // Compute per-dimension confirm rates for this company
                       const bDimCR: Record<number, number> = {};
                       for (let d = 1; d <= 13; d++) {
