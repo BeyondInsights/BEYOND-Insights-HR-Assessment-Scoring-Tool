@@ -4029,14 +4029,31 @@ export default function ExportReportPage() {
           }).filter(s => s !== null) as number[];
           
           if (allWSIScores.length > 0) {
+            console.log('[WSI Distribution Debug]', { wsiScores: allWSIScores, classicScores: allComposites, wsiCount: allWSIScores.length, classicCount: allComposites.length });
             setAllWSIScoresState(allWSIScores);
             setTotalCompanies(allWSIScores.length);
           }
           
-          // Classic percentile fallback (will be overridden in render for tier view)
+          // Classic view: percentile + distribution from old composites
           if (allComposites.length > 0 && scores.compositeScore) {
             const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
             setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
+            const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
+            allComposites.forEach(score => {
+              if (score >= 90) tierCounts.exemplary++;
+              else if (score >= 75) tierCounts.leading++;
+              else if (score >= 60) tierCounts.progressing++;
+              else if (score >= 40) tierCounts.emerging++;
+              else tierCounts.developing++;
+            });
+            const total = allComposites.length;
+            setTierDistribution({
+              exemplary: Math.round((tierCounts.exemplary / total) * 100),
+              leading: Math.round((tierCounts.leading / total) * 100),
+              progressing: Math.round((tierCounts.progressing / total) * 100),
+              emerging: Math.round((tierCounts.emerging / total) * 100),
+              developing: Math.round((tierCounts.developing / total) * 100),
+            });
           }
         }
         
@@ -4763,7 +4780,8 @@ export default function ExportReportPage() {
   const wsiPercentile = allWSIScoresState.length > 0
     ? Math.round(allWSIScoresState.filter(s => s < wsiScoreHeader).length / allWSIScoresState.length * 100)
     : percentileRank;
-  const wsiTierDistribution = allWSIScoresState.length > 0 ? (() => {
+  // WSI-based tier distribution (for tier view)
+  const _wsiTierDist = allWSIScoresState.length > 0 ? (() => {
     const tc = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
     allWSIScoresState.forEach(s => {
       if (s >= 90) tc.exemplary++; else if (s >= 75) tc.leading++; else if (s >= 60) tc.progressing++; else if (s >= 40) tc.emerging++; else tc.developing++;
@@ -4776,7 +4794,9 @@ export default function ExportReportPage() {
       emerging: Math.round((tc.emerging / t) * 100),
       developing: Math.round((tc.developing / t) * 100),
     };
-  })() : tierDistribution;
+  })() : null;
+  // Use WSI distribution when in tier view, classic distribution otherwise
+  const wsiTierDistribution = tierView ? (_wsiTierDist || tierDistribution) : tierDistribution;
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
