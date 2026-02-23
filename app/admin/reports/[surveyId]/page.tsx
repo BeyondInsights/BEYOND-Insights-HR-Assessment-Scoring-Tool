@@ -4562,30 +4562,40 @@ export default function ExportReportPage() {
 
   // === TIER VIEW: Overall Support Rating computation ===
   const _allElemsForRating = dimensionAnalysis?.flatMap((d: any) => (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))) || [];
+  
+  // Pre-compute shared values needed by both _tierCalc and WSI computation
+  const _dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
+  const _dimConfirmRates: Record<number, number> = {};
+  for (let d = 1; d <= 13; d++) {
+    const dimElems = _allElemsForRating.filter((e: any) => e.dim === d);
+    if (dimElems.length === 0) { _dimConfirmRates[d] = 1; continue; }
+    const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
+    _dimConfirmRates[d] = confirmed / dimElems.length;
+  }
+  
   const _tierCalc = (level: string) => {
     const elems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === level);
     if (elems.length === 0) return 0;
-    const maxPts = elems.length * 5;
-    let pts = 0;
-    // Include unsure substitution for flat scores
-    const _dimCR: Record<number, number> = {};
-    for (let d = 1; d <= 13; d++) {
-      const de = _allElemsForRating.filter((e: any) => e.dim === d);
-      if (de.length === 0) { _dimCR[d] = 1; continue; }
-      _dimCR[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
-    }
+    // Element-weighted score: sum(w_e * score_e) / sum(w_e) * 100
+    let weightedNum = 0;
+    let weightedDen = 0;
     elems.forEach((e: any) => {
+      const ew = ELEMENT_DIM_WEIGHTS[e.name];
+      // Weight = dim_weight * element_within_dim_weight (or equal weight if no mapping)
+      const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _dimWtTotal) * ew[1] : (1 / elems.length);
+      let scoreNorm = 0;
       if (e.isUnsure) {
-        const ew = ELEMENT_DIM_WEIGHTS[e.name];
         const dn = ew ? ew[0] : (e.dim || 1);
         const mu = TIER_MEANS[dn]?.[level] || 0;
-        const cr = _dimCR[dn] || 0;
-        pts += mu * cr * cr;
-      } else if (e.isStrength) pts += 5;
-      else if (e.isPlanning) pts += 3;
-      else if (e.isAssessing) pts += 2;
+        const cr = _dimConfirmRates[dn] || 0;
+        scoreNorm = (mu * cr * cr) / 5;
+      } else if (e.isStrength) scoreNorm = 1;
+      else if (e.isPlanning) scoreNorm = 0.6;
+      else if (e.isAssessing) scoreNorm = 0.4;
+      weightedNum += w * scoreNorm;
+      weightedDen += w;
     });
-    return maxPts > 0 ? Math.round(pts / maxPts * 100) : 0;
+    return weightedDen > 0 ? Math.round((weightedNum / weightedDen) * 100) : 0;
   };
   const coreScoreCalc = _tierCalc('core');
   const enhancedScoreCalc = _tierCalc('enhanced');
@@ -4598,17 +4608,7 @@ export default function ExportReportPage() {
   [..._enhElems, ..._advElems].forEach((e: any) => { if (e.isStrength) _piPts += 5; else if (e.isPlanning) _piPts += 3; else if (e.isAssessing) _piPts += 2; });
   const progInnovScoreCalc = _piMax > 0 ? Math.round((_piPts / _piMax) * 1000) / 10 : 0;
 
-  // Rating gates use Enhanced alone (validated against v3.0 spreadsheet)
   // WSI — weighted element-level computation using dimension × element weights + unsure substitution
-  const _dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
-  // Compute per-dimension confirm rates using element .dim
-  const _dimConfirmRates: Record<number, number> = {};
-  for (let d = 1; d <= 13; d++) {
-    const dimElems = _allElemsForRating.filter((e: any) => e.dim === d);
-    if (dimElems.length === 0) { _dimConfirmRates[d] = 1; continue; }
-    const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
-    _dimConfirmRates[d] = confirmed / dimElems.length;
-  }
   let _wsiHeaderContrib = 0;
   _allElemsForRating.forEach((e: any) => {
     const ew = ELEMENT_DIM_WEIGHTS[e.name];
@@ -6249,10 +6249,9 @@ export default function ExportReportPage() {
                 const tierCalc = (level: string) => {
                   const elems = allElems.filter((e: any) => getElementLevel(e.name) === level);
                   if (elems.length === 0) return { score: 0, total: 0, inPlace: 0, inDev: 0, review: 0, toConfirm: 0, gaps: 0, wsiContrib: 0 };
-                  const maxPts = elems.length * 5;
-                  let pts = 0;
                   let inPlace = 0, inDev = 0, review = 0, toConfirm = 0, gaps = 0;
                   let weightedContrib = 0;
+                  let weightedNum = 0, weightedDen = 0;
                   const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
                   
                   // Compute per-dimension confirm rates for unsure substitution
@@ -6267,38 +6266,41 @@ export default function ExportReportPage() {
                   elems.forEach((e: any) => {
                     const ew = ELEMENT_DIM_WEIGHTS[e.name];
                     const dimNum = ew ? ew[0] : (e.dim || 1);
+                    // Element weight for within-level weighted score
+                    const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / elems.length);
+                    let scoreNorm = 0;
                     
                     if (e.isUnsure) {
                       toConfirm++;
-                      // Unsure substitution: credit = μ_tier,dim × confirm_rate²
                       const mu = TIER_MEANS[dimNum]?.[level] || 0;
                       const cr = dimConfirmRates[dimNum] || 0;
-                      const credit = mu * cr * cr; // on 0-5 scale
-                      pts += credit;
-                      // Weighted contribution for WSI
+                      scoreNorm = (mu * cr * cr) / 5;
+                      // WSI contribution
                       if (ew) {
                         const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
-                        weightedContrib += dimWt * ew[1] * (credit / 5);
+                        weightedContrib += dimWt * ew[1] * scoreNorm;
                       }
-                    } else if (e.isStrength) { pts += 5; inPlace++; }
-                    else if (e.isPlanning) { pts += 3; inDev++; }
-                    else if (e.isAssessing) { pts += 2; review++; }
+                    } else if (e.isStrength) { scoreNorm = 1; inPlace++; }
+                    else if (e.isPlanning) { scoreNorm = 0.6; inDev++; }
+                    else if (e.isAssessing) { scoreNorm = 0.4; review++; }
                     else {
                       gaps++;
-                      // Gap = 0 points, 0 weighted contribution
+                      scoreNorm = 0;
                     }
                     
-                    // Weighted contribution for WSI (non-Unsure elements)
+                    weightedNum += w * scoreNorm;
+                    weightedDen += w;
+                    
+                    // WSI contribution for non-Unsure elements
                     if (!e.isUnsure && ew) {
                       const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
-                      const statusNorm = e.isStrength ? 1 : e.isPlanning ? 0.6 : e.isAssessing ? 0.4 : 0;
-                      weightedContrib += dimWt * ew[1] * statusNorm;
+                      weightedContrib += dimWt * ew[1] * scoreNorm;
                     }
                   });
                   return { 
-                    score: maxPts > 0 ? Math.round(pts / maxPts * 100) : 0, 
+                    score: weightedDen > 0 ? Math.round((weightedNum / weightedDen) * 100) : 0, 
                     total: elems.length, inPlace, inDev, review, toConfirm, gaps,
-                    wsiContrib: Math.round(weightedContrib * 100)  // contribution to WSI (0-100 scale, whole number)
+                    wsiContrib: Math.round(weightedContrib * 100)
                   };
                 };
                 
@@ -6317,20 +6319,39 @@ export default function ExportReportPage() {
                 const tierBenchmarks = { core: [] as number[], enhanced: [] as number[], advanced: [] as number[] };
                 try {
                   const allAssessments = (window as any).__allAssessments || [];
+                  const _bDimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
                   allAssessments.forEach((a: any) => {
                     try {
                       const compScores = calculateCompanyScores(a);
                       if (!compScores?.elements) return;
                       const compElems = Object.values(compScores.elements).flat() as any[];
+                      // Compute per-dimension confirm rates for this company
+                      const bDimCR: Record<number, number> = {};
+                      for (let d = 1; d <= 13; d++) {
+                        const de = compElems.filter((e: any) => e.dim === d || (ELEMENT_DIM_WEIGHTS[e.name] && ELEMENT_DIM_WEIGHTS[e.name][0] === d));
+                        if (de.length === 0) { bDimCR[d] = 1; continue; }
+                        bDimCR[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
+                      }
                       (['core', 'enhanced', 'advanced'] as const).forEach(level => {
                         const lElems = compElems.filter((e: any) => getElementLevel(e.name) === level);
                         if (lElems.length === 0) return;
-                        const max = lElems.length * 5;
-                        let p = 0;
+                        let wNum = 0, wDen = 0;
                         lElems.forEach((e: any) => {
-                          if (e.isStrength) p += 5; else if (e.isPlanning) p += 3; else if (e.isAssessing) p += 2;
+                          const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                          const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _bDimWtTotal) * ew[1] : (1 / lElems.length);
+                          let sn = 0;
+                          if (e.isUnsure) {
+                            const dn = ew ? ew[0] : 1;
+                            const mu = TIER_MEANS[dn]?.[level] || 0;
+                            const cr = bDimCR[dn] || 0;
+                            sn = (mu * cr * cr) / 5;
+                          } else if (e.isStrength) sn = 1;
+                          else if (e.isPlanning) sn = 0.6;
+                          else if (e.isAssessing) sn = 0.4;
+                          wNum += w * sn;
+                          wDen += w;
                         });
-                        tierBenchmarks[level].push(max > 0 ? Math.round(p / max * 100) : 0);
+                        tierBenchmarks[level].push(wDen > 0 ? Math.round((wNum / wDen) * 100) : 0);
                       });
                     } catch {}
                   });
