@@ -3073,15 +3073,14 @@ function getWSIRating(score: number) {
 
 function SupportLevelBadge({ level }: { level: string }) {
   const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
-  const Icon = config.icon;
+  const label = level === 'core' ? 'Core' : level === 'enhanced' ? 'Enhanced' : 'Advanced';
   return (
     <span
-      className="inline-flex items-center gap-1 text-xs font-semibold px-1.5 py-0.5 rounded"
+      className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap"
       style={{ backgroundColor: config.light, color: config.color, border: `1px solid ${config.border}` }}
       title={config.name}
     >
-      <Icon size={12} />
-      {config.abbr}
+      {label}
     </span>
   );
 }
