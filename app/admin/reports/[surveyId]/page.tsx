@@ -3118,6 +3118,7 @@ export default function ExportReportPage() {
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
   const [tierDistribution, setTierDistribution] = useState<{ exemplary: number; leading: number; progressing: number; emerging: number; developing: number } | null>(null);
+  const [allWSIScoresState, setAllWSIScoresState] = useState<number[]>([]);
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
@@ -3945,32 +3946,95 @@ export default function ExportReportPage() {
           });
           
                     (window as any).__allAssessments = completeAssessments;
+            
+            // Compute WSI scores for all companies using full methodology
+            const _allDimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
+            const allWSIScores = completeAssessments.map(a => {
+              try {
+                const compResult = calculateCompanyScores(a);
+                if (!compResult?.scores || !compResult?.elements) return null;
+                const compElems = Object.values(compResult.elements).flat() as any[];
+                
+                // Per-dimension confirm rates
+                const crRates: Record<number, number> = {};
+                for (let d = 1; d <= 13; d++) {
+                  const de = compElems.filter((e: any) => e.dim === d);
+                  if (de.length === 0) { crRates[d] = 1; continue; }
+                  crRates[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
+                }
+                
+                // Step 1: Per-dim element-weighted scores with unsure sub
+                const dimScores: Record<number, number> = {};
+                for (let d = 1; d <= 13; d++) {
+                  const dimEl = compElems.filter((e: any) => e.dim === d);
+                  if (dimEl.length === 0) { dimScores[d] = 0; continue; }
+                  let wE = 0, wM = 0;
+                  dimEl.forEach((e: any) => {
+                    const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                    const eW = ew ? ew[1] : (1 / dimEl.length);
+                    if (e.isUnsure) {
+                      const lvl = getElementLevel(e.name);
+                      const mu = TIER_MEANS[d]?.[lvl] || 0;
+                      const cr = crRates[d] || 0;
+                      wE += (mu * cr * cr) * eW;
+                    } else {
+                      const pts = e.isStrength ? 5 : e.isPlanning ? 3 : e.isAssessing ? 2 : 0;
+                      wE += pts * eW;
+                    }
+                    wM += 5 * eW;
+                  });
+                  dimScores[d] = wM > 0 ? Math.round((wE / wM) * 100) : 0;
+                }
+                
+                // Step 2: Geo multipliers
+                const gm = compResult.scores.geoMultipliers || {};
+                for (let d = 1; d <= 13; d++) {
+                  dimScores[d] = Math.round(dimScores[d] * (gm[d] ?? 1.0));
+                }
+                
+                // Step 3: Follow-up blending
+                [1, 3, 12, 13].forEach(d => {
+                  const fu = calculateFollowUpScore(d, a);
+                  if (fu !== null) {
+                    const key = `d${d}` as keyof typeof DEFAULT_BLEND_WEIGHTS;
+                    const gP = DEFAULT_BLEND_WEIGHTS[key]?.grid ?? 85;
+                    const fP = DEFAULT_BLEND_WEIGHTS[key]?.followUp ?? 15;
+                    dimScores[d] = Math.round((dimScores[d] * (gP / 100)) + (fu * (fP / 100)));
+                  }
+                });
+                
+                // Step 4: Dimension-weighted composite
+                let wDim = 0;
+                for (let d = 1; d <= 13; d++) {
+                  wDim += dimScores[d] * ((DEFAULT_DIMENSION_WEIGHTS[d] || 0) / _allDimWtTotal);
+                }
+                wDim = Math.round(wDim);
+                
+                // Step 5: 90/5/5 blend
+                const mat = compResult.scores.maturityScore || 0;
+                const brd = compResult.scores.breadthScore || 0;
+                return Math.round(
+                  (wDim * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+                  (mat * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+                  (brd * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+                );
+              } catch { return null; }
+            }).filter(s => s !== null) as number[];
+            
+            // Also compute old composites for classic view
             const allComposites = completeAssessments.map(a => {
             try { return calculateCompanyScores(a).scores.compositeScore; } catch { return null; }
           }).filter(s => s !== null) as number[];
           
+          if (allWSIScores.length > 0) {
+            setAllWSIScoresState(allWSIScores);
+            setTotalCompanies(allWSIScores.length);
+          }
+          
+          // Classic percentile fallback (will be overridden in render for tier view)
           if (allComposites.length > 0 && scores.compositeScore) {
             const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
             setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
-            setTotalCompanies(allComposites.length);
-            
-            // Calculate tier distribution across all participating companies
-            const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
-            allComposites.forEach(score => {
-              if (score >= 90) tierCounts.exemplary++;
-              else if (score >= 75) tierCounts.leading++;
-              else if (score >= 60) tierCounts.progressing++;
-              else if (score >= 40) tierCounts.emerging++;
-              else tierCounts.developing++;
-            });
-            const total = allComposites.length;
-            setTierDistribution({
-              exemplary: Math.round((tierCounts.exemplary / total) * 100),
-              leading: Math.round((tierCounts.leading / total) * 100),
-              progressing: Math.round((tierCounts.progressing / total) * 100),
-              emerging: Math.round((tierCounts.emerging / total) * 100),
-              developing: Math.round((tierCounts.developing / total) * 100),
-            });
           }
         }
         
@@ -4692,6 +4756,25 @@ export default function ExportReportPage() {
   const wsiEnhContrib = Math.round(_wsiLevelContribs.enhanced * 100);
   const wsiAdvContrib = Math.round(_wsiLevelContribs.advanced * 100);
   const supportRatingObj = getWSIRating(wsiScoreHeader);
+  
+  // Compute WSI-based percentile and tier distribution during render (wsiScoreHeader now available)
+  const wsiPercentile = allWSIScoresState.length > 0
+    ? Math.round(allWSIScoresState.filter(s => s < wsiScoreHeader).length / allWSIScoresState.length * 100)
+    : percentileRank;
+  const wsiTierDistribution = allWSIScoresState.length > 0 ? (() => {
+    const tc = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
+    allWSIScoresState.forEach(s => {
+      if (s >= 90) tc.exemplary++; else if (s >= 75) tc.leading++; else if (s >= 60) tc.progressing++; else if (s >= 40) tc.emerging++; else tc.developing++;
+    });
+    const t = allWSIScoresState.length;
+    return {
+      exemplary: Math.round((tc.exemplary / t) * 100),
+      leading: Math.round((tc.leading / t) * 100),
+      progressing: Math.round((tc.progressing / t) * 100),
+      emerging: Math.round((tc.emerging / t) * 100),
+      developing: Math.round((tc.developing / t) * 100),
+    };
+  })() : tierDistribution;
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
@@ -5180,11 +5263,11 @@ export default function ExportReportPage() {
                               </div>
                               <div className="space-y-2">
                                 {[
-                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
-                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
-                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
-                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: wsiTierDistribution?.exemplary ?? 0 },
+                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: wsiTierDistribution?.leading ?? 0 },
+                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: wsiTierDistribution?.progressing ?? 0 },
+                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: wsiTierDistribution?.emerging ?? 0 },
+                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: wsiTierDistribution?.developing ?? 0 }
                                 ].map((t) => {
                                   const isCurrent = supportRatingHeader === t.name;
                                   return (
@@ -5226,11 +5309,11 @@ export default function ExportReportPage() {
                           
                           <div className="space-y-2">
                             {[
-                              { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
-                              { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
-                              { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
-                              { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
-                              { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                              { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: wsiTierDistribution?.exemplary ?? 0 },
+                              { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: wsiTierDistribution?.leading ?? 0 },
+                              { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: wsiTierDistribution?.progressing ?? 0 },
+                              { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: wsiTierDistribution?.emerging ?? 0 },
+                              { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: wsiTierDistribution?.developing ?? 0 }
                             ].map((t) => {
                               const isCurrentTier = tier?.name === t.name;
                               return (
@@ -5968,11 +6051,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="space-y-2">
                               {[
-                                { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: tierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.developing ?? 0 }
+                                { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: wsiTierDistribution?.exemplary ?? 0 },
+                                { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: wsiTierDistribution?.leading ?? 0 },
+                                { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: wsiTierDistribution?.progressing ?? 0 },
+                                { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: wsiTierDistribution?.emerging ?? 0 },
+                                { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: wsiTierDistribution?.developing ?? 0 }
                               ].map((t) => {
                                 const isCurrentTier = supportRatingHeader === t.name;
                                 return (
@@ -6014,11 +6097,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="space-y-2">
                               {[
-                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: tierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.developing ?? 0 }
+                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: wsiTierDistribution?.exemplary ?? 0 },
+                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: wsiTierDistribution?.leading ?? 0 },
+                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: wsiTierDistribution?.progressing ?? 0 },
+                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: wsiTierDistribution?.emerging ?? 0 },
+                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: wsiTierDistribution?.developing ?? 0 }
                               ].map((t) => {
                                 const isCurrentTier = tier?.name === t.name;
                                 return (
@@ -6214,8 +6297,8 @@ export default function ExportReportPage() {
                   {/* Part A: What this score means */}
                   <p className="text-slate-700 leading-relaxed text-lg mb-3">
                     {companyName}&apos;s Workplace Support Index is <strong>{wsiScoreHeader}</strong>
-                    {percentileRank !== null && totalCompanies > 1 && (
-                      <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among participating companies</span>
+                    {wsiPercentile !== null && totalCompanies > 1 && (
+                      <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
                     )}. Support is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
                   </p>
                   
@@ -10979,11 +11062,11 @@ export default function ExportReportPage() {
                             
                             <div className="space-y-2">
                               {[
-                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: wsiTierDistribution?.exemplary ?? 0 },
+                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: wsiTierDistribution?.leading ?? 0 },
+                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: wsiTierDistribution?.progressing ?? 0 },
+                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: wsiTierDistribution?.emerging ?? 0 },
+                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: wsiTierDistribution?.developing ?? 0 }
                               ].map((t) => {
                                 const isCurrentTier = tier?.name === t.name;
                                 return (
