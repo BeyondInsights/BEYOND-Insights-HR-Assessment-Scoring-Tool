@@ -70,7 +70,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
         <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-24 text-center text-xs font-medium text-slate-400 uppercase">Tier</div></div>
         <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; return (
           <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
-            <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span></div>
+            <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: '#1E293B' }}>{d.dim}</span></div>
             <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
             <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
@@ -145,13 +145,13 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
         </div>
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 100px)' }}>
           <div className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100 flex-wrap">
-            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-emerald-100 text-emerald-700">{dimension.strengths?.length || 0}</span><span className="text-xs text-slate-500">{tierView ? 'In Place' : 'Offering'}</span></div>
-            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-blue-100 text-blue-700">{dimension.planning?.length || 0}</span><span className="text-xs text-slate-500">{tierView ? 'In Development' : 'Planning'}</span></div>
-            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-violet-100 text-violet-700">{dimension.assessing?.length || 0}</span><span className="text-xs text-slate-500">{tierView ? 'Under Review' : 'Assessing'}</span></div>
+            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-emerald-100 text-emerald-700">{dimension.strengths?.length || 0}</span><span className="text-xs text-slate-500">{'In Place'}</span></div>
+            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-blue-100 text-blue-700">{dimension.planning?.length || 0}</span><span className="text-xs text-slate-500">{'In Development'}</span></div>
+            <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-violet-100 text-violet-700">{dimension.assessing?.length || 0}</span><span className="text-xs text-slate-500">{'Under Review'}</span></div>
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
           <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-400 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-400 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-400 uppercase w-20">Pts</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = tierView ? 'In Place' : 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = tierView ? 'In Development' : 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = tierView ? 'Under Review' : 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = tierView ? 'To Confirm' : 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
+          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'In Place'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'In Development'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Under Review'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'To Confirm'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
         </div>
       </div>
     </div>
@@ -412,7 +412,7 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 
 function getStatusText(status: string | number): string {
   if (typeof status === 'number') {
-    switch (status) { case 4: return 'Currently offer'; case 3: return 'Planning'; case 2: return 'Assessing'; case 1: return 'Gap'; case 5: return 'To clarify'; default: return 'Unknown'; }
+    switch (status) { case 4: return 'In Place'; case 3: return 'In Development'; case 2: return 'Under Review'; case 1: return 'Not Planned'; case 5: return 'To Confirm'; default: return 'Unknown'; }
   }
   return String(status);
 }
@@ -683,8 +683,8 @@ function getActionItemsByAdoption(dimNum: number, dimensionAnalysis: any[], elem
   const benchmarks = elementBenchmarks[dimNum] || {};
   const getPct = (n: string) => { const b = benchmarks[n] || { currently: 0, total: 1 }; return Math.round((b.currently / Math.max(b.total, 1)) * 100); };
   const accel: { name: string; pct: number; from: string; to: string }[] = [];
-  (dim.planning || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Planning', to: 'Offering' }));
-  (dim.assessing || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Assessing', to: 'Planning' }));
+  (dim.planning || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'In Development', to: 'In Place' }));
+  (dim.assessing || []).forEach((el: any) => accel.push({ name: el.name, pct: getPct(el.name), from: 'Under Review', to: 'In Development' }));
   accel.sort((a, b) => b.pct - a.pct);
   const build: { name: string; pct: number }[] = [];
   (dim.gaps || []).forEach((el: any) => build.push({ name: el.name, pct: getPct(el.name) }));
@@ -1860,12 +1860,12 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
 
   const STATUS = {
-    currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: tierView ? 'In Place' : 'Offering' },
-    planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: tierView ? 'In Development' : 'Planning' },
-    assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: tierView ? 'Under Review' : 'Assessing' },
+    currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'In Place' },
+    planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'In Development' },
+    assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Under Review' },
     notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Planned' }
   };
-  const UNSURE_LABEL = tierView ? 'To Confirm' : 'Needs Confirmation';
+  const UNSURE_LABEL = 'To Confirm';
 
   const getStatusInfo = (elem: any) => {
     if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
@@ -1895,16 +1895,16 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
       return `You're among the ${pctPlanning}% in planning; ${pctCurrently}% already offer`;
     }
     if (statusInfo.key === 'assessing') {
-      // Assessing feasibility
+      // Under review
       const aheadPct = pctCurrently + pctPlanning;
       if (aheadPct > 60) return `Decision point: ${aheadPct}% are further along (${pctCurrently}% offer, ${pctPlanning}% planning)`;
-      return `Common inflection point: ${pctAssessing}% also assessing; ${pctCurrently}% already offer`;
+      return `Common inflection point: ${pctAssessing}% also under review; ${pctCurrently}% already offer`;
     }
     // Gap / Not able
     const exploringPct = pctCurrently + pctPlanning + pctAssessing;
     if (pctCurrently > 50) return `Competitive gap: ${pctCurrently}% of participating organizations offer this`;
     if (exploringPct > 60) return `${exploringPct}% are at least exploring this (${pctCurrently}% offer)`;
-    return `Emerging area: ${pctCurrently}% currently offer`;
+    return `Growth area: ${pctCurrently}% currently offer`;
   };
 
   return (
@@ -1937,7 +1937,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   {/* Dimension Number Badge */}
                   <div 
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: isSelected ? '#6366F1' : d.tier.color }}
+                    style={{ backgroundColor: isSelected ? '#6366F1' : '#1E293B' }}
                   >
                     {d.dim}
                   </div>
@@ -2039,9 +2039,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Insight</th>
                           </tr>
                           <tr className="bg-slate-50 border-b border-slate-200">
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>{tierView ? 'In Place' : 'Offering'}</th>
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>{tierView ? 'In Development' : 'Planning'}</th>
-                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>{tierView ? 'Under Review' : 'Assessing'}</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24 border-l border-slate-200" style={{ color: STATUS.currently.bg }}>{'In Place'}</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.planning.bg }}>{'In Development'}</th>
+                            <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.assessing.bg }}>{'Under Review'}</th>
                             <th className="px-4 py-2 text-center text-xs font-bold uppercase tracking-wider w-24" style={{ color: STATUS.notAble.bg }}>Not Planned</th>
                           </tr>
                         </thead>
@@ -2305,7 +2305,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   {/* Dimension Number Badge */}
                   <div 
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: isSelected ? '#6366F1' : d.tier.color }}
+                    style={{ backgroundColor: isSelected ? '#6366F1' : '#1E293B' }}
                   >
                     {d.dim}
                   </div>
@@ -2384,9 +2384,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
                           {tierView && <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Type</th>}
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>{tierView ? 'In Place' : 'Offering'}</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>{tierView ? 'In Development' : 'Planning'}</th>
-                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.assessing.bg }}>{tierView ? 'Under Review' : 'Assessing'}</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>{'In Place'}</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>{'In Development'}</th>
+                          <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.assessing.bg }}>{'Under Review'}</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.notAble.bg }}>Not Currently Planned</th>
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Observation</th>
                         </tr>
@@ -4824,8 +4824,8 @@ export default function ExportReportPage() {
   // Initiatives in progress - sorted: Planning first, then Assessing
   const quickWinOpportunities = dimensionAnalysis
     .flatMap(d => [
-      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning', sortOrder: 1 })),
-      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing', sortOrder: 2 }))
+      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'In Development', sortOrder: 1 })),
+      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Under Review', sortOrder: 2 }))
     ])
     .sort((a, b) => a.sortOrder - b.sortOrder)
     .slice(0, 8);
@@ -6802,7 +6802,7 @@ export default function ExportReportPage() {
                   
                   {/* Top 3 Opportunities */}
                   <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
-                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Highest-Impact Employee Experience Opportunities</p>
+                    <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Top Priorities for Employee Experience Impact</p>
                     <div className="space-y-2">
                       {rankings.slice(0, 3).map((r, idx) => (
                         <div key={r.dimNum} className="flex items-center justify-between">
@@ -7531,11 +7531,11 @@ export default function ExportReportPage() {
             const diff = d.benchmark !== null ? d.score - d.benchmark : null;
             
             const STATUS = {
-              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: tierView ? 'In Place' : 'Offering' },
-              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: tierView ? 'In Development' : 'Planning' },
-              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: tierView ? 'Under Review' : 'Assessing' },
+              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
+              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
+              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
               notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
-              unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: tierView ? 'To Confirm' : 'Needs Confirmation' }
+              unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'To Confirm' }
             };
             
             const getStatusInfo = (elem: any) => {
@@ -7563,10 +7563,10 @@ export default function ExportReportPage() {
                 return { prefix: 'In progress:', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
               }
               if (statusInfo.key === 'assessing') {
-                return { prefix: 'Assessing:', text: `${pctAssessing}% also assessing; ${pctCurrently}% offer`, color: '#D97706' };
+                return { prefix: 'Under Review:', text: `${pctAssessing}% also under review; ${pctCurrently}% offer`, color: '#D97706' };
               }
               if (pctCurrently > 50) return { prefix: 'Gap:', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
-              return { prefix: 'Emerging:', text: `${pctCurrently}% offer`, color: '#6B7280' };
+              return { prefix: 'Growth Area:', text: `${pctCurrently}% offer`, color: '#6B7280' };
             };
             
             // Count by status
@@ -7599,8 +7599,8 @@ export default function ExportReportPage() {
                         </div>
                         {diff !== null && d.benchmark !== null && (
                           <div className="text-right">
-                            <p className={`text-3xl font-bold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>{diff >= 0 ? '+' : ''}{diff}</p>
-                            <p className="text-white/70 text-sm">vs {d.benchmark} benchmark</p>
+                            <p className="text-3xl font-bold text-white/90">{d.benchmark} <span className={`text-lg font-semibold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>({diff >= 0 ? '+' : ''}{diff})</span></p>
+                            <p className="text-white/70 text-sm">Benchmark Score</p>
                           </div>
                         )}
                       </div>
@@ -7615,9 +7615,9 @@ export default function ExportReportPage() {
                     <div className={tierView ? 'col-span-4 text-center' : 'col-span-5 text-center'}>
                       <div>Benchmark Distribution</div>
                       <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{tierView ? 'In Place' : 'Offering'}</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">{tierView ? 'In Development' : 'Planning'}</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">{tierView ? 'Under Review' : 'Assessing'}</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{'In Place'}</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">{'In Development'}</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">{'Under Review'}</span></div>
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
                       </div>
                     </div>
@@ -8029,14 +8029,14 @@ export default function ExportReportPage() {
                   const hasChanges = changesCount > 0;
                   
                   const statusOptions = [
-                    { value: 'currently', label: tierView ? 'In Place' : 'Offering', color: 'emerald' },
-                    { value: 'planning', label: tierView ? 'In Development' : 'Planning', color: 'blue' },
-                    { value: 'assessing', label: tierView ? 'Under Review' : 'Assessing', color: 'amber' },
+                    { value: 'currently', label: 'In Place', color: 'emerald' },
+                    { value: 'planning', label: 'In Development', color: 'blue' },
+                    { value: 'assessing', label: 'Under Review', color: 'amber' },
                     { value: 'not_able', label: 'Not Planned', color: 'slate' }
                   ];
                   
                   const getStatusLabel = (status: string) => {
-                    if (status === 'unsure') return 'Needs Confirmation';
+                    if (status === 'unsure') return 'To Confirm';
                     const opt = statusOptions.find(o => o.value === status);
                     return opt?.label || 'Unknown';
                   };
@@ -8542,8 +8542,8 @@ export default function ExportReportPage() {
                 <div className="grid grid-cols-2 gap-5">
                   {quickWinOpportunities.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-violet-300 transition-all">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-violet-600' : 'bg-slate-600'}`}>
-                        {item.type === 'Planning' ? (
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'In Development' ? 'bg-violet-600' : 'bg-slate-600'}`}>
+                        {item.type === 'In Development' ? (
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                         ) : (
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -8551,7 +8551,7 @@ export default function ExportReportPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
+                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                         </div>
                         <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
                         <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
@@ -9844,9 +9844,9 @@ export default function ExportReportPage() {
                                             <span className="text-[10px] text-slate-400">{bench}%</span>
                                           )}
                                           <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                            item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
+                                            item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
                                           }`}>
-                                            {item.to === 'Offering' ? 'Implement' : 'Active Planning'}
+                                            {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
                                           </span>
                                         </div>
                                       </div>
@@ -9902,9 +9902,9 @@ export default function ExportReportPage() {
                                             <span className="text-[10px] text-slate-400">{bench}%</span>
                                           )}
                                           <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                            item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
+                                            item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
                                           }`}>
-                                            {item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'}
+                                            {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
                                           </span>
                                         </div>
                                       </div>
@@ -11421,7 +11421,7 @@ export default function ExportReportPage() {
                           
                           {/* Top 3 Opportunities */}
                           <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
-                            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Highest-Impact Employee Experience Opportunities</p>
+                            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Top Priorities for Employee Experience Impact</p>
                             <div className="space-y-3">
                               {rankings.slice(0, 3).map((r, idx) => (
                                 <div key={r.dimNum} className="flex items-center justify-between">
@@ -11550,11 +11550,11 @@ export default function ExportReportPage() {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   
                   const STATUS = {
-                    currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: tierView ? 'In Place' : 'Offering' },
-                    planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: tierView ? 'In Development' : 'Planning' },
-                    assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: tierView ? 'Under Review' : 'Assessing' },
+                    currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
+                    planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
+                    assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
                     notAble: { bg: '#CBD5E1', light: '#F1F5F9', text: '#475569', label: 'Not Planned' },
-                    unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: tierView ? 'To Confirm' : 'Needs Confirmation' }
+                    unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'To Confirm' }
                   };
                   
                   const getStatusInfo = (elem: any) => {
@@ -11582,10 +11582,10 @@ export default function ExportReportPage() {
                       return { prefix: 'In progress:', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
                     }
                     if (statusInfo.key === 'assessing') {
-                      return { prefix: 'Assessing:', text: `${pctAssessing}% also assessing; ${pctCurrently}% offer`, color: '#D97706' };
+                      return { prefix: 'Under Review:', text: `${pctAssessing}% also under review; ${pctCurrently}% offer`, color: '#D97706' };
                     }
                     if (pctCurrently > 50) return { prefix: 'Gap:', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
-                    return { prefix: 'Emerging:', text: `${pctCurrently}% offer`, color: '#6B7280' };
+                    return { prefix: 'Growth Area:', text: `${pctCurrently}% offer`, color: '#6B7280' };
                   };
                   
                   return (
@@ -11610,8 +11610,8 @@ export default function ExportReportPage() {
                             </div>
                             {diff !== null && d.benchmark !== null && (
                               <div className="text-right">
-                                <p className={`text-3xl font-bold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>{diff >= 0 ? '+' : ''}{diff}</p>
-                                <p className="text-white/70 text-sm">vs {d.benchmark} benchmark</p>
+                                <p className="text-3xl font-bold text-white/90">{d.benchmark} <span className={`text-lg font-semibold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>({diff >= 0 ? '+' : ''}{diff})</span></p>
+                                <p className="text-white/70 text-sm">Benchmark Score</p>
                               </div>
                             )}
                           </div>
@@ -11625,9 +11625,9 @@ export default function ExportReportPage() {
                         <div className="col-span-5 text-center">
                           <div>Benchmark Distribution</div>
                           <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span>{tierView ? 'In Place' : 'Offering'}</span></div>
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span>{tierView ? 'In Development' : 'Planning'}</span></div>
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span>{tierView ? 'Under Review' : 'Assessing'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span>{'In Place'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span>{'In Development'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span>{'Under Review'}</span></div>
                             <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span>Not Planned</span></div>
                           </div>
                         </div>
@@ -11827,7 +11827,7 @@ export default function ExportReportPage() {
                           <div className="grid grid-cols-4 gap-x-8 gap-y-2 mt-4 text-sm">
                             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => (
                               <div key={d.dim} className="flex items-center gap-2">
-                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
+                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#1E293B' }}>{d.dim}</span>
                                 <span className="text-slate-700">{d.name}</span>
                               </div>
                             ))}
@@ -12026,7 +12026,7 @@ export default function ExportReportPage() {
                           <div className="grid grid-cols-4 gap-x-8 gap-y-2 mt-4 text-sm">
                             {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => (
                               <div key={d.dim} className="flex items-center gap-2">
-                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: d.tier.color }}>{d.dim}</span>
+                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: '#1E293B' }}>{d.dim}</span>
                                 <span className="text-slate-700">{d.name}</span>
                               </div>
                             ))}
@@ -12330,8 +12330,8 @@ export default function ExportReportPage() {
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                               {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
-                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                                {item.to === 'Offering' ? 'Implement' : 'Active Planning'}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                                {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
                                               </span>
                                             </div>
                                           </div>
@@ -12369,8 +12369,8 @@ export default function ExportReportPage() {
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                               {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
-                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
-                                                {item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
+                                                {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
                                               </span>
                                             </div>
                                           </div>
@@ -12509,8 +12509,8 @@ export default function ExportReportPage() {
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                               {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
-                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                                                {item.to === 'Offering' ? 'Implement' : 'Active Planning'}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
+                                                {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
                                               </span>
                                             </div>
                                           </div>
@@ -12548,8 +12548,8 @@ export default function ExportReportPage() {
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
                                               {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
-                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'Offering' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
-                                                {item.to === 'Offering' ? 'Stand Up' : 'Design + Scope'}
+                                              <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
+                                                {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
                                               </span>
                                             </div>
                                           </div>
@@ -12720,8 +12720,8 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-2 gap-5">
                         {quickWinOpportunities.map((item: any, idx: number) => (
                           <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'Planning' ? 'bg-violet-600' : 'bg-slate-600'}`}>
-                              {item.type === 'Planning' ? (
+                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'In Development' ? 'bg-violet-600' : 'bg-slate-600'}`}>
+                              {item.type === 'In Development' ? (
                                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                               ) : (
                                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -12729,7 +12729,7 @@ export default function ExportReportPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'Planning' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
+                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                               </div>
                               <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
                               <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
