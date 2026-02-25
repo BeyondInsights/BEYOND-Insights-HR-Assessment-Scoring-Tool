@@ -5609,7 +5609,7 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-3 mb-2">
                                 <div 
                                   className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
-                                  style={{ backgroundColor: d.color }}
+                                  style={{ backgroundColor: '#1E293B' }}
                                 >
                                   {d.dim}
                                 </div>
@@ -11226,7 +11226,7 @@ export default function ExportReportPage() {
                                 <div className="flex items-center gap-2 mb-2">
                                   <div 
                                     className="w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                                    style={{ backgroundColor: d.color }}
+                                    style={{ backgroundColor: '#1E293B' }}
                                   >
                                     {d.dim}
                                   </div>
