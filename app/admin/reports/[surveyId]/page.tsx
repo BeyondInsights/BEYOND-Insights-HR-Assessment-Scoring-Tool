@@ -4596,7 +4596,7 @@ export default function ExportReportPage() {
   
   const reportSections = [
     { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
-    { id: 'score-composition-section', label: 'Overall Score', iconKey: 'performance' },
+    { id: tierView ? 'wsi-score-section' : 'score-composition-section', label: tierView ? 'Workplace Support Index' : 'Overall Score', iconKey: 'performance' },
     { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
     { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
@@ -6531,7 +6531,7 @@ export default function ExportReportPage() {
                 ];
                 
                 return (
-                  <div className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                  <div id="wsi-score-section" className="mt-8 bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
                     {/* Header */}
                     <div className="px-8 py-7 border-b border-slate-100">
                       <div className="flex items-start justify-between gap-8">
