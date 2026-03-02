@@ -552,11 +552,10 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#5B21B6', bgColor: 'bg-violet-50', textColor: 'text-violet-900', borderColor: 'border-violet-200' };
-  if (score >= 75) return { name: 'Leading', color: '#047857', bgColor: 'bg-emerald-50', textColor: 'text-emerald-900', borderColor: 'border-emerald-200' };
-  if (score >= 60) return { name: 'Progressing', color: '#1D4ED8', bgColor: 'bg-blue-50', textColor: 'text-blue-900', borderColor: 'border-blue-200' };
-  if (score >= 40) return { name: 'Emerging', color: '#B45309', bgColor: 'bg-amber-50', textColor: 'text-amber-900', borderColor: 'border-amber-200' };
-  return { name: 'Developing', color: '#B91C1C', bgColor: 'bg-red-50', textColor: 'text-red-900', borderColor: 'border-red-200' };
+  if (score >= 80) return { name: 'Leading', color: '#047857', bgColor: 'bg-emerald-50', textColor: 'text-emerald-900', borderColor: 'border-emerald-200' };
+  if (score >= 64) return { name: 'Established', color: '#1D4ED8', bgColor: 'bg-blue-50', textColor: 'text-blue-900', borderColor: 'border-blue-200' };
+  if (score >= 50) return { name: 'Progressing', color: '#B45309', bgColor: 'bg-amber-50', textColor: 'text-amber-900', borderColor: 'border-amber-200' };
+  return { name: 'Building', color: '#B91C1C', bgColor: 'bg-red-50', textColor: 'text-red-900', borderColor: 'border-red-200' };
 }
 
 
@@ -569,8 +568,8 @@ function getWSITier(score: number): { name: string; color: string; bgColor: stri
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return '#5B21B6'; if (score >= 75) return '#047857'; if (score >= 60) return '#1D4ED8';
-  if (score >= 40) return '#B45309'; return '#B91C1C';
+  if (score >= 80) return '#047857'; if (score >= 64) return '#1D4ED8';
+  if (score >= 50) return '#B45309'; return '#B91C1C';
 }
 
 // Employee Priority grouping — reflects what employees managing cancer described as most critical
@@ -732,7 +731,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'phased return-to-work options',
       cacPrograms: {
         exemplary: 'Document your leave policies as a best-practice case study. We can facilitate peer learning sessions where you share your approach with other Index participants.',
-        leading: 'Our Leave Policy Enhancement workshop can identify the specific gaps preventing Exemplary status, with templates for policy language and implementation guides.',
+        leading: 'Our Leave Policy Enhancement workshop can identify the specific gaps preventing Leading status, with templates for policy language and implementation guides.',
         progressing: 'CAC\'s Leave Policy Benchmarking service compares your policies against industry leaders, identifying specific enhancements like extended leave duration or job protection guarantees.',
         emerging: 'Our Medical Leave Foundation program provides turnkey policy templates, legal compliance guidance, and manager training for leave administration.',
         developing: 'Urgent: CAC\'s Leave Policy Accelerator builds comprehensive, compliant leave policies in 60 days, including FMLA+ enhancements and accommodation frameworks.'
@@ -745,7 +744,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'employee assistance fund or gap insurance',
       cacPrograms: {
         exemplary: 'Showcase your financial protection programs through CAC\'s Best Practices Library. We can connect you with benefits consultants seeking model programs to replicate.',
-        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Exemplary status.',
+        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Leading status.',
         progressing: 'CAC\'s Financial Protection Assessment evaluates your insurance, disability, and supplemental coverage against cancer-specific needs, with vendor recommendations.',
         emerging: 'Our Financial Wellness for Serious Illness program designs hardship funds, premium assistance, and navigation support to reduce financial barriers to care.',
         developing: 'Critical: CAC\'s Emergency Benefits Review can identify immediate coverage gaps and design interim financial support while longer-term solutions are developed.'
@@ -970,8 +969,8 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   const career = findDim(7);
 
   // Tier-consistent helpers (aligned to actual tier boundaries)
-  const isLeadingPlus = (d: any) => (d?.score ?? 0) >= 75;   // Leading/Exemplary
-  const isWeak = (d: any) => (d?.score ?? 0) < 60;           // Emerging/Developing
+  const isLeadingPlus = (d: any) => (d?.score ?? 0) >= 80;   // Leading tier
+  const isWeak = (d: any) => (d?.score ?? 0) < 50;           // Building tier
   const headroom = (d: any) => 100 - (d?.score ?? 0);
 
   // Opportunity proxy: headroom weighted by impact importance (dampened so it informs but doesn't dominate)
@@ -3072,19 +3071,17 @@ const SUPPORT_LEVELS = {
 } as const;
 
 const SUPPORT_RATINGS: Record<string, { label: string; color: string; desc: string; range: string }> = {
-  exemplary: { label: 'Exemplary', range: '90–100', color: '#5B21B6', desc: 'Comprehensive support across all three levels, with strong Core coverage, consistent Enhanced delivery, and meaningful Advanced practices in place.' },
-  leading: { label: 'Leading', range: '75–89', color: '#047857', desc: 'Strong Core coverage with solid Enhanced and Advanced practices, indicating reliable support delivery and growing program depth.' },
-  progressing: { label: 'Progressing', range: '60–74', color: '#1D4ED8', desc: 'Core supports are well in place, forming a stable baseline with room to expand Enhanced and Advanced program depth.' },
-  emerging: { label: 'Emerging', range: '40–59', color: '#B45309', desc: 'Core supports are developing, with Enhanced and Advanced practices still emerging across the organization.' },
-  developing: { label: 'Developing', range: '0–39', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing core access, navigation, and policy fundamentals.' },
+  leading: { label: 'Leading', range: '80–100', color: '#047857', desc: 'Comprehensive support across all three levels, with strong Core coverage, consistent Enhanced delivery, and meaningful Advanced practices in place.' },
+  established: { label: 'Established', range: '64–79', color: '#1D4ED8', desc: 'Strong Core coverage with solid Enhanced and Advanced practices, indicating reliable support delivery and growing program depth.' },
+  progressing: { label: 'Progressing', range: '50–63', color: '#B45309', desc: 'Core supports are developing, with Enhanced and Advanced practices still emerging across the organization.' },
+  building: { label: 'Building', range: '0–49', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing core access, navigation, and policy fundamentals.' },
 } as const;
 
 function getWSIRating(score: number) {
-  if (score >= 90) return SUPPORT_RATINGS.exemplary;
-  if (score >= 75) return SUPPORT_RATINGS.leading;
-  if (score >= 60) return SUPPORT_RATINGS.progressing;
-  if (score >= 40) return SUPPORT_RATINGS.emerging;
-  return SUPPORT_RATINGS.developing;
+  if (score >= 80) return SUPPORT_RATINGS.leading;
+  if (score >= 64) return SUPPORT_RATINGS.established;
+  if (score >= 50) return SUPPORT_RATINGS.progressing;
+  return SUPPORT_RATINGS.building;
 }
 
 function SupportLevelBadge({ level }: { level: string }) {
@@ -3139,7 +3136,7 @@ export default function ExportReportPage() {
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
   // NOTE: Classic view (tierView=false) removed 2026-03-02 — WSI tier view is now the only view.
-  // Original classic view used 5-tier model (Exemplary 90+, Leading 75+, Progressing 60+, Emerging 40+, Developing 0+).
+  // Current model: 4-tier WSI (Leading 80+, Established 64+, Progressing 50+, Building 0+).
   // To restore, revert this to: const [tierView, setTierView] = useState(false);
   const tierView = true;
   const [showLevelsOverview, setShowLevelsOverview] = useState(false);
@@ -3398,7 +3395,7 @@ export default function ExportReportPage() {
     const defaultNotes: Record<number, string> = {
       0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
-      2: 'Explain what the Workplace Support Index represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
+      2: 'Explain what the Workplace Support Index represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading tier - this normalizes where they are and builds commitment to improvement.',
       3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
       4: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
       5: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
@@ -4895,7 +4892,7 @@ export default function ExportReportPage() {
   const inProgressItems = quickWinOpportunities;
   
   // Gap opportunities - dimensions below Leading tier
-  const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading');
+  const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Leading');
   // ============================================
   // POLISHED DESIGN RENDER v2
   // Full feature parity with original, polished styling
@@ -5317,7 +5314,7 @@ export default function ExportReportPage() {
                               <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> or <strong>Exemplary</strong> tiers yet, and that&apos;s expected at this stage.
+                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
                             </p>
                             <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                               <p className="text-sm text-slate-700 leading-relaxed">
@@ -10612,29 +10609,24 @@ export default function ExportReportPage() {
                   <p className="font-bold text-slate-700 mb-3">Performance Tiers</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span>
-                      <span style={{ color: '#5B21B6' }} className="font-semibold">Exemplary</span>
-                      <span className="text-slate-400">90+ points</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
                       <span style={{ color: '#047857' }} className="font-semibold">Leading</span>
-                      <span className="text-slate-400">75-89 points</span>
+                      <span className="text-slate-400">80+ points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
-                      <span style={{ color: '#1D4ED8' }} className="font-semibold">Progressing</span>
-                      <span className="text-slate-400">60-74 points</span>
+                      <span style={{ color: '#1D4ED8' }} className="font-semibold">Established</span>
+                      <span className="text-slate-400">64-79 points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
-                      <span style={{ color: '#B45309' }} className="font-semibold">Emerging</span>
-                      <span className="text-slate-400">40-59 points</span>
+                      <span style={{ color: '#B45309' }} className="font-semibold">Progressing</span>
+                      <span className="text-slate-400">50-63 points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
-                      <span style={{ color: '#B91C1C' }} className="font-semibold">Developing</span>
-                      <span className="text-slate-400">&lt;40 points</span>
+                      <span style={{ color: '#B91C1C' }} className="font-semibold">Building</span>
+                      <span className="text-slate-400">&lt;50 points</span>
                     </div>
                   </div>
                 </div>
@@ -11117,11 +11109,10 @@ export default function ExportReportPage() {
                             
                             <div className="space-y-2">
                               {[
-                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: wsiTierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: wsiTierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: wsiTierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: wsiTierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: wsiTierDistribution?.developing ?? 0 }
+                                { name: 'Leading', range: '80-100', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                { name: 'Established', range: '64-79', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                { name: 'Progressing', range: '50-63', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                { name: 'Building', range: '0-49', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 }
                               ].map((t) => {
                                 const isCurrentTier = tier?.name === t.name;
                                 return (
@@ -11179,7 +11170,7 @@ export default function ExportReportPage() {
                                 <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                               </div>
                               <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                                We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> or <strong>Exemplary</strong> tiers yet, and that&apos;s expected at this stage.
+                                We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
                               </p>
                               <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                                 <p className="text-sm text-slate-700 leading-relaxed">
@@ -11389,7 +11380,7 @@ export default function ExportReportPage() {
                                 </>
                               ) : (
                                 <>
-                                  <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                                  <p className="text-base font-bold text-violet-800">Leading tier achieved</p>
                                   <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
                                 </>
                               )}
@@ -14032,29 +14023,24 @@ export default function ExportReportPage() {
                           <p className="font-bold text-slate-700 mb-2">Performance Tiers</p>
                           <div className="space-y-1.5 text-sm">
                             <div className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span>
-                              <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span>
-                              <span className="text-slate-400 text-xs">90+ points</span>
-                            </div>
-                            <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
                               <span style={{ color: '#047857' }} className="font-medium">Leading</span>
-                              <span className="text-slate-400 text-xs">75-89 points</span>
+                              <span className="text-slate-400 text-xs">80+ points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
-                              <span style={{ color: '#1D4ED8' }} className="font-medium">Progressing</span>
-                              <span className="text-slate-400 text-xs">60-74 points</span>
+                              <span style={{ color: '#1D4ED8' }} className="font-medium">Established</span>
+                              <span className="text-slate-400 text-xs">64-79 points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
-                              <span style={{ color: '#B45309' }} className="font-medium">Emerging</span>
-                              <span className="text-slate-400 text-xs">40-59 points</span>
+                              <span style={{ color: '#B45309' }} className="font-medium">Progressing</span>
+                              <span className="text-slate-400 text-xs">50-63 points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
-                              <span style={{ color: '#B91C1C' }} className="font-medium">Developing</span>
-                              <span className="text-slate-400 text-xs">&lt;40 points</span>
+                              <span style={{ color: '#B91C1C' }} className="font-medium">Building</span>
+                              <span className="text-slate-400 text-xs">&lt;50 points</span>
                             </div>
                           </div>
                         </div>
@@ -14565,7 +14551,7 @@ export default function ExportReportPage() {
                       <p className="mb-2"><strong>Composite score explanation:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Explain how the 90% weighted dimensions + 5% maturity + 5% breadth combine</li>
-                        <li>Point out the performance tier distribution - few organizations reach Leading/Exemplary</li>
+                        <li>Point out the performance tier distribution - few organizations reach Leading tier</li>
                         <li>Frame this as a baseline for their journey, not a final judgment</li>
                       </ul>
                     </div>

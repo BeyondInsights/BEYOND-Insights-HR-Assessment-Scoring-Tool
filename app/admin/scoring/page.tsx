@@ -3189,7 +3189,7 @@ export default function AggregateScoringReport() {
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <p className="text-2xl font-bold" style={{ color: company.compositeScore >= 80 ? '#059669' : company.compositeScore >= 60 ? '#0284C7' : company.compositeScore >= 40 ? '#D97706' : '#DC2626' }}>
+                            <p className="text-2xl font-bold" style={{ color: company.compositeScore >= 80 ? '#059669' : company.compositeScore >= 64 ? '#0284C7' : company.compositeScore >= 50 ? '#D97706' : '#DC2626' }}>
                               {company.compositeScore}
                             </p>
                           </div>
