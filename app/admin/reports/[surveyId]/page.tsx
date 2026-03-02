@@ -4633,6 +4633,7 @@ export default function ExportReportPage() {
     { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', iconKey: 'impact' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap', iconKey: 'roadmap' },
     { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', iconKey: 'pledge' },
+    { id: 'next-steps-section', label: 'Assessment at a Glance', iconKey: 'progress' },
     { id: 'cac-help-section', label: 'How CAC Can Help', iconKey: 'help' },
     { id: 'methodology-section', label: 'Methodology', iconKey: 'methodology' },
   ].filter(s => s.show !== false);
@@ -10234,113 +10235,108 @@ export default function ExportReportPage() {
           
           {/* ============ YOUR ASSESSMENT AT A GLANCE ============ */}
           {(() => {
+            const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
+            const wsiBenchDiff = compositeScore != null && wsiBenchmarkScore != null ? compositeScore - wsiBenchmarkScore : null;
+            const wsiTier = getWSITier(compositeScore ?? 0);
+
             // Top 3 strengths by score (highest first)
             const topStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
-            // Priority Gaps: high weight + low score (top-left quadrant: score < 50, weight >= 8)
-            const priorityGapDims = dimensionAnalysis
-              .filter(d => (d.score ?? 0) < 50 && d.weight >= 8)
-              .sort((a, b) => b.weight - a.weight);
-            // Monitor: low weight + low score (bottom-left quadrant: score < 50, weight < 8)
-            const monitorDims = dimensionAnalysis
-              .filter(d => (d.score ?? 0) < 50 && d.weight < 8)
-              .sort((a, b) => b.weight - a.weight);
-            // Fill up to 3 next steps: priority gaps first, then monitor
-            const nextStepsDims = [...priorityGapDims, ...monitorDims].slice(0, 3);
 
-            const getDefaultRecommendation = (d: typeof nextStepsDims[0], idx: number) => {
-              if (idx === 0) return `As a high-impact area scoring ${Math.round(d.score)}, ${d.name} represents your most significant opportunity. Strengthening support here will have the greatest effect on employee experience.`;
-              if (idx === 1) return `${d.name} scores ${Math.round(d.score)} and has room for growth. Building out this area will complement your existing strengths and close key support gaps.`;
-              return `With a score of ${Math.round(d.score)}, ${d.name} is an area where targeted improvements can make a meaningful difference for employees and caregivers.`;
-            };
+            // Priority dimensions: sort by employee priority rank, then benchmark gap (largest negative first), then lowest score
+            const priorityRankOrder = (w: number) => w >= 10 ? 0 : w >= 7 ? 1 : 2;
+            const focusCandidates = [...dimensionAnalysis]
+              .filter(d => !topStrengths.some(s => s.dim === d.dim))
+              .sort((a, b) => {
+                const rankDiff = priorityRankOrder(a.weight) - priorityRankOrder(b.weight);
+                if (rankDiff !== 0) return rankDiff;
+                const aGap = a.benchmark != null ? a.score - a.benchmark : 0;
+                const bGap = b.benchmark != null ? b.score - b.benchmark : 0;
+                if (aGap !== bGap) return aGap - bGap;
+                return a.score - b.score;
+              })
+              .slice(0, 3);
+
+            const defaultWhatsNext = '1. Confirm flagged items  →  2. Select 2-3 priorities from your Most Critical dimensions  →  3. Build an action plan from element-level gaps';
 
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="px-12 py-8 border-b border-slate-200">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                      </svg>
-                    </div>
+                {/* Header bar */}
+                <div className="px-10 py-5 bg-slate-800">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-2xl font-bold text-slate-800">Your Assessment at a Glance</h3>
-                      <p className="text-slate-500 mt-1">Strengths to build on and priorities to address</p>
+                      <h3 className="text-lg font-bold text-white tracking-tight">Your Assessment at a Glance</h3>
+                      <p className="text-slate-400 text-xs mt-0.5">Strengths to protect and priorities to address</p>
+                    </div>
+                    <div className="flex items-center gap-6">
+                      {/* Score */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-400 text-xs uppercase tracking-wider">Workplace Support Index</span>
+                        <span className="text-3xl font-bold text-white">{compositeScore ?? '—'}</span>
+                      </div>
+                      {/* Tier badge */}
+                      <span className="px-3 py-1 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
+                        {wsiTier.name}
+                      </span>
+                      {/* Benchmark delta */}
+                      {wsiBenchDiff !== null && (
+                        <span className={`text-sm font-semibold ${wsiBenchDiff >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {wsiBenchDiff >= 0 ? '+' : ''}{wsiBenchDiff} vs benchmark
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Strengths Section */}
-                <div className="px-12 py-8">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
+                {/* Two-column body */}
+                <div className="grid grid-cols-2 gap-8 px-10 py-8">
+                  {/* LEFT: Protect & Scale */}
+                  <div className="border-l-2 border-emerald-300 pl-6">
+                    <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4">Protect &amp; Scale</h4>
+                    <div className="space-y-3">
+                      {topStrengths.map((d, idx) => {
+                        const bDiff = d.benchmark != null ? Math.round(d.score) - d.benchmark : null;
+                        return (
+                          <div key={d.dim} className="flex items-baseline gap-3">
+                            <span className="text-slate-400 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-slate-800">{d.name}</span>
+                                <span className="text-sm font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</span>
+                                {bDiff !== null && (
+                                  <span className={`text-xs ${bDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                    ({bDiff >= 0 ? '+' : ''}{bDiff} vs avg)
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-slate-400 mt-0.5">{dimContext[d.dim]?.opportunity || ''}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <h4 className="text-sm font-semibold text-emerald-700 uppercase tracking-wider">Where You Excel</h4>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 mb-2">
-                    {topStrengths.map((d, idx) => (
-                      <div key={d.dim} className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm" style={{ borderLeft: '4px solid #047857' }}>
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">#{idx + 1} Strength</span>
-                          <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: getWSITier(d.score).color + '15', color: getWSITier(d.score).color }}>
-                            {getWSITier(d.score).name}
-                          </span>
-                        </div>
-                        <p className="text-slate-800 font-semibold text-sm leading-snug mb-2">{d.name}</p>
-                        <p className="text-3xl font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="mx-12 border-t border-slate-200"></div>
-
-                {/* Next Steps Section */}
-                {nextStepsDims.length > 0 && (
-                  <div className="px-12 py-8">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                      </div>
-                      <h4 className="text-sm font-semibold text-amber-700 uppercase tracking-wider">Recommended Next Steps</h4>
-                    </div>
-
+                  {/* RIGHT: Where to Focus */}
+                  <div className="border-l-2 border-amber-300 pl-6">
+                    <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-4">Where to Focus</h4>
                     <div className="space-y-4">
-                      {nextStepsDims.map((d, idx) => {
-                        const defaultRec = getDefaultRecommendation(d, idx);
+                      {focusCandidates.map((d, idx) => {
+                        const pg = getEmployeePriorityGroup(d.weight);
+                        const bDiff = d.benchmark != null ? Math.round(d.score) - d.benchmark : null;
+                        const defaultRec = `Prioritize ${d.name} to improve ${dimContext[d.dim]?.opportunity || 'employee support'}`;
                         const customRec = customNextSteps.items?.[idx];
                         const displayRec = customRec || defaultRec;
-                        const isPriorityGap = d.weight >= 8;
-                        const borderColor = isPriorityGap ? '#EF4444' : '#D97706';
 
                         return (
-                          <div key={d.dim} className="flex gap-5 bg-white border border-slate-200 rounded-xl p-5 shadow-sm" style={{ borderLeft: `4px solid ${borderColor}` }}>
-                            {/* Number badge */}
-                            <div className="flex-shrink-0">
-                              <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: borderColor }}>
-                                <span className="text-white font-bold text-lg">{idx + 1}</span>
-                              </div>
+                          <div key={d.dim}>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-slate-400 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
+                              <span className="text-sm font-semibold text-slate-800">{d.name}</span>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: pg.color + '15', color: pg.color }}>
+                                {pg.chip}
+                              </span>
                             </div>
-
-                            {/* Content */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 mb-2">
-                                <h5 className="text-slate-800 font-semibold">{d.name}</h5>
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
-                                  Score: {Math.round(d.score)}
-                                </span>
-                                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: isPriorityGap ? 'rgba(239, 68, 68, 0.1)' : 'rgba(217, 119, 6, 0.1)', color: isPriorityGap ? '#DC2626' : '#B45309' }}>
-                                  {isPriorityGap ? 'Priority Gap' : 'Monitor'}
-                                </span>
-                              </div>
-
+                            <div className="pl-7">
                               {editMode ? (
                                 <div>
                                   <textarea
@@ -10352,8 +10348,8 @@ export default function ExportReportPage() {
                                       }));
                                       setHasUnsavedChanges(true);
                                     }}
-                                    className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded-lg p-3 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y placeholder-slate-400"
-                                    placeholder="Enter custom recommendation..."
+                                    className="w-full text-xs text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1.5 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y"
+                                    placeholder="Custom recommendation..."
                                   />
                                   {customRec && (
                                     <button
@@ -10365,25 +10361,58 @@ export default function ExportReportPage() {
                                         });
                                         setHasUnsavedChanges(true);
                                       }}
-                                      className="mt-1.5 text-xs text-amber-600 hover:text-amber-700 flex items-center gap-1"
+                                      className="mt-1 text-[10px] text-amber-600 hover:text-amber-700"
                                     >
-                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                      </svg>
-                                      Reset to default
+                                      ↺ Reset
                                     </button>
                                   )}
                                 </div>
                               ) : (
-                                <p className="text-sm text-slate-500 leading-relaxed">{displayRec}</p>
+                                <p className="text-xs text-slate-500 leading-relaxed">{displayRec}</p>
                               )}
+                              <p className="text-[11px] text-slate-400 mt-1">
+                                {pg.chip} · Score: {Math.round(d.score)}{bDiff !== null ? ` · ${bDiff >= 0 ? '+' : ''}${bDiff} vs avg` : ''}
+                              </p>
                             </div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* What's Next footer */}
+                <div className="px-10 py-4 border-t border-slate-100 bg-slate-50">
+                  {editMode ? (
+                    <div>
+                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">What&apos;s Next</label>
+                      <textarea
+                        value={customNextSteps.closingMessage || defaultWhatsNext}
+                        onChange={(e) => {
+                          setCustomNextSteps(prev => ({ ...prev, closingMessage: e.target.value }));
+                          setHasUnsavedChanges(true);
+                        }}
+                        className="w-full text-xs text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[32px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
+                      />
+                      {customNextSteps.closingMessage && (
+                        <button
+                          onClick={() => {
+                            setCustomNextSteps(prev => ({ ...prev, closingMessage: undefined }));
+                            setHasUnsavedChanges(true);
+                          }}
+                          className="mt-1 text-[10px] text-slate-500 hover:text-slate-700"
+                        >
+                          ↺ Reset
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center">
+                      <span className="font-semibold text-slate-500">What&apos;s next:</span>{' '}
+                      {customNextSteps.closingMessage || defaultWhatsNext}
+                    </p>
+                  )}
+                </div>
               </div>
             );
           })()}
