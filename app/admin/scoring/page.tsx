@@ -545,6 +545,7 @@ function calculateCompanyScores(
 }
 
 function getScoreColor(score: number): string {
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
   if (score >= 80) return '#059669';
   if (score >= 64) return '#0284C7';
   if (score >= 50) return '#D97706';
