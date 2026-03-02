@@ -178,18 +178,19 @@ const IMPACT_GROUPS = {
   highest: {
     id: 'highest',
     label: 'Highest-Impact',
-    color: '#2563EB',
-    bgClass: 'bg-blue-50',
-    borderClass: 'border-blue-200',
-    textClass: 'text-blue-700',
+    // Use a palette distinct from performance colors (avoid red/green/blue)
+    color: '#7C3AED',
+    bgClass: 'bg-violet-50',
+    borderClass: 'border-violet-200',
+    textClass: 'text-violet-700',
   },
   meaningful: {
     id: 'meaningful',
     label: 'Meaningful',
-    color: '#10B981',
-    bgClass: 'bg-emerald-50',
-    borderClass: 'border-emerald-200',
-    textClass: 'text-emerald-700',
+    color: '#F59E0B',
+    bgClass: 'bg-amber-50',
+    borderClass: 'border-amber-200',
+    textClass: 'text-amber-800',
   },
   supporting: {
     id: 'supporting',
@@ -7190,7 +7191,8 @@ export default function ExportReportPage() {
                     <select
                       value={dimensionPerfSortBy}
                       onChange={(e) => setDimensionPerfSortBy(e.target.value as any)}
-                      className="text-xs px-2 py-1 rounded-md border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                      // Use light background so the native option list remains readable (avoids white-on-white in some browsers)
+                      className="text-xs px-2 py-1 rounded-md border border-slate-300 bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-white/20"
                     >
                       <option value="your">Your Score</option>
                       <option value="benchmark">Benchmark</option>
@@ -7507,9 +7509,12 @@ export default function ExportReportPage() {
                           const xPos = (d.score / 100) * PLOT_WIDTH;
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
+                          const impactColor = getImpactGroup(d.weight).color;
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
                               <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
+                              {/* Index Contribution Group ring (distinct palette; performance is still encoded by fill) */}
+                              <circle r={isHovered ? 22 : 18} fill="none" stroke={impactColor} strokeWidth={isHovered ? 3.5 : 3} opacity={0.95} />
                               <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
                             </g>
