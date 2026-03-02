@@ -6115,13 +6115,12 @@ export default function ExportReportPage() {
                             </div>
                             <div className="space-y-2">
                               {[
-                                { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: wsiTierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: wsiTierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: wsiTierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: wsiTierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: wsiTierDistribution?.developing ?? 0 }
+                                { name: 'Leading', range: '80–100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
                               ].map((t) => {
-                                const isCurrentTier = (tierView ? getWSITier(wsiScoreHeader).name : (tier?.name || '')) === t.name;
+                                const isCurrentTier = getWSITier(wsiScoreHeader).name === t.name;
                                 return (
                                   <div key={t.name} className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}>
                                     <div className="w-32 flex items-center gap-2">
@@ -11299,15 +11298,17 @@ export default function ExportReportPage() {
                             const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
                             const elementCount = dimData?.elements?.length || 0;
                             const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
+                            const epGroup = getEmployeePriorityGroup(weightPct);
                             return (
-                              <div 
+                              <div
                                 key={d.dim}
                                 className="p-4 rounded-lg border border-slate-100 bg-slate-50/50"
                               >
                                 <div className="flex items-center gap-2 mb-2">
-                                  <div 
+                                  <div
                                     className="w-8 h-8 rounded-md flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                                    style={{ backgroundColor: '#1E293B' }}
+                                    style={{ backgroundColor: epGroup.color }}
+                                    title={epGroup.label}
                                   >
                                     {d.dim}
                                   </div>
