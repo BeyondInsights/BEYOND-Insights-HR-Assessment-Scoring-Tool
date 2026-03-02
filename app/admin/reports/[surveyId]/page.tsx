@@ -7348,22 +7348,20 @@ export default function ExportReportPage() {
                             </div>
                           );
                         })}
-                      </div>
-                      {/* Employee Priority ring legend */}
-                      <div className="mt-4 pt-4 border-t border-slate-200">
-                        <div className="flex items-center justify-center gap-8">
-                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Employee Priority Level</span>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.12)' }}></div>
-                            <span className="text-slate-700 text-xs font-medium">Most Critical</span>
+                        {/* Employee Priority ring legend - shares last row with Dim 13 */}
+                        <div className="col-span-3 flex items-center justify-end gap-5 py-1.5">
+                          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Employee Priority Level</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.12)' }}></div>
+                            <span className="text-slate-600 text-xs font-medium">Most Critical</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#D97706', backgroundColor: 'rgba(217, 119, 6, 0.12)' }}></div>
-                            <span className="text-slate-700 text-xs font-medium">Highly Important</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#D97706', backgroundColor: 'rgba(217, 119, 6, 0.12)' }}></div>
+                            <span className="text-slate-600 text-xs font-medium">Highly Important</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#475569', backgroundColor: 'rgba(71, 85, 105, 0.12)' }}></div>
-                            <span className="text-slate-700 text-xs font-medium">Enabling</span>
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#475569', backgroundColor: 'rgba(71, 85, 105, 0.12)' }}></div>
+                            <span className="text-slate-600 text-xs font-medium">Enabling</span>
                           </div>
                         </div>
                       </div>
