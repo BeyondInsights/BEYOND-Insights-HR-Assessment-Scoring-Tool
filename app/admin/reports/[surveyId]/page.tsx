@@ -7126,7 +7126,7 @@ export default function ExportReportPage() {
                 };
                 
                 return (
-                  <div className="relative w-full" style={{ height: '700px' }}>
+                  <div className="relative w-full" style={{ minHeight: '700px' }}>
                     {/* SVG Chart */}
                     <svg className="w-full" style={{ height: '510px' }} viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
                       <defs>
