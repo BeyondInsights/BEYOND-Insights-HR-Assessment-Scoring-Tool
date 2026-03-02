@@ -65,7 +65,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
   const sorted = [...dimensionAnalysis].sort((a: any, b: any) => b.weight - a.weight);
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
-      <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
+      <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Support Scores</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
       <div className="px-8 py-4">
         <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-28 text-center text-xs font-medium text-slate-400 uppercase" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div></div>
         <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; const pg = getEmployeePriorityGroup(d.weight); return (
@@ -109,7 +109,7 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT - 10} textAnchor="middle" fill="#1E40AF" fontSize="11" fontWeight="500" opacity="0.6">MAINTAIN & LEVERAGE</text>
             {showBenchmarks && dimensionAnalysis.map((d: any) => { if (d.benchmark === null) return null; const xPos = PADDING + (d.benchmark / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); return (<g key={`bench-${d.dim}`} transform={`translate(${xPos}, ${yPos})`}><circle r="10" fill="none" stroke="#94A3B8" strokeWidth="2" strokeDasharray="3,2" /></g>); })}
             {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; const epRing = getEmployeePriorityGroup(d.weight); return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 25 : 21} fill="none" stroke={epRing.ringColor} strokeWidth="3" /><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
-            <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score →</text></g>
+            <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Support Score →</text></g>
             <g transform={`translate(${PADDING}, 0)`}>{[0, 5, 10, 15].map((val) => (<g key={val} transform={`translate(0, ${PADDING + PLOT_HEIGHT - (val / MAX_WEIGHT) * PLOT_HEIGHT})`}><line x1="-5" x2="0" stroke="#94A3B8" strokeWidth="1" /><text x="-10" textAnchor="end" dominantBaseline="middle" fill="#64748B" fontSize="11">{val}%</text></g>))}</g>
             <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Impact Weight ↑</text>
           </g>
@@ -1598,7 +1598,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 </g>
               ))}
               <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-                PERFORMANCE SCORE →
+                SUPPORT SCORE →
               </text>
             </g>
             
@@ -3198,7 +3198,7 @@ export default function ExportReportPage() {
       2: 'Understanding Your Workplace Support Index',
       3: 'The 13 Dimensions',
       4: 'Executive Summary',
-      5: 'Dimension Performance'
+      5: 'Dimension Support Scores'
     };
     for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
     for (let i = 19; i <= 28; i++) names[i] = `Strategic Content ${i - 18}`;
@@ -3369,7 +3369,7 @@ export default function ExportReportPage() {
       2: 'Understanding Your Workplace Support Index',
       3: 'The 13 Dimensions',
       4: 'Executive Summary',
-      5: 'Dimension Performance'
+      5: 'Dimension Support Scores'
     };
     // Dimension deep dives: slides 6-18
     for (let i = 6; i <= 18; i++) slideNames[i] = `Dimension ${i - 5} Deep Dive`;
@@ -4623,7 +4623,7 @@ export default function ExportReportPage() {
     { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
     { id: 'wsi-score-section', label: 'Workplace Support Index', iconKey: 'performance' },
     { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
-    { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
+    { id: 'dimension-performance-table', label: 'Dimension Support Scores', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
     { id: 'areas-of-excellence', label: 'Areas of Excellence', iconKey: 'excellence' },
@@ -6927,7 +6927,7 @@ export default function ExportReportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-xl">Dimension Performance</h3>
+                    <h3 className="font-bold text-white text-xl">Dimension Support Scores</h3>
                     <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
                   </div>
                 </div>
@@ -7044,7 +7044,7 @@ export default function ExportReportPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
-                  <p className="text-slate-500 mt-0.5">Dimensions plotted by performance vs. impact weight. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
+                  <p className="text-slate-500 mt-0.5">Dimensions plotted by support score vs. impact weight. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -7178,7 +7178,7 @@ export default function ExportReportPage() {
                               <text y="20" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}</text>
                             </g>
                           ))}
-                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">PERFORMANCE SCORE →</text>
+                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">SUPPORT SCORE →</text>
                         </g>
                         
                         {/* Y-axis */}
@@ -7354,15 +7354,15 @@ export default function ExportReportPage() {
                         <div className="flex items-center justify-center gap-8">
                           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Employee Priority Level</span>
                           <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '3px solid #7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.12)' }}></span>
+                            <div className="w-6 h-6 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.12)' }}></div>
                             <span className="text-slate-700 text-xs font-medium">Most Critical</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '3px solid #D97706', backgroundColor: 'rgba(217, 119, 6, 0.12)' }}></span>
+                            <div className="w-6 h-6 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#D97706', backgroundColor: 'rgba(217, 119, 6, 0.12)' }}></div>
                             <span className="text-slate-700 text-xs font-medium">Highly Important</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '3px solid #475569', backgroundColor: 'rgba(71, 85, 105, 0.12)' }}></span>
+                            <div className="w-6 h-6 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#475569', backgroundColor: 'rgba(71, 85, 105, 0.12)' }}></div>
                             <span className="text-slate-700 text-xs font-medium">Enabling</span>
                           </div>
                         </div>
@@ -11317,7 +11317,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 6: Dimension Performance Table */}
+                {/* Slide 6: Dimension Support Scores Table */}
                 {currentSlide === 5 && (
                   <div className="overflow-hidden">
                     {/* Dark dramatic header - matching main report */}
@@ -11331,7 +11331,7 @@ export default function ExportReportPage() {
                             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                           </div>
                           <div>
-                            <h3 className="font-bold text-white text-2xl">Dimension Performance</h3>
+                            <h3 className="font-bold text-white text-2xl">Dimension Support Scores</h3>
                             <p className="text-slate-400 mt-1">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
                           </div>
                         </div>
@@ -11568,7 +11568,7 @@ export default function ExportReportPage() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
-                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by support score vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
                       <div className="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 text-sm font-semibold">
                         ○ Show Benchmarks
@@ -11628,7 +11628,7 @@ export default function ExportReportPage() {
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">SUPPORT SCORE →</text>
                               </g>
                               
                               {/* Y-axis */}
@@ -11732,7 +11732,7 @@ export default function ExportReportPage() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
-                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by support score vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
                       <div className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold">
                         ● Benchmarks On
@@ -11792,7 +11792,7 @@ export default function ExportReportPage() {
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">PERFORMANCE SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">SUPPORT SCORE →</text>
                               </g>
                               
                               {/* Y-axis */}
