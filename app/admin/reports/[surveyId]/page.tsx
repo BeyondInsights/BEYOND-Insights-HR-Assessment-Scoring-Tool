@@ -32,7 +32,7 @@ const ChevronUpIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
 function PolishedScoreComposition({ compositeScore, weightedDimScore, maturityScore, breadthScore, benchmarks, getScoreColor }: any) {
   const [expandedCard, setExpandedCard] = useState<string | null>(null);
   const components = [
-    { id: 'weighted', label: 'Weighted Dimensions', score: weightedDimScore, weight: 90, benchmark: benchmarks?.weightedDimScore, description: 'Combined performance across all 13 support dimensions, weighted by impact importance.' },
+    { id: 'weighted', label: 'Weighted Dimensions', score: weightedDimScore, weight: 90, benchmark: benchmarks?.weightedDimScore, description: 'Combined performance across all 13 support dimensions, weighted by employee priority.' },
     { id: 'maturity', label: 'Program Maturity', score: maturityScore, weight: 5, benchmark: benchmarks?.maturityScore, description: 'Organizational maturity in supporting employees managing cancer.' },
     { id: 'breadth', label: 'Support Breadth', score: breadthScore, weight: 5, benchmark: benchmarks?.breadthScore, description: 'Extent of benefits beyond legal minimums.' },
   ];
@@ -53,7 +53,7 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-400 font-medium">{comp.weight}%</span></div></div>
               <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-400">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : '—'} <span className="text-slate-400 font-normal">({comp.benchmark})</span></span></div>)}</div>
               <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-400 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
-              {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-400">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-400">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-400">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-400">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-400">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-400">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × impact weights</td></tr>)}</tbody></table></div></div>)}
+              {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-400">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-400">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-400">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-400">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-400">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-400">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × employee priority weights</td></tr>)}</tbody></table></div></div>)}
             </div>); })}
         </div>
       </div>
@@ -65,7 +65,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
   const sorted = [...dimensionAnalysis].sort((a: any, b: any) => b.weight - a.weight);
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
-      <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
+      <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by employee priority weight (most important first)</p></div>
       <div className="px-8 py-4">
         <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-24 text-center text-xs font-medium text-slate-400 uppercase">Tier</div></div>
         <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; return (
@@ -111,7 +111,7 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
             <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score →</text></g>
             <g transform={`translate(${PADDING}, 0)`}>{[0, 5, 10, 15].map((val) => (<g key={val} transform={`translate(0, ${PADDING + PLOT_HEIGHT - (val / MAX_WEIGHT) * PLOT_HEIGHT})`}><line x1="-5" x2="0" stroke="#94A3B8" strokeWidth="1" /><text x="-10" textAnchor="end" dominantBaseline="middle" fill="#64748B" fontSize="11">{val}%</text></g>))}</g>
-            <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Impact Weight ↑</text>
+            <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Employee Priority ↑</text>
           </g>
         </svg>
       </div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
@@ -169,15 +169,16 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, maturity: 5, breadth: 5 };
 
 // =============================================================
-// Index Contribution Groups (dimension-weight bands)
-//  - Highest-Impact: >= 10%
-//  - Meaningful:     7–8%
-//  - Supporting:     <= 5%
+// Employee Priority Groups (informed by employee feedback; aligned to the Index weighting model)
+//  - Most Critical to Employees: >= 10%
+//  - Highly Important to Employees: 7–8%
+//  - Completes the Support Ecosystem: <= 5%
 // =============================================================
 const IMPACT_GROUPS = {
   highest: {
     id: 'highest',
-    label: 'Highest-Impact',
+    label: 'Most Critical to Employees',
+    shortLabel: 'Most Critical',
     // Use a palette distinct from performance colors (avoid red/green/blue)
     color: '#7C3AED',
     bgClass: 'bg-violet-50',
@@ -186,7 +187,8 @@ const IMPACT_GROUPS = {
   },
   meaningful: {
     id: 'meaningful',
-    label: 'Meaningful',
+    label: 'Highly Important to Employees',
+    shortLabel: 'Highly Important',
     color: '#F59E0B',
     bgClass: 'bg-amber-50',
     borderClass: 'border-amber-200',
@@ -194,7 +196,8 @@ const IMPACT_GROUPS = {
   },
   supporting: {
     id: 'supporting',
-    label: 'Supporting',
+    label: 'Completes the Support Ecosystem',
+    shortLabel: 'Enabling',
     color: '#64748B',
     bgClass: 'bg-slate-100',
     borderClass: 'border-slate-200',
@@ -202,7 +205,7 @@ const IMPACT_GROUPS = {
   },
 } as const;
 
-function getImpactGroup(weightPct: number) {
+function getEmployeePriorityGroup(weightPct: number) {
   if (weightPct >= 10) return IMPACT_GROUPS.highest;
   if (weightPct >= 7) return IMPACT_GROUPS.meaningful; // 7–8%
   return IMPACT_GROUPS.supporting; // <= 5%
@@ -1004,7 +1007,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   const isWeak = (d: any) => (d?.score ?? 0) < 60;           // Emerging/Developing
   const headroom = (d: any) => 100 - (d?.score ?? 0);
 
-  // Opportunity proxy: headroom weighted by impact importance (dampened so it informs but doesn't dominate)
+  // Opportunity proxy: headroom weighted by employee priority (dampened so it informs but doesn't dominate)
   const avgWeight = dimAnalysis.reduce((s, d) => s + (d.weight || 0), 0) / Math.max(dimAnalysis.length, 1);
   const weightFactor = (w: number) => {
     const ratio = (w || 0) / Math.max(avgWeight, 1);
@@ -1645,7 +1648,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ IMPACT WEIGHT
+              ↑ employee priority weight
             </text>
             
             {/* Data points - at true positions, no nudging */}
@@ -1665,7 +1668,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                     <circle
                       r={isHovered ? 18 : 15}
                       fill={getScoreColor(d.score)}
-                      stroke={getImpactGroup(d.weight).color}
+                      stroke={getEmployeePriorityGroup(d.weight).color}
                       strokeWidth={3}
                       style={{ transition: 'all 0.15s ease' }}
                     />
@@ -1776,7 +1779,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               >
                 <span
                   className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
-                  style={{ backgroundColor: getScoreColor(d.score), border: `2px solid ${getImpactGroup(d.weight).color}` }}
+                  style={{ backgroundColor: getScoreColor(d.score), border: `2px solid ${getEmployeePriorityGroup(d.weight).color}` }}
                 >
                   {d.dim}
                 </span>
@@ -1795,7 +1798,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
               >
                 <span
                   className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
-                  style={{ backgroundColor: getScoreColor(d.score), border: `2px solid ${getImpactGroup(d.weight).color}` }}
+                  style={{ backgroundColor: getScoreColor(d.score), border: `2px solid ${getEmployeePriorityGroup(d.weight).color}` }}
                 >
                   {d.dim}
                 </span>
@@ -1804,11 +1807,11 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             ))}
           </div>
 
-          {/* Index Contribution Groups */}
+          {/* Employee Priority Groups */}
           <div className="mt-3 flex items-center justify-center gap-6 text-[11px] text-slate-500">
-            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.highest.color }} />Highest-Impact</span>
-            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.meaningful.color }} />Meaningful</span>
-            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.supporting.color }} />Supporting</span>
+            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.highest.color }} />Most Critical to Employees</span>
+            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.meaningful.color }} />Highly Important to Employees</span>
+            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.supporting.color }} />Completes the Support Ecosystem</span>
           </div>
         </div>
       </div>
@@ -3116,7 +3119,7 @@ const SUPPORT_LEVELS = {
     icon: AdvancedSupportIcon,
     desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care. These often involve dedicated resources, cross-functional ownership, or innovative design.',
     boldPhrase: 'Less commonly offered, proactively strengthen continuity of work and care.',
-    italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
+    italic: 'Adds proactive, high-priority practices that deepen support and continuity over time.',
   },
 } as const;
 
@@ -3442,7 +3445,7 @@ export default function ExportReportPage() {
       0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
       2: 'Explain what the Workplace Support Index represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
-      3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
+      3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by employee priority based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
       4: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
       5: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
       19: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
@@ -5677,7 +5680,7 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-3 mb-2">
                                 <div 
                                   className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
-                                  style={{ backgroundColor: getImpactGroup(weightPct).color }}
+                                  style={{ backgroundColor: getEmployeePriorityGroup(weightPct).color }}
                                 >
                                   {d.dim}
                                 </div>
@@ -5703,7 +5706,7 @@ export default function ExportReportPage() {
                           <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <p className="text-sm text-slate-600">
-                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                          Each dimension is scored on a 0–100 scale based on the support elements offered. These groupings reflect what employees managing cancer consistently described as most critical to their workplace experience. <strong className="text-slate-800">All dimensions matter</strong>—this simply indicates where employee need is most acute.
                         </p>
                       </div>
                     </div>
@@ -5922,7 +5925,7 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our roadmap?</p>
                             </div>
                             <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20"><strong className="text-slate-600">Protect</strong> strengths, target <strong className="text-slate-600">high-impact gaps</strong>, and build on work already underway.</p>
+                              <p className="text-sm text-slate-500 leading-relaxed h-20"><strong className="text-slate-600">Protect</strong> strengths, target <strong className="text-slate-600">high-priority gaps</strong>, and build on work already underway.</p>
                               <div className="mt-5 space-y-1.5 h-24">
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
@@ -6019,10 +6022,10 @@ export default function ExportReportPage() {
                         {[
                           { id: 'composite', name: tierView ? 'Workplace Support Index' : 'Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
                           { id: 'dimensions', name: 'Dimension Scores', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
-                          { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
+                          { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against employee priority weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
-                          { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
+                          { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, employee priority weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
                           { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
                           { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Priority Matrix clarifies which gaps are most consequential.' },
                           { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
@@ -6382,7 +6385,7 @@ export default function ExportReportPage() {
               {tierView ? (
                 <div data-export="executive-summary-text">
                   {/* Index definition */}
-                  <p className="text-sm text-slate-500 mb-4">The Workplace Support Index summarizes the share of support practices in place across 13 dimensions, weighted by their impact on employee wellbeing and organizational outcomes.</p>
+                  <p className="text-sm text-slate-500 mb-4">The Workplace Support Index summarizes the share of support practices in place across 13 dimensions, weighted using Cancer and Careers’ expert-derived dimension weights, informed by research with employees and HR leaders.</p>
                   
                   {/* Part A: What this score means */}
                   <p className="text-slate-700 leading-relaxed text-lg mb-3">
@@ -6807,7 +6810,7 @@ export default function ExportReportPage() {
                     {/* Methodology footnote */}
                     <div className="px-8 py-3 bg-slate-50 border-t border-slate-200">
                       <p className="text-xs text-slate-400">
-                        <strong className="text-slate-500">Methodology:</strong> Each of the 152 program elements is classified into one of three support levels based on clustering by maturity status (In Place, In Development, Under Review, Not Planned) across participating organizations. Level scores are unweighted flat percentages. The Workplace Support Index uses dimension impact weights. Support Rating tiers are based on WSI score ranges.
+                        <strong className="text-slate-500">Methodology:</strong> Each of the 152 program elements is classified into one of three support levels based on clustering by maturity status (In Place, In Development, Under Review, Not Planned) across participating organizations. Level scores are unweighted flat percentages. The Workplace Support Index uses dimension employee priority weights. Support Rating tiers are based on WSI score ranges.
                       </p>
                     </div>
                   </div>
@@ -6908,7 +6911,7 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     <div className="px-8 py-6">
-                      <p className="text-slate-600 mb-6">Combined performance across all 13 support dimensions, weighted by their impact importance to cancer support programs.</p>
+                      <p className="text-slate-600 mb-6">Combined performance across all 13 support dimensions, weighted by their employee priority to cancer support programs.</p>
                       <div className="bg-slate-50 rounded-xl p-4 mb-4">
                         <p className="text-sm font-semibold text-slate-700 mb-3">How It's Calculated</p>
                         <p className="text-sm text-slate-600">Each dimension score is multiplied by its weight, then summed and normalized to 100. Higher-weighted dimensions (like Manager Training at 14%) have more influence than lower-weighted ones.</p>
@@ -7180,7 +7183,7 @@ export default function ExportReportPage() {
                           ? ` ${companyName}${companyName.endsWith('s') ? "'" : "'s"} score`
                           : dimensionPerfSortBy === 'benchmark'
                             ? ' benchmark score'
-                            : ' index contribution'
+                            : ' employee priority'
                       }
                     </p>
                   </div>
@@ -7196,7 +7199,7 @@ export default function ExportReportPage() {
                     >
                       <option value="your">Your Score</option>
                       <option value="benchmark">Benchmark</option>
-                      <option value="contribution">Index Contribution</option>
+                      <option value="contribution">Employee Priority</option>
                     </select>
                   </div>
                   <span className="bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm">Click any dimension for element-level details</span>
@@ -7214,7 +7217,7 @@ export default function ExportReportPage() {
                 <div className="flex-1 text-center">Performance</div>
                 <div className="w-24 text-center">Your Score</div>
                 <div className="w-28 text-center">Benchmark</div>
-                <div className="w-32 text-center">Index Contribution</div>
+                <div className="w-32 text-center">Employee Priority</div>
               </div>
               <div className="divide-y divide-slate-100">
                 {(() => {
@@ -7229,7 +7232,7 @@ export default function ExportReportPage() {
 
                   return sorted.map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
-                  const grp = getImpactGroup(d.weight ?? 0);
+                  const grp = getEmployeePriorityGroup(d.weight ?? 0);
                   return (
                     <div 
                       key={d.dim} 
@@ -7275,7 +7278,7 @@ export default function ExportReportPage() {
                       </div>
                       <div className="w-32 flex justify-center">
                         <span className={`text-xs font-bold px-3 py-1 rounded-full border ${grp.bgClass} ${grp.borderClass}`} style={{ color: grp.color }}>
-                          {grp.label}
+                          {grp.shortLabel}
                         </span>
                       </div>
                     </div>
@@ -7300,7 +7303,7 @@ export default function ExportReportPage() {
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 text-xl">Strategic Priority Matrix</h3>
-                  <p className="text-slate-500 mt-0.5">Dimensions plotted by performance vs. impact weight. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
+                  <p className="text-slate-500 mt-0.5">Dimensions plotted by performance vs. employee priority weight. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -7449,7 +7452,7 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">IMPACT WEIGHT ↑</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">employee priority weight ↑</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {showBenchmarkRings && (() => {
@@ -7509,11 +7512,11 @@ export default function ExportReportPage() {
                           const xPos = (d.score / 100) * PLOT_WIDTH;
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
-                          const impactColor = getImpactGroup(d.weight).color;
+                          const impactColor = getEmployeePriorityGroup(d.weight).color;
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
                               <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
-                              {/* Index Contribution Group ring (distinct palette; performance is still encoded by fill) */}
+                              {/* Employee Priority Group ring (distinct palette; performance is still encoded by fill) */}
                               <circle r={isHovered ? 22 : 18} fill="none" stroke={impactColor} strokeWidth={isHovered ? 3.5 : 3} opacity={0.95} />
                               <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
@@ -8829,14 +8832,14 @@ export default function ExportReportPage() {
                         </div>
                         <div>
                           <h5 className="font-bold text-white text-lg">Strategic Leverage</h5>
-                          <p className="text-slate-300 text-xs">High-impact improvement paths</p>
+                          <p className="text-slate-300 text-xs">high-priority improvement paths</p>
                         </div>
                       </div>
                       <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
                     </div>
                     <div className="p-6">
                       <p className="text-slate-600 text-sm mb-4">
-                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.
+                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where employee priority × headroom creates system-wide impact.
                       </p>
                       <div className="space-y-3">
                         {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
@@ -11790,7 +11793,7 @@ export default function ExportReportPage() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
-                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. employee priority weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
                       <div className="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 text-sm font-semibold">
                         ○ Show Benchmarks
@@ -11860,7 +11863,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">employee priority weight ↑</text>
                               
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
@@ -11945,7 +11948,7 @@ export default function ExportReportPage() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
-                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by performance vs. employee priority weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
                       <div className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold">
                         ● Benchmarks On
@@ -12015,7 +12018,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">employee priority weight ↑</text>
                               
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
@@ -13000,13 +13003,13 @@ export default function ExportReportPage() {
                               </div>
                               <div>
                                 <h5 className="font-bold text-white text-sm">Strategic Leverage</h5>
-                                <p className="text-slate-300 text-xs">High-impact improvement paths</p>
+                                <p className="text-slate-300 text-xs">high-priority improvement paths</p>
                               </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold">2 dimensions</span>
                           </div>
                           <div className="p-4">
-                            <p className="text-slate-600 text-xs mb-3"><span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.</p>
+                            <p className="text-slate-600 text-xs mb-3"><span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where employee priority × headroom creates system-wide impact.</p>
                             <div className="space-y-3">
                               {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
                                 <div key={d.dim} className="bg-white rounded-lg border border-slate-200 p-3 shadow-sm">
@@ -14621,7 +14624,7 @@ export default function ExportReportPage() {
                       <p className="mb-2"><strong>The 13 dimensions overview:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Walk through the dimension categories and what each measures</li>
-                        <li>Note that dimensions are weighted by impact importance based on research</li>
+                        <li>Note that dimensions are weighted by employee priority based on research</li>
                         <li>Emphasize that all dimensions matter - improvements anywhere create lasting impact</li>
                       </ul>
                     </div>
