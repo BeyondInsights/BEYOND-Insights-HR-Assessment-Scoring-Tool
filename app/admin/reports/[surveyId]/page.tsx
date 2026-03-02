@@ -573,6 +573,15 @@ function getScoreColor(score: number): string {
   if (score >= 40) return '#B45309'; return '#B91C1C';
 }
 
+// Employee Priority grouping — reflects what employees managing cancer described as most critical
+function getEmployeePriorityGroup(weight: number): { label: string; chip: string; color: string; bgColor: string; borderColor: string; ringColor: string } {
+  if (weight >= 10) return { label: 'Most Critical to Employees', chip: 'Most Critical', color: '#7C3AED', bgColor: 'bg-violet-50', borderColor: 'border-violet-200', ringColor: '#7C3AED' };
+  if (weight >= 7)  return { label: 'Highly Important to Employees', chip: 'Highly Important', color: '#D97706', bgColor: 'bg-amber-50', borderColor: 'border-amber-200', ringColor: '#D97706' };
+  return { label: 'Completes the Support Ecosystem', chip: 'Enabling', color: '#475569', bgColor: 'bg-slate-50', borderColor: 'border-slate-200', ringColor: '#475569' };
+}
+
+const EMPLOYEE_PRIORITY_FOOTNOTE = "These groupings reflect what employees managing cancer consistently described as most critical to their workplace experience. All dimensions matter\u2014this simply indicates where employee need is most acute.";
+
 // ============================================
 // DYNAMIC TAILORED ANALYSIS FUNCTIONS
 // ============================================
@@ -1931,22 +1940,24 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
           const isSelected = selectedDim === d.dim;
           const diff = d.benchmark !== null ? d.score - d.benchmark : null;
           const isLast = idx === arr.length - 1;
-          
+          const priorityGroup = getEmployeePriorityGroup(d.weight);
+
           return (
             <div key={d.dim}>
               <button
                 onClick={() => setSelectedDim(isSelected ? null : d.dim)}
                 className={`w-full text-left transition-all duration-200 ${
-                  isSelected 
-                    ? 'bg-slate-800 text-white' 
+                  isSelected
+                    ? 'bg-slate-800 text-white'
                     : 'bg-white hover:bg-slate-50'
                 } ${!isLast && !isSelected ? 'border-b border-slate-100' : ''}`}
               >
                 <div className="flex items-center px-6 py-4">
-                  {/* Dimension Number Badge */}
-                  <div 
+                  {/* Dimension Number Badge - colored by Employee Priority group */}
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: isSelected ? '#6366F1' : '#1E293B' }}
+                    style={{ backgroundColor: isSelected ? '#6366F1' : priorityGroup.color }}
+                    title={priorityGroup.label}
                   >
                     {d.dim}
                   </div>
@@ -2299,22 +2310,24 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
           const isSelected = selectedDim === d.dim;
           const diff = d.benchmark !== null ? d.score - d.benchmark : null;
           const isLast = idx === arr.length - 1;
-          
+          const priorityGroup = getEmployeePriorityGroup(d.weight);
+
           return (
             <div key={d.dim}>
               <button
                 onClick={() => setSelectedDim(isSelected ? null : d.dim)}
                 className={`w-full text-left transition-all duration-200 ${
-                  isSelected 
-                    ? 'bg-slate-800 text-white' 
+                  isSelected
+                    ? 'bg-slate-800 text-white'
                     : 'bg-white hover:bg-slate-50'
                 } ${!isLast && !isSelected ? 'border-b border-slate-100' : ''}`}
               >
                 <div className="flex items-center px-6 py-4">
-                  {/* Dimension Number Badge */}
-                  <div 
+                  {/* Dimension Number Badge - colored by Employee Priority group */}
+                  <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: isSelected ? '#6366F1' : '#1E293B' }}
+                    style={{ backgroundColor: isSelected ? '#6366F1' : priorityGroup.color }}
+                    title={priorityGroup.label}
                   >
                     {d.dim}
                   </div>
@@ -3204,6 +3217,7 @@ export default function ExportReportPage() {
   
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
+  const [dimPerfSortBy, setDimPerfSortBy] = useState<'score' | 'benchmark' | 'priority'>('score');
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
   const [customDimRoadmaps, setCustomDimRoadmaps] = useState<Record<number, { 
@@ -4903,7 +4917,7 @@ export default function ExportReportPage() {
 
  return (
     <div className="min-h-screen bg-slate-100">
-      <style jsx global>{GLOBAL_PRINT_STYLES}</style>
+      <style dangerouslySetInnerHTML={{ __html: GLOBAL_PRINT_STYLES }} />
 
       {/* ============ ACTION BAR ============ */}
         <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
@@ -5353,16 +5367,7 @@ export default function ExportReportPage() {
                           </div>
                           
                           <div className="space-y-2">
-                            {[
-                              {[
-                                ...(tierView ? ([
-                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                  { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                ] as any) : ([
-                                  {[
-                                ...(tierView ? ([
+                            {(tierView ? ([
                                   { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
                                   { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
                                   { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
@@ -5373,9 +5378,7 @@ export default function ExportReportPage() {
                                   { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
                                   { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
                                   { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
-                                ] as any)),
-                              ]} as any)),
-                              ]}.map((t) => {
+                                ] as any)).map((t: any) => {
                               const isCurrentTier = tier?.name === t.name;
                               return (
                                 <div 
@@ -7149,7 +7152,18 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm">Click any dimension for element-level details</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400 font-medium">Sort:</span>
+                    <select
+                      value={dimPerfSortBy}
+                      onChange={(e) => setDimPerfSortBy(e.target.value as 'score' | 'benchmark' | 'priority')}
+                      className="bg-white text-slate-900 text-sm font-medium border border-slate-300 rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    >
+                      <option value="score">Your Score</option>
+                      <option value="benchmark">Benchmark</option>
+                      <option value="priority">Employee Priority</option>
+                    </select>
+                  </div>
                   <span className="flex items-center gap-2 text-xs text-slate-400">
                     <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
                     <span>= Benchmark Score</span>
@@ -7164,32 +7178,38 @@ export default function ExportReportPage() {
                 <div className="flex-1 text-center">Performance</div>
                 <div className="w-24 text-center">Your Score</div>
                 <div className="w-28 text-center">Benchmark</div>
-                <div className="w-28 text-center">Dim Tier</div>
+                <div className="w-36 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
               </div>
               <div className="divide-y divide-slate-100">
-                {[...dimensionAnalysis].sort((a, b) => b.score - a.score).map((d, idx) => {
+                {[...dimensionAnalysis].sort((a, b) => {
+                  if (dimPerfSortBy === 'score') return b.score - a.score;
+                  if (dimPerfSortBy === 'benchmark') return (b.benchmark ?? 0) - (a.benchmark ?? 0);
+                  // priority: sort by weight descending
+                  return b.weight - a.weight;
+                }).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+                  const pg = getEmployeePriorityGroup(d.weight);
                   return (
-                    <div 
-                      key={d.dim} 
+                    <div
+                      key={d.dim}
                       onClick={() => setDimensionDetailModal(d.dim)}
                       className={`flex items-center py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
                     >
                       <div className="w-64 flex items-center gap-3 pl-2">
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>
                           {d.dim}
                         </span>
                         <span className="text-sm text-slate-800 font-semibold hover:text-slate-900">{d.name}</span>
                       </div>
                       <div className="flex-1 px-4">
                         <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
-                          <div 
-                            className="absolute left-0 top-0 h-full rounded-full transition-all" 
-                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
+                          <div
+                            className="absolute left-0 top-0 h-full rounded-full transition-all"
+                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }}
                           />
                           {d.benchmark !== null && (
-                            <div 
-                              className="absolute -top-2.5" 
+                            <div
+                              className="absolute -top-2.5"
                               style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                             >
                               <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#64748b"/></svg>
@@ -7212,18 +7232,21 @@ export default function ExportReportPage() {
                           <span className="text-sm text-slate-300">—</span>
                         )}
                       </div>
-                      <div className="w-28 flex justify-center">
-                        <span 
-                          className="text-xs font-bold px-3 py-1 rounded-full text-white" 
-                          style={{ backgroundColor: d.tier.color }}
+                      <div className="w-36 flex justify-center">
+                        <span
+                          className={`text-xs font-bold px-3 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`}
+                          style={{ color: pg.color }}
                         >
-                          {d.tier.name}
+                          {pg.chip}
                         </span>
                       </div>
                     </div>
                   );
                 })}
               </div>
+              <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100 leading-relaxed">
+                *{EMPLOYEE_PRIORITY_FOOTNOTE}
+              </p>
             </div>
           </div>
           
@@ -7445,13 +7468,16 @@ export default function ExportReportPage() {
                           </>);
                         })()}
                         
-                        {/* Data points - Company scores at true positions */}
+                        {/* Data points - Company scores at true positions with Employee Priority ring */}
                         {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => {
                           const xPos = (d.score / 100) * PLOT_WIDTH;
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
+                          const epRing = getEmployeePriorityGroup(d.weight);
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                              {/* Employee Priority outer ring */}
+                              <circle r={isHovered ? 27 : 23} fill="none" stroke={epRing.ringColor} strokeWidth="3" style={{ transition: 'all 0.2s ease' }} />
                               <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
                               <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
@@ -7543,8 +7569,24 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
+                      {/* Employee Priority ring legend */}
+                      <div className="mt-4 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-6 text-sm">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ring = Employee Priority:</span>
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>
+                          <span className="text-slate-600 text-xs font-medium">Most Critical</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>
+                          <span className="text-slate-600 text-xs font-medium">Highly Important</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>
+                          <span className="text-slate-600 text-xs font-medium">Enabling</span>
+                        </div>
+                      </div>
                       {showBenchmarkRings && (
-                        <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-center gap-8 text-sm">
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-8 text-sm">
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-emerald-500 shadow-sm"></span>
                             <span className="text-slate-700 font-medium">Your Company</span>
