@@ -10246,8 +10246,8 @@ export default function ExportReportPage() {
             };
 
             const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
-            const wsiBenchDiff = compositeScore != null && wsiBenchmarkScore != null ? compositeScore - wsiBenchmarkScore : null;
-            const wsiTier = getWSITier(compositeScore ?? 0);
+            const wsiBenchDiff = wsiScoreHeader != null && wsiBenchmarkScore != null ? wsiScoreHeader - wsiBenchmarkScore : null;
+            const wsiTier = getWSITier(wsiScoreHeader ?? 0);
 
             // Top 3 strengths by score (highest first)
             const topStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
@@ -10281,7 +10281,7 @@ export default function ExportReportPage() {
                       {/* Score */}
                       <div className="flex items-center gap-3">
                         <span className="text-slate-400 text-xs uppercase tracking-wider">Workplace Support Index</span>
-                        <span className="text-3xl font-bold text-white">{compositeScore ?? '—'}</span>
+                        <span className="text-3xl font-bold text-white">{wsiScoreHeader ?? '—'}</span>
                       </div>
                       {/* Tier badge */}
                       <span className="px-3 py-1 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
