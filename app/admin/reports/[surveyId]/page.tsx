@@ -7031,6 +7031,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
+          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -7383,7 +7384,8 @@ export default function ExportReportPage() {
               })()}
             </div>
           </div>
-          
+          </div>
+
           {/* ============ DIMENSION DETAIL MODAL ============ */}
           {dimensionDetailModal && (() => {
             const d = dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
@@ -8272,6 +8274,7 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
+          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-teal-700 to-teal-800">
               <div className="flex items-center justify-between">
@@ -8324,7 +8327,8 @@ export default function ExportReportPage() {
               )}
             </div>
           </div>
-          
+          </div>
+
           {/* ============ GROWTH OPPORTUNITIES ============ */}
           <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-700 to-slate-800">
@@ -8377,6 +8381,7 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
+            <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
             <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                 <div className="flex items-center justify-between">
@@ -8420,8 +8425,9 @@ export default function ExportReportPage() {
                 </div>
               </div>
             </div>
+            </div>
           )}
-          
+
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
             {/* Header with visual interest */}
@@ -9468,6 +9474,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* Impact-Ranked Priorities Teaser Card */}
+          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
             <button
               onClick={() => setShowImpactRanked(!showImpactRanked)}
@@ -10031,7 +10038,8 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
-          
+          </div>
+
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div id="wwc-pledge-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Header - Clickable to expand/collapse */}
@@ -10234,6 +10242,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
+          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="cac-help-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
@@ -10333,7 +10342,8 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
-          
+          </div>
+
           {/* ============ THANK YOU SECTION ============ */}
           <div id="thank-you-section" className="ppt-break bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl shadow-lg border border-slate-700 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto relative">
             {/* Background decorative elements */}
