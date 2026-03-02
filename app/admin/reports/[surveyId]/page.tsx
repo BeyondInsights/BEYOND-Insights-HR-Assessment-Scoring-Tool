@@ -3099,21 +3099,6 @@ function getElementLevel(elementName: string): string {
 }
 
 
-// Global print styles (module-scope to avoid SWC parse edge cases)
-const GLOBAL_PRINT_STYLES = [
-  '@media print {',
-  '  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }',
-  '  .no-print { display: none !important; }',
-  '  .pdf-break-before { page-break-before: always; }',
-  '  .pdf-no-break { page-break-inside: avoid; }',
-  '}',
-  ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
-  ".polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {",
-  "  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;",
-  '  letter-spacing: -0.01em;',
-  '}',
-].join('\n');
-
 export default function ExportReportPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -4901,6 +4886,21 @@ export default function ExportReportPage() {
   // ============================================
   const { bottlenecks: patterns, positiveInsights } = getCrossDimensionPatterns(dimensionAnalysis);
   const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
+  
+  const GLOBAL_PRINT_STYLES = [
+  '@media print {',
+  '  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }',
+  '  .no-print { display: none !important; }',
+  '  .pdf-break-before { page-break-before: always; }',
+  '  .pdf-no-break { page-break-inside: avoid; }',
+  '}',
+  ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
+  ".polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {",
+  "  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;",
+  '  letter-spacing: -0.01em;',
+  '}',
+].join('\n');
+
  return (
     <div className="min-h-screen bg-slate-100">
       <style jsx global>{GLOBAL_PRINT_STYLES}</style>
@@ -5302,17 +5302,7 @@ export default function ExportReportPage() {
                                 <div className="flex-1 text-center">Distribution</div>
                               </div>
                               <div className="space-y-2">
-                                {[
-                                  {[
-                                  // Tier View uses the 4-level WSI tier scheme; Classic keeps legacy 5 tiers
-                                  ...(tierView ? ([
-                                    { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                    { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                    { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                    { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                  ] as any) : ([
-                                    {[
-                                ...(tierView ? ([
+                                {(tierView ? ([
                                   { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
                                   { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
                                   { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
@@ -5322,10 +5312,8 @@ export default function ExportReportPage() {
                                   { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
                                   { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
                                   { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
-                                ] as any)),
-                              ]} as any)),
-                                ]}.map((t) => {
+                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 },
+                                ] as any)).map((t: any) => {
                                   const isCurrent = supportRatingHeader === t.name;
                                   return (
                                     <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrent ? 'bg-white shadow-md' : t.bg} ${isCurrent ? '' : t.border}`} style={isCurrent ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
