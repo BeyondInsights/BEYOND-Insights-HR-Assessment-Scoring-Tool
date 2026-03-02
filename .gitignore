@@ -86,3 +86,6 @@ coverage/
 *.tmp
 *.temp
 ~$*
+
+# Local Netlify folder
+.netlify
