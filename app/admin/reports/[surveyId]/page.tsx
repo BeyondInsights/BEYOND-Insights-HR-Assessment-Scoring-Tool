@@ -5643,15 +5643,17 @@ export default function ExportReportPage() {
                           const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
                           const elementCount = dimData?.elements?.length || 0;
                           const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
+                          const epGroup = getEmployeePriorityGroup(weightPct);
                           return (
-                            <div 
+                            <div
                               key={d.dim}
                               className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all"
                             >
                               <div className="flex items-center gap-3 mb-2">
-                                <div 
+                                <div
                                   className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
-                                  style={{ backgroundColor: '#1E293B' }}
+                                  style={{ backgroundColor: epGroup.color }}
+                                  title={epGroup.label}
                                 >
                                   {d.dim}
                                 </div>
