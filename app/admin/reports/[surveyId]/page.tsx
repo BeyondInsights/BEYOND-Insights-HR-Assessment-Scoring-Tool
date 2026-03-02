@@ -67,18 +67,18 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
       <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
       <div className="px-8 py-4">
-        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-24 text-center text-xs font-medium text-slate-400 uppercase">Tier</div></div>
-        <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; return (
+        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-28 text-center text-xs font-medium text-slate-400 uppercase" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div></div>
+        <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; const pg = getEmployeePriorityGroup(d.weight); return (
           <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
-            <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: '#1E293B' }}>{d.dim}</span></div>
+            <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: pg.color }}>{d.dim}</span></div>
             <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
             <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
             <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
-            <div className="w-24 flex justify-center"><span className={`text-xs font-medium px-2.5 py-1 rounded ${d.tier.bgColor} border ${d.tier.borderColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span></div>
+            <div className="w-28 flex justify-center"><span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`} style={{ color: pg.color }}>{pg.chip}</span></div>
           </div>); })}</div>
-        <div className="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400"><span>Scores out of 100</span><span className="flex items-center gap-1"><span className="inline-block w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"></span>Benchmark</span></div>
+        <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
       </div>
     </div>
   );
@@ -108,13 +108,13 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT - 10} textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="500" opacity="0.6">MONITOR</text>
             <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT - 10} textAnchor="middle" fill="#1E40AF" fontSize="11" fontWeight="500" opacity="0.6">MAINTAIN & LEVERAGE</text>
             {showBenchmarks && dimensionAnalysis.map((d: any) => { if (d.benchmark === null) return null; const xPos = PADDING + (d.benchmark / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); return (<g key={`bench-${d.dim}`} transform={`translate(${xPos}, ${yPos})`}><circle r="10" fill="none" stroke="#94A3B8" strokeWidth="2" strokeDasharray="3,2" /></g>); })}
-            {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
+            {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; const epRing = getEmployeePriorityGroup(d.weight); return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 25 : 21} fill="none" stroke={epRing.ringColor} strokeWidth="3" /><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
             <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score →</text></g>
             <g transform={`translate(${PADDING}, 0)`}>{[0, 5, 10, 15].map((val) => (<g key={val} transform={`translate(0, ${PADDING + PLOT_HEIGHT - (val / MAX_WEIGHT) * PLOT_HEIGHT})`}><line x1="-5" x2="0" stroke="#94A3B8" strokeWidth="1" /><text x="-10" textAnchor="end" dominantBaseline="middle" fill="#64748B" fontSize="11">{val}%</text></g>))}</g>
             <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Impact Weight ↑</text>
           </g>
         </svg>
-      </div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
+      </div><div className="mt-4 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500"><span className="font-semibold text-slate-500 uppercase tracking-wide">Ring = Employee Priority:</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Enabling</span></div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
     </div>
   );
 }
@@ -11556,33 +11556,34 @@ export default function ExportReportPage() {
                       <div className="flex-1 text-center">Performance</div>
                       <div className="w-20 text-center">Your Score</div>
                       <div className="w-28 text-center">Benchmark</div>
-                      <div className="w-28 text-center">Tier</div>
+                      <div className="w-32 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
                     </div>
-                    
+
                     {/* Table Rows */}
                     <div className="divide-y divide-slate-100">
                       {[...dimensionAnalysis].sort((a, b) => b.score - a.score).map((d, idx) => {
                         const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+                        const pg = getEmployeePriorityGroup(d.weight);
                         return (
-                          <div 
-                            key={d.dim} 
+                          <div
+                            key={d.dim}
                             className={`flex items-center py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}
                           >
                             <div className="w-64 flex items-center gap-3 pl-2">
-                              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
+                              <span className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>
                                 {d.dim}
                               </span>
                               <span className="text-sm text-slate-800 font-medium">{d.name}</span>
                             </div>
                             <div className="flex-1 px-4">
                               <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
-                                <div 
-                                  className="absolute left-0 top-0 h-full rounded-full transition-all" 
-                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
+                                <div
+                                  className="absolute left-0 top-0 h-full rounded-full transition-all"
+                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }}
                                 />
                                 {d.benchmark !== null && (
-                                  <div 
-                                    className="absolute -top-3" 
+                                  <div
+                                    className="absolute -top-3"
                                     style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
                                   >
                                     <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
@@ -11605,18 +11606,19 @@ export default function ExportReportPage() {
                                 <span className="text-sm text-slate-300">—</span>
                               )}
                             </div>
-                            <div className="w-28 flex justify-center">
-                              <span 
-                                className="text-xs font-bold px-3 py-1 rounded-full text-white" 
-                                style={{ backgroundColor: d.tier.color }}
+                            <div className="w-32 flex justify-center">
+                              <span
+                                className={`text-xs font-bold px-3 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`}
+                                style={{ color: pg.color }}
                               >
-                                {d.tier.name}
+                                {pg.chip}
                               </span>
                             </div>
                           </div>
                         );
                       })}
                     </div>
+                    <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
                     </div>
                   </div>
                 )}
@@ -11870,10 +11872,12 @@ export default function ExportReportPage() {
                                     {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => {
                                       const x = (d.score / 100) * PLOT_WIDTH;
                                       const y = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                                      const epRing = getEmployeePriorityGroup(d.weight);
                                       return (
                                         <g key={d.dim} transform={`translate(${x}, ${y})`}>
+                                          <circle r={21} fill="none" stroke={epRing.ringColor} strokeWidth="3" />
                                           <circle r={18} fill="white" filter="url(#dropShadow18)" />
-                                          <circle r={15} fill={d.tier.color} />
+                                          <circle r={15} fill={getScoreColor(d.score)} />
                                           <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
                                         </g>
                                       );
@@ -11890,7 +11894,7 @@ export default function ExportReportPage() {
                                             return (
                                               <g key={dim}>
                                                 <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
-                                                <circle cx={cx} cy={cy} r="9" fill={dd?.tier?.color || '#94A3B8'} opacity="0.4" stroke={dd?.tier?.color || '#94A3B8'} strokeWidth="1.5" />
+                                                <circle cx={cx} cy={cy} r="9" fill={getScoreColor(dd?.score || 0)} opacity="0.4" stroke={getScoreColor(dd?.score || 0)} strokeWidth="1.5" />
                                                 <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                                               </g>
                                             );
@@ -11912,6 +11916,13 @@ export default function ExportReportPage() {
                                 <span className="text-slate-700">{d.name}</span>
                               </div>
                             ))}
+                          </div>
+                          {/* Employee Priority ring legend */}
+                          <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
+                            <span className="font-semibold uppercase tracking-wide">Ring = Employee Priority:</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Enabling</span>
                           </div>
                         </div>
                       );
@@ -12070,13 +12081,17 @@ export default function ExportReportPage() {
                                 }
                                 return (
                                   <>
-                                    {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => (
+                                    {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => {
+                                      const epRing = getEmployeePriorityGroup(d.weight);
+                                      return (
                                       <g key={d.dim} transform={`translate(${(d.score / 100) * PLOT_WIDTH}, ${PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT)})`}>
+                                        <circle r={21} fill="none" stroke={epRing.ringColor} strokeWidth="3" />
                                         <circle r={18} fill="white" filter="url(#dropShadow19)" />
-                                        <circle r={15} fill={d.tier.color} />
+                                        <circle r={15} fill={getScoreColor(d.score)} />
                                         <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="700">D{d.dim}</text>
                                       </g>
-                                    ))}
+                                      );
+                                    })}
                                     {clusters.map((cluster, idx) => {
                                       const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                                       // Overlap indicator positions computed inline
@@ -12089,7 +12104,7 @@ export default function ExportReportPage() {
                                             return (
                                               <g key={dim}>
                                                 <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
-                                                <circle cx={cx} cy={cy} r="9" fill={dd?.tier?.color || '#94A3B8'} opacity="0.4" stroke={dd?.tier?.color || '#94A3B8'} strokeWidth="1.5" />
+                                                <circle cx={cx} cy={cy} r="9" fill={getScoreColor(dd?.score || 0)} opacity="0.4" stroke={getScoreColor(dd?.score || 0)} strokeWidth="1.5" />
                                                 <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                                               </g>
                                             );
@@ -12111,6 +12126,13 @@ export default function ExportReportPage() {
                                 <span className="text-slate-700">{d.name}</span>
                               </div>
                             ))}
+                          </div>
+                          {/* Employee Priority ring legend */}
+                          <div className="mt-3 pt-3 border-t border-slate-200 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500">
+                            <span className="font-semibold uppercase tracking-wide">Ring = Employee Priority:</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Enabling</span>
                           </div>
                         </div>
                       );
