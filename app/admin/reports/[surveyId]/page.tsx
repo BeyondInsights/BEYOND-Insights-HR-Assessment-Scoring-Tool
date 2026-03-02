@@ -10235,6 +10235,16 @@ export default function ExportReportPage() {
           
           {/* ============ YOUR ASSESSMENT AT A GLANCE ============ */}
           {(() => {
+            // Dimension opportunity phrases for compact display
+            const dimOpportunity: Record<number, string> = {
+              1: 'industry-leading time-off benefits', 2: 'comprehensive coverage removing barriers',
+              3: 'confident, trained managers', 4: 'single-entry-point access',
+              5: 'flexibility that retains talent', 6: 'early disclosure and intervention',
+              7: 'loyalty through protected trajectories', 8: 'sustainable recovery and full productivity',
+              9: 'business-integrated health strategy', 10: 'holistic family support',
+              11: 'proactive health culture', 12: 'learning organization', 13: 'high utilization rates',
+            };
+
             const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
             const wsiBenchDiff = compositeScore != null && wsiBenchmarkScore != null ? compositeScore - wsiBenchmarkScore : null;
             const wsiTier = getWSITier(compositeScore ?? 0);
@@ -10308,7 +10318,7 @@ export default function ExportReportPage() {
                                   </span>
                                 )}
                               </div>
-                              <p className="text-xs text-slate-400 mt-0.5">{dimContext[d.dim]?.opportunity || ''}</p>
+                              <p className="text-xs text-slate-400 mt-0.5">{dimOpportunity[d.dim] || ''}</p>
                             </div>
                           </div>
                         );
@@ -10323,7 +10333,7 @@ export default function ExportReportPage() {
                       {focusCandidates.map((d, idx) => {
                         const pg = getEmployeePriorityGroup(d.weight);
                         const bDiff = d.benchmark != null ? Math.round(d.score) - d.benchmark : null;
-                        const defaultRec = `Prioritize ${d.name} to improve ${dimContext[d.dim]?.opportunity || 'employee support'}`;
+                        const defaultRec = `Prioritize ${d.name} to improve ${dimOpportunity[d.dim] || 'employee support'}`;
                         const customRec = customNextSteps.items?.[idx];
                         const displayRec = customRec || defaultRec;
 
