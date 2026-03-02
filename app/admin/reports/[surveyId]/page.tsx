@@ -7350,19 +7350,30 @@ export default function ExportReportPage() {
                         })}
                       </div>
                       {/* Employee Priority ring legend */}
-                      <div className="mt-4 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-6 text-sm">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Ring = Employee Priority:</span>
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>
-                          <span className="text-slate-600 text-xs font-medium">Most Critical</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>
-                          <span className="text-slate-600 text-xs font-medium">Highly Important</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="w-6 h-6 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>
-                          <span className="text-slate-600 text-xs font-medium">Enabling</span>
+                      <div className="mt-4 pt-4 border-t border-slate-200">
+                        <div className="flex items-center justify-center gap-8">
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Employee Priority Level</span>
+                          <div className="flex items-center gap-2">
+                            <svg width="22" height="22" viewBox="0 0 22 22">
+                              <circle cx="11" cy="11" r="10" fill="none" stroke="#7C3AED" strokeWidth="2.5"/>
+                              <circle cx="11" cy="11" r="6.5" fill="#7C3AED" opacity="0.15"/>
+                            </svg>
+                            <span className="text-slate-700 text-xs font-medium">Most Critical</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <svg width="22" height="22" viewBox="0 0 22 22">
+                              <circle cx="11" cy="11" r="10" fill="none" stroke="#D97706" strokeWidth="2.5"/>
+                              <circle cx="11" cy="11" r="6.5" fill="#D97706" opacity="0.15"/>
+                            </svg>
+                            <span className="text-slate-700 text-xs font-medium">Highly Important</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <svg width="22" height="22" viewBox="0 0 22 22">
+                              <circle cx="11" cy="11" r="10" fill="none" stroke="#475569" strokeWidth="2.5"/>
+                              <circle cx="11" cy="11" r="6.5" fill="#475569" opacity="0.15"/>
+                            </svg>
+                            <span className="text-slate-700 text-xs font-medium">Enabling</span>
+                          </div>
                         </div>
                       </div>
                       {showBenchmarkRings && (
