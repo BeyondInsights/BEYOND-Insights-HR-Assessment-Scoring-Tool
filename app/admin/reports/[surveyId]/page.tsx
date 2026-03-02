@@ -3073,7 +3073,7 @@ const SUPPORT_LEVELS = {
 const SUPPORT_RATINGS: Record<string, { label: string; color: string; desc: string; range: string }> = {
   leading: { label: 'Leading', range: '80–100', color: '#047857', desc: 'Comprehensive support across all three levels, with strong Core coverage, consistent Enhanced delivery, and meaningful Advanced practices in place.' },
   established: { label: 'Established', range: '64–79', color: '#1D4ED8', desc: 'Strong Core coverage with solid Enhanced and Advanced practices, indicating reliable support delivery and growing program depth.' },
-  progressing: { label: 'Progressing', range: '50–63', color: '#B45309', desc: 'Core supports are developing, with Enhanced and Advanced practices still emerging across the organization.' },
+  progressing: { label: 'Progressing', range: '50–63', color: '#B45309', desc: 'Core supports are well in place, forming a stable baseline with room to expand Enhanced and Advanced program depth.' },
   building: { label: 'Building', range: '0–49', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing core access, navigation, and policy fundamentals.' },
 } as const;
 
@@ -5959,7 +5959,7 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-10">
                   <div className="text-right">
                     <p className="text-slate-500 text-sm font-medium">{'Workplace Support Index'}</p>
-                    <p className="text-6xl font-bold mt-1" style={{ color: wsiScoreHeader >= 70 ? '#047857' : wsiScoreHeader >= 50 ? '#1D4ED8' : '#B45309' }} data-export="composite-score">{wsiScoreHeader}</p>
+                    <p className="text-6xl font-bold mt-1" style={{ color: wsiScoreHeader >= 80 ? '#047857' : wsiScoreHeader >= 64 ? '#1D4ED8' : wsiScoreHeader >= 50 ? '#B45309' : '#B91C1C' }} data-export="composite-score">{wsiScoreHeader}</p>
                   </div>
                   {tier && (
                     <div className="px-7 py-5 rounded-xl border-2" style={{ borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' }}>
@@ -6416,7 +6416,7 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
                         const Icon = t.icon;
-                        const scoreColor = t.score >= 75 ? '#047857' : t.score >= 50 ? '#1D4ED8' : t.score >= 25 ? '#B45309' : '#B91C1C';
+                        const scoreColor = t.score >= 80 ? '#047857' : t.score >= 64 ? '#1D4ED8' : t.score >= 50 ? '#B45309' : '#B91C1C';
                         const benchAvg = t.bench.avg;
                         
                         return (
@@ -7907,8 +7907,8 @@ export default function ExportReportPage() {
                   
                   const getScoreBgColor = (score: number) => {
                     if (score >= 80) return 'from-emerald-500 to-emerald-600';
-                    if (score >= 60) return 'from-blue-500 to-blue-600';
-                    if (score >= 40) return 'from-amber-500 to-amber-600';
+                    if (score >= 64) return 'from-blue-500 to-blue-600';
+                    if (score >= 50) return 'from-amber-500 to-amber-600';
                     return 'from-red-500 to-red-600';
                   };
                   
