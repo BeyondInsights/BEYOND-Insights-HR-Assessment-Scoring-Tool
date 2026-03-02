@@ -546,8 +546,8 @@ function calculateCompanyScores(
 
 function getScoreColor(score: number): string {
   if (score >= 80) return '#059669';
-  if (score >= 60) return '#0284C7';
-  if (score >= 40) return '#D97706';
+  if (score >= 64) return '#0284C7';
+  if (score >= 50) return '#D97706';
   return '#DC2626';
 }
 
@@ -3158,7 +3158,7 @@ export default function AggregateScoringReport() {
               </div>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(80vh-100px)]">
-              <p className="text-gray-600 mb-4">Select a company from the list below to generate their custom performance report:</p>
+              <p className="text-gray-600 mb-4">Select a company from the list below to generate their custom support report:</p>
               <div className="space-y-2">
                 {sortedCompanies
                   .filter(c => c.isComplete && !c.isPanel)
