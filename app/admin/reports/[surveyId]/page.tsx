@@ -4890,16 +4890,16 @@ export default function ExportReportPage() {
   return (
     <div className="min-h-screen bg-slate-100">
         <style jsx global>{`
-          @media print { 
-            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+          @media print {
+            body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .no-print { display: none !important; }
             .pdf-break-before { page-break-before: always; }
             .pdf-no-break { page-break-inside: avoid; }
           }
           .polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
-          .polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; 
-            letter-spacing: -0.01em; 
+          .polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            letter-spacing: -0.01em;
           }
         `}</style>
         
