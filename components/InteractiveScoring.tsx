@@ -109,19 +109,19 @@ function statusToPoints(status: string | undefined | null): number | null {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 90) return '#059669'; // Exemplary - green
-  if (score >= 75) return '#2563EB'; // Leading - blue
-  if (score >= 60) return '#7C3AED'; // Progressing - purple
-  if (score >= 40) return '#F59E0B'; // Emerging - amber
-  return '#DC2626'; // Beginning - red
+  // WSI 4-tier model
+  if (score >= 80) return '#059669'; // Leading - green
+  if (score >= 64) return '#2563EB'; // Established - blue
+  if (score >= 50) return '#F59E0B'; // Progressing - amber
+  return '#DC2626'; // Building - red
 }
 
 function getPerformanceTier(score: number): { name: string; color: string; bgColor: string; range: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#059669', bgColor: '#D1FAE5', range: '90-100 pts' };
-  if (score >= 75) return { name: 'Leading', color: '#2563EB', bgColor: '#DBEAFE', range: '75-89 pts' };
-  if (score >= 60) return { name: 'Progressing', color: '#7C3AED', bgColor: '#EDE9FE', range: '60-74 pts' };
-  if (score >= 40) return { name: 'Emerging', color: '#F59E0B', bgColor: '#FEF3C7', range: '40-59 pts' };
-  return { name: 'Beginning', color: '#DC2626', bgColor: '#FEE2E2', range: '0-39 pts' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) return { name: 'Leading', color: '#059669', bgColor: '#D1FAE5', range: '80-100 pts' };
+  if (score >= 64) return { name: 'Established', color: '#2563EB', bgColor: '#DBEAFE', range: '64-79 pts' };
+  if (score >= 50) return { name: 'Progressing', color: '#F59E0B', bgColor: '#FEF3C7', range: '50-63 pts' };
+  return { name: 'Building', color: '#DC2626', bgColor: '#FEE2E2', range: '0-49 pts' };
 }
 
 // ============================================

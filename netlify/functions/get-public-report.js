@@ -37,11 +37,11 @@ function statusToPoints(status) {
 }
 
 function getTierInfo(score) {
-  if (score >= 90) return { name: 'Exemplary', color: '#5B21B6' };
-  if (score >= 75) return { name: 'Leading', color: '#047857' };
-  if (score >= 60) return { name: 'Progressing', color: '#1D4ED8' };
-  if (score >= 40) return { name: 'Emerging', color: '#B45309' };
-  return { name: 'Developing', color: '#B91C1C' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) return { name: 'Leading', color: '#047857' };
+  if (score >= 64) return { name: 'Established', color: '#1D4ED8' };
+  if (score >= 50) return { name: 'Progressing', color: '#B45309' };
+  return { name: 'Building', color: '#B91C1C' };
 }
 
 exports.handler = async (event) => {

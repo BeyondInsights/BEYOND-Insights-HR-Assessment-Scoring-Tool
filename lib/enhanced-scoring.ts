@@ -449,11 +449,11 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
 
 function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
   let tier: { name: string; color: string; bg: string };
-  if (score >= 90) tier = { name: 'Exemplary', color: '#1B5E20', bg: '#E8F5E9' };
-  else if (score >= 75) tier = { name: 'Leading', color: '#0D47A1', bg: '#E3F2FD' };
-  else if (score >= 60) tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
-  else if (score >= 40) tier = { name: 'Emerging', color: '#BF360C', bg: '#FFF3E0' };
-  else tier = { name: 'Developing', color: '#37474F', bg: '#ECEFF1' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) tier = { name: 'Leading', color: '#1B5E20', bg: '#E8F5E9' };
+  else if (score >= 64) tier = { name: 'Established', color: '#0D47A1', bg: '#E3F2FD' };
+  else if (score >= 50) tier = { name: 'Progressing', color: '#E65100', bg: '#FFF8E1' };
+  else tier = { name: 'Building', color: '#37474F', bg: '#ECEFF1' };
   return { ...tier, isProvisional };
 }
 

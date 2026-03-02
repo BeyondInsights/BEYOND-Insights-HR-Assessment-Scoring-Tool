@@ -552,11 +552,11 @@ function calculateBreadthScore(assessment: Record<string, any>): number {
 // ============================================
 
 function getTier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#5B21B6', bgColor: 'bg-violet-50', textColor: 'text-violet-900', borderColor: 'border-violet-200' };
-  if (score >= 75) return { name: 'Leading', color: '#047857', bgColor: 'bg-emerald-50', textColor: 'text-emerald-900', borderColor: 'border-emerald-200' };
-  if (score >= 60) return { name: 'Progressing', color: '#1D4ED8', bgColor: 'bg-blue-50', textColor: 'text-blue-900', borderColor: 'border-blue-200' };
-  if (score >= 40) return { name: 'Emerging', color: '#B45309', bgColor: 'bg-amber-50', textColor: 'text-amber-900', borderColor: 'border-amber-200' };
-  return { name: 'Developing', color: '#B91C1C', bgColor: 'bg-red-50', textColor: 'text-red-900', borderColor: 'border-red-200' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) return { name: 'Leading', color: '#047857', bgColor: 'bg-emerald-50', textColor: 'text-emerald-900', borderColor: 'border-emerald-200' };
+  if (score >= 64) return { name: 'Established', color: '#1D4ED8', bgColor: 'bg-blue-50', textColor: 'text-blue-900', borderColor: 'border-blue-200' };
+  if (score >= 50) return { name: 'Progressing', color: '#B45309', bgColor: 'bg-amber-50', textColor: 'text-amber-900', borderColor: 'border-amber-200' };
+  return { name: 'Building', color: '#B91C1C', bgColor: 'bg-red-50', textColor: 'text-red-900', borderColor: 'border-red-200' };
 }
 
 function getScoreColor(score: number): string {
@@ -705,7 +705,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
     risk: string; 
     opportunity: string; 
     quickWin: string;
-    cacPrograms: { exemplary: string; leading: string; progressing: string; emerging: string; developing: string };
+    cacPrograms: { exemplary: string; leading: string; progressing: string; emerging: string };
   }> = {
     1: { 
       focus: 'leave policies and flexibility', 
@@ -714,10 +714,9 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'phased return-to-work options',
       cacPrograms: {
         exemplary: 'Document your leave policies as a best-practice case study. We can facilitate peer learning sessions where you share your approach with other Index participants.',
-        leading: 'Our Leave Policy Enhancement workshop can identify the specific gaps preventing Exemplary status, with templates for policy language and implementation guides.',
+        leading: 'Our Leave Policy Enhancement workshop can identify the specific gaps preventing Leading status, with templates for policy language and implementation guides.',
         progressing: 'CAC\'s Leave Policy Benchmarking service compares your policies against industry leaders, identifying specific enhancements like extended leave duration or job protection guarantees.',
-        emerging: 'Our Medical Leave Foundation program provides turnkey policy templates, legal compliance guidance, and manager training for leave administration.',
-        developing: 'Urgent: CAC\'s Leave Policy Accelerator builds comprehensive, compliant leave policies in 60 days, including FMLA+ enhancements and accommodation frameworks.'
+        emerging: 'Our Medical Leave Foundation program provides turnkey policy templates, legal compliance guidance, and manager training for leave administration.'
       }
     },
     2: { 
@@ -727,10 +726,9 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'employee assistance fund or gap insurance',
       cacPrograms: {
         exemplary: 'Showcase your financial protection programs through CAC\'s Best Practices Library. We can connect you with benefits consultants seeking model programs to replicate.',
-        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Exemplary status.',
+        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Leading status.',
         progressing: 'CAC\'s Financial Protection Assessment evaluates your insurance, disability, and supplemental coverage against cancer-specific needs, with vendor recommendations.',
-        emerging: 'Our Financial Wellness for Serious Illness program designs hardship funds, premium assistance, and navigation support to reduce financial barriers to care.',
-        developing: 'Critical: CAC\'s Emergency Benefits Review can identify immediate coverage gaps and design interim financial support while longer-term solutions are developed.'
+        emerging: 'Our Financial Wellness for Serious Illness program designs hardship funds, premium assistance, and navigation support to reduce financial barriers to care.'
       }
     },
     3: { 
@@ -742,8 +740,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your manager training could become a CAC-certified program. We can help scale your approach across business units and document for external recognition.',
         leading: 'Our Advanced Manager Certification adds specialized modules on complex scenarios—recurrence, terminal diagnosis, grief—to achieve comprehensive preparedness.',
         progressing: 'CAC\'s Manager Essentials Training provides 4-hour workshops with role-play scenarios, conversation scripts, and ongoing coaching support.',
-        emerging: 'Our Manager Quick-Start Kit includes conversation guides, FAQ documents, and 90-minute awareness training to build baseline confidence.',
-        developing: 'Urgent: CAC\'s Manager Emergency Toolkit provides immediate resources—scripts, escalation paths, HR support protocols—while comprehensive training is developed.'
+        emerging: 'Our Manager Quick-Start Kit includes conversation guides, FAQ documents, and 90-minute awareness training to build baseline confidence.'
       }
     },
     4: { 
@@ -755,8 +752,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Partner with CAC to offer your navigation model as a benchmark for other organizations. We can facilitate knowledge-sharing with Index participants.',
         leading: 'Our Navigation Enhancement service adds specialized resources—clinical trial matching, second opinion coordination—to achieve comprehensive support.',
         progressing: 'CAC\'s Resource Hub Design creates a centralized portal mapping all your benefits, vendors, and support resources with clear access pathways.',
-        emerging: 'Our Navigation Foundation program implements a single point of contact model with trained navigators who connect employees to appropriate resources.',
-        developing: 'Critical: CAC\'s Navigation Quick-Start creates an immediate resource guide and trained HR liaison while comprehensive navigation is built.'
+        emerging: 'Our Navigation Foundation program implements a single point of contact model with trained navigators who connect employees to appropriate resources.'
       }
     },
     5: { 
@@ -768,8 +764,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Document your accommodation practices for CAC\'s Accommodation Best Practices guide. We can facilitate sessions sharing your interactive process approach.',
         leading: 'Our Accommodation Excellence program addresses edge cases—cognitive impacts, fatigue management, role modifications—for comprehensive flexibility.',
         progressing: 'CAC\'s Accommodation Framework Training teaches HR and managers the interactive process, with templates for common cancer-related accommodations.',
-        emerging: 'Our Flexibility Foundation program designs remote work, schedule modification, and workload adjustment policies specific to treatment needs.',
-        developing: 'Urgent: CAC\'s Accommodation Emergency Protocol creates immediate flexibility options while comprehensive policies are developed.'
+        emerging: 'Our Flexibility Foundation program designs remote work, schedule modification, and workload adjustment policies specific to treatment needs.'
       }
     },
     6: { 
@@ -781,8 +776,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your culture of openness is a model for others. CAC can help document and share your approach through speaking opportunities and case studies.',
         leading: 'Our Culture Enhancement workshop addresses subtle barriers to disclosure, including peer support networks and ally training programs.',
         progressing: 'CAC\'s Psychological Safety Assessment identifies disclosure barriers through confidential surveys and focus groups, with targeted interventions.',
-        emerging: 'Our Culture Foundation program implements leadership visibility, storytelling campaigns, and anti-stigma training to build trust.',
-        developing: 'Critical: CAC\'s Culture Quick-Start includes executive messaging, basic awareness training, and visible support commitments as foundation.'
+        emerging: 'Our Culture Foundation program implements leadership visibility, storytelling campaigns, and anti-stigma training to build trust.'
       }
     },
     7: { 
@@ -794,8 +788,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your career protection model could inform CAC\'s policy recommendations. We can facilitate peer learning on maintaining career momentum during treatment.',
         leading: 'Our Career Assurance program adds re-entry coaching, skill maintenance support, and explicit promotion pathway protection.',
         progressing: 'CAC\'s Career Continuity Framework designs policies protecting performance reviews, promotion eligibility, and professional development during treatment.',
-        emerging: 'Our Career Protection Foundation creates explicit policies ensuring medical leave doesn\'t impact career trajectory, with manager guidance.',
-        developing: 'Urgent: CAC\'s Career Safety Net establishes immediate protections against career penalty while comprehensive policies are developed.'
+        emerging: 'Our Career Protection Foundation creates explicit policies ensuring medical leave doesn\'t impact career trajectory, with manager guidance.'
       }
     },
     8: { 
@@ -807,8 +800,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your RTW program is a model. CAC can help document your protocols for our Best Practices Library and facilitate peer learning sessions.',
         leading: 'Our RTW Excellence program adds specialized components—cognitive rehabilitation, stamina building, peer mentoring—for comprehensive re-entry.',
         progressing: 'CAC\'s Return-to-Work Protocol Design creates phased re-entry templates, check-in schedules, and adjustment frameworks for sustainable transitions.',
-        emerging: 'Our RTW Foundation program implements basic phased return, temporary accommodations, and manager check-in protocols.',
-        developing: 'Urgent: CAC\'s RTW Quick-Start provides immediate guidance for current cases while comprehensive protocols are developed.'
+        emerging: 'Our RTW Foundation program implements basic phased return, temporary accommodations, and manager check-in protocols.'
       }
     },
     9: { 
@@ -820,8 +812,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Connect your executives with CAC\'s Leadership Council for peer networking and industry visibility as champions of workplace cancer support.',
         leading: 'Our Executive Engagement program develops board-level metrics, ESG integration, and external recognition strategies.',
         progressing: 'CAC\'s Executive Briefing provides business case development, participant benchmarking data, and talking points for leadership engagement.',
-        emerging: 'Our Leadership Foundation program identifies an executive sponsor, develops initial messaging, and creates visibility opportunities.',
-        developing: 'Critical: CAC\'s Executive Quick-Brief provides immediate business case and ROI data to secure leadership attention and resources.'
+        emerging: 'Our Leadership Foundation program identifies an executive sponsor, develops initial messaging, and creates visibility opportunities.'
       }
     },
     10: { 
@@ -833,8 +824,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your caregiver support is a differentiator. CAC can document your approach for our Caregiver Support Guide and connect you with recognition opportunities.',
         leading: 'Our Caregiver Excellence program adds specialized resources—backup care, support groups, navigation—for comprehensive family support.',
         progressing: 'CAC\'s Caregiver Support Framework designs leave policies, flexibility options, and resource connections specific to caregiving needs.',
-        emerging: 'Our Caregiver Foundation program creates basic leave provisions, flexible scheduling, and EAP integration for caregiver support.',
-        developing: 'Urgent: CAC\'s Caregiver Quick-Start provides immediate flexibility guidelines while comprehensive support programs are developed.'
+        emerging: 'Our Caregiver Foundation program creates basic leave provisions, flexible scheduling, and EAP integration for caregiver support.'
       }
     },
     11: { 
@@ -846,8 +836,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your prevention programs model early detection best practices. CAC can facilitate peer learning on driving screening participation.',
         leading: 'Our Prevention Excellence program adds genetic risk assessment, personalized screening protocols, and survivorship wellness.',
         progressing: 'CAC\'s Prevention Framework designs comprehensive screening campaigns, incentive structures, and awareness programming.',
-        emerging: 'Our Wellness Foundation program implements basic cancer awareness, screening promotion, and risk reduction education.',
-        developing: 'Critical: CAC\'s Prevention Quick-Start launches immediate screening awareness campaigns while comprehensive programs are built.'
+        emerging: 'Our Wellness Foundation program implements basic cancer awareness, screening promotion, and risk reduction education.'
       }
     },
     12: { 
@@ -859,8 +848,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your continuous improvement practices could inform CAC\'s assessment methodology. We welcome partnership on evolving best practice standards.',
         leading: 'Our CI Excellence program adds case review protocols, outcome tracking, and systematic policy refinement processes.',
         progressing: 'CAC\'s Continuous Improvement Framework designs feedback mechanisms, annual review cycles, and benchmarking practices.',
-        emerging: 'Our CI Foundation program implements basic feedback collection, annual policy review, and metric tracking.',
-        developing: 'Critical: CAC\'s CI Quick-Start establishes immediate feedback channels while systematic improvement processes are developed.'
+        emerging: 'Our CI Foundation program implements basic feedback collection, annual policy review, and metric tracking.'
       }
     },
     13: { 
@@ -872,8 +860,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
         exemplary: 'Your communication approach drives strong utilization. CAC can document your strategies for our Communications Best Practices guide.',
         leading: 'Our Communication Excellence program adds targeted outreach, utilization tracking, and personalized benefit recommendations.',
         progressing: 'CAC\'s Communication Framework designs multi-channel awareness campaigns, manager talking points, and benefit navigation guides.',
-        emerging: 'Our Communication Foundation program creates basic benefit summaries, intranet content, and open enrollment messaging.',
-        developing: 'Urgent: CAC\'s Communication Quick-Start launches immediate awareness campaigns for critical benefits while comprehensive strategy develops.'
+        emerging: 'Our Communication Foundation program creates basic benefit summaries, intranet content, and open enrollment messaging.'
       }
     },
   };
@@ -883,31 +870,36 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
     risk: 'gaps in support', 
     opportunity: 'improved outcomes', 
     quickWin: 'targeted improvements',
-    cacPrograms: { exemplary: '', leading: '', progressing: '', emerging: '', developing: '' }
+    cacPrograms: { exemplary: '', leading: '', progressing: '', emerging: '' }
   };
   
   let insight = '';
   let cacHelp = '';
   
   // Get the appropriate CAC program based on tier
-  const tierKey = tierName.toLowerCase() as 'exemplary' | 'leading' | 'progressing' | 'emerging' | 'developing';
-  const cacProgram = ctx.cacPrograms[tierKey] || ctx.cacPrograms.progressing;
+  // WSI tier names map to cacPrograms keys: Leading→exemplary, Established→leading, Progressing→progressing, Building→emerging
+  const tierToCacKey: Record<string, 'exemplary' | 'leading' | 'progressing' | 'emerging'> = {
+    'Leading': 'exemplary',
+    'Established': 'leading',
+    'Progressing': 'progressing',
+    'Building': 'emerging',
+  };
+  const cacKey = tierToCacKey[tierName] || 'progressing';
+  const cacProgram = ctx.cacPrograms[cacKey] || ctx.cacPrograms.progressing;
   
   // Tier-based insight generation with specific data
-  if (tierName === 'Exemplary') {
+  if (tierName === 'Leading') {
     insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the participant average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
     cacHelp = cacProgram;
-  } else if (tierName === 'Leading') {
-    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
+  } else if (tierName === 'Established') {
+    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Leading status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Leading tier.'}`;
     cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
-  } else if (tierName === 'Emerging') {
-    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant average indicates this is an area where additional focus would benefit employees.` : ''} Recommended quick win: ${ctx.quickWin}.`;
-    cacHelp = cacProgram;
   } else {
-    insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} participant average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
+    // Building tier
+    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant average indicates this is an area where additional focus would benefit employees.` : ''} Recommended quick win: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   }
   
@@ -954,8 +946,8 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   const career = findDim(7);
 
   // Tier-consistent helpers (aligned to actual tier boundaries)
-  const isLeadingPlus = (d: any) => (d?.score ?? 0) >= 75;   // Leading/Exemplary
-  const isWeak = (d: any) => (d?.score ?? 0) < 60;           // Emerging/Developing
+  const isLeadingPlus = (d: any) => (d?.score ?? 0) >= 64;   // Established/Leading (WSI)
+  const isWeak = (d: any) => (d?.score ?? 0) < 50;           // Building (WSI)
   const headroom = (d: any) => 100 - (d?.score ?? 0);
 
   // Opportunity proxy: headroom weighted by impact importance (dampened so it informs but doesn't dominate)
@@ -2660,7 +2652,7 @@ export default function ExportReportPage() {
   const [elementDetails, setElementDetails] = useState<any>(null);
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
-  const [tierDistribution, setTierDistribution] = useState<{ exemplary: number; leading: number; progressing: number; emerging: number; developing: number } | null>(null);
+  const [tierDistribution, setTierDistribution] = useState<{ leading: number; established: number; progressing: number; building: number } | null>(null);
   
   // Password protection state
   const [authenticated, setAuthenticated] = useState(false);
@@ -2912,7 +2904,7 @@ export default function ExportReportPage() {
     const defaultNotes: Record<number, string> = {
       0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
       1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
-      2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading/Exemplary - this normalizes where they are and builds commitment to improvement.',
+      2: 'Explain what the Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Established/Leading - this normalizes where they are and builds commitment to improvement.',
       3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter - improvements anywhere create lasting impact for employees managing cancer.',
       4: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
       5: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
@@ -3564,22 +3556,20 @@ export default function ExportReportPage() {
           setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
           setTotalCompanies(allComposites.length);
           
-          // Calculate tier distribution
-          const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
+          // Calculate tier distribution (WSI 4-tier model)
+          const tierCounts = { leading: 0, established: 0, progressing: 0, building: 0 };
           allComposites.forEach((score: number) => {
-            if (score >= 90) tierCounts.exemplary++;
-            else if (score >= 75) tierCounts.leading++;
-            else if (score >= 60) tierCounts.progressing++;
-            else if (score >= 40) tierCounts.emerging++;
-            else tierCounts.developing++;
+            if (score >= 80) tierCounts.leading++;
+            else if (score >= 64) tierCounts.established++;
+            else if (score >= 50) tierCounts.progressing++;
+            else tierCounts.building++;
           });
           const total = allComposites.length;
           setTierDistribution({
-            exemplary: Math.round((tierCounts.exemplary / total) * 100),
             leading: Math.round((tierCounts.leading / total) * 100),
+            established: Math.round((tierCounts.established / total) * 100),
             progressing: Math.round((tierCounts.progressing / total) * 100),
-            emerging: Math.round((tierCounts.emerging / total) * 100),
-            developing: Math.round((tierCounts.developing / total) * 100),
+            building: Math.round((tierCounts.building / total) * 100),
           });
         }
       }
@@ -4233,16 +4223,15 @@ export default function ExportReportPage() {
   const isProvisional = dimsWithHighUnsure >= 4;
   
   const tierCounts = {
-    exemplary: dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length,
     leading: dimensionAnalysis.filter(d => d.tier.name === 'Leading').length,
+    established: dimensionAnalysis.filter(d => d.tier.name === 'Established').length,
     progressing: dimensionAnalysis.filter(d => d.tier.name === 'Progressing').length,
-    emerging: dimensionAnalysis.filter(d => d.tier.name === 'Emerging').length,
-    developing: dimensionAnalysis.filter(d => d.tier.name === 'Developing').length,
+    building: dimensionAnalysis.filter(d => d.tier.name === 'Building').length,
   };
   
   const topDimension = dimensionAnalysis[0];
   const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
-  const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
+  const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Leading' || d.tier.name === 'Established');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
   
   // STRATEGIC PRIORITY DIMENSIONS: 2+2 Hybrid Selection with headroom threshold
@@ -4299,7 +4288,7 @@ export default function ExportReportPage() {
     .slice(0, 5);
 
   // Order from lowest to highest so .find() returns the immediate next tier up
-  const tierThresholds = [{ name: 'Emerging', min: 40 }, { name: 'Progressing', min: 60 }, { name: 'Leading', min: 75 }, { name: 'Exemplary', min: 90 }];
+  const tierThresholds = [{ name: 'Building', min: 0 }, { name: 'Progressing', min: 50 }, { name: 'Established', min: 64 }, { name: 'Leading', min: 80 }];
   const nextTierUp = tierThresholds.find(t => t.min > (compositeScore || 0));
   const pointsToNextTier = nextTierUp ? nextTierUp.min - (compositeScore || 0) : null;
 
@@ -4307,7 +4296,7 @@ export default function ExportReportPage() {
   const inProgressItems = quickWinOpportunities;
   
   // Gap opportunities - dimensions below Leading tier
-  const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Exemplary' && d.tier.name !== 'Leading');
+  const gapOpportunities = dimensionAnalysis.filter((d: any) => d.tier.name !== 'Leading' && d.tier.name !== 'Established');
   // ============================================
   // POLISHED DESIGN RENDER v2
   // Full feature parity with original, polished styling
@@ -4589,11 +4578,10 @@ export default function ExportReportPage() {
                           
                           <div className="space-y-2">
                             {[
-                              { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
-                              { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
-                              { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
-                              { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
-                              { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                              { name: 'Leading', range: '80-100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
+                              { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.established ?? 0 },
+                              { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.progressing ?? 0 },
+                              { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.building ?? 0 }
                             ].map((t) => {
                               const isCurrentTier = tier?.name === t.name;
                               return (
@@ -4651,7 +4639,7 @@ export default function ExportReportPage() {
                               <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> or <strong>Exemplary</strong> tiers yet, and that&apos;s expected at this stage.
+                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Established</strong> or <strong>Leading</strong> tiers yet, and that&apos;s expected at this stage.
                             </p>
                             <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                               <p className="text-sm text-slate-700 leading-relaxed">
@@ -5198,11 +5186,10 @@ export default function ExportReportPage() {
                         
                         <div className="space-y-2">
                           {[
-                            { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: tierDistribution?.exemplary ?? 0 },
-                            { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
-                            { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.progressing ?? 0 },
-                            { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.emerging ?? 0 },
-                            { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.developing ?? 0 }
+                            { name: 'Leading', range: '80-100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: tierDistribution?.leading ?? 0 },
+                            { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: tierDistribution?.established ?? 0 },
+                            { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: tierDistribution?.progressing ?? 0 },
+                            { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: tierDistribution?.building ?? 0 }
                           ].map((t) => {
                             const isCurrentTier = tier?.name === t.name;
                             return (
@@ -5439,15 +5426,15 @@ export default function ExportReportPage() {
                         <>
                           <p className="text-base font-bold text-violet-800">
                             {pointsToNextTier} points away from {nextTierUp.name} tier
-                            {nextTierUp.name !== 'Exemplary' && (
-                              <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points away from Exemplary</span>
+                            {nextTierUp.name !== 'Leading' && (
+                              <span className="text-violet-600 font-normal ml-2">· {80 - (compositeScore || 0)} points away from Leading</span>
                             )}
                           </p>
                           <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
                         </>
                       ) : (
                         <>
-                          <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                          <p className="text-base font-bold text-violet-800">Leading tier achieved</p>
                           <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
                         </>
                       )}
@@ -5483,11 +5470,11 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                    <p className="text-4xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
-                    <p className="text-base text-slate-400 mt-2">dimensions at Leading+</p>
+                    <p className="text-4xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
+                    <p className="text-base text-slate-400 mt-2">dimensions at Established+</p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-sm text-violet-400">{tierCounts.exemplary} Exemplary</p>
                       <p className="text-sm text-violet-400">{tierCounts.leading} Leading</p>
+                      <p className="text-sm text-violet-400">{tierCounts.established} Established</p>
                     </div>
                   </div>
                 </div>
@@ -9284,29 +9271,24 @@ export default function ExportReportPage() {
                   <p className="font-bold text-slate-700 mb-3">Performance Tiers</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span>
-                      <span style={{ color: '#5B21B6' }} className="font-semibold">Exemplary</span>
-                      <span className="text-slate-400">90+ points</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
                       <span style={{ color: '#047857' }} className="font-semibold">Leading</span>
-                      <span className="text-slate-400">75-89 points</span>
+                      <span className="text-slate-400">80+ points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
-                      <span style={{ color: '#1D4ED8' }} className="font-semibold">Progressing</span>
-                      <span className="text-slate-400">60-74 points</span>
+                      <span style={{ color: '#1D4ED8' }} className="font-semibold">Established</span>
+                      <span className="text-slate-400">64-79 points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
-                      <span style={{ color: '#B45309' }} className="font-semibold">Emerging</span>
-                      <span className="text-slate-400">40-59 points</span>
+                      <span style={{ color: '#B45309' }} className="font-semibold">Progressing</span>
+                      <span className="text-slate-400">50-63 points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
-                      <span style={{ color: '#B91C1C' }} className="font-semibold">Developing</span>
-                      <span className="text-slate-400">&lt;40 points</span>
+                      <span style={{ color: '#B91C1C' }} className="font-semibold">Building</span>
+                      <span className="text-slate-400">&lt;50 points</span>
                     </div>
                   </div>
                 </div>
@@ -9789,11 +9771,10 @@ export default function ExportReportPage() {
                             
                             <div className="space-y-2">
                               {[
-                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-200', text: 'text-violet-700', pct: tierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.developing ?? 0 }
+                                { name: 'Leading', range: '80-100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: tierDistribution?.leading ?? 0 },
+                                { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: tierDistribution?.established ?? 0 },
+                                { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: tierDistribution?.progressing ?? 0 },
+                                { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: tierDistribution?.building ?? 0 }
                               ].map((t) => {
                                 const isCurrentTier = tier?.name === t.name;
                                 return (
@@ -9851,7 +9832,7 @@ export default function ExportReportPage() {
                                 <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
                               </div>
                               <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                                We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> or <strong>Exemplary</strong> tiers yet, and that&apos;s expected at this stage.
+                                We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Established</strong> or <strong>Leading</strong> tiers yet, and that&apos;s expected at this stage.
                               </p>
                               <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
                                 <p className="text-sm text-slate-700 leading-relaxed">
@@ -10059,7 +10040,7 @@ export default function ExportReportPage() {
                                 </>
                               ) : (
                                 <>
-                                  <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
+                                  <p className="text-base font-bold text-violet-800">Leading tier achieved</p>
                                   <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
                                 </>
                               )}
@@ -10095,11 +10076,11 @@ export default function ExportReportPage() {
                             </div>
                           </div>
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{tierCounts.exemplary + tierCounts.leading}<span className="text-lg font-normal text-slate-400 ml-1">/13</span></p>
-                            <p className="text-sm text-slate-400 mt-1">dimensions at Leading+</p>
+                            <p className="text-3xl font-bold text-white">{tierCounts.leading + tierCounts.established}<span className="text-lg font-normal text-slate-400 ml-1">/13</span></p>
+                            <p className="text-sm text-slate-400 mt-1">dimensions at Established+</p>
                             <div className="mt-1 space-y-0.5">
-                              <p className="text-xs text-violet-400">{tierCounts.exemplary} Exemplary</p>
                               <p className="text-xs text-violet-400">{tierCounts.leading} Leading</p>
+                              <p className="text-xs text-violet-400">{tierCounts.established} Established</p>
                             </div>
                           </div>
                         </div>
@@ -12682,29 +12663,24 @@ export default function ExportReportPage() {
                           <p className="font-bold text-slate-700 mb-2">Performance Tiers</p>
                           <div className="space-y-1.5 text-sm">
                             <div className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#5B21B6' }}></span>
-                              <span style={{ color: '#5B21B6' }} className="font-medium">Exemplary</span>
-                              <span className="text-slate-400 text-xs">90+ points</span>
-                            </div>
-                            <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
                               <span style={{ color: '#047857' }} className="font-medium">Leading</span>
-                              <span className="text-slate-400 text-xs">75-89 points</span>
+                              <span className="text-slate-400 text-xs">80+ points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
-                              <span style={{ color: '#1D4ED8' }} className="font-medium">Progressing</span>
-                              <span className="text-slate-400 text-xs">60-74 points</span>
+                              <span style={{ color: '#1D4ED8' }} className="font-medium">Established</span>
+                              <span className="text-slate-400 text-xs">64-79 points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
-                              <span style={{ color: '#B45309' }} className="font-medium">Emerging</span>
-                              <span className="text-slate-400 text-xs">40-59 points</span>
+                              <span style={{ color: '#B45309' }} className="font-medium">Progressing</span>
+                              <span className="text-slate-400 text-xs">50-63 points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
-                              <span style={{ color: '#B91C1C' }} className="font-medium">Developing</span>
-                              <span className="text-slate-400 text-xs">&lt;40 points</span>
+                              <span style={{ color: '#B91C1C' }} className="font-medium">Building</span>
+                              <span className="text-slate-400 text-xs">&lt;50 points</span>
                             </div>
                           </div>
                         </div>
@@ -13215,7 +13191,7 @@ export default function ExportReportPage() {
                       <p className="mb-2"><strong>Composite score explanation:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Explain how the 90% weighted dimensions + 5% maturity + 5% breadth combine</li>
-                        <li>Point out the performance tier distribution - few organizations reach Leading/Exemplary</li>
+                        <li>Point out the performance tier distribution - few organizations reach Established/Leading</li>
                         <li>Frame this as a baseline for their journey, not a final judgment</li>
                       </ul>
                     </div>
@@ -13254,9 +13230,9 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Dimension performance table:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Exemplary dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length}</li>
-                        <li>Proficient dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Proficient').length}</li>
-                        <li>Developing/Foundational: {dimensionAnalysis.filter(d => d.tier.name === 'Developing' || d.tier.name === 'Foundational').length}</li>
+                        <li>Leading dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Leading').length}</li>
+                        <li>Established dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Established').length}</li>
+                        <li>Building: {dimensionAnalysis.filter(d => d.tier.name === 'Building').length}</li>
                         <li>Walk through the highest-weighted dimensions first</li>
                       </ul>
                     </div>

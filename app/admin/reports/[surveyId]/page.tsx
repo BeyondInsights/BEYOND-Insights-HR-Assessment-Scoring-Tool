@@ -907,25 +907,23 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
   let insight = '';
   let cacHelp = '';
   
-  // Get the appropriate CAC program based on tier
-  const tierKey = tierName.toLowerCase() as 'exemplary' | 'leading' | 'progressing' | 'emerging' | 'developing';
-  const cacProgram = ctx.cacPrograms[tierKey] || ctx.cacPrograms.progressing;
-  
-  // Tier-based insight generation with specific data
-  if (tierName === 'Exemplary') {
+  // Map WSI tier names to cacPrograms keys (cacPrograms uses old 5-tier keys internally)
+  const cacKeyMap: Record<string, string> = { 'Leading': 'exemplary', 'Established': 'leading', 'Progressing': 'progressing', 'Building': 'emerging' };
+  const cacProgram = ctx.cacPrograms[(cacKeyMap[tierName] || 'progressing') as keyof typeof ctx.cacPrograms] || ctx.cacPrograms.progressing;
+
+  // Tier-based insight generation with specific data (WSI 4-tier model)
+  if (tierName === 'Leading') {
     insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the participant average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
     cacHelp = cacProgram;
-  } else if (tierName === 'Leading') {
-    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Exemplary status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Exemplary tier.'}`;
+  } else if (tierName === 'Established') {
+    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Leading status—consider starting with ${ctx.quickWin}.` : 'Targeted refinements can elevate you to Leading tier.'}`;
     cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
     cacHelp = cacProgram;
-  } else if (tierName === 'Emerging') {
-    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, focused investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant average indicates this is an area where additional focus would benefit employees.` : ''} Recommended quick win: ${ctx.quickWin}.`;
-    cacHelp = cacProgram;
   } else {
-    insight = `Critical gap in ${ctx.focus} at ${score} points creates risk of ${ctx.risk}. ${gapCount > 0 ? `${gapCount} missing elements represent significant exposure.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap below the ${benchmark} participant average signals this as a priority area.` : ''} Employees facing health challenges may feel unsupported here, leading to disengagement, extended leave, or departure. Immediate action: implement ${ctx.quickWin}.`;
+    // Building tier
+    insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs focused attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, targeted investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant average signals this as a priority area.` : ''} Recommended action: implement ${ctx.quickWin}.`;
     cacHelp = cacProgram;
   }
   
@@ -3135,7 +3133,7 @@ export default function ExportReportPage() {
   const [elementDetails, setElementDetails] = useState<any>(null);
   const [percentileRank, setPercentileRank] = useState<number | null>(null);
   const [totalCompanies, setTotalCompanies] = useState<number>(0);
-  const [tierDistribution, setTierDistribution] = useState<{ exemplary: number; leading: number; progressing: number; emerging: number; developing: number } | null>(null);
+  const [tierDistribution, setTierDistribution] = useState<{ leading: number; established: number; progressing: number; building: number } | null>(null);
   const [allWSIScoresState, setAllWSIScoresState] = useState<number[]>([]);
   
   // Edit Mode State
@@ -4068,21 +4066,19 @@ export default function ExportReportPage() {
           if (allComposites.length > 0 && scores.compositeScore) {
             const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
             setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
-            const tierCounts = { exemplary: 0, leading: 0, progressing: 0, emerging: 0, developing: 0 };
+            const tierCounts = { leading: 0, established: 0, progressing: 0, building: 0 };
             allComposites.forEach(score => {
-              if (score >= 90) tierCounts.exemplary++;
-              else if (score >= 75) tierCounts.leading++;
-              else if (score >= 60) tierCounts.progressing++;
-              else if (score >= 40) tierCounts.emerging++;
-              else tierCounts.developing++;
+              if (score >= 80) tierCounts.leading++;
+              else if (score >= 64) tierCounts.established++;
+              else if (score >= 50) tierCounts.progressing++;
+              else tierCounts.building++;
             });
             const total = allComposites.length;
             setTierDistribution({
-              exemplary: Math.round((tierCounts.exemplary / total) * 100),
               leading: Math.round((tierCounts.leading / total) * 100),
+              established: Math.round((tierCounts.established / total) * 100),
               progressing: Math.round((tierCounts.progressing / total) * 100),
-              emerging: Math.round((tierCounts.emerging / total) * 100),
-              developing: Math.round((tierCounts.developing / total) * 100),
+              building: Math.round((tierCounts.building / total) * 100),
             });
           }
         }
@@ -4325,7 +4321,7 @@ export default function ExportReportPage() {
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
     
-    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier: compositeScore !== null ? getTier(compositeScore) : null }, elements: elementsByDim };
+    return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier: compositeScore !== null ? getWSITier(compositeScore) : null }, elements: elementsByDim };
   }
 
   function calculateBenchmarks(assessments: any[]) {
@@ -4438,8 +4434,8 @@ export default function ExportReportPage() {
         weightedDimScore: weightedDimScore || 0,
         maturityScore: maturityScore || 0,
         breadthScore: breadthScore || 0,
-        tier: getTier(compositeScore || 0).name,
-        executiveSummary: customExecutiveSummary || `${company?.firmographics_data?.company_name || 'This organization'} demonstrates ${getTier(compositeScore || 0).name.toLowerCase()} performance in supporting employees managing cancer, with a composite score of ${compositeScore || 0}. The strongest dimension is ${dimensionAnalysis[0]?.name || 'N/A'} (${dimensionAnalysis[0]?.score || 0}), while ${dimensionAnalysis[dimensionAnalysis.length - 1]?.name || 'N/A'} (${dimensionAnalysis[dimensionAnalysis.length - 1]?.score || 0}) represents the greatest opportunity for growth.`,
+        tier: getWSITier(compositeScore || 0).name,
+        executiveSummary: customExecutiveSummary || `${company?.firmographics_data?.company_name || 'This organization'} demonstrates ${getWSITier(compositeScore || 0).name.toLowerCase()} performance in supporting employees managing cancer, with a composite score of ${compositeScore || 0}. The strongest dimension is ${dimensionAnalysis[0]?.name || 'N/A'} (${dimensionAnalysis[0]?.score || 0}), while ${dimensionAnalysis[dimensionAnalysis.length - 1]?.name || 'N/A'} (${dimensionAnalysis[dimensionAnalysis.length - 1]?.score || 0}) represents the greatest opportunity for growth.`,
         dimensions: dimensionAnalysis.map(d => ({
           dim: d.dim,
           name: d.name,
@@ -4566,7 +4562,7 @@ export default function ExportReportPage() {
         score: score ?? 0,
         weight: DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0,
         weightPct: Math.round((DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0) / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0) * 100),
-        tier: getTier(score ?? 0),
+        tier: getWSITier(score ?? 0),
         benchmark: benchmarks?.dimensionScores?.[dimNum] ?? null,
         followUpScore: followUpScores?.[dimNum] ?? null,
         followUpRaw: followUpRawResponses?.[dimNum] ?? null,
@@ -4663,16 +4659,15 @@ export default function ExportReportPage() {
   const isProvisional = dimsWithHighUnsure >= 4;
   
   const tierCounts = {
-    exemplary: dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length,
     leading: dimensionAnalysis.filter(d => d.tier.name === 'Leading').length,
+    established: dimensionAnalysis.filter(d => d.tier.name === 'Established').length,
     progressing: dimensionAnalysis.filter(d => d.tier.name === 'Progressing').length,
-    emerging: dimensionAnalysis.filter(d => d.tier.name === 'Emerging').length,
-    developing: dimensionAnalysis.filter(d => d.tier.name === 'Developing').length,
+    building: dimensionAnalysis.filter(d => d.tier.name === 'Building').length,
   };
   
   const topDimension = dimensionAnalysis[0];
   const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
-  const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Exemplary' || d.tier.name === 'Leading');
+  const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Leading' || d.tier.name === 'Established');
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
 
   // === TIER VIEW: Overall Support Rating computation ===
@@ -6602,11 +6597,11 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                    <p className="text-4xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.exemplary + tierCounts.leading}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
-                    <p className="text-base text-slate-400 mt-2">dimensions at Leading+</p>
+                    <p className="text-4xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
+                    <p className="text-base text-slate-400 mt-2">dimensions at Established+</p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-sm text-violet-400">{tierCounts.exemplary} Exemplary</p>
                       <p className="text-sm text-violet-400">{tierCounts.leading} Leading</p>
+                      <p className="text-sm text-violet-400">{tierCounts.established} Established</p>
                     </div>
                   </div>
                 </div>
@@ -11471,11 +11466,11 @@ export default function ExportReportPage() {
                             </div>
                           </div>
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{tierCounts.exemplary + tierCounts.leading}<span className="text-lg font-normal text-slate-400 ml-1">/13</span></p>
-                            <p className="text-sm text-slate-400 mt-1">dimensions at Leading+</p>
+                            <p className="text-3xl font-bold text-white">{tierCounts.leading + tierCounts.established}<span className="text-lg font-normal text-slate-400 ml-1">/13</span></p>
+                            <p className="text-sm text-slate-400 mt-1">dimensions at Established+</p>
                             <div className="mt-1 space-y-0.5">
-                              <p className="text-xs text-violet-400">{tierCounts.exemplary} Exemplary</p>
                               <p className="text-xs text-violet-400">{tierCounts.leading} Leading</p>
+                              <p className="text-xs text-violet-400">{tierCounts.established} Established</p>
                             </div>
                           </div>
                         </div>
@@ -14650,9 +14645,9 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Dimension performance table:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Exemplary dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Exemplary').length}</li>
-                        <li>Proficient dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Proficient').length}</li>
-                        <li>Developing/Foundational: {dimensionAnalysis.filter(d => d.tier.name === 'Developing' || d.tier.name === 'Foundational').length}</li>
+                        <li>Leading dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Leading').length}</li>
+                        <li>Established dimensions: {dimensionAnalysis.filter(d => d.tier.name === 'Established').length}</li>
+                        <li>Progressing/Building: {dimensionAnalysis.filter(d => d.tier.name === 'Progressing' || d.tier.name === 'Building').length}</li>
                         <li>Walk through the highest-weighted dimensions first</li>
                       </ul>
                     </div>

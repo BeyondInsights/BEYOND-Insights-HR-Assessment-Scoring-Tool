@@ -42,11 +42,11 @@ const COMPOSITE_WEIGHTS = {
 // ============================================
 function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
   let tier: { name: string; color: string; bg: string };
-  if (score >= 90) tier = { name: 'Exemplary', color: '#065F46', bg: '#D1FAE5' };
-  else if (score >= 75) tier = { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE' };
-  else if (score >= 60) tier = { name: 'Progressing', color: '#92400E', bg: '#FEF3C7' };
-  else if (score >= 40) tier = { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5' };
-  else tier = { name: 'Developing', color: '#374151', bg: '#F3F4F6' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) tier = { name: 'Leading', color: '#065F46', bg: '#D1FAE5' };
+  else if (score >= 64) tier = { name: 'Established', color: '#1E40AF', bg: '#DBEAFE' };
+  else if (score >= 50) tier = { name: 'Progressing', color: '#92400E', bg: '#FEF3C7' };
+  else tier = { name: 'Building', color: '#374151', bg: '#F3F4F6' };
   return { ...tier, isProvisional };
 }
 

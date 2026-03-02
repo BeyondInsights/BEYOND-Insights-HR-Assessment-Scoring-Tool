@@ -47,7 +47,7 @@ export default function PresentationMode(props: PresentationModeProps) {
   
   // Sort for recommendations
   const dimsSorted = [...dimensionAnalysis].sort((a, b) => {
-    const ord: Record<string, number> = { 'Developing': 0, 'Emerging': 1, 'Progressing': 2, 'Leading': 3, 'Exemplary': 4 };
+    const ord: Record<string, number> = { 'Building': 0, 'Progressing': 1, 'Established': 2, 'Leading': 3 };
     return (ord[a.tier.name] - ord[b.tier.name]) || (a.score - b.score);
   });
   const top4 = dimsSorted.slice(0, 4);
@@ -182,8 +182,8 @@ export default function PresentationMode(props: PresentationModeProps) {
             </div>
             <div className="p-5 bg-indigo-50 rounded-xl border border-indigo-100">
               <h4 className="font-bold text-indigo-800 mb-3">Understanding Your Tier</h4>
-              <div className="grid grid-cols-5 gap-3">
-                {[{n:'Developing',c:'#EF4444',r:'0-39'},{n:'Emerging',c:'#F97316',r:'40-54'},{n:'Progressing',c:'#EAB308',r:'55-69'},{n:'Leading',c:'#22C55E',r:'70-84'},{n:'Exemplary',c:'#8B5CF6',r:'85-100'}].map(t=>(
+              <div className="grid grid-cols-4 gap-3">
+                {[{n:'Building',c:'#EF4444',r:'0-49'},{n:'Progressing',c:'#EAB308',r:'50-63'},{n:'Established',c:'#3B82F6',r:'64-79'},{n:'Leading',c:'#059669',r:'80+'}].map(t=>(
                   <div key={t.n} className="text-center p-3 bg-white rounded-lg border" style={{borderColor:t.c}}><div className="w-4 h-4 rounded-full mx-auto mb-2" style={{backgroundColor:t.c}}></div><p className="font-bold text-sm" style={{color:t.c}}>{t.n}</p><p className="text-xs text-slate-500">{t.r}</p></div>
                 ))}
               </div>
@@ -228,13 +228,13 @@ export default function PresentationMode(props: PresentationModeProps) {
           <div className="grid grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-xl p-5 border-2 text-center" style={{borderColor:tier.color}}><p className="text-5xl font-black" style={{color:tier.color}}>{compositeScore}</p><p className="text-slate-500 mt-1 text-sm">Composite Score</p><p className="text-xs mt-2 px-2 py-1 rounded-full inline-block" style={{backgroundColor:tier.color+'20',color:tier.color}}>{tier.name}</p></div>
             <div className="bg-white rounded-xl p-5 border border-slate-200 text-center"><p className="text-5xl font-black text-slate-700">{percentileRank||'--'}</p><p className="text-slate-500 mt-1 text-sm">Percentile Rank</p><p className="text-xs text-slate-400 mt-2">of {totalCompanies} companies</p></div>
-            <div className="bg-white rounded-xl p-5 border border-slate-200 text-center"><p className="text-5xl font-black text-emerald-600">{strengthDimensions.length}</p><p className="text-slate-500 mt-1 text-sm">Strong Dimensions</p><p className="text-xs text-slate-400 mt-2">Leading or Exemplary</p></div>
+            <div className="bg-white rounded-xl p-5 border border-slate-200 text-center"><p className="text-5xl font-black text-emerald-600">{strengthDimensions.length}</p><p className="text-slate-500 mt-1 text-sm">Strong Dimensions</p><p className="text-xs text-slate-400 mt-2">Established or Leading</p></div>
             <div className="bg-white rounded-xl p-5 border border-slate-200 text-center"><p className="text-5xl font-black text-amber-600">{gapOpportunities.length}</p><p className="text-slate-500 mt-1 text-sm">Opportunities</p><p className="text-xs text-slate-400 mt-2">Room to improve</p></div>
           </div>
           <div className="bg-slate-50 rounded-xl p-6 border border-slate-200">
             <h3 className="font-bold text-slate-800 mb-4">Tier Distribution</h3>
-            <div className="grid grid-cols-5 gap-3">
-              {Object.entries(tierCounts).map(([name,count])=>{const colors:Record<string,string>={'Developing':'#EF4444','Emerging':'#F97316','Progressing':'#EAB308','Leading':'#22C55E','Exemplary':'#8B5CF6'};return(<div key={name} className="text-center p-4 bg-white rounded-lg border border-slate-200"><p className="text-3xl font-bold" style={{color:colors[name]}}>{count}</p><p className="text-sm text-slate-600 mt-1">{name}</p></div>);})}
+            <div className="grid grid-cols-4 gap-3">
+              {Object.entries(tierCounts).map(([name,count])=>{const colors:Record<string,string>={'Building':'#EF4444','Progressing':'#EAB308','Established':'#3B82F6','Leading':'#059669'};return(<div key={name} className="text-center p-4 bg-white rounded-lg border border-slate-200"><p className="text-3xl font-bold" style={{color:colors[name]}}>{count}</p><p className="text-sm text-slate-600 mt-1">{name}</p></div>);})}
             </div>
           </div>
         </div>

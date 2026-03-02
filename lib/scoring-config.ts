@@ -470,11 +470,11 @@ export function calculateCompanyScores(
 }
 
 export function getPerformanceTier(score: number, isProvisional: boolean = false): { name: string; color: string; bg: string; border: string } {
-  const baseTier = score >= 90 ? { name: 'Exemplary', color: '#7C3AED', bg: 'bg-purple-100', border: 'border-purple-300' } :
-                   score >= 75 ? { name: 'Leading', color: '#059669', bg: 'bg-green-100', border: 'border-green-300' } :
-                   score >= 60 ? { name: 'Progressing', color: '#0284C7', bg: 'bg-blue-100', border: 'border-blue-300' } :
-                   score >= 40 ? { name: 'Emerging', color: '#D97706', bg: 'bg-amber-100', border: 'border-amber-300' } :
-                                 { name: 'Developing', color: '#DC2626', bg: 'bg-red-100', border: 'border-red-300' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  const baseTier = score >= 80 ? { name: 'Leading', color: '#059669', bg: 'bg-green-100', border: 'border-green-300' } :
+                   score >= 64 ? { name: 'Established', color: '#0284C7', bg: 'bg-blue-100', border: 'border-blue-300' } :
+                   score >= 50 ? { name: 'Progressing', color: '#D97706', bg: 'bg-amber-100', border: 'border-amber-300' } :
+                                 { name: 'Building', color: '#DC2626', bg: 'bg-red-100', border: 'border-red-300' };
   
   if (isProvisional) {
     return { ...baseTier, name: `${baseTier.name}*` };
@@ -496,11 +496,11 @@ export const SCORING_CONFIG = {
 
 // Alias for getTierFromScore (used by report page)
 export function getTierFromScore(score: number): { name: string; color: string; bgColor: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#7C3AED', bgColor: 'bg-purple-100' };
-  if (score >= 75) return { name: 'Leading', color: '#059669', bgColor: 'bg-green-100' };
-  if (score >= 60) return { name: 'Progressing', color: '#0284C7', bgColor: 'bg-blue-100' };
-  if (score >= 40) return { name: 'Emerging', color: '#D97706', bgColor: 'bg-amber-100' };
-  return { name: 'Developing', color: '#DC2626', bgColor: 'bg-red-100' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) return { name: 'Leading', color: '#059669', bgColor: 'bg-green-100' };
+  if (score >= 64) return { name: 'Established', color: '#0284C7', bgColor: 'bg-blue-100' };
+  if (score >= 50) return { name: 'Progressing', color: '#D97706', bgColor: 'bg-amber-100' };
+  return { name: 'Building', color: '#DC2626', bgColor: 'bg-red-100' };
 }
 
 // Helper to get total dimension weight (used by report page)

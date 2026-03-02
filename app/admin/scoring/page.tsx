@@ -552,11 +552,11 @@ function getScoreColor(score: number): string {
 }
 
 function getPerformanceTier(score: number): { name: string; color: string; bg: string; border: string } {
-  if (score >= 90) return { name: 'Exemplary', color: '#065F46', bg: '#D1FAE5', border: '#6EE7B7' };
-  if (score >= 75) return { name: 'Leading', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' };
-  if (score >= 60) return { name: 'Progressing', color: '#92400E', bg: '#FEF3C7', border: '#FCD34D' };
-  if (score >= 40) return { name: 'Emerging', color: '#9A3412', bg: '#FFEDD5', border: '#FDBA74' };
-  return { name: 'Developing', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
+  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  if (score >= 80) return { name: 'Leading', color: '#065F46', bg: '#D1FAE5', border: '#6EE7B7' };
+  if (score >= 64) return { name: 'Established', color: '#1E40AF', bg: '#DBEAFE', border: '#93C5FD' };
+  if (score >= 50) return { name: 'Progressing', color: '#92400E', bg: '#FEF3C7', border: '#FCD34D' };
+  return { name: 'Building', color: '#374151', bg: '#F3F4F6', border: '#D1D5DB' };
 }
 
 // ============================================
@@ -796,20 +796,19 @@ function TierStatsModal({
   const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
   
   const getTierName = (score: number) => {
-    if (score >= 90) return 'Exemplary';
-    if (score >= 75) return 'Leading';
-    if (score >= 60) return 'Progressing';
-    if (score >= 40) return 'Emerging';
-    return 'Developing';
+    // WSI 4-tier model
+    if (score >= 80) return 'Leading';
+    if (score >= 64) return 'Established';
+    if (score >= 50) return 'Progressing';
+    return 'Building';
   };
-  
-  // Composite tier counts (5 tiers to match main scoring)
+
+  // Composite tier counts (4 tiers — WSI model)
   const compositeCounts = {
-    exemplary: filteredCompanies.filter(c => c.compositeScore >= 90).length,
-    leading: filteredCompanies.filter(c => c.compositeScore >= 75 && c.compositeScore < 90).length,
-    progressing: filteredCompanies.filter(c => c.compositeScore >= 60 && c.compositeScore < 75).length,
-    emerging: filteredCompanies.filter(c => c.compositeScore >= 40 && c.compositeScore < 60).length,
-    developing: filteredCompanies.filter(c => c.compositeScore < 40).length,
+    leading: filteredCompanies.filter(c => c.compositeScore >= 80).length,
+    established: filteredCompanies.filter(c => c.compositeScore >= 64 && c.compositeScore < 80).length,
+    progressing: filteredCompanies.filter(c => c.compositeScore >= 50 && c.compositeScore < 64).length,
+    building: filteredCompanies.filter(c => c.compositeScore < 50).length,
   };
   
   // Provisional count
@@ -822,18 +821,17 @@ function TierStatsModal({
     global: filteredCompanies.filter(c => c.globalFootprint.segment === 'Global').length,
   };
   
-  // Dimension tier counts (5 tiers)
+  // Dimension tier counts (WSI 4-tier model)
   const getDimensionTierCounts = (dimNum: number) => {
     const scores = filteredCompanies
       .map(c => c.dimensions[dimNum]?.blendedScore ?? c.dimensions[dimNum]?.adjustedScore ?? null)
       .filter((s): s is number => s !== null);
-    
+
     return {
-      exemplary: scores.filter(s => s >= 90).length,
-      leading: scores.filter(s => s >= 75 && s < 90).length,
-      progressing: scores.filter(s => s >= 60 && s < 75).length,
-      emerging: scores.filter(s => s >= 40 && s < 60).length,
-      developing: scores.filter(s => s < 40).length,
+      leading: scores.filter(s => s >= 80).length,
+      established: scores.filter(s => s >= 64 && s < 80).length,
+      progressing: scores.filter(s => s >= 50 && s < 64).length,
+      building: scores.filter(s => s < 50).length,
     };
   };
 
@@ -902,31 +900,26 @@ function TierStatsModal({
                 <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 font-bold">★</span>
                 Composite Score Tiers
               </h3>
-              <div className="grid grid-cols-5 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 <div className="bg-emerald-50 rounded-lg p-4 text-center border border-emerald-200">
-                  <div className="text-3xl font-bold text-emerald-700">{compositeCounts.exemplary}</div>
-                  <div className="text-sm font-medium text-emerald-600">Exemplary</div>
-                  <div className="text-xs text-emerald-500">90+</div>
+                  <div className="text-3xl font-bold text-emerald-700">{compositeCounts.leading}</div>
+                  <div className="text-sm font-medium text-emerald-600">Leading</div>
+                  <div className="text-xs text-emerald-500">80+</div>
                 </div>
                 <div className="bg-blue-50 rounded-lg p-4 text-center border border-blue-200">
-                  <div className="text-3xl font-bold text-blue-700">{compositeCounts.leading}</div>
-                  <div className="text-sm font-medium text-blue-600">Leading</div>
-                  <div className="text-xs text-blue-500">75-89</div>
+                  <div className="text-3xl font-bold text-blue-700">{compositeCounts.established}</div>
+                  <div className="text-sm font-medium text-blue-600">Established</div>
+                  <div className="text-xs text-blue-500">64-79</div>
                 </div>
                 <div className="bg-amber-50 rounded-lg p-4 text-center border border-amber-200">
                   <div className="text-3xl font-bold text-amber-700">{compositeCounts.progressing}</div>
                   <div className="text-sm font-medium text-amber-600">Progressing</div>
-                  <div className="text-xs text-amber-500">60-74</div>
-                </div>
-                <div className="bg-orange-50 rounded-lg p-4 text-center border border-orange-200">
-                  <div className="text-3xl font-bold text-orange-700">{compositeCounts.emerging}</div>
-                  <div className="text-sm font-medium text-orange-600">Emerging</div>
-                  <div className="text-xs text-orange-500">40-59</div>
+                  <div className="text-xs text-amber-500">50-63</div>
                 </div>
                 <div className="bg-red-50 rounded-lg p-4 text-center border border-red-200">
-                  <div className="text-3xl font-bold text-red-700">{compositeCounts.developing}</div>
-                  <div className="text-sm font-medium text-red-600">Developing</div>
-                  <div className="text-xs text-red-500">&lt;40</div>
+                  <div className="text-3xl font-bold text-red-700">{compositeCounts.building}</div>
+                  <div className="text-sm font-medium text-red-600">Building</div>
+                  <div className="text-xs text-red-500">&lt;50</div>
                 </div>
               </div>
             </section>
@@ -942,11 +935,10 @@ function TierStatsModal({
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-2 px-3 font-semibold text-gray-700">Dimension</th>
-                      <th className="text-center py-2 px-2 font-semibold text-emerald-700">Exemplary<br/><span className="font-normal text-xs">90+</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-blue-700">Leading<br/><span className="font-normal text-xs">75-89</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-amber-700">Progressing<br/><span className="font-normal text-xs">60-74</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-orange-700">Emerging<br/><span className="font-normal text-xs">40-59</span></th>
-                      <th className="text-center py-2 px-2 font-semibold text-red-700">Developing<br/><span className="font-normal text-xs">&lt;40</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-emerald-700">Leading<br/><span className="font-normal text-xs">80+</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-blue-700">Established<br/><span className="font-normal text-xs">64-79</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-amber-700">Progressing<br/><span className="font-normal text-xs">50-63</span></th>
+                      <th className="text-center py-2 px-2 font-semibold text-red-700">Building<br/><span className="font-normal text-xs">&lt;50</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -957,11 +949,10 @@ function TierStatsModal({
                           <td className="py-2 px-3 font-medium text-gray-900">
                             <span className="text-blue-600">D{dim}:</span> {DIMENSION_NAMES[dim]}
                           </td>
-                          <td className="py-2 px-2 text-center font-bold text-emerald-700">{counts.exemplary}</td>
-                          <td className="py-2 px-2 text-center font-bold text-blue-700">{counts.leading}</td>
+                          <td className="py-2 px-2 text-center font-bold text-emerald-700">{counts.leading}</td>
+                          <td className="py-2 px-2 text-center font-bold text-blue-700">{counts.established}</td>
                           <td className="py-2 px-2 text-center font-bold text-amber-700">{counts.progressing}</td>
-                          <td className="py-2 px-2 text-center font-bold text-orange-700">{counts.emerging}</td>
-                          <td className="py-2 px-2 text-center font-bold text-red-700">{counts.developing}</td>
+                          <td className="py-2 px-2 text-center font-bold text-red-700">{counts.building}</td>
                         </tr>
                       );
                     })}
@@ -972,7 +963,7 @@ function TierStatsModal({
             
             {/* Tier Thresholds Reference */}
             <div className="bg-gray-100 rounded-lg p-3 text-xs text-gray-600">
-              <strong>Tier Thresholds:</strong> Exemplary (90+) | Leading (75-89) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
+              <strong>Tier Thresholds:</strong> Leading (80+) | Established (64-79) | Progressing (50-63) | Building (&lt;50)
             </div>
           </div>
         </div>
@@ -1021,11 +1012,11 @@ function SensitivityAnalysisModal({
   const filteredCompanies = companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel));
 
   const getTierName = (score: number) => {
-    if (score >= 90) return 'Exemplary';
-    if (score >= 75) return 'Leading';
-    if (score >= 60) return 'Progressing';
-    if (score >= 40) return 'Emerging';
-    return 'Developing';
+    // WSI 4-tier model
+    if (score >= 80) return 'Leading';
+    if (score >= 64) return 'Established';
+    if (score >= 50) return 'Progressing';
+    return 'Building';
   };
 
   // Weight perturbation analysis (existing)
@@ -2455,26 +2446,22 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
               
               <div>
                 <h3 className="font-bold text-gray-900 text-lg mb-3">Tier Classification</h3>
-                <div className="grid grid-cols-5 gap-2 text-center text-sm">
+                <div className="grid grid-cols-4 gap-2 text-center text-sm">
                   <div className="bg-emerald-100 rounded-lg p-3 border border-emerald-300">
-                    <div className="font-bold text-emerald-700">Exemplary</div>
-                    <div className="text-emerald-600">90+</div>
+                    <div className="font-bold text-emerald-700">Leading</div>
+                    <div className="text-emerald-600">80+</div>
                   </div>
                   <div className="bg-blue-100 rounded-lg p-3 border border-blue-300">
-                    <div className="font-bold text-blue-700">Leading</div>
-                    <div className="text-blue-600">75-89</div>
+                    <div className="font-bold text-blue-700">Established</div>
+                    <div className="text-blue-600">64-79</div>
                   </div>
                   <div className="bg-amber-100 rounded-lg p-3 border border-amber-300">
                     <div className="font-bold text-amber-700">Progressing</div>
-                    <div className="text-amber-600">60-74</div>
-                  </div>
-                  <div className="bg-orange-100 rounded-lg p-3 border border-orange-300">
-                    <div className="font-bold text-orange-700">Emerging</div>
-                    <div className="text-orange-600">40-59</div>
+                    <div className="text-amber-600">50-63</div>
                   </div>
                   <div className="bg-red-100 rounded-lg p-3 border border-red-300">
-                    <div className="font-bold text-red-700">Developing</div>
-                    <div className="text-red-600">&lt;40</div>
+                    <div className="font-bold text-red-700">Building</div>
+                    <div className="text-red-600">&lt;50</div>
                   </div>
                 </div>
               </div>
@@ -2662,15 +2649,14 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
 // ============================================
 
 const BENCHMARK_TIERS = [
-  { name: 'Exemplary', min: 90, max: 100, color: '#059669', bgColor: '#D1FAE5' },
-  { name: 'Leading', min: 70, max: 89, color: '#0891B2', bgColor: '#CFFAFE' },
-  { name: 'Progressing', min: 50, max: 69, color: '#CA8A04', bgColor: '#FEF9C3' },
-  { name: 'Emerging', min: 30, max: 49, color: '#EA580C', bgColor: '#FFEDD5' },
-  { name: 'Developing', min: 0, max: 29, color: '#DC2626', bgColor: '#FEE2E2' },
+  { name: 'Leading', min: 80, max: 100, color: '#059669', bgColor: '#D1FAE5' },
+  { name: 'Established', min: 64, max: 79, color: '#0891B2', bgColor: '#CFFAFE' },
+  { name: 'Progressing', min: 50, max: 63, color: '#CA8A04', bgColor: '#FEF9C3' },
+  { name: 'Building', min: 0, max: 49, color: '#DC2626', bgColor: '#FEE2E2' },
 ];
 
 const getBenchmarkTier = (score: number) => {
-  return BENCHMARK_TIERS.find(t => score >= t.min && score <= t.max) || BENCHMARK_TIERS[4];
+  return BENCHMARK_TIERS.find(t => score >= t.min && score <= t.max) || BENCHMARK_TIERS[3];
 };
 
 // Custom SVG badges for rankings
@@ -3177,14 +3163,12 @@ export default function AggregateScoringReport() {
                 {sortedCompanies
                   .filter(c => c.isComplete && !c.isPanel)
                   .map(company => {
-                    const tier = company.compositeScore >= 90 ? 'Exemplary' : 
-                                 company.compositeScore >= 75 ? 'Leading' : 
-                                 company.compositeScore >= 60 ? 'Progressing' : 
-                                 company.compositeScore >= 40 ? 'Emerging' : 'Developing';
-                    const tierColor = company.compositeScore >= 90 ? 'bg-purple-100 text-purple-700' : 
-                                      company.compositeScore >= 75 ? 'bg-green-100 text-green-700' : 
-                                      company.compositeScore >= 60 ? 'bg-blue-100 text-blue-700' : 
-                                      company.compositeScore >= 40 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
+                    const tier = company.compositeScore >= 80 ? 'Leading' :
+                                 company.compositeScore >= 64 ? 'Established' :
+                                 company.compositeScore >= 50 ? 'Progressing' : 'Building';
+                    const tierColor = company.compositeScore >= 80 ? 'bg-green-100 text-green-700' :
+                                      company.compositeScore >= 64 ? 'bg-blue-100 text-blue-700' :
+                                      company.compositeScore >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
                     return (
                       <button
                         key={company.surveyId}
