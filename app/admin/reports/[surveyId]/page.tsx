@@ -7354,24 +7354,15 @@ export default function ExportReportPage() {
                         <div className="flex items-center justify-center gap-8">
                           <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Employee Priority Level</span>
                           <div className="flex items-center gap-2">
-                            <svg width="22" height="22" viewBox="0 0 22 22">
-                              <circle cx="11" cy="11" r="10" fill="none" stroke="#7C3AED" strokeWidth="2.5"/>
-                              <circle cx="11" cy="11" r="6.5" fill="#7C3AED" opacity="0.15"/>
-                            </svg>
+                            <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '3px solid #7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.12)' }}></span>
                             <span className="text-slate-700 text-xs font-medium">Most Critical</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <svg width="22" height="22" viewBox="0 0 22 22">
-                              <circle cx="11" cy="11" r="10" fill="none" stroke="#D97706" strokeWidth="2.5"/>
-                              <circle cx="11" cy="11" r="6.5" fill="#D97706" opacity="0.15"/>
-                            </svg>
+                            <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '3px solid #D97706', backgroundColor: 'rgba(217, 119, 6, 0.12)' }}></span>
                             <span className="text-slate-700 text-xs font-medium">Highly Important</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <svg width="22" height="22" viewBox="0 0 22 22">
-                              <circle cx="11" cy="11" r="10" fill="none" stroke="#475569" strokeWidth="2.5"/>
-                              <circle cx="11" cy="11" r="6.5" fill="#475569" opacity="0.15"/>
-                            </svg>
+                            <span className="w-5 h-5 rounded-full flex-shrink-0" style={{ border: '3px solid #475569', backgroundColor: 'rgba(71, 85, 105, 0.12)' }}></span>
                             <span className="text-slate-700 text-xs font-medium">Enabling</span>
                           </div>
                         </div>
