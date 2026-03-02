@@ -3157,6 +3157,7 @@ export default function ExportReportPage() {
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
   
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
+  const [showWwcPledgeDetails, setShowWwcPledgeDetails] = useState(false);
   const [customInsights, setCustomInsights] = useState<Record<number, { insight: string; cacHelp: string }>>({});
   const [customExecutiveSummary, setCustomExecutiveSummary] = useState<string>('');
   const [customPatterns, setCustomPatterns] = useState<{ pattern: string; implication: string; recommendation: string }[]>([]);
@@ -6049,11 +6050,12 @@ export default function ExportReportPage() {
             
             
             {/* Company info + score */}
-            <div className="px-12 py-10 border-b border-slate-100">
-              <div className="flex items-end justify-between">
+            <div className="px-12 py-12 border-b-2 border-slate-200">
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
+                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest">Prepared for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
+                  <p className="text-sm text-slate-400 mt-1 font-medium tracking-wide">Your Workplace Cancer Support Assessment</p>
                   {isWwcPledge && (
                     <div className="mt-4 flex items-center gap-3">
                       <div className="w-10 h-10 flex-shrink-0">
@@ -6076,15 +6078,15 @@ export default function ExportReportPage() {
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-10">
                   <div className="text-right">
                     <p className="text-slate-500 text-sm font-medium">{tierView ? 'Workplace Support Index' : 'Composite Score'}</p>
                     <p className="text-6xl font-bold mt-1" style={{ color: tierView ? (wsiScoreHeader >= 70 ? '#047857' : wsiScoreHeader >= 50 ? '#1D4ED8' : '#B45309') : (tier?.color || '#666') }} data-export="composite-score">{tierView ? wsiScoreHeader : (compositeScore ?? '—')}</p>
                   </div>
                   {tier && (
-                    <div className={`px-6 py-4 rounded-xl ${tierView ? '' : tier.bgColor} border-2 ${tierView ? '' : tier.borderColor}`} style={tierView ? { borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' } : {}}>
+                    <div className={`px-7 py-5 rounded-xl ${tierView ? '' : tier.bgColor} border-2 ${tierView ? '' : tier.borderColor}`} style={tierView ? { borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' } : {}}>
                       <p className="text-2xl font-bold" style={{ color: tierView ? ratingColorHeader : tier.color }} data-export="tier-name">{tierView ? supportRatingHeader : tier.name}</p>
-                      <p className="text-sm text-slate-500 font-medium">{tierView ? 'Overall Support Rating' : 'Performance Tier'}</p>
+                      <p className="text-sm text-slate-500 font-medium mt-1">{tierView ? 'Overall Support Rating' : 'Performance Tier'}</p>
                       {isProvisional && (
                         <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
                       )}
@@ -10259,8 +10261,12 @@ export default function ExportReportPage() {
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            {/* Header - Clean white/cream with full logo */}
-            <div className="px-10 py-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
+            {/* Header - Clickable to expand/collapse */}
+            <button
+              onClick={() => setShowWwcPledgeDetails(!showWwcPledgeDetails)}
+              className="w-full text-left px-10 py-4 relative overflow-hidden cursor-pointer hover:brightness-[0.98] transition-all"
+              style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}
+            >
               <div className="absolute inset-0 opacity-5">
                 <div className="absolute top-0 left-0 w-64 h-64 rounded-full -translate-y-1/2 -translate-x-1/4" style={{ backgroundColor: '#ff353c' }}></div>
               </div>
@@ -10303,11 +10309,19 @@ export default function ExportReportPage() {
                     <p className="text-white text-2xl font-bold">40M+</p>
                     <p className="text-white/90 text-xs font-medium">Workers</p>
                   </div>
+                  <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ml-2 ${showWwcPledgeDetails ? 'rotate-180' : ''}`}>
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Content Section */}
+              {!showWwcPledgeDetails && (
+                <p className="text-center text-xs text-slate-400 mt-3 font-medium">Click to learn more about the Working with Cancer Pledge</p>
+              )}
+            </button>
+
+            {/* Content Section - Collapsible */}
+            {showWwcPledgeDetails && (
+            <>
             <div className="px-10 py-5 bg-white">
               {/* Origin + What It Is */}
               <div className="flex items-start gap-4 mb-5">
@@ -10442,6 +10456,8 @@ export default function ExportReportPage() {
                 To learn more about the Working with Cancer Pledge, visit <a href="https://workingwithcancerpledge.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300 hover:text-white">workingwithcancerpledge.com</a>
               </p>
             </div>
+            </>
+            )}
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
