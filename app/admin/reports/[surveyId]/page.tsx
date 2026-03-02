@@ -10300,12 +10300,31 @@ export default function ExportReportPage() {
               })
               .slice(0, 3);
 
-            // CHANGE 1: Auto-generate headline insight
-            const strengthNames = topStrengths.slice(0, 3).map(d => d.name);
-            const gapNames = focusCandidates.slice(0, 3).map(d => d.name);
-            const defaultHeadline = `${companyName} is outperforming peers by building strong consistency in ${strengthNames.join(', ')}. The biggest opportunity now is tightening execution in ${gapNames.join(', ')}.`;
+            // Theme narrative descriptions for analytical headline + pattern bullets
+            const themeNarrative: Record<string, string> = {
+              'Protection': 'employee protection and benefits',
+              'Execution': 'manager-facing and accommodation processes',
+              'Visibility': 'communication and resource visibility',
+              'Culture': 'workplace culture and psychological safety',
+              'Continuity': 'work continuity and career protection',
+              'Commitment': 'leadership commitment and strategy',
+              'Breadth': 'caregiver and family support',
+              'Prevention': 'prevention and wellness',
+              'Learning': 'continuous improvement',
+            };
+            const themeImplication: Record<string, string> = {
+              'Protection': 'Strengthening foundational protections would build employee trust at the most vulnerable moments',
+              'Execution': 'The gap is delivery consistency, not policy intent',
+              'Visibility': 'Employees may not know what support is already available',
+              'Culture': 'Psychological safety may be limiting the effectiveness of existing programs',
+              'Continuity': 'Stronger continuity protections would signal long-term career commitment',
+              'Commitment': 'Executive sponsorship could unlock progress across multiple dimensions',
+              'Breadth': 'Extending support to caregivers would address a hidden retention risk',
+              'Prevention': 'Proactive wellness programs would reduce severity and demonstrate care',
+              'Learning': 'A feedback loop would ensure support systems evolve with employee needs',
+            };
 
-            // CHANGE 4: Auto-generate pattern bullets
+            // Group strengths and gaps by theme
             const strengthThemes: Record<string, string[]> = {};
             topStrengths.forEach(d => {
               const t = dimTheme[d.dim] || 'Other';
@@ -10318,24 +10337,25 @@ export default function ExportReportPage() {
               if (!gapThemes[t]) gapThemes[t] = [];
               gapThemes[t].push(d.name);
             });
-            const defaultPatternBullets: string[] = [];
-            Object.entries(strengthThemes).forEach(([theme, dims]) => {
-              defaultPatternBullets.push(`${theme} is a strength (${dims.join(', ')})`);
-            });
-            Object.entries(gapThemes).forEach(([theme, dims]) => {
-              if (!strengthThemes[theme]) {
-                defaultPatternBullets.push(`${theme} is the lever (${dims.join(', ')})`);
-              }
-            });
-            if (defaultPatternBullets.length < 3) {
-              const allGapThemes = Object.entries(gapThemes);
-              for (const [theme, dims] of allGapThemes) {
-                if (strengthThemes[theme] && defaultPatternBullets.length < 3) {
-                  defaultPatternBullets.push(`${theme} needs consistency (${dims.join(', ')})`);
-                }
-              }
-            }
-            while (defaultPatternBullets.length < 3) defaultPatternBullets.push('');
+
+            // Headline: theme-based analytical sentence
+            const joinNarratives = (themes: Record<string, string[]>) => {
+              const phrases = Object.keys(themes).map(t => themeNarrative[t] || t.toLowerCase());
+              if (phrases.length <= 1) return phrases[0] || '';
+              if (phrases.length === 2) return `${phrases[0]} and ${phrases[1]}`;
+              return `${phrases.slice(0, -1).join(', ')}, and ${phrases[phrases.length - 1]}`;
+            };
+            const defaultHeadline = `${companyName} demonstrates ${wsiTier.name.toLowerCase()}-level support with particular strength in ${joinNarratives(strengthThemes)}. The primary opportunity is ${joinNarratives(gapThemes)}.`;
+
+            // Pattern bullets: 3 distinct observations
+            const strengthThemeKeys = Object.keys(strengthThemes);
+            const gapThemeKeys = Object.keys(gapThemes);
+            const dominantGapTheme = gapThemeKeys[0] || 'Execution';
+            const defaultPatternBullets: string[] = [
+              `${strengthThemeKeys.map(t => themeNarrative[t] || t).join(' and ')} ${strengthThemeKeys.length === 1 ? 'is' : 'are'} well-established`,
+              `${gapThemeKeys.map(t => themeNarrative[t] || t).join(' and ')} ha${gapThemeKeys.length === 1 ? 's' : 've'} the most room to grow`,
+              themeImplication[dominantGapTheme] || 'Closing these gaps would strengthen the overall support experience',
+            ];
 
             // CHANGE 5: Balance micro-insight by tier
             const balanceLookup: Record<string, string> = {
@@ -10393,7 +10413,7 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-[15px] text-slate-600 italic font-medium leading-relaxed">
+                    <p className="text-[15px] text-slate-600 italic font-medium leading-relaxed" style={{ fontStyle: 'italic' }}>
                       {customNextSteps.headlineInsight || defaultHeadline}
                     </p>
                   )}
@@ -10489,27 +10509,24 @@ export default function ExportReportPage() {
                   {/* RIGHT: Where to Focus — CHANGE 3: Actionable Plays */}
                   <div className="border-l-2 border-amber-300 pl-6">
                     <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-4">Where to Focus</h4>
-                    <div className="space-y-5">
+                    <div className="space-y-4">
                       {focusCandidates.map((d, idx) => {
                         const pg = getEmployeePriorityGroup(d.weight);
-                        const bDiff = d.benchmark != null ? Math.round(d.score) - d.benchmark : null;
                         const lookup = playsLookup[d.dim] || { play: `Strengthen ${d.name}`, firstStep: 'Conduct a gap analysis and identify quick wins.' };
                         const customPlay = customNextSteps.plays?.[d.dim];
                         const playTitle = customPlay?.play ?? lookup.play;
-                        const whyNowDefault = `${pg.chip} \u00B7 Score: ${Math.round(d.score)}${bDiff !== null ? ` \u00B7 ${bDiff >= 0 ? '+' : ''}${bDiff} pts vs benchmark` : ''}`;
-                        const whyNow = customPlay?.whyNow ?? whyNowDefault;
                         const firstStep = customPlay?.firstStep ?? lookup.firstStep;
 
                         return (
                           <div key={d.dim}>
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="flex items-center gap-2">
                               <span className="text-slate-400 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
                               <span className="text-sm font-semibold text-slate-800">{d.name}</span>
                               <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: pg.color + '15', color: pg.color }}>
                                 {pg.chip}
                               </span>
                             </div>
-                            <div className="pl-7 space-y-1">
+                            <div className="pl-7 mt-0.5">
                               {editMode ? (
                                 <div className="space-y-1">
                                   <div>
@@ -10517,14 +10534,7 @@ export default function ExportReportPage() {
                                     <input type="text" value={playTitle} onChange={(e) => {
                                       setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
                                       setHasUnsavedChanges(true);
-                                    }} className="w-full text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400/50" />
-                                  </div>
-                                  <div>
-                                    <label className="text-[9px] text-slate-400 uppercase tracking-wider">Why Now</label>
-                                    <input type="text" value={whyNow} onChange={(e) => {
-                                      setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], whyNow: e.target.value } } }));
-                                      setHasUnsavedChanges(true);
-                                    }} className="w-full text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400/50" />
+                                    }} className="w-full text-xs text-slate-500 bg-amber-50 border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400/50" />
                                   </div>
                                   <div>
                                     <label className="text-[9px] text-slate-400 uppercase tracking-wider">First Step</label>
@@ -10546,9 +10556,8 @@ export default function ExportReportPage() {
                                 </div>
                               ) : (
                                 <>
-                                  <p className="text-xs font-semibold text-amber-800">{playTitle}</p>
-                                  <p className="text-[11px] text-slate-400">{whyNow}</p>
-                                  <p className="text-xs text-slate-600"><span className="font-medium text-slate-500">First step:</span> {firstStep}</p>
+                                  <p className="text-xs text-slate-500 leading-relaxed">{playTitle}</p>
+                                  <p className="text-xs text-slate-600">Score: {Math.round(d.score)} · <span className="font-medium text-slate-500">First step:</span> {firstStep}</p>
                                 </>
                               )}
                             </div>
@@ -10559,10 +10568,10 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* CHANGE 5: Balance micro-insight */}
-                <div className="px-10 pb-4">
+                {/* Balance micro-insight — footnote style */}
+                <div className="mx-10 mt-2 mb-4">
                   {editMode ? (
-                    <div>
+                    <div className="border-t border-slate-200 pt-3">
                       <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Balance Insight</label>
                       <textarea
                         value={customNextSteps.balanceInsight ?? defaultBalanceInsight}
@@ -10577,7 +10586,7 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500 italic text-center leading-relaxed border-t border-slate-100 pt-3">
+                    <p className="text-xs text-slate-500 text-center leading-relaxed border-t border-slate-200 pt-4" style={{ fontStyle: 'italic' }}>
                       {customNextSteps.balanceInsight || defaultBalanceInsight}
                     </p>
                   )}
