@@ -61,129 +61,28 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
   );
 }
 
-
 function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
-  const [sortBy, setSortBy] = useState<'your' | 'benchmark' | 'contribution'>('your');
-
-  const sorted = [...dimensionAnalysis].sort((a: any, b: any) => {
-    if (sortBy === 'your') return (b.score ?? 0) - (a.score ?? 0);
-    if (sortBy === 'benchmark') return ((b.benchmark ?? -1) - (a.benchmark ?? -1));
-    // contribution: Highest-Impact → Meaningful → Supporting (then by weight desc)
-    const rb = getImpactRank(b.weight ?? 0);
-    const ra = getImpactRank(a.weight ?? 0);
-    if (rb !== ra) return rb - ra;
-    return (b.weight ?? 0) - (a.weight ?? 0);
-  });
-
-  const sortLabel =
-    sortBy === 'your' ? 'Your Score (high to low)' :
-    sortBy === 'benchmark' ? 'Benchmark (high to low)' :
-    'Index Contribution (Highest-Impact first)';
-
+  const sorted = [...dimensionAnalysis].sort((a: any, b: any) => b.weight - a.weight);
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
-      <div className="px-8 py-4 border-b border-slate-100 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h3 className="font-semibold text-slate-900">Dimension Performance</h3>
-          <p className="text-sm text-slate-500 mt-0.5">Sorted by {sortLabel}</p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-slate-500">Sort:</span>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="text-xs px-2 py-1 rounded-md border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-200"
-          >
-            <option value="your">Your Score</option>
-            <option value="benchmark">Benchmark</option>
-            <option value="contribution">Index Contribution</option>
-          </select>
-        </div>
-      </div>
-
+      <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
       <div className="px-8 py-4">
-        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200">
-          <div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div>
-          <div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div>
-          <div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div>
-          <div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div>
-          <div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Your</div>
-          <div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">Benchmark</div>
-          <div className="w-32 text-center text-xs font-medium text-slate-400 uppercase">Index Contribution</div>
-        </div>
-
-        <div className="divide-y divide-slate-100">
-          {sorted.map((d: any, idx: number) => {
-            const diff = d.benchmark !== null && d.benchmark !== undefined ? (d.score - d.benchmark) : null;
-            const grp = getImpactGroup(d.weight ?? 0);
-
-            return (
-              <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
-                <div className="w-6 flex justify-center">
-                  <span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: grp.color }}>
-                    {d.dim}
-                  </span>
-                </div>
-
-                <div className="flex-1">
-                  <span className="text-sm text-slate-700">{d.name}</span>
-                </div>
-
-                <div className="w-10 text-center">
-                  <span className="text-xs text-slate-400">{d.weight}%</span>
-                </div>
-
-                <div className="w-48">
-                  <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
-                    <div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: getScoreColor(d.score) }} />
-                    {d.benchmark !== null && d.benchmark !== undefined && (
-                      <div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}>
-                        <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="w-12 text-right">
-                  <span className="text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                </div>
-
-                <div className="w-20 text-center">
-                  {d.benchmark !== null && d.benchmark !== undefined ? (
-                    <span className="text-xs">
-                      <span className="text-slate-400">{d.benchmark}</span>
-                      <span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                        ({diff !== null && diff >= 0 ? '+' : ''}{diff})
-                      </span>
-                    </span>
-                  ) : (
-                    <span className="text-xs text-slate-300">—</span>
-                  )}
-                </div>
-
-                <div className="w-32 flex justify-center">
-                  <span className={`text-xs font-medium px-2.5 py-1 rounded border ${grp.bgClass} ${grp.borderClass}`} style={{ color: grp.color }}>
-                    {grp.label}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400">
-          <span>Scores out of 100</span>
-          <span className="flex items-center gap-1">
-            <span className="inline-block w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"></span>
-            Benchmark
-          </span>
-        </div>
+        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-24 text-center text-xs font-medium text-slate-400 uppercase">Tier</div></div>
+        <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; return (
+          <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
+            <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: '#1E293B' }}>{d.dim}</span></div>
+            <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
+            <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
+            <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
+            <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
+            <div className="w-24 flex justify-center"><span className={`text-xs font-medium px-2.5 py-1 rounded ${d.tier.bgColor} border ${d.tier.borderColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span></div>
+          </div>); })}</div>
+        <div className="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400"><span>Scores out of 100</span><span className="flex items-center gap-1"><span className="inline-block w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"></span>Benchmark</span></div>
       </div>
     </div>
   );
 }
-
 
 function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
   const [showBenchmarks, setShowBenchmarks] = useState(false);
@@ -209,23 +108,13 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             <text x={PADDING + PLOT_WIDTH/4} y={PADDING + PLOT_HEIGHT - 10} textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="500" opacity="0.6">MONITOR</text>
             <text x={PADDING + PLOT_WIDTH*3/4} y={PADDING + PLOT_HEIGHT - 10} textAnchor="middle" fill="#1E40AF" fontSize="11" fontWeight="500" opacity="0.6">MAINTAIN & LEVERAGE</text>
             {showBenchmarks && dimensionAnalysis.map((d: any) => { if (d.benchmark === null) return null; const xPos = PADDING + (d.benchmark / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); return (<g key={`bench-${d.dim}`} transform={`translate(${xPos}, ${yPos})`}><circle r="10" fill="none" stroke="#94A3B8" strokeWidth="2" strokeDasharray="3,2" /></g>); })}
-            {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} stroke={getImpactGroup(d.weight).color} strokeWidth={3} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
+            {dimensionAnalysis.map((d: any) => { const xPos = PADDING + (d.score / 100) * PLOT_WIDTH; const yPos = PADDING + PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT); const isHovered = hoveredDim === d.dim; return (<g key={d.dim} transform={`translate(${xPos}, ${yPos})`} onMouseEnter={() => setHoveredDim(d.dim)} onMouseLeave={() => setHoveredDim(null)} style={{ cursor: 'pointer' }}><circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" /><circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} /><text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="10" fontWeight="600">D{d.dim}</text>{isHovered && (<g transform="translate(25, -10)"><rect x="0" y="-12" width="150" height="55" rx="4" fill="white" stroke="#E2E8F0" /><text x="8" y="2" fontSize="11" fontWeight="600" fill="#1E293B">{d.name}</text><text x="8" y="18" fontSize="10" fill="#64748B">Score: {d.score}</text>{d.benchmark !== null && <text x="8" y="34" fontSize="10" fill="#94A3B8">Benchmark: {d.benchmark}</text>}</g>)}</g>); })}
             <g transform={`translate(0, ${PADDING + PLOT_HEIGHT})`}>{[0, 25, 50, 75, 100].map((val) => (<g key={val} transform={`translate(${PADDING + (val / 100) * PLOT_WIDTH}, 0)`}><line y1="0" y2="5" stroke="#94A3B8" strokeWidth="1" /><text y="18" textAnchor="middle" fill="#64748B" fontSize="11">{val}</text></g>))}<text x={PADDING + PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Performance Score →</text></g>
             <g transform={`translate(${PADDING}, 0)`}>{[0, 5, 10, 15].map((val) => (<g key={val} transform={`translate(0, ${PADDING + PLOT_HEIGHT - (val / MAX_WEIGHT) * PLOT_HEIGHT})`}><line x1="-5" x2="0" stroke="#94A3B8" strokeWidth="1" /><text x="-10" textAnchor="end" dominantBaseline="middle" fill="#64748B" fontSize="11">{val}%</text></g>))}</g>
             <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Impact Weight ↑</text>
           </g>
         </svg>
-      </div>
-      <div className="flex items-center justify-center flex-wrap gap-6 mt-4 text-xs text-slate-500">
-        <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span>
-        {showBenchmarks && (
-          <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span>
-        )}
-        <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.highest.color }}></span>Highest-Impact</span>
-        <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.meaningful.color }}></span>Meaningful</span>
-        <span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.supporting.color }}></span>Supporting</span>
-      </div>
-    </div>
+      </div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-4 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
     </div>
   );
 }
@@ -279,26 +168,50 @@ const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
 
 const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, maturity: 5, breadth: 5 };
 
-
-// Impact groupings for dimension classification (based on Index Contribution weight)
+// =============================================================
+// Index Contribution Groups (dimension-weight bands)
+//  - Highest-Impact: >= 10%
+//  - Meaningful:     7–8%
+//  - Supporting:     <= 5%
+// =============================================================
 const IMPACT_GROUPS = {
-  highest: { id: 'highest', label: 'Highest-Impact', color: '#2563EB', bgClass: 'bg-blue-50', borderClass: 'border-blue-200', textClass: 'text-blue-700' },
-  meaningful: { id: 'meaningful', label: 'Meaningful', color: '#10B981', bgClass: 'bg-emerald-50', borderClass: 'border-emerald-200', textClass: 'text-emerald-700' },
-  supporting: { id: 'supporting', label: 'Supporting', color: '#64748B', bgClass: 'bg-slate-100', borderClass: 'border-slate-200', textClass: 'text-slate-700' },
+  highest: {
+    id: 'highest',
+    label: 'Highest-Impact',
+    color: '#2563EB',
+    bgClass: 'bg-blue-50',
+    borderClass: 'border-blue-200',
+    textClass: 'text-blue-700',
+  },
+  meaningful: {
+    id: 'meaningful',
+    label: 'Meaningful',
+    color: '#10B981',
+    bgClass: 'bg-emerald-50',
+    borderClass: 'border-emerald-200',
+    textClass: 'text-emerald-700',
+  },
+  supporting: {
+    id: 'supporting',
+    label: 'Supporting',
+    color: '#64748B',
+    bgClass: 'bg-slate-100',
+    borderClass: 'border-slate-200',
+    textClass: 'text-slate-700',
+  },
 } as const;
 
 function getImpactGroup(weightPct: number) {
   if (weightPct >= 10) return IMPACT_GROUPS.highest;
   if (weightPct >= 7) return IMPACT_GROUPS.meaningful; // 7–8%
-  return IMPACT_GROUPS.supporting; // ≤5%
+  return IMPACT_GROUPS.supporting; // <= 5%
 }
 
 function getImpactRank(weightPct: number) {
-  if (weightPct >= 10) return 3; // Highest-Impact
-  if (weightPct >= 7) return 2;  // Meaningful
-  return 1;                      // Supporting
+  if (weightPct >= 10) return 3;
+  if (weightPct >= 7) return 2;
+  return 1;
 }
-
 
 const DEFAULT_BLEND_WEIGHTS = {
   d1: { grid: 85, followUp: 15 },
@@ -1748,7 +1661,13 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 return (
                   <g key={d.dim} transform={`translate(${x}, ${y})`} opacity={isHidden && !isHovered ? 0.92 : 1}>
                     <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
-                    <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
+                    <circle
+                      r={isHovered ? 18 : 15}
+                      fill={getScoreColor(d.score)}
+                      stroke={getImpactGroup(d.weight).color}
+                      strokeWidth={3}
+                      style={{ transition: 'all 0.15s ease' }}
+                    />
                     <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
                       D{d.dim}
                     </text>
@@ -1854,7 +1773,10 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 onMouseEnter={() => setHoveredDim(d.dim)}
                 onMouseLeave={() => setHoveredDim(null)}
               >
-                <span className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>
+                <span
+                  className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+                  style={{ backgroundColor: getScoreColor(d.score), border: `2px solid ${getImpactGroup(d.weight).color}` }}
+                >
                   {d.dim}
                 </span>
                 <span className="text-[11px] text-slate-700 font-medium whitespace-nowrap">{DIMENSION_SHORT_NAMES[d.dim]}</span>
@@ -1870,12 +1792,22 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 onMouseEnter={() => setHoveredDim(d.dim)}
                 onMouseLeave={() => setHoveredDim(null)}
               >
-                <span className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>
+                <span
+                  className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+                  style={{ backgroundColor: getScoreColor(d.score), border: `2px solid ${getImpactGroup(d.weight).color}` }}
+                >
                   {d.dim}
                 </span>
                 <span className="text-[11px] text-slate-700 font-medium whitespace-nowrap">{DIMENSION_SHORT_NAMES[d.dim]}</span>
               </div>
             ))}
+          </div>
+
+          {/* Index Contribution Groups */}
+          <div className="mt-3 flex items-center justify-center gap-6 text-[11px] text-slate-500">
+            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.highest.color }} />Highest-Impact</span>
+            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.meaningful.color }} />Meaningful</span>
+            <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: IMPACT_GROUPS.supporting.color }} />Supporting</span>
           </div>
         </div>
       </div>
@@ -3338,6 +3270,9 @@ export default function ExportReportPage() {
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
+
+  // Dimension Performance table sorting (default: Your Score)
+  const [dimensionPerfSortBy, setDimensionPerfSortBy] = useState<'your' | 'benchmark' | 'contribution'>('your');
   const [generatingLink, setGeneratingLink] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
   const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
@@ -7238,10 +7173,30 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Dimension Performance</h3>
-                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
+                    <p className="text-slate-400 mt-0.5 text-sm">
+                      All 13 dimensions sorted by{
+                        dimensionPerfSortBy === 'your'
+                          ? ` ${companyName}${companyName.endsWith('s') ? "'" : "'s"} score`
+                          : dimensionPerfSortBy === 'benchmark'
+                            ? ' benchmark score'
+                            : ' index contribution'
+                      }
+                    </p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-300 font-medium">Sort:</span>
+                    <select
+                      value={dimensionPerfSortBy}
+                      onChange={(e) => setDimensionPerfSortBy(e.target.value as any)}
+                      className="text-xs px-2 py-1 rounded-md border border-white/20 bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-white/20"
+                    >
+                      <option value="your">Your Score</option>
+                      <option value="benchmark">Benchmark</option>
+                      <option value="contribution">Index Contribution</option>
+                    </select>
+                  </div>
                   <span className="bg-white/10 backdrop-blur border border-white/20 text-white px-4 py-2 rounded-lg font-medium text-sm">Click any dimension for element-level details</span>
                   <span className="flex items-center gap-2 text-xs text-slate-400">
                     <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
@@ -7257,11 +7212,22 @@ export default function ExportReportPage() {
                 <div className="flex-1 text-center">Performance</div>
                 <div className="w-24 text-center">Your Score</div>
                 <div className="w-28 text-center">Benchmark</div>
-                <div className="w-28 text-center">Dim Tier</div>
+                <div className="w-32 text-center">Index Contribution</div>
               </div>
               <div className="divide-y divide-slate-100">
-                {[...dimensionAnalysis].sort((a, b) => b.score - a.score).map((d, idx) => {
+                {(() => {
+                  const sorted = [...dimensionAnalysis].sort((a: any, b: any) => {
+                    if (dimensionPerfSortBy === 'your') return (b.score ?? 0) - (a.score ?? 0);
+                    if (dimensionPerfSortBy === 'benchmark') return ((b.benchmark ?? -1) - (a.benchmark ?? -1));
+                    const rb = getImpactRank(b.weight ?? 0);
+                    const ra = getImpactRank(a.weight ?? 0);
+                    if (rb !== ra) return rb - ra;
+                    return (b.weight ?? 0) - (a.weight ?? 0);
+                  });
+
+                  return sorted.map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+                  const grp = getImpactGroup(d.weight ?? 0);
                   return (
                     <div 
                       key={d.dim} 
@@ -7269,7 +7235,7 @@ export default function ExportReportPage() {
                       className={`flex items-center py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
                     >
                       <div className="w-64 flex items-center gap-3 pl-2">
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier.color }}>
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: grp.color }}>
                           {d.dim}
                         </span>
                         <span className="text-sm text-slate-800 font-semibold hover:text-slate-900">{d.name}</span>
@@ -7278,7 +7244,7 @@ export default function ExportReportPage() {
                         <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
                           <div 
                             className="absolute left-0 top-0 h-full rounded-full transition-all" 
-                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} 
+                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: getScoreColor(d.score) }} 
                           />
                           {d.benchmark !== null && (
                             <div 
@@ -7291,7 +7257,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       <div className="w-24 text-center">
-                        <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                        <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                       </div>
                       <div className="w-28 text-center">
                         {d.benchmark !== null ? (
@@ -7305,17 +7271,15 @@ export default function ExportReportPage() {
                           <span className="text-sm text-slate-300">—</span>
                         )}
                       </div>
-                      <div className="w-28 flex justify-center">
-                        <span 
-                          className="text-xs font-bold px-3 py-1 rounded-full text-white" 
-                          style={{ backgroundColor: d.tier.color }}
-                        >
-                          {d.tier.name}
+                      <div className="w-32 flex justify-center">
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full border ${grp.bgClass} ${grp.borderClass}`} style={{ color: grp.color }}>
+                          {grp.label}
                         </span>
                       </div>
                     </div>
                   );
-                })}
+                  });
+                })()}
               </div>
             </div>
           </div>
