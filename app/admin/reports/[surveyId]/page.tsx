@@ -3185,7 +3185,11 @@ export default function ExportReportPage() {
   const [selectedDrillDownDim, setSelectedDrillDownDim] = useState<number | null>(null);
   const [additionalAnalyzedDims, setAdditionalAnalyzedDims] = useState<number[]>([]);
   const [customAdditionalDimInsights, setCustomAdditionalDimInsights] = useState<Record<number, { insight: string; roadmapQuickWin: string; roadmapStrategic: string; cacHelp: string }>>({});
-  
+  const [customNextSteps, setCustomNextSteps] = useState<{
+    items?: Record<number, string>;   // index (0,1,2) -> custom recommendation text
+    closingMessage?: string;
+  }>({});
+
   // Computed total slides - base 35 + any additional dimension deep dives
   const totalSlides = 38 + additionalAnalyzedDims.length;
   
@@ -3842,6 +3846,7 @@ export default function ExportReportPage() {
             customCacHelp,
             customRoadmapTimeframes,
             customDimRoadmaps,
+            customNextSteps,
             lastEditedAt: new Date().toISOString()
           })
         })
@@ -3874,6 +3879,7 @@ export default function ExportReportPage() {
         setCustomDimRoadmaps({});
         setCustomCacHelp({});
         setCustomRoadmapTimeframes({ phase1: '', phase2: '', phase3: '' });
+        setCustomNextSteps({});
         setHasUnsavedChanges(true);
         setConfirmModal({ show: false, message: '', onConfirm: () => {} });
       }
@@ -3905,6 +3911,7 @@ export default function ExportReportPage() {
         if (saved.customCacHelp) setCustomCacHelp(saved.customCacHelp);
         if (saved.customRoadmapTimeframes) setCustomRoadmapTimeframes(saved.customRoadmapTimeframes);
         if (saved.customDimRoadmaps) setCustomDimRoadmaps(saved.customDimRoadmaps);
+        if (saved.customNextSteps) setCustomNextSteps(saved.customNextSteps);
       } catch (e) {
         console.error('Error loading customizations:', e);
       }
@@ -7031,7 +7038,6 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
-          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 border-b border-slate-200 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -7383,7 +7389,6 @@ export default function ExportReportPage() {
                 );
               })()}
             </div>
-          </div>
           </div>
 
           {/* ============ DIMENSION DETAIL MODAL ============ */}
@@ -8274,7 +8279,6 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-teal-700 to-teal-800">
               <div className="flex items-center justify-between">
@@ -8326,7 +8330,6 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-          </div>
           </div>
 
           {/* ============ GROWTH OPPORTUNITIES ============ */}
@@ -8381,7 +8384,6 @@ export default function ExportReportPage() {
           
           {/* ============ INITIATIVES IN PROGRESS ============ */}
           {quickWinOpportunities.length > 0 && (
-            <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
             <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                 <div className="flex items-center justify-between">
@@ -8424,7 +8426,6 @@ export default function ExportReportPage() {
                   ))}
                 </div>
               </div>
-            </div>
             </div>
           )}
 
@@ -9474,7 +9475,6 @@ export default function ExportReportPage() {
           </div>
           
           {/* Impact-Ranked Priorities Teaser Card */}
-          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
             <button
               onClick={() => setShowImpactRanked(!showImpactRanked)}
@@ -10038,7 +10038,6 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
-          </div>
 
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
           <div id="wwc-pledge-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
@@ -10242,7 +10241,6 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div className="-mx-10 px-10 py-2 rounded-xl" style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}>
           <div id="cac-help-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
@@ -10341,7 +10339,6 @@ export default function ExportReportPage() {
                 </div>
               </div>
             </div>
-          </div>
           </div>
 
           {/* ============ THANK YOU SECTION ============ */}
@@ -10528,7 +10525,204 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
-          
+
+          {/* ============ RECOMMENDED NEXT STEPS — EXECUTIVE SUMMARY ============ */}
+          {(() => {
+            // Top 3 strengths by score (highest first)
+            const topStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
+            // Priority Gaps: high weight + low score (top-left quadrant: score < 50, weight >= 8)
+            const priorityGapDims = dimensionAnalysis
+              .filter(d => (d.score ?? 0) < 50 && d.weight >= 8)
+              .sort((a, b) => b.weight - a.weight);
+            // Monitor: low weight + low score (bottom-left quadrant: score < 50, weight < 8)
+            const monitorDims = dimensionAnalysis
+              .filter(d => (d.score ?? 0) < 50 && d.weight < 8)
+              .sort((a, b) => b.weight - a.weight);
+            // Fill up to 3 next steps: priority gaps first, then monitor
+            const nextStepsDims = [...priorityGapDims, ...monitorDims].slice(0, 3);
+
+            const defaultClosingMessage = 'For guidance on implementing these improvements, contact Cancer and Careers at cacbestcompanies@cew.org or visit cancerandcareers.org';
+
+            const getDefaultRecommendation = (d: typeof nextStepsDims[0]) => {
+              const weightLabel = d.weight >= 10 ? 'highest-impact' : d.weight >= 8 ? 'high-impact' : 'supporting';
+              return `Focus on strengthening ${d.name} — currently scoring ${Math.round(d.score)}, this ${weightLabel} area represents a key opportunity for meaningful improvement in your workplace cancer support.`;
+            };
+
+            return (
+              <div id="next-steps-section" className="ppt-break bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 rounded-2xl shadow-lg border border-slate-700 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto relative">
+                {/* Subtle decorative elements */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl"></div>
+                  <div className="absolute bottom-0 left-0 w-80 h-80 bg-violet-500/5 rounded-full blur-3xl"></div>
+                </div>
+
+                {/* Header */}
+                <div className="relative px-12 py-8 border-b border-slate-700/50">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold text-white">Your Assessment at a Glance</h3>
+                      <p className="text-slate-400 mt-1">Key findings and recommended next steps</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Strengths Section */}
+                <div className="relative px-12 py-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                      <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-semibold text-emerald-400 uppercase tracking-wider text-sm">Where You Excel</h4>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 mb-2">
+                    {topStrengths.map((d, idx) => (
+                      <div key={d.dim} className="bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">#{idx + 1} Strength</span>
+                          <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</span>
+                        </div>
+                        <p className="text-white font-semibold text-sm leading-snug">{d.name}</p>
+                        <div className="mt-2">
+                          <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: getWSITier(d.score).color + '22', color: getWSITier(d.score).color }}>
+                            {getWSITier(d.score).name}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="mx-12 border-t border-slate-700/50"></div>
+
+                {/* Next Steps Section */}
+                {nextStepsDims.length > 0 && (
+                  <div className="relative px-12 py-8">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-amber-400 uppercase tracking-wider text-sm">Recommended Next Steps</h4>
+                    </div>
+
+                    <div className="space-y-4">
+                      {nextStepsDims.map((d, idx) => {
+                        const defaultRec = getDefaultRecommendation(d);
+                        const customRec = customNextSteps.items?.[idx];
+                        const displayRec = customRec || defaultRec;
+
+                        return (
+                          <div key={d.dim} className="flex gap-5 bg-white/5 border border-white/10 rounded-xl p-5 backdrop-blur">
+                            {/* Number badge */}
+                            <div className="flex-shrink-0">
+                              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
+                                <span className="text-white font-bold text-lg">{idx + 1}</span>
+                              </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h5 className="text-white font-semibold">{d.name}</h5>
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/10 text-slate-300">
+                                  Score: {Math.round(d.score)}
+                                </span>
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: d.weight >= 8 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(148, 163, 184, 0.15)', color: d.weight >= 8 ? '#fca5a5' : '#94a3b8' }}>
+                                  {d.weight >= 8 ? 'Priority Gap' : 'Monitor'}
+                                </span>
+                              </div>
+
+                              {editMode ? (
+                                <div>
+                                  <textarea
+                                    value={displayRec}
+                                    onChange={(e) => {
+                                      setCustomNextSteps(prev => ({
+                                        ...prev,
+                                        items: { ...prev.items, [idx]: e.target.value }
+                                      }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                    className="w-full text-sm text-slate-300 bg-white/5 border border-amber-500/30 rounded-lg p-3 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y placeholder-slate-500"
+                                    placeholder="Enter custom recommendation..."
+                                  />
+                                  {customRec && (
+                                    <button
+                                      onClick={() => {
+                                        setCustomNextSteps(prev => {
+                                          const newItems = { ...prev.items };
+                                          delete newItems[idx];
+                                          return { ...prev, items: newItems };
+                                        });
+                                        setHasUnsavedChanges(true);
+                                      }}
+                                      className="mt-1.5 text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                                    >
+                                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                      </svg>
+                                      Reset to default
+                                    </button>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-slate-400 leading-relaxed">{displayRec}</p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Closing Message */}
+                <div className="relative px-12 py-8 border-t border-slate-700/50">
+                  {editMode ? (
+                    <div>
+                      <textarea
+                        value={customNextSteps.closingMessage || defaultClosingMessage}
+                        onChange={(e) => {
+                          setCustomNextSteps(prev => ({ ...prev, closingMessage: e.target.value }));
+                          setHasUnsavedChanges(true);
+                        }}
+                        className="w-full text-sm text-slate-300 bg-white/5 border border-amber-500/30 rounded-lg p-3 min-h-[50px] focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y"
+                      />
+                      {customNextSteps.closingMessage && (
+                        <button
+                          onClick={() => {
+                            setCustomNextSteps(prev => ({ ...prev, closingMessage: undefined }));
+                            setHasUnsavedChanges(true);
+                          }}
+                          className="mt-1.5 text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Reset to default
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 leading-relaxed text-center">
+                      {customNextSteps.closingMessage || defaultClosingMessage}
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
         {/* Slide Selector Modal */}
         {showSlideSelector && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4" onClick={() => setShowSlideSelector(false)}>
