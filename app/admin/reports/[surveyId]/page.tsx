@@ -5086,7 +5086,7 @@ export default function ExportReportPage() {
         <div className="polished-report max-w-7xl mx-auto py-10 px-10">
         
           {/* ============ HEADER ============ */}
-          <div id="report-hero-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break">
+          <div id="report-hero-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             {/* Dark header band */}
             <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
               <div className="flex items-center justify-between">
@@ -5196,7 +5196,7 @@ export default function ExportReportPage() {
             
             
             {/* Understanding Your Workplace Support Index / Composite Score — Collapsible */}
-            <div id="score-composition-section" className="px-12 py-5 bg-white border-b border-slate-200">
+            <div id="score-composition-section" className="px-12 py-6 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all group"
@@ -5344,8 +5344,8 @@ export default function ExportReportPage() {
             
             
                         {/* The Three Levels of Workplace Support — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
-              <button 
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
                 onClick={() => setShowLevelsOverview(!showLevelsOverview)}
                 className="w-full flex items-center justify-between px-5 py-4 rounded-xl border transition-all group"
                 style={{
@@ -5472,8 +5472,8 @@ export default function ExportReportPage() {
               )}
             </div>
             {/* The 13 Dimensions Overview — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
-              <button 
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
                 onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
               >
@@ -5565,8 +5565,8 @@ export default function ExportReportPage() {
             </div>
 
             {/* How to Use This Report — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
-              <button 
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
                 onClick={() => setShowReportGuide(!showReportGuide)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl hover:from-sky-100 hover:to-sky-100 transition-all group"
               >
@@ -5637,8 +5637,8 @@ export default function ExportReportPage() {
             </div>
             
             {/* Understanding Your Report Sections — Collapsible */}
-            <div className="px-12 py-5 bg-white border-b border-slate-200">
-              <button 
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
                 onClick={() => setShowReportSections(!showReportSections)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-100 transition-all group"
               >
@@ -8074,7 +8074,7 @@ export default function ExportReportPage() {
           {patterns.length > 0 && (
             <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
               {/* Header with gradient and visual interest */}
-              <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+              <div className="px-12 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
                   <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <defs>
@@ -8273,7 +8273,7 @@ export default function ExportReportPage() {
           
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
+            <div className="px-12 py-6 bg-gradient-to-r from-teal-700 to-teal-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -8295,7 +8295,7 @@ export default function ExportReportPage() {
                 </button>
               </div>
             </div>
-            <div className="px-12 py-6">
+            <div className="px-12 py-8">
               {strengthDimensions.length > 0 ? (
                 <div className="grid grid-cols-2 gap-5">
                   {strengthDimensions.slice(0, 6).map((d) => (
@@ -8327,7 +8327,7 @@ export default function ExportReportPage() {
           
           {/* ============ GROWTH OPPORTUNITIES ============ */}
           <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-700 to-slate-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
@@ -8349,7 +8349,7 @@ export default function ExportReportPage() {
                 </button>
               </div>
             </div>
-            <div className="px-12 py-6">
+            <div className="px-12 py-8">
               <div className="grid grid-cols-2 gap-5">
                 {allDimensionsByScore.slice(0, 6).map((d) => (
                   <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
@@ -8425,7 +8425,7 @@ export default function ExportReportPage() {
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
             {/* Header with visual interest */}
-            <div className="px-10 py-10 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+            <div className="px-12 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
               <div className="absolute inset-0 opacity-5">
                 <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                   <defs>
@@ -9852,7 +9852,7 @@ export default function ExportReportPage() {
           })()}
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
-          <div id="implementation-roadmap" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
+          <div id="implementation-roadmap" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
                 <div>
@@ -10033,7 +10033,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ WORKING WITH CANCER PLEDGE ============ */}
-          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+          <div id="wwc-pledge-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Header - Clickable to expand/collapse */}
             <button
               onClick={() => setShowWwcPledgeDetails(!showWwcPledgeDetails)}
@@ -10095,7 +10095,7 @@ export default function ExportReportPage() {
             {/* Content Section - Collapsible */}
             {showWwcPledgeDetails && (
             <>
-            <div className="px-10 py-5 bg-white">
+            <div className="px-12 py-6 bg-white">
               {/* Origin + What It Is */}
               <div className="flex items-start gap-4 mb-5">
                 <div className="flex-shrink-0 w-12 h-12">
@@ -10234,7 +10234,7 @@ export default function ExportReportPage() {
           </div>
           
           {/* ============ HOW CAC CAN HELP ============ */}
-          <div id="cac-help-section" className="ppt-break bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+          <div id="cac-help-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-8 bg-gradient-to-br from-[#F37021] via-[#FF8C42] to-[#FFB366] relative overflow-hidden">
               {/* Decorative circles */}
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
