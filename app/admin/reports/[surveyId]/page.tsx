@@ -62,124 +62,28 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
 }
 
 function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
-  const [sortKey, setSortKey] = useState<'your' | 'benchmark' | 'priority'>('your');
-
-  const getSortValue = (d: any) => {
-    if (sortKey === 'benchmark') return typeof d.benchmark === 'number' ? d.benchmark : -Infinity;
-    if (sortKey === 'priority') return -getEmployeePriorityGroup(d.weight).order; // Most Critical first
-    return typeof d.score === 'number' ? d.score : -Infinity; // default: your score
-  };
-
-  const sorted = [...dimensionAnalysis].sort((a: any, b: any) => {
-    const av = getSortValue(a);
-    const bv = getSortValue(b);
-    if (bv !== av) return bv - av;
-    return (b.weight || 0) - (a.weight || 0);
-  });
-
+  const sorted = [...dimensionAnalysis].sort((a: any, b: any) => b.weight - a.weight);
   return (
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
-      <div className="px-8 py-4 border-b border-slate-100 flex items-start justify-between gap-6">
-        <div>
-          <h3 className="font-semibold text-slate-900">Dimension Performance</h3>
-          <p className="text-sm text-slate-500 mt-0.5">Compare scores across all 13 dimensions and sort by what you want to review first.</p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">Sort</span>
-          <select
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as any)}
-            className="px-3 py-2 bg-white text-slate-900 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
-          >
-            <option value="your">Your Score</option>
-            <option value="benchmark">Benchmark</option>
-            <option value="priority">Employee Priority</option>
-          </select>
-        </div>
-      </div>
-
+      <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
       <div className="px-8 py-4">
-        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200">
-          <div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div>
-          <div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div>
-          <div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div>
-          <div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Your Score</div>
-          <div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div>
-          <div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div>
-          <div className="w-28 text-center text-xs font-medium text-slate-400 uppercase">Employee Priority*</div>
-        </div>
-
-        <div className="divide-y divide-slate-100">
-          {sorted.map((d: any, idx: number) => {
-            const diff = d.benchmark !== null && d.benchmark !== undefined ? d.score - d.benchmark : null;
-            const priority = getEmployeePriorityGroup(d.weight);
-            return (
-              <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
-                <div className="w-6 flex justify-center">
-                  <span
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-                    style={{ backgroundColor: priority.color }}
-                    title={priority.longLabel}
-                  >
-                    {d.dim}
-                  </span>
-                </div>
-
-                <div className="flex-1">
-                  <span className="text-sm text-slate-700">{d.name}</span>
-                </div>
-
-                <div className="w-10 text-center text-sm font-semibold text-slate-600">{d.weight}%</div>
-
-                <div className="w-48">
-                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-3 rounded-full"
-                      style={{ width: `${Math.max(0, Math.min(100, d.score))}%`, backgroundColor: getScoreColor(d.score) }}
-                    />
-                  </div>
-                  <div className="mt-1 flex justify-between text-xs text-slate-500">
-                    <span>0</span>
-                    <span>100</span>
-                  </div>
-                </div>
-
-                <div className="w-12 text-right text-sm font-semibold" style={{ color: getScoreColor(d.score) }}>
-                  {d.score?.toFixed ? d.score.toFixed(1) : d.score}
-                </div>
-
-                <div className="w-20 text-center">
-                  {diff === null ? (
-                    <span className="text-xs text-slate-400">—</span>
-                  ) : (
-                    <span className={`text-xs font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-                      {diff >= 0 ? '+' : ''}{diff.toFixed(1)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="w-28 text-center">
-                  <span
-                    className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-semibold border"
-                    style={{ borderColor: priority.color, color: priority.color, backgroundColor: 'rgba(255,255,255,0.9)' }}
-                    title={priority.longLabel}
-                  >
-                    {priority.chipLabel}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500">
-          {EMPLOYEE_PRIORITY_EXPLAINER}
-        </div>
+        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-24 text-center text-xs font-medium text-slate-400 uppercase">Tier</div></div>
+        <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; return (
+          <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
+            <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: '#1E293B' }}>{d.dim}</span></div>
+            <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
+            <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
+            <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
+            <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
+            <div className="w-24 flex justify-center"><span className={`text-xs font-medium px-2.5 py-1 rounded ${d.tier.bgColor} border ${d.tier.borderColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span></div>
+          </div>); })}</div>
+        <div className="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400"><span>Scores out of 100</span><span className="flex items-center gap-1"><span className="inline-block w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"></span>Benchmark</span></div>
       </div>
     </div>
   );
 }
+
 function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
   const [showBenchmarks, setShowBenchmarks] = useState(false);
   const [hoveredDim, setHoveredDim] = useState<number | null>(null);
@@ -236,7 +140,7 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
     <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e: any) => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <div className="flex items-center gap-4"><span className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: getEmployeePriorityGroup(dimension.weight).color }}>{dimension.dim}</span><div><h3 className="font-semibold text-slate-900">{dimension.name}</h3><div className="flex items-center gap-3 mt-1"><span className="text-sm text-slate-500">Score: <span className="font-semibold" style={{ color: dimension.tier.color }}>{dimension.score}</span></span><span className={`text-xs font-medium px-2 py-0.5 rounded ${dimension.tier.bgColor}`} style={{ color: dimension.tier.color }}>{dimension.tier.name}</span></div></div></div>
+          <div className="flex items-center gap-4"><span className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: dimension.tier.color }}>{dimension.dim}</span><div><h3 className="font-semibold text-slate-900">{dimension.name}</h3><div className="flex items-center gap-3 mt-1"><span className="text-sm text-slate-500">Score: <span className="font-semibold" style={{ color: dimension.tier.color }}>{dimension.score}</span></span><span className={`text-xs font-medium px-2 py-0.5 rounded ${dimension.tier.bgColor}`} style={{ color: dimension.tier.color }}>{dimension.tier.name}</span></div></div></div>
           <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg"><svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 100px)' }}>
@@ -261,41 +165,6 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
 const DEFAULT_DIMENSION_WEIGHTS: Record<number, number> = {
   3: 12, 8: 12, 13: 11, 2: 10, 5: 10, 1: 10, 4: 8, 6: 7, 7: 5, 10: 4, 9: 4, 12: 4, 11: 3,
 };
-
-// =======================================
-// Employee Priority groups (EMC-informed framing)
-// =======================================
-const EMPLOYEE_PRIORITY_EXPLAINER = 'These groupings reflect what employees managing cancer consistently described as most critical to their workplace experience. All dimensions matter—this simply indicates where employee need is most acute.';
-
-function getEmployeePriorityGroup(weightPct: number) {
-  // Weight-based bands aligned to CAC weighting model, framed using employee feedback
-  if (weightPct >= 10) {
-    return {
-      key: 'most',
-      longLabel: 'Most Critical to Employees',
-      chipLabel: 'Most Critical',
-      color: '#7C3AED', // violet
-      order: 0,
-    };
-  }
-  if (weightPct >= 7) {
-    return {
-      key: 'high',
-      longLabel: 'Highly Important to Employees',
-      chipLabel: 'Highly Important',
-      color: '#F59E0B', // amber
-      order: 1,
-    };
-  }
-  return {
-    key: 'enable',
-    longLabel: 'Completes the Support Ecosystem',
-    chipLabel: 'Enabling',
-    color: '#64748B', // slate
-    order: 2,
-  };
-}
-
 
 const DEFAULT_COMPOSITE_WEIGHTS = { weightedDim: 90, maturity: 5, breadth: 5 };
 
@@ -1756,7 +1625,6 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 return (
                   <g key={d.dim} transform={`translate(${x}, ${y})`} opacity={isHidden && !isHovered ? 0.92 : 1}>
                     <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadow)" style={{ transition: 'all 0.15s ease' }} />
-                    <circle r={isHovered ? 20 : 17} fill="none" stroke={getEmployeePriorityGroup(d.weight).color} strokeWidth={isHovered ? 3.5 : 3} style={{ transition: 'all 0.15s ease' }} />
                     <circle r={isHovered ? 18 : 15} fill={getScoreColor(d.score)} style={{ transition: 'all 0.15s ease' }} />
                     <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize="9" fontWeight="700" fontFamily="system-ui">
                       D{d.dim}
@@ -1779,7 +1647,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                     return (
                       <g key={dim}>
                         <line x1={cx} y1={cy + 7} x2={cluster.x + 10} y2={cluster.y - 10} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
-                        <circle cx={cx} cy={cy} r="9" fill={getScoreColor(d?.score || 0)} opacity="0.4" stroke={getEmployeePriorityGroup(d?.weight || 0).color} strokeWidth="2.5" />
+                        <circle cx={cx} cy={cy} r="9" fill={getScoreColor(d?.score || 0)} opacity="0.4" stroke={getScoreColor(d?.score || 0)} strokeWidth="1.5" />
                         <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="7" fontWeight="700">D{dim}</text>
                       </g>
                     );
@@ -5434,36 +5302,24 @@ export default function ExportReportPage() {
                                 <div className="flex-1 text-center">Distribution</div>
                               </div>
                               <div className="space-y-2">
-                                {[
-                                  {[
-                                  // Tier View uses the 4-level WSI tier scheme; Classic keeps legacy 5 tiers
-                                  ...(tierView ? ([
-                                    { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                    { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                    { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                    { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                  ] as any) : ([
-                                    {[
-                                ...(tierView ? ([
-                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                  { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                                {(tierView ? ([
+                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                  { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
                                 ] as any) : ([
-                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: (tierDistribution as any)?.exemplary ?? 0 },
-                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
-                                ] as any)),
-                              ]} as any)),
-                                ]}.map((t) => {
+                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', pct: (tierDistribution as any)?.exemplary ?? 0 },
+                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (tierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (tierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (tierDistribution as any)?.emerging ?? 0 },
+                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (tierDistribution as any)?.developing ?? 0 },
+                                ] as any)).map((t: any) => {
                                   const isCurrent = supportRatingHeader === t.name;
                                   return (
                                     <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrent ? 'bg-white shadow-md' : t.bg} ${isCurrent ? '' : t.border}`} style={isCurrent ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
                                       {isCurrent && (
                                         <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
-                                          <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
+                                          <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={ backgroundColor: t.color }>
                                             <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                                           </div>
                                         </div>
@@ -5472,7 +5328,7 @@ export default function ExportReportPage() {
                                       <div className="w-20 text-center"><span className={`text-sm font-semibold ${isCurrent ? 'text-slate-600' : t.text}`}>{t.range}</span></div>
                                       <div className="flex-1 flex items-center gap-3">
                                         <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
-                                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }} />
+                                          <div className="h-full rounded-full transition-all duration-500" style={ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color } />
                                         </div>
                                         <span className={`text-sm font-bold w-10 text-right ${isCurrent ? '' : t.text}`} style={isCurrent ? { color: t.color } : {}}>{t.pct}%</span>
                                       </div>
@@ -5497,74 +5353,39 @@ export default function ExportReportPage() {
                           </div>
                           
                           <div className="space-y-2">
-                            {[
-                              {[
-                                ...(tierView ? ([
-                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                  { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                ] as any) : ([
-                                  {[
-                                ...(tierView ? ([
-                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                  { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                ] as any) : ([
-                                  { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: (tierDistribution as any)?.exemplary ?? 0 },
-                                  { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
-                                ] as any)),
-                              ]} as any)),
-                              ]}.map((t) => {
+                            {(tierView ? ([
+                              { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                              { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                              { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                              { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                            ] as any) : ([
+                              { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', pct: (tierDistribution as any)?.exemplary ?? 0 },
+                              { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (tierDistribution as any)?.leading ?? 0 },
+                              { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (tierDistribution as any)?.progressing ?? 0 },
+                              { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (tierDistribution as any)?.emerging ?? 0 },
+                              { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (tierDistribution as any)?.developing ?? 0 },
+                            ] as any)).map((t: any) => {
                               const isCurrentTier = tier?.name === t.name;
                               return (
-                                <div 
-                                  key={t.name}
-                                  className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`}
-                                  style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}
-                                >
-                                  {/* "You are here" marker */}
+                                <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`} style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
                                   {isCurrentTier && (
                                     <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
-                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
+                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={ backgroundColor: t.color }>
                                         <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                                       </div>
                                     </div>
                                   )}
-                                  <div className="w-28 flex items-center gap-2">
-                                    <span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span>
-                                  </div>
-                                  <div className="w-20 text-center">
-                                    <span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span>
-                                  </div>
+                                  <div className="w-28"><span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span></div>
+                                  <div className="w-20 text-center"><span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span></div>
                                   <div className="flex-1 flex items-center gap-3">
                                     <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
-                                      <div 
-                                        className="h-full rounded-full transition-all duration-500"
-                                        style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }}
-                                      />
+                                      <div className="h-full rounded-full transition-all duration-500" style={ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color } />
                                     </div>
                                     <span className={`text-sm font-bold w-10 text-right ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.pct}%</span>
                                   </div>
                                 </div>
                               );
                             })}
-                          </div>
-                          <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
-                          
-                          {/* Company's Current Score */}
-                          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
-                            </p>
-                          </div>
-                          </>
-                        )}
-                        </div>
                         
                         {/* Right: Journey message - Better balanced layout */}
                         <div className="flex-1 min-w-0">
@@ -6448,7 +6269,7 @@ export default function ExportReportPage() {
                               <div key={dim.dim} className="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                                 <div className="px-4 py-2.5 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs shadow-sm" style={{ backgroundColor: getEmployeePriorityGroup(dim.weight).color }}>
+                                    <span className="w-6 h-6 rounded flex items-center justify-center text-white font-bold text-xs shadow-sm" style={{ backgroundColor: dim.tier.color }}>
                                       {dim.dim}
                                     </span>
                                     <span className="text-sm font-semibold text-slate-800">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
