@@ -2053,7 +2053,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           {/* Two-row header for clarity */}
                           <tr className="bg-slate-100 border-b border-slate-200">
                             <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Element</th>
-                            {tierView && <th rowSpan={2} className="px-3 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24 align-bottom">Element Type</th>}
+                            <th rowSpan={2} className="px-3 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-24 align-bottom">Element Type</th>
                             <th rowSpan={2} className="px-4 py-3 text-center text-xs font-bold text-slate-500 uppercase tracking-wider w-28 align-bottom bg-slate-200 border-l-2 border-r-2 border-slate-300">Your Status</th>
                             <th colSpan={4} className="px-4 py-2 text-center text-xs font-bold text-slate-500 uppercase tracking-wider border-l border-slate-300 bg-slate-50">Benchmark Distribution</th>
                             <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider align-bottom">Insight</th>
@@ -2078,11 +2078,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 <td className="px-4 py-3">
                                   <span className="text-sm text-slate-700">{elem.name}</span>
                                 </td>
-                                {tierView && (
-                                  <td className="px-3 py-3 text-center">
+                                <td className="px-3 py-3 text-center">
                                     <SupportLevelBadge level={getElementLevel(elem.name)} full />
                                   </td>
-                                )}
                                 <td className="px-4 py-3 text-center bg-slate-50 border-l-2 border-r-2 border-slate-200">
                                   <span 
                                     className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
@@ -2404,7 +2402,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       <thead>
                         <tr className="border-b-2 border-slate-200">
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
-                          {tierView && <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Type</th>}
+                          <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Type</th>
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>{'In Place'}</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>{'In Development'}</th>
@@ -2435,11 +2433,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               <td className="px-4 py-3">
                                 <span className="text-sm font-medium text-slate-700">{el.name}</span>
                               </td>
-                              {tierView && (
-                                <td className="px-3 py-3 text-center">
+                              <td className="px-3 py-3 text-center">
                                   <SupportLevelBadge level={getElementLevel(el.name)} full />
                                 </td>
-                              )}
                               <td className="px-4 py-3">
                                 <span 
                                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
@@ -3144,7 +3140,10 @@ export default function ExportReportPage() {
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
-  const [tierView, setTierView] = useState(false);
+  // NOTE: Classic view (tierView=false) removed 2026-03-02 — WSI tier view is now the only view.
+  // Original classic view used 5-tier model (Exemplary 90+, Leading 75+, Progressing 60+, Emerging 40+, Developing 0+).
+  // To restore, revert this to: const [tierView, setTierView] = useState(false);
+  const tierView = true;
   const [showLevelsOverview, setShowLevelsOverview] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const [expandedWSICard, setExpandedWSICard] = useState<string | null>(null);
@@ -3196,7 +3195,7 @@ export default function ExportReportPage() {
     const names: Record<number, string> = {
       0: 'Title & Overview',
       1: 'How Index Was Developed', 
-      2: tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score',
+      2: 'Understanding Your Workplace Support Index',
       3: 'The 13 Dimensions',
       4: 'Executive Summary',
       5: 'Dimension Performance'
@@ -3367,7 +3366,7 @@ export default function ExportReportPage() {
     const slideNames: Record<number, string> = {
       0: 'Title & Overview',
       1: 'How Index Was Developed', 
-      2: tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score',
+      2: 'Understanding Your Workplace Support Index',
       3: 'The 13 Dimensions',
       4: 'Executive Summary',
       5: 'Dimension Performance'
@@ -4622,7 +4621,7 @@ export default function ExportReportPage() {
   
   const reportSections = [
     { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
-    { id: tierView ? 'wsi-score-section' : 'score-composition-section', label: tierView ? 'Workplace Support Index' : 'Overall Score', iconKey: 'performance' },
+    { id: 'wsi-score-section', label: 'Workplace Support Index', iconKey: 'performance' },
     { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
     { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
@@ -4826,7 +4825,7 @@ export default function ExportReportPage() {
     };
   })() : null;
   // Use WSI distribution when in tier view, classic distribution otherwise
-  const wsiTierDistribution = tierView ? (_wsiTierDist || null) : tierDistribution;
+  const wsiTierDistribution = _wsiTierDist || null;
   const supportRatingHeader = supportRatingObj.label;
   const ratingColorHeader = supportRatingObj.color;
 
@@ -4885,10 +4884,8 @@ export default function ExportReportPage() {
     .slice(0, 5);
 
   // Order from lowest to highest so .find() returns the immediate next tier up
-  const tierThresholds = tierView
-    ? [{ name: 'Progressing', min: 50 }, { name: 'Established', min: 64 }, { name: 'Leading', min: 80 }]
-    : [{ name: 'Emerging', min: 40 }, { name: 'Progressing', min: 60 }, { name: 'Leading', min: 75 }, { name: 'Exemplary', min: 90 }];
-  const tierScoreForProgress = tierView ? (wsiScoreHeader || 0) : (compositeScore || 0);
+  const tierThresholds = [{ name: 'Progressing', min: 50 }, { name: 'Established', min: 64 }, { name: 'Leading', min: 80 }];
+  const tierScoreForProgress = wsiScoreHeader || 0;
   const nextTierUp = tierThresholds.find(t => t.min > tierScoreForProgress);
   const pointsToNextTier = nextTierUp ? nextTierUp.min - tierScoreForProgress : null;
 
@@ -4976,30 +4973,6 @@ export default function ExportReportPage() {
               )}
             </div>
             <div className="flex items-center gap-4">
-              {/* Tier View Toggle */}
-              {!editMode && (
-                <button
-                  onClick={() => setTierView(!tierView)}
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${
-                    tierView 
-                      ? 'bg-violet-50 border-violet-300 text-violet-700' 
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                  title={tierView ? 'Switch to Classic View' : 'Switch to Tier View'}
-                >
-                  {tierView ? (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <rect x="2" y="18" width="20" height="4" rx="1" fill="currentColor" opacity="0.9" />
-                      <rect x="6" y="8" width="5" height="4" rx="0.5" fill="currentColor" opacity="0.5" />
-                      <rect x="13" y="8" width="5" height="4" rx="0.5" fill="currentColor" opacity="0.5" />
-                      <rect x="9" y="4" width="6" height="3" rx="0.5" fill="currentColor" opacity="0.35" />
-                    </svg>
-                  ) : (
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6z" /></svg>
-                  )}
-                  {tierView ? 'Tier View' : 'Classic'}
-                </button>
-              )}
               
               {/* Edit Mode Toggle */}
               <button
@@ -5233,7 +5206,7 @@ export default function ExportReportPage() {
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">{tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score'}</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">{'Understanding Your Workplace Support Index'}</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center transition-transform duration-200 ${showCompositeScoreGuide ? 'rotate-180' : ''}`}>
@@ -5248,11 +5221,9 @@ export default function ExportReportPage() {
                       <div className="mb-6">
                         <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                           <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                          {tierView ? 'What This Score Represents' : 'What This Score Represents'}
+                          {'What This Score Represents'}
                         </h4>
-                        {tierView ? (
-                          <>
-                            <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                          <p className="text-sm text-slate-700 leading-relaxed mb-3">
                               Your <span className="font-semibold text-violet-700">Workplace Support Index</span> summarizes the share of support practices your organization has in place across <strong className="text-slate-800">13 dimensions</strong>. It combines results across three Levels of Workplace Support (Core, Enhanced, and Advanced) to provide a clear view of your overall support ecosystem for employees managing cancer.
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
@@ -5279,27 +5250,6 @@ export default function ExportReportPage() {
                             <p className="text-xs text-slate-500 italic">
                               Tip: Use the three level scores to understand where your results are coming from. Core measures essential access, Enhanced measures consistent delivery, and Advanced captures deeper, less commonly offered practices.
                             </p>
-                          </>
-                        ) : (
-                          <>
-                            <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                              Your <span className="font-semibold text-violet-700">{tierView ? 'Workplace Support Index' : 'Composite Score'}</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
-                            </p>
-                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                              <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
-                              <ul className="space-y-1.5">
-                                <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  Each dimension is weighted by real-world impact on employee experience and organizational outcomes.
-                                </li>
-                                <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.
-                                </li>
-                              </ul>
-                            </div>
-                          </>
-                        )}
                       </div>
                       
                       {/* Two column: Tiers + Journey */}
@@ -5308,29 +5258,21 @@ export default function ExportReportPage() {
                         <div className="w-[480px] flex-shrink-0">
                           <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                             <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                            {tierView ? 'Workplace Support Index Tiers' : 'Composite Score Tiers'}
+                            {'Workplace Support Index Tiers'}
                           </h4>
                           
-                          {tierView ? (
-                            <>
                               <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 <div className="w-28">Tier</div>
                                 <div className="w-20 text-center">Range</div>
                                 <div className="flex-1 text-center">Distribution</div>
                               </div>
                               <div className="space-y-2">
-                                {(tierView ? ([
+                                {([
                                   { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
                                   { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
                                   { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
                                   { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                ] as any) : ([
-                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: (tierDistribution as any)?.exemplary ?? 0 },
-                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 },
-                                ] as any)).map((t: any) => {
+                                ] as any).map((t: any) => {
                                   const isCurrent = supportRatingHeader === t.name;
                                   return (
                                     <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrent ? 'bg-white shadow-md' : t.bg} ${isCurrent ? '' : t.border}`} style={isCurrent ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
@@ -5359,73 +5301,6 @@ export default function ExportReportPage() {
                                   <span className="font-semibold text-slate-800">{companyName}</span> WSI: <span className="font-bold text-lg" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span> · <span className="font-semibold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
                                 </p>
                               </div>
-                            </>
-                          ) : (
-                            <>
-                          {/* Column Headers */}
-                          <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                            <div className="w-28">Tier</div>
-                            <div className="w-20 text-center">Range</div>
-                            <div className="flex-1 text-center">Distribution</div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            {(tierView ? ([
-                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                  { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                                ] as any) : ([
-                                  { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: (tierDistribution as any)?.exemplary ?? 0 },
-                                  { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
-                                ] as any)).map((t: any) => {
-                              const isCurrentTier = tier?.name === t.name;
-                              return (
-                                <div 
-                                  key={t.name}
-                                  className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`}
-                                  style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}
-                                >
-                                  {/* "You are here" marker */}
-                                  {isCurrentTier && (
-                                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
-                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
-                                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
-                                      </div>
-                                    </div>
-                                  )}
-                                  <div className="w-28 flex items-center gap-2">
-                                    <span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span>
-                                  </div>
-                                  <div className="w-20 text-center">
-                                    <span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span>
-                                  </div>
-                                  <div className="flex-1 flex items-center gap-3">
-                                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
-                                      <div 
-                                        className="h-full rounded-full transition-all duration-500"
-                                        style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }}
-                                      />
-                                    </div>
-                                    <span className={`text-sm font-bold w-10 text-right ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.pct}%</span>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
-                          
-                          {/* Company's Current Score */}
-                          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
-                            <p className="text-sm text-slate-600">
-                              <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
-                            </p>
-                          </div>
-                          </>
-                        )}
                         </div>
                         
                         {/* Right: Journey message - Better balanced layout */}
@@ -5468,8 +5343,7 @@ export default function ExportReportPage() {
             </div>
             
             
-                        {/* The Three Levels of Workplace Support — Collapsible (Tier View only) */}
-            {tierView && (
+                        {/* The Three Levels of Workplace Support — Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowLevelsOverview(!showLevelsOverview)}
@@ -5597,7 +5471,6 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-            )}
             {/* The 13 Dimensions Overview — Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
@@ -5816,7 +5689,7 @@ export default function ExportReportPage() {
                                   <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                                   </div>
-                                  <span className="text-xs text-slate-600">{tierView ? 'Workplace Support Index' : 'Composite Score'}</span>
+                                  <span className="text-xs text-slate-600">{'Workplace Support Index'}</span>
                                 </div>
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
@@ -5996,7 +5869,7 @@ export default function ExportReportPage() {
                       {/* Compact Grid of Sections */}
                       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                         {[
-                          { id: 'composite', name: tierView ? 'Workplace Support Index' : 'Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
+                          { id: 'composite', name: 'Workplace Support Index', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
                           { id: 'dimensions', name: 'Dimension Scores', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
                           { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
@@ -6080,13 +5953,13 @@ export default function ExportReportPage() {
                 </div>
                 <div className="flex items-center gap-10">
                   <div className="text-right">
-                    <p className="text-slate-500 text-sm font-medium">{tierView ? 'Workplace Support Index' : 'Composite Score'}</p>
-                    <p className="text-6xl font-bold mt-1" style={{ color: tierView ? (wsiScoreHeader >= 70 ? '#047857' : wsiScoreHeader >= 50 ? '#1D4ED8' : '#B45309') : (tier?.color || '#666') }} data-export="composite-score">{tierView ? wsiScoreHeader : (compositeScore ?? '—')}</p>
+                    <p className="text-slate-500 text-sm font-medium">{'Workplace Support Index'}</p>
+                    <p className="text-6xl font-bold mt-1" style={{ color: wsiScoreHeader >= 70 ? '#047857' : wsiScoreHeader >= 50 ? '#1D4ED8' : '#B45309' }} data-export="composite-score">{wsiScoreHeader}</p>
                   </div>
                   {tier && (
-                    <div className={`px-7 py-5 rounded-xl ${tierView ? '' : tier.bgColor} border-2 ${tierView ? '' : tier.borderColor}`} style={tierView ? { borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' } : {}}>
-                      <p className="text-2xl font-bold" style={{ color: tierView ? ratingColorHeader : tier.color }} data-export="tier-name">{tierView ? supportRatingHeader : tier.name}</p>
-                      <p className="text-sm text-slate-500 font-medium mt-1">{tierView ? 'Overall Support Rating' : 'Performance Tier'}</p>
+                    <div className="px-7 py-5 rounded-xl border-2" style={{ borderColor: ratingColorHeader, backgroundColor: ratingColorHeader + '08' }}>
+                      <p className="text-2xl font-bold" style={{ color: ratingColorHeader }} data-export="tier-name">{supportRatingHeader}</p>
+                      <p className="text-sm text-slate-500 font-medium mt-1">{'Overall Support Rating'}</p>
                       {isProvisional && (
                         <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
                       )}
@@ -6094,7 +5967,7 @@ export default function ExportReportPage() {
                         onClick={() => setShowTierOverlay(true)}
                         className="mt-3 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
                       >
-                        {tierView ? 'Show All Tiers' : 'Show All Tiers'}
+                        {'Show All Tiers'}
                       </button>
                     </div>
                   )}
@@ -6104,7 +5977,7 @@ export default function ExportReportPage() {
                     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm" onClick={() => setShowTierOverlay(false)}>
                       <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl shadow-2xl p-8 max-w-xl mx-4 border border-slate-200" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6 gap-4">
-                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">{tierView ? 'Workplace Support Index Tiers' : 'Composite & Dimension Tier Ranges'}</h3>
+                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">{'Workplace Support Index Tiers'}</h3>
                           <button onClick={() => setShowTierOverlay(false)} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -6112,8 +5985,6 @@ export default function ExportReportPage() {
                           </button>
                         </div>
                         
-                        {tierView ? (
-                          <>
                             <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                               <div className="w-32">Tier</div>
                               <div className="w-24 text-center">Score Range</div>
@@ -6155,54 +6026,6 @@ export default function ExportReportPage() {
                                 <span className="font-bold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
                               </p>
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            {/* Original composite tier ranges */}
-                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                              <div className="w-32">Tier</div>
-                              <div className="w-24 text-center">Score Range</div>
-                              <div className="flex-1 text-center">% of Participants</div>
-                            </div>
-                            <div className="space-y-2">
-                              {[
-                                { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: wsiTierDistribution?.exemplary ?? 0 },
-                                { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: wsiTierDistribution?.leading ?? 0 },
-                                { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: wsiTierDistribution?.progressing ?? 0 },
-                                { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: wsiTierDistribution?.emerging ?? 0 },
-                                { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: wsiTierDistribution?.developing ?? 0 }
-                              ].map((t) => {
-                                const isCurrentTier = tier?.name === t.name;
-                                return (
-                                  <div key={t.name} className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}>
-                                    <div className="w-32 flex items-center gap-2">
-                                      {isCurrentTier && (
-                                        <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color }}>
-                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                        </span>
-                                      )}
-                                      <span className={`font-bold ${t.text} ${isCurrentTier ? 'text-base' : 'text-sm'}`}>{t.name}</span>
-                                    </div>
-                                    <div className="w-24 text-center"><span className={`text-sm font-medium ${t.text}`}>{t.range}</span></div>
-                                    <div className="flex-1 flex items-center gap-2">
-                                      <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200">
-                                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct, 2)}%`, backgroundColor: t.color }} />
-                                      </div>
-                                      <span className={`text-sm font-bold w-10 text-right ${t.text}`}>{t.pct}%</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-                              <p className="text-sm text-slate-600">
-                                Your current score: <span className="font-bold" style={{ color: tier?.color }}>{compositeScore}</span>
-                                <span className="mx-2">·</span>
-                                <span className="font-bold" style={{ color: tier?.color }}>{tier?.name}</span>
-                              </p>
-                            </div>
-                          </>
-                        )}
                       </div>
                     </div>
                   )}
@@ -6358,11 +6181,10 @@ export default function ExportReportPage() {
             <div className="px-12 py-10 bg-slate-50">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
               
-              {tierView ? (
-                <div data-export="executive-summary-text">
+              <div data-export="executive-summary-text">
                   {/* Index definition */}
                   <p className="text-sm text-slate-500 mb-4">The Workplace Support Index summarizes the share of support practices in place across 13 dimensions, weighted by their impact on employee wellbeing and organizational outcomes.</p>
-                  
+
                   {/* Part A: What this score means */}
                   <p className="text-slate-700 leading-relaxed text-lg mb-3">
                     {companyName}&apos;s Workplace Support Index is <strong>{wsiScoreHeader}</strong>
@@ -6370,22 +6192,9 @@ export default function ExportReportPage() {
                       <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
                     )}. Support is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
                   </p>
-                  
+
 
                 </div>
-              ) : (
-                <p className="text-slate-700 leading-relaxed text-lg" data-export="executive-summary-text">
-                  {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-                  in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
-                  {percentileRank !== null && totalCompanies > 1 && (
-                    <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
-                  )}.
-                  {topDimension && bottomDimension && (
-                    <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
-                    while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
-                  )}
-                </p>
-              )}
               
               {/* Provisional Classification Notice */}
               {isProvisional && (
@@ -6402,42 +6211,8 @@ export default function ExportReportPage() {
                 </div>
               )}
               
-              {/* Tier Progress */}
-              {!tierView && (() => {
-                const topGrowthDims = allDimensionsByScore.slice(0, 3).map(d => d.name);
-                const dimList = topGrowthDims.length === 3 
-                  ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
-                  : topGrowthDims.length === 2
-                  ? `${topGrowthDims[0]} or ${topGrowthDims[1]}`
-                  : topGrowthDims[0];
-                
-                return (
-                  <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
-                    <TrendUpIcon className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                          {nextTierUp && pointsToNextTier ? (
-                            <>
-                              <p className="text-base font-bold text-violet-800">
-                                {pointsToNextTier} points away from {nextTierUp.name} tier
-                                {nextTierUp.name !== 'Exemplary' && (
-                                  <span className="text-violet-600 font-normal ml-2">· {90 - (compositeScore || 0)} points away from Exemplary</span>
-                                )}
-                              </p>
-                              <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-base font-bold text-violet-800">Exemplary tier achieved</p>
-                              <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
-                            </>
-                          )}
-                    </div>
-                  </div>
-                );
-              })()}
-              
-              {/* Workplace Support Index — Tier Score Breakdown (Tier View only) */}
-              {tierView && (() => {
+              {/* Workplace Support Index — Tier Score Breakdown */}
+              {(() => {
                 // Compute tier-level scores from element data
                 const allElems = dimensionAnalysis?.flatMap((d: any) => 
                   (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))
@@ -6801,14 +6576,14 @@ export default function ExportReportPage() {
                 <div className="grid grid-cols-4 gap-4 mb-6">
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
                     <p className="text-4xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
-                    <p className="text-base text-slate-400 mt-2">of {totalElements} support elements {tierView ? 'in place' : 'offered'}</p>
+                    <p className="text-base text-slate-400 mt-2">of {totalElements} support elements in place</p>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
                     <p className="text-4xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
                     <p className="text-base text-slate-400 mt-2">support elements in development</p>
                     <div className="mt-2 space-y-1">
-                      <p className="text-sm text-sky-400">{planningItems} {tierView ? 'in development' : 'planned'}</p>
-                      <p className="text-sm text-sky-400">{assessingItems} {tierView ? 'under review' : 'assessing'}</p>
+                      <p className="text-sm text-sky-400">{planningItems} in development</p>
+                      <p className="text-sm text-sky-400">{assessingItems} under review</p>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
@@ -6816,7 +6591,7 @@ export default function ExportReportPage() {
                     <p className="text-base text-slate-400 mt-2">identified support element gaps</p>
                     <div className="mt-2 space-y-1">
                       <p className="text-sm text-amber-400">{notPlannedItems} not planned</p>
-                      <p className="text-sm text-amber-400">{unsureItems} {tierView ? 'to confirm' : 'need confirmation'}</p>
+                      <p className="text-sm text-amber-400">{unsureItems} to confirm</p>
                     </div>
                   </div>
                   <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
@@ -7695,10 +7470,10 @@ export default function ExportReportPage() {
                   
                   {/* Table Header Row */}
                   <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                    <div className={tierView ? 'col-span-3' : 'col-span-3'}>Support Element</div>
-                    {tierView && <div className="col-span-1 text-center">Type</div>}
+                    <div className="col-span-3">Support Element</div>
+                    <div className="col-span-1 text-center">Type</div>
                     <div className="col-span-1 text-center">Your Status</div>
-                    <div className={tierView ? 'col-span-4 text-center' : 'col-span-5 text-center'}>
+                    <div className="col-span-4 text-center">
                       <div>Benchmark Distribution</div>
                       <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
                         <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{'In Place'}</span></div>
@@ -7729,12 +7504,10 @@ export default function ExportReportPage() {
                             <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
                           </div>
                           
-                          {/* Element Type (Tier View only) */}
-                          {tierView && (
-                            <div className="col-span-1 flex justify-center">
+                          {/* Element Type */}
+                          <div className="col-span-1 flex justify-center">
                               <SupportLevelBadge level={getElementLevel(elem.name)} full />
                             </div>
-                          )}
                           
                           {/* Your Status */}
                           <div className="col-span-1 flex justify-center">
@@ -7744,7 +7517,7 @@ export default function ExportReportPage() {
                           </div>
                           
                           {/* Benchmark Distribution - Wide Stacked Bar */}
-                          <div className={tierView ? 'col-span-4' : 'col-span-5'}>
+                          <div className="col-span-4">
                             <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
                               {/* Offering */}
                               <div 
@@ -11133,7 +10906,7 @@ export default function ExportReportPage() {
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                       </div>
                       <div className="text-left">
-                        <span className="text-sm font-bold text-slate-800">{tierView ? 'Understanding Your Workplace Support Index' : 'Understanding Your Composite Score'}</span>
+                        <span className="text-sm font-bold text-slate-800">{'Understanding Your Workplace Support Index'}</span>
                         <span className="text-sm text-slate-600 ml-3 font-medium">How your overall performance is measured</span>
                       </div>
                       <div className="ml-auto w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center rotate-180">
@@ -11151,18 +10924,18 @@ export default function ExportReportPage() {
                             What This Score Represents
                           </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                            Your <span className="font-semibold text-violet-700">{tierView ? 'Workplace Support Index' : 'Composite Score'}</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
+                            Your <span className="font-semibold text-violet-700">{'Workplace Support Index'}</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
                           </p>
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                             <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
                             <ul className="space-y-1.5">
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                {tierView ? "Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce." : 'Each dimension is weighted by real-world impact on employee experience and organizational outcomes.'}
+                                {"Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce."}
                               </li>
                               <li className="text-sm text-slate-600 flex items-start gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                {tierView ? 'Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.' : 'Every dimension matters. Improving a smaller area can meaningfully strengthen overall support.'}
+                                {'Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.'}
                               </li>
                             </ul>
                           </div>
@@ -11174,7 +10947,7 @@ export default function ExportReportPage() {
                           <div className="w-[480px] flex-shrink-0">
                             <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
                               <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
-                              {tierView ? 'Workplace Support Index Tiers' : 'Composite Score Tiers'}
+                              {'Workplace Support Index Tiers'}
                             </h4>
                             
                             {/* Column Headers */}
@@ -11294,7 +11067,7 @@ export default function ExportReportPage() {
                     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                       <div className="p-5">
                         <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                          Your {tierView ? 'Workplace Support Index' : 'Composite Score'} is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
+                          Your {'Workplace Support Index'} is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
                           <span className="font-semibold text-slate-800"> 152 individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
                         </p>
                         
@@ -11382,7 +11155,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="flex items-center gap-8">
                           <div className="text-right">
-                            <p className="text-slate-500 text-sm font-medium">{tierView ? 'Workplace Support Index' : 'Composite Score'}</p>
+                            <p className="text-slate-500 text-sm font-medium">{'Workplace Support Index'}</p>
                             <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
                           </div>
                           {tier && (
@@ -14880,7 +14653,7 @@ export default function ExportReportPage() {
                         <div className="text-[10px] text-slate-500 leading-tight truncate">
                           {i === 0 ? 'Title & Overview' : 
                            i === 1 ? 'How Index Was Developed' :
-                           i === 2 ? (tierView ? 'Workplace Support Index' : 'Composite Score') :
+                           i === 2 ? ('Workplace Support Index') :
                            i === 3 ? 'The 13 Dimensions' :
                            i === 4 ? 'Executive Summary' :
                            i === 5 ? 'Dimension Scores' :
