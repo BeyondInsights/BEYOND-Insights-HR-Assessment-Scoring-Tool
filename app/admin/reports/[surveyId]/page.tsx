@@ -4901,11 +4901,11 @@ export default function ExportReportPage() {
   '}',
 ].join('\n');
 
-  return (
+ return (
     <div className="min-h-screen bg-slate-100">
-        <style jsx global>{GLOBAL_PRINT_STYLES}</style>
-        
-        {/* ============ ACTION BAR ============ */}
+      <style jsx global>{GLOBAL_PRINT_STYLES}</style>
+
+      {/* ============ ACTION BAR ============ */}
         <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
           <div className="max-w-7xl mx-auto px-10 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
