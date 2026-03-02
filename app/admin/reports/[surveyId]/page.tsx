@@ -3099,6 +3099,21 @@ function getElementLevel(elementName: string): string {
 }
 
 
+// Global print styles (module-scope to avoid SWC parse edge cases)
+const GLOBAL_PRINT_STYLES = [
+  '@media print {',
+  '  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }',
+  '  .no-print { display: none !important; }',
+  '  .pdf-break-before { page-break-before: always; }',
+  '  .pdf-no-break { page-break-inside: avoid; }',
+  '}',
+  ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
+  ".polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {",
+  "  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;",
+  '  letter-spacing: -0.01em;',
+  '}',
+].join('\n');
+
 export default function ExportReportPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -4886,21 +4901,6 @@ export default function ExportReportPage() {
   // ============================================
   const { bottlenecks: patterns, positiveInsights } = getCrossDimensionPatterns(dimensionAnalysis);
   const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
-  
-  const GLOBAL_PRINT_STYLES = [
-  '@media print {',
-  '  body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }',
-  '  .no-print { display: none !important; }',
-  '  .pdf-break-before { page-break-before: always; }',
-  '  .pdf-no-break { page-break-inside: avoid; }',
-  '}',
-  ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
-  ".polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {",
-  "  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;",
-  '  letter-spacing: -0.01em;',
-  '}',
-].join('\n');
-
  return (
     <div className="min-h-screen bg-slate-100">
       <style jsx global>{GLOBAL_PRINT_STYLES}</style>
@@ -5302,24 +5302,36 @@ export default function ExportReportPage() {
                                 <div className="flex-1 text-center">Distribution</div>
                               </div>
                               <div className="space-y-2">
-                                {(tierView ? ([
-                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                  { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                                {[
+                                  {[
+                                  // Tier View uses the 4-level WSI tier scheme; Classic keeps legacy 5 tiers
+                                  ...(tierView ? ([
+                                    { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                    { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                    { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                    { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                                  ] as any) : ([
+                                    {[
+                                ...(tierView ? ([
+                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                  { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
                                 ] as any) : ([
-                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', pct: (tierDistribution as any)?.exemplary ?? 0 },
-                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (tierDistribution as any)?.leading ?? 0 },
-                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (tierDistribution as any)?.progressing ?? 0 },
-                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (tierDistribution as any)?.emerging ?? 0 },
-                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (tierDistribution as any)?.developing ?? 0 },
-                                ] as any)).map((t: any) => {
+                                  { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: (tierDistribution as any)?.exemplary ?? 0 },
+                                  { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
+                                  { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
+                                ] as any)),
+                              ]} as any)),
+                                ]}.map((t) => {
                                   const isCurrent = supportRatingHeader === t.name;
                                   return (
                                     <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrent ? 'bg-white shadow-md' : t.bg} ${isCurrent ? '' : t.border}`} style={isCurrent ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
                                       {isCurrent && (
                                         <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
-                                          <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={ backgroundColor: t.color }>
+                                          <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
                                             <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                                           </div>
                                         </div>
@@ -5328,7 +5340,7 @@ export default function ExportReportPage() {
                                       <div className="w-20 text-center"><span className={`text-sm font-semibold ${isCurrent ? 'text-slate-600' : t.text}`}>{t.range}</span></div>
                                       <div className="flex-1 flex items-center gap-3">
                                         <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
-                                          <div className="h-full rounded-full transition-all duration-500" style={ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color } />
+                                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }} />
                                         </div>
                                         <span className={`text-sm font-bold w-10 text-right ${isCurrent ? '' : t.text}`} style={isCurrent ? { color: t.color } : {}}>{t.pct}%</span>
                                       </div>
@@ -5353,39 +5365,74 @@ export default function ExportReportPage() {
                           </div>
                           
                           <div className="space-y-2">
-                            {(tierView ? ([
-                              { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                              { name: 'Established', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                              { name: 'Progressing', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                              { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                            ] as any) : ([
-                              { name: 'Exemplary', range: '90–100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', pct: (tierDistribution as any)?.exemplary ?? 0 },
-                              { name: 'Leading', range: '75–89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', pct: (tierDistribution as any)?.leading ?? 0 },
-                              { name: 'Progressing', range: '60–74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', pct: (tierDistribution as any)?.progressing ?? 0 },
-                              { name: 'Emerging', range: '40–59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', pct: (tierDistribution as any)?.emerging ?? 0 },
-                              { name: 'Developing', range: '0–39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', pct: (tierDistribution as any)?.developing ?? 0 },
-                            ] as any)).map((t: any) => {
+                            {[
+                              {[
+                                ...(tierView ? ([
+                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                  { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                                ] as any) : ([
+                                  {[
+                                ...(tierView ? ([
+                                  { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Established', range: '64-79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                  { name: 'Progressing', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                                ] as any) : ([
+                                  { name: 'Exemplary', range: '90-100', color: '#8B5CF6', bg: 'bg-violet-50', border: 'border-violet-300', text: 'text-violet-700', ring: 'ring-violet-400', pct: (tierDistribution as any)?.exemplary ?? 0 },
+                                  { name: 'Leading', range: '75-89', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (tierDistribution as any)?.leading ?? 0 },
+                                  { name: 'Progressing', range: '60-74', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (tierDistribution as any)?.progressing ?? 0 },
+                                  { name: 'Emerging', range: '40-59', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (tierDistribution as any)?.emerging ?? 0 },
+                                  { name: 'Developing', range: '0-39', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (tierDistribution as any)?.developing ?? 0 }
+                                ] as any)),
+                              ]} as any)),
+                              ]}.map((t) => {
                               const isCurrentTier = tier?.name === t.name;
                               return (
-                                <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`} style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
+                                <div 
+                                  key={t.name}
+                                  className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrentTier ? 'bg-white shadow-md' : t.bg} ${isCurrentTier ? '' : t.border}`}
+                                  style={isCurrentTier ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}
+                                >
+                                  {/* "You are here" marker */}
                                   {isCurrentTier && (
                                     <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
-                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={ backgroundColor: t.color }>
+                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
                                         <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
                                       </div>
                                     </div>
                                   )}
-                                  <div className="w-28"><span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span></div>
-                                  <div className="w-20 text-center"><span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span></div>
+                                  <div className="w-28 flex items-center gap-2">
+                                    <span className={`font-bold text-sm ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.name}</span>
+                                  </div>
+                                  <div className="w-20 text-center">
+                                    <span className={`text-sm font-semibold ${isCurrentTier ? 'text-slate-600' : t.text}`}>{t.range}</span>
+                                  </div>
                                   <div className="flex-1 flex items-center gap-3">
                                     <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
-                                      <div className="h-full rounded-full transition-all duration-500" style={ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color } />
+                                      <div 
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }}
+                                      />
                                     </div>
                                     <span className={`text-sm font-bold w-10 text-right ${isCurrentTier ? '' : t.text}`} style={isCurrentTier ? { color: t.color } : {}}>{t.pct}%</span>
                                   </div>
                                 </div>
                               );
                             })}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                          
+                          {/* Company's Current Score */}
+                          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
+                            </p>
+                          </div>
+                          </>
+                        )}
+                        </div>
                         
                         {/* Right: Journey message - Better balanced layout */}
                         <div className="flex-1 min-w-0">
