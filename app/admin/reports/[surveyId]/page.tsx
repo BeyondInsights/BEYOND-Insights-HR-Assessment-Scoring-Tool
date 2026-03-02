@@ -4590,10 +4590,12 @@ export default function ExportReportPage() {
   // Check if company is a WWC Pledge Signatory
   const currentSupportData = company.current_support_data || {};
   const or2c = currentSupportData.or2c || [];
-  const isFoundingPartner = company.is_founding_partner === true || 
-    company.payment_method === 'founding_partner' || 
-    (company.application_id && company.application_id.startsWith('FP-'));
-  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) => 
+  // NOTE: Founding Partner auto-qualification temporarily disabled — may re-enable later
+  // const isFoundingPartner = company.is_founding_partner === true ||
+  //   company.payment_method === 'founding_partner' ||
+  //   (company.application_id && company.application_id.startsWith('FP-'));
+  const isFoundingPartner = false;
+  const isWwcPledge = isFoundingPartner || (Array.isArray(or2c) && or2c.some((v: string) =>
     typeof v === 'string' && (v.toLowerCase().includes('working with cancer') || v.toLowerCase().includes('wwc'))
   ));
   
