@@ -586,6 +586,28 @@ const EMPLOYEE_PRIORITY_FOOTNOTE = "These groupings reflect what employees manag
 // DYNAMIC TAILORED ANALYSIS FUNCTIONS
 // ============================================
 
+// Classify an element based on its status + peer adoption rate
+function classifyElement(
+  element: { isStrength: boolean; isPlanning: boolean; isAssessing: boolean; isGap: boolean },
+  peerAdoptionPct: number
+): string {
+  if (element.isStrength && peerAdoptionPct < 35) return 'Signature Strength';
+  if (element.isStrength && peerAdoptionPct >= 35) return 'Competitive Standard';
+  if ((element.isGap || (!element.isStrength && !element.isPlanning && !element.isAssessing)) && peerAdoptionPct > 60) return 'Table Stakes Gap';
+  if ((element.isPlanning || element.isAssessing) && peerAdoptionPct > 60) return 'Momentum Opportunity';
+  if ((element.isGap || (!element.isStrength && !element.isPlanning && !element.isAssessing)) && peerAdoptionPct <= 60) return 'Aspirational Gap';
+  return 'In Progress';
+}
+
+const CLASSIFICATION_STYLES: Record<string, { color: string; bg: string; border: string }> = {
+  'Signature Strength': { color: '#047857', bg: '#ECFDF5', border: '#A7F3D0' },
+  'Competitive Standard': { color: '#475569', bg: '#F8FAFC', border: '#CBD5E1' },
+  'Table Stakes Gap': { color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA' },
+  'Momentum Opportunity': { color: '#1D4ED8', bg: '#EFF6FF', border: '#BFDBFE' },
+  'Aspirational Gap': { color: '#B45309', bg: '#FFFBEB', border: '#FDE68A' },
+  'In Progress': { color: '#6366F1', bg: '#EEF2FF', border: '#C7D2FE' },
+};
+
 // Generate tier-adaptive insights based on actual performance
 // Get top evidence items for a dimension (best strength, biggest gap, in-flight item)
 function getTopEvidence(
@@ -645,53 +667,37 @@ function getTwoStepRoadmap(
   assessing: any[],
   elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>
 ): { quickWin: { name: string; reason: string } | null; strategicLift: { name: string; reason: string } | null } {
-  const benchmarks = elementBenchmarks[dimNum] || {};
-  
-  // Quick win: Pick from planning (already committed) or highest-prevalence gap (easy to justify)
+  const dimBenchmarks = elementBenchmarks[dimNum] || {};
+
+  // Build a classified + sorted pool: Table Stakes Gaps first, then Momentum Opportunities, then Aspirational Gaps
+  const allItems = [
+    ...gaps.map(g => ({ ...g, isGap: true, isPlanning: false, isAssessing: false, isStrength: false })),
+    ...planning.map(p => ({ ...p, isGap: false, isPlanning: true, isAssessing: false, isStrength: false })),
+    ...assessing.map(a => ({ ...a, isGap: false, isPlanning: false, isAssessing: true, isStrength: false })),
+  ].map(item => {
+    const bench = dimBenchmarks[item.name] || { currently: 0, total: 1 };
+    const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+    const cls = classifyElement(item, pct);
+    const priority = cls === 'Table Stakes Gap' ? 0 : cls === 'Momentum Opportunity' ? 1 : cls === 'Aspirational Gap' ? 2 : 3;
+    return { ...item, pct, cls, priority };
+  }).sort((a, b) => a.priority - b.priority || b.pct - a.pct);
+
+  // Quick win: first item in priority order
   let quickWin = null;
-  if (planning.length > 0) {
-    // Best quick win is something already in planning
-    const bench = benchmarks[planning[0].name] || { currently: 0, total: 1 };
-    const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
-    quickWin = { 
-      name: planning[0].name, 
-      reason: `Already in development; ${pct}% of participating organizations offer this` 
-    };
-  } else if (gaps.length > 0) {
-    // Find gap with highest peer adoption (easiest to justify)
-    const gapsWithBench = gaps.map(g => {
-      const bench = benchmarks[g.name] || { currently: 0, total: 1 };
-      return { ...g, pct: Math.round((bench.currently / (bench.total || 1)) * 100) };
-    }).sort((a, b) => b.pct - a.pct);
-    // Always show quickWin from gaps if available (removed >30% threshold)
-    quickWin = { 
-      name: gapsWithBench[0].name, 
-      reason: `${gapsWithBench[0].pct}% of participating organizations already offer this` 
-    };
-  } else if (assessing.length > 0) {
-    // If no gaps or planning, use assessing items
-    const bench = benchmarks[assessing[0].name] || { currently: 0, total: 1 };
-    const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
-    quickWin = { 
-      name: assessing[0].name, 
-      reason: `${pct}% of participating organizations offer this—consider prioritizing` 
-    };
+  if (allItems.length > 0) {
+    const item = allItems[0];
+    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity — already in development' : `${item.pct}% of peers offer this`;
+    quickWin = { name: item.name, reason: `${label}; ${item.pct}% of participating organizations offer this` };
   }
-  
-  // Strategic lift: Pick the gap with highest peer adoption that isn't the quick win
+
+  // Strategic lift: second item in priority order
   let strategicLift = null;
-  const allNonOffered = [...gaps, ...assessing].filter(g => g.name !== quickWin?.name);
-  if (allNonOffered.length > 0) {
-    const withBench = allNonOffered.map(g => {
-      const bench = benchmarks[g.name] || { currently: 0, total: 1 };
-      return { ...g, pct: Math.round((bench.currently / (bench.total || 1)) * 100) };
-    }).sort((a, b) => b.pct - a.pct);
-    strategicLift = { 
-      name: withBench[0].name, 
-      reason: `${withBench[0].pct}% of participating organizations offer this—adding this would meaningfully expand your support coverage` 
-    };
+  if (allItems.length > 1) {
+    const item = allItems[1];
+    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'In development' : `${item.pct}% peer adoption`;
+    strategicLift = { name: item.name, reason: `${label}; adding this would meaningfully expand support coverage` };
   }
-  
+
   return { quickWin, strategicLift };
 }
 
@@ -932,23 +938,23 @@ function getDynamicInsight(
       clauses.push(`At ${score}, ${ctx.focus} is at the ${tierName} level.`);
     }
 
-    // Differentiating strength (peer adoption < 35%)
+    // Signature Strength (peer adoption < 35%)
     if (evidence!.topStrength && evidence!.topStrength.benchPct < 35) {
-      clauses.push(`You differentiate on ${evidence!.topStrength.name} — only ${evidence!.topStrength.benchPct}% of peers offer this.`);
+      clauses.push(`Your signature strength is ${evidence!.topStrength.name} — only ${evidence!.topStrength.benchPct}% of peers offer this.`);
     } else if (strengthCount > 0) {
       clauses.push(`${strengthCount} element${strengthCount > 1 ? 's' : ''} fully in place.`);
     }
 
-    // Table-stakes gap (peer adoption > 60%)
+    // Table Stakes Gap (peer adoption > 60%)
     if (evidence!.biggestGap && evidence!.biggestGap.benchPct > 60) {
-      clauses.push(`The biggest catch-up gap is ${evidence!.biggestGap.name} (${evidence!.biggestGap.benchPct}% of peers already have this).`);
+      clauses.push(`${evidence!.biggestGap.name} is a table-stakes gap — ${evidence!.biggestGap.benchPct}% of peers already have this in place.`);
     } else if (gapCount > 0) {
       clauses.push(`${gapCount} gap${gapCount > 1 ? 's' : ''} identified for improvement.`);
     }
 
-    // In-flight item
+    // Momentum Opportunity (in-flight item)
     if (evidence!.inFlight) {
-      clauses.push(`Fastest lift: complete ${evidence!.inFlight.name}, already in development.`);
+      clauses.push(`${evidence!.inFlight.name} is a momentum opportunity — already in development with ${evidence!.inFlight.benchPct}% peer adoption.`);
     }
 
     return { insight: clauses.join(' '), cacHelp };
@@ -2898,6 +2904,9 @@ export default function ExportReportPage() {
     balanceInsight?: string;
     plays?: Record<number, { play?: string; whyNow?: string; firstStep?: string }>;
     strengthSublines?: Record<number, string>;
+    execDoWell?: string[];
+    execImprove?: string[];
+    execNext90?: string[];
   }>({});
 
   // Computed total slides - base 35 + any additional dimension deep dives
@@ -8639,28 +8648,54 @@ export default function ExportReportPage() {
                             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
                               <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
                               <div className="space-y-2">
-                                {evidence.topStrength && (
-                                  <div className="flex items-start gap-2">
-                                    <span className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-teal-600 text-sm">✓</span>
-                                    </span>
-                                    <p className="text-base text-slate-700">
-                                      <span className="font-medium">Strength:</span> <span className="font-semibold text-teal-700">{evidence.topStrength.name}</span>
-                                      <span className="text-slate-500"> ({evidence.topStrength.benchPct})% of participants)</span>
-                                    </p>
-                                  </div>
-                                )}
-                                {evidence.biggestGap && (
-                                  <div className="flex items-start gap-2">
-                                    <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                      <span className="text-red-600 text-sm">✗</span>
-                                    </span>
-                                    <p className="text-base text-slate-700">
-                                      <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                      <span className="text-slate-500"> ({evidence.biggestGap.benchPct})% of participants)</span>
-                                    </p>
-                                  </div>
-                                )}
+                                {evidence.topStrength && (() => {
+                                  const cls = evidence.topStrength.benchPct < 35 ? 'Signature Strength' : 'Competitive Standard';
+                                  const st = CLASSIFICATION_STYLES[cls];
+                                  return (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-teal-600 text-sm">✓</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-semibold text-teal-700">{evidence.topStrength.name}</span>
+                                        <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
+                                        <span className="text-slate-500 ml-1">({evidence.topStrength.benchPct}% of peers)</span>
+                                      </p>
+                                    </div>
+                                  );
+                                })()}
+                                {evidence.biggestGap && (() => {
+                                  const cls = evidence.biggestGap.benchPct > 60 ? 'Table Stakes Gap' : 'Aspirational Gap';
+                                  const st = CLASSIFICATION_STYLES[cls];
+                                  return (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-red-600 text-sm">✗</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
+                                        <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
+                                        <span className="text-slate-500 ml-1">({evidence.biggestGap.benchPct}% of peers)</span>
+                                      </p>
+                                    </div>
+                                  );
+                                })()}
+                                {evidence.inFlight && (() => {
+                                  const cls = evidence.inFlight.benchPct > 60 ? 'Momentum Opportunity' : 'In Progress';
+                                  const st = CLASSIFICATION_STYLES[cls];
+                                  return (
+                                    <div className="flex items-start gap-2">
+                                      <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-blue-600 text-sm">↗</span>
+                                      </span>
+                                      <p className="text-base text-slate-700">
+                                        <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
+                                        <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
+                                        <span className="text-slate-500 ml-1">({evidence.inFlight.benchPct}% of peers)</span>
+                                      </p>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                             </div>
                           )}
@@ -11424,6 +11459,143 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Auto-Generated Executive Insight Blocks */}
+                      {(() => {
+                        // BLOCK A: "What You Do Well" — top 2 scoring dimensions with a named element
+                        const top2Dims = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 2);
+                        const doWellDefaults = top2Dims.map(d => {
+                          const dimBench = elementBenchmarks[d.dim] || {};
+                          // Find a Signature Strength or Competitive Standard element
+                          const namedElem = d.strengths?.map((s: any) => {
+                            const bench = dimBench[s.name] || { currently: 0, total: 1 };
+                            const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+                            return { name: s.name, pct, cls: classifyElement(s, pct) };
+                          }).sort((a: any, b: any) => a.pct - b.pct)[0] || null;
+                          const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
+                          const benchStr = benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} vs peers` : '';
+                          const elemStr = namedElem ? ` — ${namedElem.cls === 'Signature Strength' ? 'you differentiate on' : 'strong on'} ${namedElem.name}` : '';
+                          return `${d.name} (${d.score}${benchStr ? ', ' + benchStr : ''})${elemStr}`;
+                        });
+
+                        // BLOCK B: "Where to Improve" — top 2 by impact-weighted gap magnitude
+                        const improveDims = [...dimensionAnalysis]
+                          .map(d => {
+                            const dimBench = elementBenchmarks[d.dim] || {};
+                            const gapMagnitude = d.benchmark != null ? Math.max(0, d.benchmark - d.score) : 0;
+                            const tableStakesCount = (d.gaps || []).filter((g: any) => {
+                              const bench = dimBench[g.name] || { currently: 0, total: 1 };
+                              return Math.round((bench.currently / (bench.total || 1)) * 100) > 60;
+                            }).length;
+                            const impactScore = d.weight * (gapMagnitude + tableStakesCount * 2);
+                            // Find top Table Stakes Gap element
+                            const topTSG = (d.gaps || []).map((g: any) => {
+                              const bench = dimBench[g.name] || { currently: 0, total: 1 };
+                              const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+                              return { name: g.name, pct };
+                            }).filter((g: any) => g.pct > 60).sort((a: any, b: any) => b.pct - a.pct)[0] || null;
+                            return { ...d, impactScore, topTSG };
+                          })
+                          .sort((a, b) => b.impactScore - a.impactScore)
+                          .slice(0, 2);
+                        const improveDefaults = improveDims.map(d => {
+                          const pg = getEmployeePriorityGroup(d.weight);
+                          const tsgStr = d.topTSG ? ` — ${d.topTSG.name} is a table-stakes gap (${d.topTSG.pct}% of peers have it)` : '';
+                          return `${d.name} (${d.score}, ${pg.chip})${tsgStr}`;
+                        });
+
+                        // BLOCK C: "Next 90 Days" — top 3 Momentum Opportunity elements
+                        const momentumItems: { name: string; dimName: string; pct: number }[] = [];
+                        dimensionAnalysis.forEach(d => {
+                          const dimBench = elementBenchmarks[d.dim] || {};
+                          [...(d.planning || []), ...(d.assessing || [])].forEach((item: any) => {
+                            const bench = dimBench[item.name] || { currently: 0, total: 1 };
+                            const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
+                            if (pct > 60) momentumItems.push({ name: item.name, dimName: d.name, pct });
+                          });
+                        });
+                        momentumItems.sort((a, b) => b.pct - a.pct);
+                        const next90Defaults = momentumItems.slice(0, 3).map(m =>
+                          `${m.name} (${m.dimName}) — already in development, ${m.pct}% peer adoption`
+                        );
+
+                        return (
+                          <div className="grid grid-cols-3 gap-5 mt-6">
+                            {/* What You Do Well */}
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-emerald-600 text-xs font-bold">✓</span>
+                                </span>
+                                <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">What You Do Well</h4>
+                              </div>
+                              {editMode ? (
+                                <textarea
+                                  value={(customNextSteps.execDoWell || doWellDefaults).join('\n')}
+                                  onChange={(e) => { setCustomNextSteps(prev => ({ ...prev, execDoWell: e.target.value.split('\n') })); setHasUnsavedChanges(true); }}
+                                  className="w-full text-sm text-slate-700 bg-white border border-emerald-200 rounded px-2 py-1.5 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-emerald-400/50 resize-y"
+                                />
+                              ) : (
+                                <ul className="space-y-2">
+                                  {(customNextSteps.execDoWell || doWellDefaults).filter(s => s.trim()).map((line, i) => (
+                                    <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+
+                            {/* Where to Improve */}
+                            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-amber-600 text-xs font-bold">!</span>
+                                </span>
+                                <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider">Where to Improve</h4>
+                              </div>
+                              {editMode ? (
+                                <textarea
+                                  value={(customNextSteps.execImprove || improveDefaults).join('\n')}
+                                  onChange={(e) => { setCustomNextSteps(prev => ({ ...prev, execImprove: e.target.value.split('\n') })); setHasUnsavedChanges(true); }}
+                                  className="w-full text-sm text-slate-700 bg-white border border-amber-200 rounded px-2 py-1.5 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y"
+                                />
+                              ) : (
+                                <ul className="space-y-2">
+                                  {(customNextSteps.execImprove || improveDefaults).filter(s => s.trim()).map((line, i) => (
+                                    <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
+                                  ))}
+                                </ul>
+                              )}
+                            </div>
+
+                            {/* Next 90 Days */}
+                            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-blue-600 text-xs font-bold">→</span>
+                                </span>
+                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wider">Next 90 Days</h4>
+                              </div>
+                              {editMode ? (
+                                <textarea
+                                  value={(customNextSteps.execNext90 || next90Defaults).join('\n')}
+                                  onChange={(e) => { setCustomNextSteps(prev => ({ ...prev, execNext90: e.target.value.split('\n') })); setHasUnsavedChanges(true); }}
+                                  className="w-full text-sm text-slate-700 bg-white border border-blue-200 rounded px-2 py-1.5 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-400/50 resize-y"
+                                />
+                              ) : (
+                                <ul className="space-y-2">
+                                  {(customNextSteps.execNext90 || next90Defaults).filter(s => s.trim()).map((line, i) => (
+                                    <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
+                                  ))}
+                                  {next90Defaults.length === 0 && !customNextSteps.execNext90 && (
+                                    <li className="text-sm text-slate-400">No momentum opportunities identified — confirm unsure items to unlock recommendations</li>
+                                  )}
+                                </ul>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
                     </div>
                   </div>
                 )}
