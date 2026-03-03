@@ -5480,12 +5480,17 @@ export default function ExportReportPage() {
                 </div>
                 
                 {/* Bottom Row - Top Strengths and Opportunities */}
+                {(() => {
+                  const execTopStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
+                  const strengthDimsAbove64 = new Set(execTopStrengths.filter(d => d.score >= 64).map(d => d.dim));
+                  const dedupedRankings = rankings.filter(r => !strengthDimsAbove64.has(r.dimNum)).slice(0, 3);
+                  return (
                 <div className="grid grid-cols-2 gap-4">
                   {/* Top 3 Strengths */}
                   <div className="bg-emerald-900/30 rounded-xl p-5 border border-emerald-700/50">
                     <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-3">Top Strengths</p>
                     <div className="space-y-2">
-                      {[...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3).map((d, idx) => (
+                      {execTopStrengths.map((d, idx) => (
                         <div key={d.dim} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-emerald-400 font-bold text-sm">{idx + 1}.</span>
@@ -5496,12 +5501,12 @@ export default function ExportReportPage() {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Top 3 Opportunities */}
                   <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
                     <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Highest-Impact Employee Experience Opportunities</p>
                     <div className="space-y-2">
-                      {rankings.slice(0, 3).map((r, idx) => (
+                      {dedupedRankings.map((r, idx) => (
                         <div key={r.dimNum} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
@@ -5513,6 +5518,8 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                 </div>
+                  );
+                })()}
               </div>
             </div>
           </div>
@@ -10086,12 +10093,17 @@ export default function ExportReportPage() {
                         </div>
                         
                         {/* Bottom Row - Top Strengths and Opportunities */}
+                        {(() => {
+                          const slideTopStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
+                          const slideStrengthDimsAbove64 = new Set(slideTopStrengths.filter(d => d.score >= 64).map(d => d.dim));
+                          const slideDedupedRankings = rankings.filter(r => !slideStrengthDimsAbove64.has(r.dimNum)).slice(0, 3);
+                          return (
                         <div className="grid grid-cols-2 gap-4">
                           {/* Top 3 Strengths */}
                           <div className="bg-emerald-900/30 rounded-xl p-5 border border-emerald-700/50">
                             <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-3">Top Strengths</p>
                             <div className="space-y-3">
-                              {[...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3).map((d, idx) => (
+                              {slideTopStrengths.map((d, idx) => (
                                 <div key={d.dim} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <span className="text-emerald-400 font-bold text-sm">{idx + 1}.</span>
@@ -10102,12 +10114,12 @@ export default function ExportReportPage() {
                               ))}
                             </div>
                           </div>
-                          
+
                           {/* Top 3 Opportunities */}
                           <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
                             <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Highest-Impact Employee Experience Opportunities</p>
                             <div className="space-y-3">
-                              {rankings.slice(0, 3).map((r, idx) => (
+                              {slideDedupedRankings.map((r, idx) => (
                                 <div key={r.dimNum} className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
                                     <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
@@ -10119,6 +10131,8 @@ export default function ExportReportPage() {
                             </div>
                           </div>
                         </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
