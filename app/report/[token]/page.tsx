@@ -656,7 +656,7 @@ function getTwoStepRoadmap(
     const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
     quickWin = { 
       name: assessing[0].name, 
-      reason: `${pct}% of participating organizations offer this—consider prioritizing` 
+      reason: `${pct}% of participating organizations offer this. Consider prioritizing` 
     };
   }
   
@@ -670,7 +670,7 @@ function getTwoStepRoadmap(
     }).sort((a, b) => b.pct - a.pct);
     strategicLift = { 
       name: withBench[0].name, 
-      reason: `${withBench[0].pct}% of participating organizations offer this—adding this would meaningfully expand your support coverage` 
+      reason: `${withBench[0].pct}% of participating organizations offer this. Adding this would meaningfully expand your support coverage` 
     };
   }
   
@@ -726,7 +726,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'employee assistance fund or gap insurance',
       cacPrograms: {
         exemplary: 'Showcase your financial protection programs through CAC\'s Best Practices Library. We can connect you with benefits consultants seeking model programs to replicate.',
-        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements—like cancer-specific riders or out-of-pocket maximums—that would achieve Leading status.',
+        leading: 'Our Benefits Gap Analysis identifies specific coverage enhancements, including cancer-specific riders and out-of-pocket maximums, to achieve Leading status.',
         progressing: 'CAC\'s Financial Protection Assessment evaluates your insurance, disability, and supplemental coverage against cancer-specific needs, with vendor recommendations.',
         emerging: 'Our Financial Wellness for Serious Illness program designs hardship funds, premium assistance, and navigation support to reduce financial barriers to care.'
       }
@@ -738,7 +738,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'conversation guide and scenario training',
       cacPrograms: {
         exemplary: 'Your manager training could become a CAC-certified program. We can help scale your approach across business units and document for external recognition.',
-        leading: 'Our Advanced Manager Certification adds specialized modules on complex scenarios—recurrence, terminal diagnosis, grief—to achieve comprehensive preparedness.',
+        leading: 'Our Advanced Manager Certification adds specialized modules on complex scenarios (recurrence, terminal diagnosis, grief) to achieve comprehensive preparedness.',
         progressing: 'CAC\'s Manager Essentials Training provides 4-hour workshops with role-play scenarios, conversation scripts, and ongoing coaching support.',
         emerging: 'Our Manager Quick-Start Kit includes conversation guides, FAQ documents, and 90-minute awareness training to build baseline confidence.'
       }
@@ -750,7 +750,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'centralized resource hub or concierge',
       cacPrograms: {
         exemplary: 'Partner with CAC to offer your navigation model as a benchmark for other organizations. We can facilitate knowledge-sharing with Index participants.',
-        leading: 'Our Navigation Enhancement service adds specialized resources—clinical trial matching, second opinion coordination—to achieve comprehensive support.',
+        leading: 'Our Navigation Enhancement service adds specialized resources (clinical trial matching, second opinion coordination) to achieve comprehensive support.',
         progressing: 'CAC\'s Resource Hub Design creates a centralized portal mapping all your benefits, vendors, and support resources with clear access pathways.',
         emerging: 'Our Navigation Foundation program implements a single point of contact model with trained navigators who connect employees to appropriate resources.'
       }
@@ -762,7 +762,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'remote work and schedule flexibility policies',
       cacPrograms: {
         exemplary: 'Document your accommodation practices for CAC\'s Accommodation Best Practices guide. We can facilitate sessions sharing your interactive process approach.',
-        leading: 'Our Accommodation Excellence program addresses edge cases—cognitive impacts, fatigue management, role modifications—for comprehensive flexibility.',
+        leading: 'Our Accommodation Excellence program addresses edge cases (cognitive impacts, fatigue management, role modifications) for comprehensive flexibility.',
         progressing: 'CAC\'s Accommodation Framework Training teaches HR and managers the interactive process, with templates for common cancer-related accommodations.',
         emerging: 'Our Flexibility Foundation program designs remote work, schedule modification, and workload adjustment policies specific to treatment needs.'
       }
@@ -798,7 +798,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'structured 90-day re-entry protocol',
       cacPrograms: {
         exemplary: 'Your RTW program is a model. CAC can help document your protocols for our Best Practices Library and facilitate peer learning sessions.',
-        leading: 'Our RTW Excellence program adds specialized components—cognitive rehabilitation, stamina building, peer mentoring—for comprehensive re-entry.',
+        leading: 'Our RTW Excellence program adds specialized components (cognitive rehabilitation, stamina building, peer mentoring) for comprehensive re-entry.',
         progressing: 'CAC\'s Return-to-Work Protocol Design creates phased re-entry templates, check-in schedules, and adjustment frameworks for sustainable transitions.',
         emerging: 'Our RTW Foundation program implements basic phased return, temporary accommodations, and manager check-in protocols.'
       }
@@ -822,7 +822,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
       quickWin: 'caregiver leave and flexible scheduling',
       cacPrograms: {
         exemplary: 'Your caregiver support is a differentiator. CAC can document your approach for our Caregiver Support Guide and connect you with recognition opportunities.',
-        leading: 'Our Caregiver Excellence program adds specialized resources—backup care, support groups, navigation—for comprehensive family support.',
+        leading: 'Our Caregiver Excellence program adds specialized resources (backup care, support groups, navigation) for comprehensive family support.',
         progressing: 'CAC\'s Caregiver Support Framework designs leave policies, flexibility options, and resource connections specific to caregiving needs.',
         emerging: 'Our Caregiver Foundation program creates basic leave provisions, flexible scheduling, and EAP integration for caregiver support.'
       }
@@ -892,7 +892,7 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
     insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the participant average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
     cacHelp = cacProgram;
   } else if (tierName === 'Established') {
-    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Leading status—consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Leading tier.'}`;
+    insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Leading status. Consider starting with ${ctx.quickWin}.` : 'Minor refinements separate you from Leading tier.'}`;
     cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
