@@ -7018,9 +7018,7 @@ export default function ExportReportPage() {
                           const epRing = getEmployeePriorityGroup(d.weight);
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
-                              {/* Employee Priority outer ring */}
-                              <circle r={isHovered ? 27 : 23} fill="none" stroke={epRing.ringColor} strokeWidth="3" style={{ transition: 'all 0.2s ease' }} />
-                              <circle r={isHovered ? 24 : 20} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
+                              <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
                               <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
                             </g>
@@ -7110,22 +7108,6 @@ export default function ExportReportPage() {
                             </div>
                           );
                         })}
-                        {/* Employee Priority ring legend - shares last row with Dim 13 */}
-                        <div className="col-span-3 flex items-center justify-end gap-5 py-1.5">
-                          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Employee Priority Level</span>
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#7C3AED', backgroundColor: 'rgba(124, 58, 237, 0.12)' }}></div>
-                            <span className="text-slate-600 text-xs font-medium">Most Critical</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#D97706', backgroundColor: 'rgba(217, 119, 6, 0.12)' }}></div>
-                            <span className="text-slate-600 text-xs font-medium">Highly Important</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full border-[3px] flex-shrink-0" style={{ borderColor: '#475569', backgroundColor: 'rgba(71, 85, 105, 0.12)' }}></div>
-                            <span className="text-slate-600 text-xs font-medium">Enabling</span>
-                          </div>
-                        </div>
                       </div>
                       {showBenchmarkRings && (
                         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-8 text-sm">
