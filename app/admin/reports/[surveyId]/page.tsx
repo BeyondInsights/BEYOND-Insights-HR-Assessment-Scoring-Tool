@@ -2838,8 +2838,8 @@ export default function ExportReportPage() {
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
 
-  // Password gate state
-  const [reportUnlocked, setReportUnlocked] = useState(false);
+  // Password gate state (temporarily bypassed)
+  const [reportUnlocked, setReportUnlocked] = useState(true);
   const [gatePassword, setGatePassword] = useState('');
   const [gateError, setGateError] = useState(false);
 
