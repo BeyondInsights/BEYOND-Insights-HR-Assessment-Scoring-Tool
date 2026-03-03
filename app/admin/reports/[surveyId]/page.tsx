@@ -10111,7 +10111,19 @@ export default function ExportReportPage() {
 
             // Build headline using capability types, NOT dimension names
             const strengthCapTypes = [...new Set(topStrengths.map(d => dimCapabilityType[d.dim]))];
-            const gapCapTypes = [...new Set(focusCandidates.map(d => dimCapabilityType[d.dim]))];
+            const strengthCapTypeSet = new Set(strengthCapTypes);
+
+            // Exclude gap capability types already cited as strengths to avoid contradictions
+            let gapCapTypes = [...new Set(focusCandidates.map(d => dimCapabilityType[d.dim]))].filter(t => !strengthCapTypeSet.has(t));
+            // If all gap types overlapped, extend search beyond top 3 focus candidates
+            if (gapCapTypes.length === 0) {
+              gapCapTypes = [...new Set(
+                [...dimensionAnalysis]
+                  .filter(d => !topStrengths.some(s => s.dim === d.dim))
+                  .sort((a, b) => a.score - b.score)
+                  .map(d => dimCapabilityType[d.dim])
+              )].filter(t => !strengthCapTypeSet.has(t)).slice(0, 2);
+            }
 
             const primaryStrengthPhrase = capabilityNarrative[strengthCapTypes[0]] || 'foundational support';
             const secondaryStrengthPhrase = strengthCapTypes.length > 1 ? (capabilityNarrative[strengthCapTypes[1]] || '') : '';
@@ -10128,8 +10140,22 @@ export default function ExportReportPage() {
             const defaultHeadline = `${companyName} shows strong ${strengthSummary}. Gaps remain in ${gapSummary}. Policies exist but execution is inconsistent.`;
 
             // Pattern bullets — short, distinct, max ~8 words each
+            // Exclude gap themes whose capability type contradicts the strength narrative
             const strengthThemeLabels = [...new Set(topStrengths.map(d => dimThemeShort[d.dim]))];
-            const gapThemeLabels = [...new Set(focusCandidates.map(d => dimThemeShort[d.dim]))];
+            let gapThemeLabels = [...new Set(
+              focusCandidates
+                .filter(d => !strengthCapTypeSet.has(dimCapabilityType[d.dim]))
+                .map(d => dimThemeShort[d.dim])
+            )];
+            // If all gap themes were filtered, extend from broader pool
+            if (gapThemeLabels.length === 0) {
+              gapThemeLabels = [...new Set(
+                [...dimensionAnalysis]
+                  .filter(d => !topStrengths.some(s => s.dim === d.dim) && !strengthCapTypeSet.has(dimCapabilityType[d.dim]))
+                  .sort((a, b) => a.score - b.score)
+                  .map(d => dimThemeShort[d.dim])
+              )].slice(0, 2);
+            }
 
             const patternBullet1 = strengthThemeLabels.length >= 2
               ? `${strengthThemeLabels[0]} and ${strengthThemeLabels[1]} are well-established`
