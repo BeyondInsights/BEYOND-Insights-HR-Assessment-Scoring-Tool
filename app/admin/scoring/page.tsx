@@ -26,6 +26,7 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { calculateElementWeightedDimScore } from '@/lib/wsi-scoring';
 import Link from 'next/link';
 
 // ============================================
@@ -357,25 +358,18 @@ function calculateDimensionScore(
   if (!dimData) return result;
   const mainGrid = dimData[`d${dimNum}a`];
   if (!mainGrid || typeof mainGrid !== 'object') return result;
-  let earnedPoints = 0;
-  
-  // Process grid items, excluding D10 items that weren't in original survey
-  Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
-    // Skip excluded D10 items for Year 1 scoring fairness
-    if (dimNum === 10 && D10_EXCLUDED_ITEMS.includes(itemKey)) {
-      return; // Skip this item entirely
-    }
-    
-    result.totalItems++;
-    const { points, isUnsure } = statusToPoints(status);
-    if (isUnsure) { result.unsureCount++; result.answeredItems++; }
-    else if (points !== null) { result.answeredItems++; earnedPoints += points; }
-  });
-  
+
+  // Use shared WSI element-weighted scoring with unsure substitution
+  const wsiResult = calculateElementWeightedDimScore(
+    dimNum, mainGrid, dimNum === 10 ? D10_EXCLUDED_ITEMS : undefined
+  );
+  result.rawScore = wsiResult.score;
+  result.totalItems = wsiResult.totalItems;
+  result.answeredItems = wsiResult.totalItems;
+  result.unsureCount = wsiResult.unsureCount;
+
   result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
   result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
-  const maxPoints = result.answeredItems * POINTS.CURRENTLY_OFFER;
-  if (maxPoints > 0) result.rawScore = Math.round((earnedPoints / maxPoints) * 100);
   const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
   result.geoMultiplier = getGeoMultiplier(geoResponse);
   result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
