@@ -2838,6 +2838,17 @@ export default function ExportReportPage() {
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
 
+  // Password gate state
+  const [reportUnlocked, setReportUnlocked] = useState(false);
+  const [gatePassword, setGatePassword] = useState('');
+  const [gateError, setGateError] = useState(false);
+
+  useEffect(() => {
+    if (sessionStorage.getItem('report_unlocked') === 'true') {
+      setReportUnlocked(true);
+    }
+  }, []);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
@@ -4638,6 +4649,40 @@ export default function ExportReportPage() {
   '  letter-spacing: -0.01em;',
   '}',
 ].join('\n');
+
+ if (!reportUnlocked) {
+   return (
+     <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 w-full max-w-sm">
+         <h2 className="text-lg font-bold text-slate-800 text-center">Report Access Restricted</h2>
+         <p className="text-sm text-slate-500 text-center mt-1 mb-6">Enter the access code to view this report</p>
+         <form onSubmit={(e) => {
+           e.preventDefault();
+           if (gatePassword === 'BeyondWSI2026!') {
+             sessionStorage.setItem('report_unlocked', 'true');
+             setReportUnlocked(true);
+             setGateError(false);
+           } else {
+             setGateError(true);
+           }
+         }}>
+           <input
+             type="password"
+             value={gatePassword}
+             onChange={(e) => { setGatePassword(e.target.value); setGateError(false); }}
+             className="w-full px-4 py-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-transparent"
+             placeholder="Access code"
+             autoFocus
+           />
+           {gateError && <p className="text-red-600 text-sm mt-2">Incorrect access code</p>}
+           <button type="submit" className="w-full mt-4 px-4 py-3 bg-slate-800 text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition-colors">
+             View Report
+           </button>
+         </form>
+       </div>
+     </div>
+   );
+ }
 
  return (
     <div className="min-h-screen bg-slate-100">
