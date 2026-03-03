@@ -9902,7 +9902,7 @@ export default function ExportReportPage() {
           
           {/* ============ YOUR ASSESSMENT AT A GLANCE ============ */}
           {(() => {
-            // CHANGE 2: "Why It Matters" lookup keyed by dimension
+            // "Why It Matters" lookup keyed by dimension
             const whyItMatters: Record<number, string> = {
               1: 'Structured leave reduces anxiety at the moment employees need support most.',
               2: 'Financial protection prevents employees from delaying treatment due to cost concerns.',
@@ -9919,7 +9919,7 @@ export default function ExportReportPage() {
               13: 'Strong communication ensures employees know what\'s available when they need it.',
             };
 
-            // CHANGE 3: Plays lookup keyed by dimension
+            // Plays lookup keyed by dimension
             const playsLookup: Record<number, { play: string; firstStep: string }> = {
               1: { play: 'Tighten the leave experience end-to-end', firstStep: 'Map the leave journey and close handoff gaps between HR, benefits, and manager.' },
               2: { play: 'Close financial protection gaps', firstStep: 'Review insurance navigation resources and ensure employees know how to access them.' },
@@ -9936,11 +9936,32 @@ export default function ExportReportPage() {
               13: { play: 'Ensure employees know what\'s available', firstStep: 'Test communication reach \u2014 survey whether employees can name 3 cancer support resources.' },
             };
 
-            // CHANGE 4: Dimension-to-theme mapping for pattern bullets
-            const dimTheme: Record<number, string> = {
-              1: 'Protection', 2: 'Protection', 3: 'Execution', 4: 'Visibility',
-              5: 'Execution', 6: 'Culture', 7: 'Continuity', 8: 'Continuity',
-              9: 'Commitment', 10: 'Breadth', 11: 'Prevention', 12: 'Learning', 13: 'Visibility',
+            // Dimension-to-theme mapping (short labels for pattern bullets)
+            const dimThemeShort: Record<number, string> = {
+              1: 'Protection', 2: 'Financial safety', 3: 'Manager execution',
+              4: 'Resource access', 5: 'Accommodations', 6: 'Culture',
+              7: 'Career continuity', 8: 'Return-to-work', 9: 'Leadership',
+              10: 'Caregiver support', 11: 'Prevention', 12: 'Improvement systems', 13: 'Communication',
+            };
+
+            // Dimension-to-capability-type mapping (for headline themes)
+            const dimCapabilityType: Record<number, string> = {
+              1: 'employee-facing', 2: 'employee-facing', 3: 'operational',
+              4: 'employee-facing', 5: 'operational', 6: 'cultural',
+              7: 'structural', 8: 'structural', 9: 'strategic',
+              10: 'breadth', 11: 'proactive', 12: 'systemic', 13: 'employee-facing',
+            };
+
+            // Capability type to narrative phrase
+            const capabilityNarrative: Record<string, string> = {
+              'employee-facing': 'employee-facing communication and access',
+              'operational': 'manager-level execution and accommodation delivery',
+              'cultural': 'workplace culture and psychological safety',
+              'structural': 'work continuity and career protection',
+              'strategic': 'leadership commitment and sponsorship',
+              'breadth': 'caregiver and family support coverage',
+              'proactive': 'prevention and early intervention',
+              'systemic': 'continuous improvement infrastructure',
             };
 
             const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
@@ -9962,64 +9983,39 @@ export default function ExportReportPage() {
               })
               .slice(0, 3);
 
-            // Theme narrative descriptions for analytical headline + pattern bullets
-            const themeNarrative: Record<string, string> = {
-              'Protection': 'employee protection and benefits',
-              'Execution': 'manager-facing and accommodation processes',
-              'Visibility': 'communication and resource visibility',
-              'Culture': 'workplace culture and psychological safety',
-              'Continuity': 'work continuity and career protection',
-              'Commitment': 'leadership commitment and strategy',
-              'Breadth': 'caregiver and family support',
-              'Prevention': 'prevention and wellness',
-              'Learning': 'continuous improvement',
-            };
-            const themeImplication: Record<string, string> = {
-              'Protection': 'Strengthening foundational protections would build employee trust at the most vulnerable moments',
-              'Execution': 'The gap is delivery consistency, not policy intent',
-              'Visibility': 'Employees may not know what support is already available',
-              'Culture': 'Psychological safety may be limiting the effectiveness of existing programs',
-              'Continuity': 'Stronger continuity protections would signal long-term career commitment',
-              'Commitment': 'Executive sponsorship could unlock progress across multiple dimensions',
-              'Breadth': 'Extending support to caregivers would address a hidden retention risk',
-              'Prevention': 'Proactive wellness programs would reduce severity and demonstrate care',
-              'Learning': 'A feedback loop would ensure support systems evolve with employee needs',
-            };
+            // Build headline using capability types, NOT dimension names
+            const strengthCapTypes = [...new Set(topStrengths.map(d => dimCapabilityType[d.dim]))];
+            const gapCapTypes = [...new Set(focusCandidates.map(d => dimCapabilityType[d.dim]))];
 
-            // Group strengths and gaps by theme
-            const strengthThemes: Record<string, string[]> = {};
-            topStrengths.forEach(d => {
-              const t = dimTheme[d.dim] || 'Other';
-              if (!strengthThemes[t]) strengthThemes[t] = [];
-              strengthThemes[t].push(d.name);
-            });
-            const gapThemes: Record<string, string[]> = {};
-            focusCandidates.forEach(d => {
-              const t = dimTheme[d.dim] || 'Other';
-              if (!gapThemes[t]) gapThemes[t] = [];
-              gapThemes[t].push(d.name);
-            });
+            const primaryStrengthPhrase = capabilityNarrative[strengthCapTypes[0]] || 'foundational support';
+            const secondaryStrengthPhrase = strengthCapTypes.length > 1 ? (capabilityNarrative[strengthCapTypes[1]] || '') : '';
+            const primaryGapPhrase = capabilityNarrative[gapCapTypes[0]] || 'operational consistency';
+            const secondaryGapPhrase = gapCapTypes.length > 1 ? (capabilityNarrative[gapCapTypes[1]] || '') : '';
 
-            // Headline: theme-based analytical sentence
-            const joinNarratives = (themes: Record<string, string[]>) => {
-              const phrases = Object.keys(themes).map(t => themeNarrative[t] || t.toLowerCase());
-              if (phrases.length <= 1) return phrases[0] || '';
-              if (phrases.length === 2) return `${phrases[0]} and ${phrases[1]}`;
-              return `${phrases.slice(0, -1).join(', ')}, and ${phrases[phrases.length - 1]}`;
-            };
-            const defaultHeadline = `${companyName} demonstrates ${wsiTier.name.toLowerCase()}-level support with particular strength in ${joinNarratives(strengthThemes)}. The primary opportunity is ${joinNarratives(gapThemes)}.`;
+            const strengthSummary = secondaryStrengthPhrase
+              ? `${primaryStrengthPhrase} and ${secondaryStrengthPhrase}`
+              : primaryStrengthPhrase;
+            const gapSummary = secondaryGapPhrase
+              ? `${primaryGapPhrase} and ${secondaryGapPhrase}`
+              : primaryGapPhrase;
 
-            // Pattern bullets: 3 distinct observations
-            const strengthThemeKeys = Object.keys(strengthThemes);
-            const gapThemeKeys = Object.keys(gapThemes);
-            const dominantGapTheme = gapThemeKeys[0] || 'Execution';
-            const defaultPatternBullets: string[] = [
-              `${strengthThemeKeys.map(t => themeNarrative[t] || t).join(' and ')} ${strengthThemeKeys.length === 1 ? 'is' : 'are'} well-established`,
-              `${gapThemeKeys.map(t => themeNarrative[t] || t).join(' and ')} ha${gapThemeKeys.length === 1 ? 's' : 've'} the most room to grow`,
-              themeImplication[dominantGapTheme] || 'Closing these gaps would strengthen the overall support experience',
-            ];
+            const defaultHeadline = `${companyName} has built strong ${strengthSummary} \u2014 the foundation is in place. The opportunity is in ${gapSummary} \u2014 moving from policy to consistent practice.`;
 
-            // CHANGE 5: Balance micro-insight by tier
+            // Pattern bullets — short, distinct, max ~8 words each
+            const strengthThemeLabels = [...new Set(topStrengths.map(d => dimThemeShort[d.dim]))];
+            const gapThemeLabels = [...new Set(focusCandidates.map(d => dimThemeShort[d.dim]))];
+
+            const patternBullet1 = strengthThemeLabels.length >= 2
+              ? `${strengthThemeLabels[0]} and ${strengthThemeLabels[1]} are well-established`
+              : `${strengthThemeLabels[0] || 'Core support'} is well-established`;
+            const patternBullet2 = gapThemeLabels.length >= 2
+              ? `${gapThemeLabels[0]} and ${gapThemeLabels[1]} need attention`
+              : `${gapThemeLabels[0] || 'Key areas'} need${gapThemeLabels.length === 1 ? 's' : ''} attention`;
+            const patternBullet3 = 'The gap is delivery, not intent';
+
+            const defaultPatternBullets: string[] = [patternBullet1, patternBullet2, patternBullet3];
+
+            // Balance micro-insight by tier
             const balanceLookup: Record<string, string> = {
               'Leading': 'The biggest opportunity isn\'t adding new programs \u2014 it\'s reducing friction and variability in how support is delivered across managers and teams.',
               'Established': 'Your foundation is solid. The next step is moving from policy to consistent practice across all teams.',
@@ -10028,7 +10024,6 @@ export default function ExportReportPage() {
             };
             const defaultBalanceInsight = balanceLookup[wsiTier.name] || balanceLookup['Building'];
 
-            // CHANGE 6: Tighter footer
             const defaultWhatsNext = '1. Confirm flagged items to finalize scoring \u2192 2. Choose 2\u20133 Most Critical priorities \u2192 3. Turn element gaps into a 90-day action plan with owners and timelines';
 
             return (
@@ -10057,8 +10052,8 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* CHANGE 1: Headline insight sentence */}
-                <div className="px-10 pt-5 pb-2">
+                {/* Headline insight — NO ITALICS, theme-based */}
+                <div className="px-10 pt-6 pb-3">
                   {editMode ? (
                     <div>
                       <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Headline Insight</label>
@@ -10068,26 +10063,26 @@ export default function ExportReportPage() {
                           setCustomNextSteps(prev => ({ ...prev, headlineInsight: e.target.value }));
                           setHasUnsavedChanges(true);
                         }}
-                        className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded px-3 py-2 min-h-[40px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y italic"
+                        className="w-full text-sm text-slate-700 bg-slate-50 border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
                       />
                       {customNextSteps.headlineInsight && (
                         <button onClick={() => { setCustomNextSteps(prev => ({ ...prev, headlineInsight: undefined })); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'\u21BA'} Reset</button>
                       )}
                     </div>
                   ) : (
-                    <p className="text-[15px] text-slate-600 italic font-medium leading-relaxed" style={{ fontStyle: 'italic' }}>
+                    <p className="text-[15px] text-slate-700 font-medium leading-relaxed">
                       {customNextSteps.headlineInsight || defaultHeadline}
                     </p>
                   )}
                 </div>
 
-                {/* CHANGE 4: "What This Pattern Suggests" insight band */}
-                <div className="mx-10 my-3 px-5 py-3 bg-slate-50 rounded-lg border border-slate-100">
+                {/* "What This Pattern Suggests" — 3 short bullets */}
+                <div className="mx-10 mb-4 px-5 py-3 bg-slate-50 rounded-lg border border-slate-100">
                   {editMode ? (
                     <div>
                       <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Pattern Insights (one per line)</label>
                       <textarea
-                        value={(customNextSteps.patternBullets || defaultPatternBullets.slice(0, 3)).join('\n')}
+                        value={(customNextSteps.patternBullets || defaultPatternBullets).join('\n')}
                         onChange={(e) => {
                           setCustomNextSteps(prev => ({ ...prev, patternBullets: e.target.value.split('\n') }));
                           setHasUnsavedChanges(true);
@@ -10099,11 +10094,11 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex-shrink-0">What this pattern suggests</span>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold flex-shrink-0 mr-2">What this pattern suggests</span>
                       {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => (
-                        <span key={i} className="text-xs text-slate-600">
-                          {i > 0 && <span className="text-slate-300 mr-3">{'\u00B7'}</span>}
+                        <span key={i} className="flex items-center text-xs text-slate-600">
+                          {i > 0 && <span className="text-slate-300 mx-2">&middot;</span>}
                           {bullet}
                         </span>
                       ))}
@@ -10112,8 +10107,8 @@ export default function ExportReportPage() {
                 </div>
 
                 {/* Two-column body */}
-                <div className="grid grid-cols-2 gap-8 px-10 py-6">
-                  {/* LEFT: Protect & Scale — CHANGE 2: Why It Matters sublines */}
+                <div className="grid grid-cols-2 gap-8 px-10 pb-6">
+                  {/* LEFT: Protect & Scale */}
                   <div className="border-l-2 border-emerald-300 pl-6">
                     <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4">Protect &amp; Scale</h4>
                     <div className="space-y-4">
@@ -10168,7 +10163,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
 
-                  {/* RIGHT: Where to Focus — CHANGE 3: Actionable Plays */}
+                  {/* RIGHT: Where to Focus */}
                   <div className="border-l-2 border-amber-300 pl-6">
                     <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-4">Where to Focus</h4>
                     <div className="space-y-4">
@@ -10188,7 +10183,7 @@ export default function ExportReportPage() {
                                 {pg.chip}
                               </span>
                             </div>
-                            <div className="pl-7 mt-0.5">
+                            <div className="pl-7 mt-0.5 space-y-0.5">
                               {editMode ? (
                                 <div className="space-y-1">
                                   <div>
@@ -10218,8 +10213,8 @@ export default function ExportReportPage() {
                                 </div>
                               ) : (
                                 <>
-                                  <p className="text-xs text-slate-500 leading-relaxed">{playTitle}</p>
-                                  <p className="text-xs text-slate-600">Score: {Math.round(d.score)} · <span className="font-medium text-slate-500">First step:</span> {firstStep}</p>
+                                  <p className="text-xs text-amber-700 font-medium">{playTitle}</p>
+                                  <p className="text-xs text-slate-500 leading-relaxed">Score: {Math.round(d.score)} · First step: {firstStep}</p>
                                 </>
                               )}
                             </div>
@@ -10230,8 +10225,8 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* Balance micro-insight — footnote style */}
-                <div className="mx-10 mt-2 mb-4">
+                {/* Balance micro-insight — NO ITALICS */}
+                <div className="mx-10 mb-4">
                   {editMode ? (
                     <div className="border-t border-slate-200 pt-3">
                       <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Balance Insight</label>
@@ -10248,13 +10243,13 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500 text-center leading-relaxed border-t border-slate-200 pt-4" style={{ fontStyle: 'italic' }}>
+                    <p className="text-xs text-slate-500 text-center leading-relaxed border-t border-slate-200 pt-4">
                       {customNextSteps.balanceInsight || defaultBalanceInsight}
                     </p>
                   )}
                 </div>
 
-                {/* CHANGE 6: Tighter footer */}
+                {/* Footer */}
                 <div className="px-10 py-4 border-t border-slate-100 bg-slate-50">
                   {editMode ? (
                     <div>
