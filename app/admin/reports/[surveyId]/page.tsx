@@ -10249,14 +10249,36 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold flex-shrink-0 mr-2">What this pattern suggests</span>
-                      {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => (
-                        <span key={i} className="flex items-center text-sm text-slate-600">
-                          {i > 0 && <span className="text-slate-300 mx-2">&middot;</span>}
-                          {bullet}
-                        </span>
-                      ))}
+                    <div>
+                      <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2 block">What this pattern suggests</span>
+                      <div className="flex flex-wrap gap-2 items-center">
+                        {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => {
+                          const lower = bullet.toLowerCase();
+                          const isPositive = /well-established|strong|in place/.test(lower);
+                          const isAttention = /need.?attention|gaps|require/.test(lower);
+                          return (
+                            <span key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-4 py-1.5 text-sm text-slate-700">
+                              {isPositive ? (
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                                  <circle cx="7" cy="7" r="6" stroke="#047857" strokeWidth="2"/>
+                                  <path d="M4 7l2 2 4-4" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              ) : isAttention ? (
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                                  <path d="M7 1.5l5.5 10H1.5L7 1.5z" stroke="#B45309" strokeWidth="2" strokeLinejoin="round"/>
+                                  <path d="M7 6v2" stroke="#B45309" strokeWidth="2" strokeLinecap="round"/>
+                                  <circle cx="7" cy="10" r="0.5" fill="#B45309"/>
+                                </svg>
+                              ) : (
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                                  <path d="M2 7h10M9 4l3 3-3 3" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              )}
+                              {bullet}
+                            </span>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
