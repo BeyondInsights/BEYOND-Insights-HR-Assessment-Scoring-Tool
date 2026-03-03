@@ -834,7 +834,7 @@ function getDynamicInsight(
       focus: 'return-to-work support', 
       risk: 'failed transitions after treatment', 
       opportunity: 'sustainable recovery and full productivity', 
-      quickWin: 'structured 90-day re-entry protocol',
+      quickWin: 'structured phased re-entry protocol',
       cacPrograms: {
         exemplary: 'Your RTW program is a model. CAC can help document your protocols for our Best Practices Library and facilitate peer learning sessions.',
         leading: 'Our RTW Excellence program adds specialized components—cognitive rehabilitation, stamina building, peer mentoring—for comprehensive re-entry.',
@@ -1221,7 +1221,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
       bottlenecks: [{
         pattern: 'No major cross-dimensional bottlenecks detected',
         implication: `Your scores do not match any of the common "weak link" patterns we look for. That is a good sign—your program appears relatively balanced, with strengths that can support improvements in weaker areas.${unsureText}`,
-        recommendation: `Use your strongest area (${strongest?.name}, ${strongest?.score}) as a repeatable playbook. Focus next on the lowest-scoring dimension (${lowest?.name}, ${lowest?.score}) by selecting 1–2 specific improvements that are feasible in the next 60–90 days, then reassess to confirm progress.`
+        recommendation: `Use your strongest area (${strongest?.name}, ${strongest?.score}) as a repeatable playbook. Focus next on the lowest-scoring dimension (${lowest?.name}, ${lowest?.score}) by selecting 1–2 specific improvements, then reassess to confirm progress.`
       }],
       positiveInsights: rankedPositive
     };
@@ -3135,7 +3135,7 @@ export default function ExportReportPage() {
       28: 'Continue with the next recommendation. Explain why these gaps matter.',
       29: 'Continue with the next recommendation.',
       30: 'Continue with the next recommendation.',
-      31: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at 90 days and again at 180 days.',
+      31: 'Focus the conversation on the few moves that shift multiple dimensions at once. Sequence the work by starting with confirmation items, then quick wins, then structural capabilities. Define what success looks like at each milestone.',
       32: 'Continue with impact-ranked priorities. Explain why these gaps matter - weight reflects both employee impact and stakeholder importance. Aligning resources to weight is how organizations improve efficiently.',
     };
     // Additional analyzed dimensions get notes (slides 33 to 33+addDimCount-1)
@@ -3459,7 +3459,7 @@ export default function ExportReportPage() {
       what: 'A focused, decision-ready roadmap: four priority dimensions translated into clear actions, owners, and a pragmatic sequence (quick wins first, foundations next).',
       how: 'We use a balanced 2+2 method. Two dimensions are selected by lowest score ("Foundation Focus") to address areas where employees are most likely to experience support gaps. Two additional dimensions are selected by weighted opportunity ("Strategic Leverage"), combining dimension importance with remaining improvement headroom. To avoid spotlighting areas that are already strong, dimensions scoring above 85 are excluded from the Strategic Leverage selection.',
       when: 'Use this section to align HR and leadership on the few moves that matter most, build a practical action plan, and map the initiatives that require longer-term program development.',
-      questions: ['Where are the most immediate vulnerabilities in our support system?', 'Which actions will drive the greatest system-wide improvement in the next 90 days?', 'What should we prioritize for a 12-month roadmap (and what can wait)?', 'Who should own each initiative, and what CAC resources can accelerate progress?']
+      questions: ['Where are the most immediate vulnerabilities in our support system?', 'Which actions will drive the greatest system-wide improvement?', 'What should we prioritize for a roadmap (and what can wait)?', 'Who should own each initiative, and what CAC resources can accelerate progress?']
     }
   };
   
@@ -8432,7 +8432,7 @@ export default function ExportReportPage() {
                         <h5 className="font-bold text-white">Sequence & Track</h5>
                       </div>
                       <p className="text-slate-300 text-sm leading-relaxed">
-                        Prioritize <span className="text-blue-300 font-medium">quick wins (0–90 days)</span> over foundation work (3–12 months). Set quarterly checkpoints to measure progress.
+                        Prioritize <span className="text-blue-300 font-medium">quick wins</span> over foundation work. Set regular checkpoints to measure progress.
                       </p>
                     </div>
                   </div>
@@ -10123,7 +10123,7 @@ export default function ExportReportPage() {
             };
             const defaultBalanceInsight = balanceLookup[wsiTier.name] || balanceLookup['Building'];
 
-            const defaultWhatsNext = '1. Confirm flagged items to finalize scoring \u2192 2. Choose 2\u20133 Most Critical priorities \u2192 3. Turn element gaps into a 90-day action plan with owners and timelines';
+            const defaultWhatsNext = '1. Confirm flagged items to finalize scoring \u2192 2. Choose 2\u20133 Most Critical priorities \u2192 3. Turn element gaps into an action plan with owners and milestones';
 
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
@@ -11504,7 +11504,7 @@ export default function ExportReportPage() {
                           return `${d.name} (${d.score}, ${pg.chip})${tsgStr}`;
                         });
 
-                        // BLOCK C: "Next 90 Days" — top 3 Momentum Opportunity elements
+                        // BLOCK C: "Building Momentum" — top 3 Momentum Opportunity elements
                         const momentumItems: { name: string; dimName: string; pct: number }[] = [];
                         dimensionAnalysis.forEach(d => {
                           const dimBench = elementBenchmarks[d.dim] || {};
@@ -11516,7 +11516,7 @@ export default function ExportReportPage() {
                         });
                         momentumItems.sort((a, b) => b.pct - a.pct);
                         const next90Defaults = momentumItems.slice(0, 3).map(m =>
-                          `${m.name} (${m.dimName}) — already in development, ${m.pct}% peer adoption`
+                          `${m.name} (${m.dimName}) — in development, ${m.pct}% peer adoption`
                         );
 
                         return (
@@ -11567,13 +11567,13 @@ export default function ExportReportPage() {
                               )}
                             </div>
 
-                            {/* Next 90 Days */}
+                            {/* Building Momentum */}
                             <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
                               <div className="flex items-center gap-2 mb-3">
                                 <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                                   <span className="text-blue-600 text-xs font-bold">→</span>
                                 </span>
-                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wider">Next 90 Days</h4>
+                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wider">Building Momentum</h4>
                               </div>
                               {editMode ? (
                                 <textarea
@@ -14790,7 +14790,7 @@ export default function ExportReportPage() {
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Dimensions 4-5 complete the Year 1 roadmap</li>
                         <li>Discuss prioritization and sequencing for implementation</li>
-                        <li>Define success metrics at 90 and 180 days</li>
+                        <li>Define success metrics and milestone checkpoints</li>
                       </ul>
                     </div>
                   )}
