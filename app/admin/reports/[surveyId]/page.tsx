@@ -2843,12 +2843,6 @@ export default function ExportReportPage() {
   const [gatePassword, setGatePassword] = useState('');
   const [gateError, setGateError] = useState(false);
 
-  useEffect(() => {
-    if (sessionStorage.getItem('report_unlocked') === 'true') {
-      setReportUnlocked(true);
-    }
-  }, []);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [company, setCompany] = useState<any>(null);
@@ -4659,7 +4653,6 @@ export default function ExportReportPage() {
          <form onSubmit={(e) => {
            e.preventDefault();
            if (gatePassword === 'BeyondWSI2026!') {
-             sessionStorage.setItem('report_unlocked', 'true');
              setReportUnlocked(true);
              setGateError(false);
            } else {
