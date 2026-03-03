@@ -4232,7 +4232,10 @@ export default function ExportReportPage() {
   const topDimension = dimensionAnalysis[0];
   const bottomDimension = dimensionAnalysis[dimensionAnalysis.length - 1];
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Leading' || d.tier.name === 'Established');
+  const strengthDimSet = new Set(strengthDimensions.map(d => d.dim));
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
+  // Growth dimensions exclude those already shown in Areas of Excellence
+  const growthDimensions = allDimensionsByScore.filter(d => !strengthDimSet.has(d.dim));
   
   // STRATEGIC PRIORITY DIMENSIONS: 2+2 Hybrid Selection with headroom threshold
   const avgWeight = dimensionAnalysis.reduce((sum, d) => sum + d.weight, 0) / dimensionAnalysis.length;
@@ -5411,7 +5414,7 @@ export default function ExportReportPage() {
               
               {/* Tier Progress */}
               {(() => {
-                const topGrowthDims = allDimensionsByScore.slice(0, 3).map(d => d.name);
+                const topGrowthDims = growthDimensions.slice(0, 3).map(d => d.name);
                 const dimList = topGrowthDims.length === 3 
                   ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
                   : topGrowthDims.length === 2
@@ -7174,10 +7177,10 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                    <p className="text-slate-300 mt-0.5 text-sm">{Math.min(allDimensionsByScore.length, 6)} {Math.min(allDimensionsByScore.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
+                    <p className="text-slate-300 mt-0.5 text-sm">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setInfoModal('growth')}
                   className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors"
                 >
@@ -7188,7 +7191,7 @@ export default function ExportReportPage() {
             </div>
             <div className="px-12 py-6">
               <div className="grid grid-cols-2 gap-5">
-                {allDimensionsByScore.slice(0, 6).map((d) => (
+                {growthDimensions.slice(0, 6).map((d) => (
                   <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                     <div className="flex items-center justify-between mb-3">
                       <p className="font-semibold text-slate-800 text-base">{d.name}</p>
@@ -10027,7 +10030,7 @@ export default function ExportReportPage() {
                       
                       {/* Tier Progress Box */}
                       {(() => {
-                        const topGrowthDims = [...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map(d => d.name);
+                        const topGrowthDims = growthDimensions.slice(0, 3).map(d => d.name);
                         const dimList = topGrowthDims.length === 3 
                           ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
                           : topGrowthDims.length === 2
@@ -11356,7 +11359,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                            <p className="text-slate-300 mt-0.5 text-sm">{Math.min(allDimensionsByScore.length, 6)} {Math.min(allDimensionsByScore.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
+                            <p className="text-slate-300 mt-0.5 text-sm">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
@@ -11367,7 +11370,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="px-12 py-6">
                       <div className="grid grid-cols-2 gap-5">
-                        {allDimensionsByScore.slice(0, 6).map((d) => (
+                        {growthDimensions.slice(0, 6).map((d) => (
                           <div key={d.dim} className="border border-slate-200 rounded-xl p-4 bg-white">
                             <div className="flex items-center justify-between mb-3">
                               <p className="font-semibold text-slate-800 text-base">{d.name}</p>
