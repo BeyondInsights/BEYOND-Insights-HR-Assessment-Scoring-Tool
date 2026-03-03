@@ -710,9 +710,17 @@ function getActionItemsByAdoption(dimNum: number, dimensionAnalysis: any[], elem
   return { accelerateItems: accel, buildItems: build };
 }
 
-function getDynamicInsight(dimNum: number, score: number, tierName: string, benchmark: number | null, gaps: any[], strengths: any[], planning: any[]): { insight: string; cacHelp: string } {
+function getDynamicInsight(
+  dimNum: number, score: number, tierName: string, benchmark: number | null,
+  gaps: any[], strengths: any[], planning: any[],
+  evidence?: { topStrength: { name: string; benchPct: number } | null; biggestGap: { name: string; benchPct: number } | null; inFlight: { name: string; benchPct: number } | null },
+  roadmap?: { quickWin: { name: string; reason: string } | null; strategicLift: { name: string; reason: string } | null }
+): { insight: string; cacHelp: string } {
   const benchDiff = benchmark !== null ? score - benchmark : 0;
   const isAboveBenchmark = benchDiff > 0;
+  const benchDescriptor = benchmark !== null
+    ? (benchDiff >= 8 ? 'a clear leader' : benchDiff >= 2 ? 'ahead of peers' : benchDiff >= -1 ? 'in line with peers' : 'behind peers')
+    : null;
   const gapCount = gaps.length;
   const strengthCount = strengths.length;
   const planningCount = planning.length;
@@ -904,44 +912,84 @@ function getDynamicInsight(dimNum: number, score: number, tierName: string, benc
     cacPrograms: { exemplary: '', leading: '', progressing: '', emerging: '', developing: '' }
   };
   
-  let insight = '';
   let cacHelp = '';
-  
+
   // Map WSI tier names to cacPrograms keys (cacPrograms uses old 5-tier keys internally)
   const cacKeyMap: Record<string, string> = { 'Leading': 'exemplary', 'Established': 'leading', 'Progressing': 'progressing', 'Building': 'emerging' };
   const cacProgram = ctx.cacPrograms[(cacKeyMap[tierName] || 'progressing') as keyof typeof ctx.cacPrograms] || ctx.cacPrograms.progressing;
+  cacHelp = cacProgram;
 
-  // Tier-based insight generation with specific data (WSI 4-tier model)
+  // Evidence-based insight generation — build from modular clauses using actual data
+  const hasEvidence = evidence && (evidence.topStrength || evidence.biggestGap || evidence.inFlight);
+
+  if (hasEvidence) {
+    const clauses: string[] = [];
+
+    // Benchmark-relative positioning
+    if (benchDescriptor && benchmark !== null) {
+      clauses.push(`At ${score}, the organization is ${benchDescriptor} in ${ctx.focus} (benchmark: ${benchmark}).`);
+    } else {
+      clauses.push(`At ${score}, ${ctx.focus} is at the ${tierName} level.`);
+    }
+
+    // Differentiating strength (peer adoption < 35%)
+    if (evidence!.topStrength && evidence!.topStrength.benchPct < 35) {
+      clauses.push(`You differentiate on ${evidence!.topStrength.name} — only ${evidence!.topStrength.benchPct}% of peers offer this.`);
+    } else if (strengthCount > 0) {
+      clauses.push(`${strengthCount} element${strengthCount > 1 ? 's' : ''} fully in place.`);
+    }
+
+    // Table-stakes gap (peer adoption > 60%)
+    if (evidence!.biggestGap && evidence!.biggestGap.benchPct > 60) {
+      clauses.push(`The biggest catch-up gap is ${evidence!.biggestGap.name} (${evidence!.biggestGap.benchPct}% of peers already have this).`);
+    } else if (gapCount > 0) {
+      clauses.push(`${gapCount} gap${gapCount > 1 ? 's' : ''} identified for improvement.`);
+    }
+
+    // In-flight item
+    if (evidence!.inFlight) {
+      clauses.push(`Fastest lift: complete ${evidence!.inFlight.name}, already in development.`);
+    }
+
+    return { insight: clauses.join(' '), cacHelp };
+  }
+
+  // Fallback: tier-based insight when evidence data is empty
+  let insight = '';
   if (tierName === 'Leading') {
     insight = `Your ${ctx.focus} represents best-in-class performance at ${score} points. ${strengthCount > 0 ? `With ${strengthCount} elements fully implemented, you've` : 'You\'ve'} established a foundation others aspire to. ${isAboveBenchmark && benchmark !== null ? `At ${benchDiff} points above the participant average of ${benchmark}, this demonstrates exceptional commitment to employee support.` : ''} Focus on maintaining this standard and codifying your practices for organizational knowledge transfer.`;
-    cacHelp = cacProgram;
   } else if (tierName === 'Established') {
     insight = `Strong foundation in ${ctx.focus} at ${score} points positions you well. ${isAboveBenchmark && benchmark !== null ? `Scoring ${benchDiff} points above the ${benchmark} benchmark demonstrates genuine commitment.` : benchmark !== null ? `Reaching the ${benchmark} benchmark is within reach.` : ''} ${gapCount > 0 ? `Addressing ${gapCount} remaining gap${gapCount > 1 ? 's' : ''} would move you toward Leading status—consider starting with ${ctx.quickWin}.` : 'Targeted refinements can elevate you to Leading tier.'}`;
-    cacHelp = cacProgram;
   } else if (tierName === 'Progressing') {
     insight = `Solid progress in ${ctx.focus} at ${score} points, with clear room to grow. ${gapCount > 0 ? `${gapCount} improvement opportunit${gapCount > 1 ? 'ies' : 'y'} represent${gapCount === 1 ? 's' : ''} your path forward.` : ''} ${!isAboveBenchmark && benchmark !== null ? `Closing the ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant benchmark should be a near-term priority.` : ''} Quick win to consider: ${ctx.quickWin}.`;
-    cacHelp = cacProgram;
   } else {
-    // Building tier
     insight = `${ctx.focus.charAt(0).toUpperCase() + ctx.focus.slice(1)} at ${score} points needs focused attention to avoid ${ctx.risk}. ${gapCount > 0 ? `With ${gapCount} gaps identified, targeted investment here could significantly improve employee experience and reduce organizational risk.` : ''} ${!isAboveBenchmark && benchmark !== null ? `The ${Math.abs(benchDiff)}-point gap to the ${benchmark} participant average signals this as a priority area.` : ''} Recommended action: implement ${ctx.quickWin}.`;
-    cacHelp = cacProgram;
   }
-  
+
   return { insight, cacHelp };
 }
 
-// Generate benchmark comparison narrative
+// Estimate WSI score impact if an element moves from "not in place" to "in place"
+function calculateElementLift(dimNum: number, elementName: string): number {
+  const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
+  const dimWeight = DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0;
+  const ew = ELEMENT_DIM_WEIGHTS[elementName];
+  const elemWeight = ew ? ew[1] : 0;
+  const statusDelta = 1.0; // full swing: 0→5 on 0-5 scale = 0→1.0 normalized
+  const compositeMultiplier = DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100;
+  return (dimWeight / totalDimWeight) * elemWeight * statusDelta * compositeMultiplier * 100;
+}
+
+// Generate benchmark comparison narrative using benchmark-relative descriptors
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  if (diff > 25) return `Exceptional performance at ${diff} points above the participant average—this represents a genuine organizational strength and commitment to employee wellbeing.`;
-  if (diff > 15) return `Well above the ${benchmark} participant average by ${diff} points, indicating mature, established practices that employees likely recognize and value.`;
-  if (diff > 5) return `Above benchmark by ${diff} points (participant avg: ${benchmark}), demonstrating strong commitment with opportunities to strengthen further.`;
-  if (diff > 0) return `Slightly above the ${benchmark} participant average—a good foundation to build on for differentiation.`;
-  if (diff === 0) return `Matching the participant average of ${benchmark}—an opportunity to differentiate through targeted improvements.`;
-  if (diff > -10) return `${Math.abs(diff)} points below the ${benchmark} participant benchmark—targeted improvements can close this gap within 6-12 months.`;
-  if (diff > -20) return `Notable gap of ${Math.abs(diff)} points below the ${benchmark} participant average warrants focused strategic attention.`;
-  return `Currently ${Math.abs(diff)} points below the participant average (${benchmark})—this is a priority area where focused improvements will meaningfully strengthen your employee support.`;
+  const descriptor = diff >= 8 ? 'a clear leader' : diff >= 2 ? 'ahead of peers' : diff >= -1 ? 'in line with peers' : 'behind peers';
+  if (diff >= 8) return `At ${score}, the organization is ${descriptor} in ${dimName} — ${diff} points above the participant average of ${benchmark}. This represents a genuine differentiator.`;
+  if (diff >= 2) return `At ${score}, the organization is ${descriptor} in ${dimName} (benchmark: ${benchmark}), with room to widen the lead through targeted enhancements.`;
+  if (diff >= -1) return `At ${score}, the organization is ${descriptor} in ${dimName} (benchmark: ${benchmark}) — an opportunity to differentiate through targeted improvements.`;
+  if (diff >= -8) return `At ${score}, the organization is ${descriptor} in ${dimName} — ${Math.abs(diff)} points below the ${benchmark} benchmark. Targeted improvements can close this gap.`;
+  return `At ${score}, the organization is ${descriptor} in ${dimName} — ${Math.abs(diff)} points below the ${benchmark} benchmark. This is a priority area for focused investment.`;
 }
 
 // Identify meaningful cross-dimension patterns
@@ -8461,12 +8509,12 @@ export default function ExportReportPage() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {strategicPriorityDims.map((d, idx) => {
-                const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
-                const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                 const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
                 const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
+                const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                 const tierColor = getScoreColor(d.score);
-                
+
                 return (
                   <div key={d.dim} id={`dimension-card-${d.dim}`} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
                     {/* Dimension Header */}
@@ -8662,9 +8710,14 @@ export default function ExportReportPage() {
                               <div className="space-y-3">
                                 {roadmap.quickWin && (
                                   <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                    {(() => {
+                                      const qwName = customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name;
+                                      const qwLift = calculateElementLift(d.dim, qwName);
+                                      return (
+                                        <>
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
-                                      
+                                      {qwLift > 0.05 && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">~+{qwLift.toFixed(1)} WSI pts</span>}
                                     </div>
                                     {editMode ? (
                                       <>
@@ -8683,7 +8736,7 @@ export default function ExportReportPage() {
                                           placeholder="Reason / rationale..."
                                         />
                                         {customDimRoadmaps[d.dim]?.quickWin && (
-                                          <button 
+                                          <button
                                             onClick={() => resetCustomDimRoadmap(d.dim, 'quickWin')}
                                             className="mt-1 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
                                           >
@@ -8696,17 +8749,25 @@ export default function ExportReportPage() {
                                       </>
                                     ) : (
                                       <>
-                                        <p className="text-base font-medium text-slate-800">{customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name}</p>
+                                        <p className="text-base font-medium text-slate-800">{qwName}</p>
                                         <p className="text-sm text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.quickWin?.reason || roadmap.quickWin.reason}</p>
                                       </>
                                     )}
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 )}
                                 {roadmap.strategicLift && (
                                   <div className="bg-white rounded-lg p-3 border border-indigo-100">
+                                    {(() => {
+                                      const slName = customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name;
+                                      const slLift = calculateElementLift(d.dim, slName);
+                                      return (
+                                        <>
                                     <div className="flex items-center gap-2 mb-1">
                                       <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
-                                      
+                                      {slLift > 0.05 && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">~+{slLift.toFixed(1)} WSI pts</span>}
                                     </div>
                                     {editMode ? (
                                       <>
@@ -8738,10 +8799,13 @@ export default function ExportReportPage() {
                                       </>
                                     ) : (
                                       <>
-                                        <p className="text-base font-medium text-slate-800">{customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name}</p>
+                                        <p className="text-base font-medium text-slate-800">{slName}</p>
                                         <p className="text-sm text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
                                       </>
                                     )}
+                                        </>
+                                      );
+                                    })()}
                                   </div>
                                 )}
                               </div>
@@ -8805,10 +8869,10 @@ export default function ExportReportPage() {
                 {additionalAnalyzedDims.map((dimNum, addIdx) => {
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
-                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
-                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
                   const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const tierColor = getScoreColor(d.score);
                   
                   return (
@@ -11220,17 +11284,28 @@ export default function ExportReportPage() {
                     {/* Executive Summary section */}
                     <div className="px-12 py-8 bg-slate-50">
                       <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-                      <p className="text-slate-700 leading-relaxed text-lg">
-                        {companyName} demonstrates <strong className="font-semibold" style={{ color: tier?.color }}>{tier?.name?.toLowerCase()}</strong> performance 
-                        in supporting employees managing cancer, achieving a composite score of <strong>{compositeScore}</strong>
-                        {percentileRank !== null && totalCompanies > 1 && (
-                          <span>, which places the organization in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
-                        )}.
-                        {topDimension && bottomDimension && (
-                          <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}), 
-                          while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
-                        )}
-                      </p>
+                      {(() => {
+                        const execBenchDiff = compositeScore && benchmarks?.compositeScore ? compositeScore - benchmarks.compositeScore : null;
+                        const execDescriptor = execBenchDiff !== null
+                          ? (execBenchDiff >= 8 ? 'a clear leader' : execBenchDiff >= 2 ? 'ahead of peers' : execBenchDiff >= -1 ? 'in line with peers' : 'behind peers')
+                          : tier?.name?.toLowerCase();
+                        const execDescColor = execBenchDiff !== null
+                          ? (execBenchDiff >= 8 ? '#047857' : execBenchDiff >= 2 ? '#1D4ED8' : execBenchDiff >= -1 ? '#B45309' : '#B91C1C')
+                          : (tier?.color || '#666');
+                        return (
+                          <p className="text-slate-700 leading-relaxed text-lg">
+                            With a composite score of <strong>{compositeScore}</strong>, {companyName} is <strong className="font-semibold" style={{ color: execDescColor }}>{execDescriptor}</strong> in supporting employees managing cancer
+                            {execBenchDiff !== null && <span> (benchmark: {benchmarks?.compositeScore})</span>}
+                            {percentileRank !== null && totalCompanies > 1 && (
+                              <span>, placing in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
+                            )}.
+                            {topDimension && bottomDimension && (
+                              <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}),
+                              while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
+                            )}
+                          </p>
+                        );
+                      })()}
                       
                       {/* Provisional Classification Notice */}
                       {isProvisional && (
@@ -13033,10 +13108,10 @@ export default function ExportReportPage() {
                   const d = strategicPriorityDims[recIdx];
                   if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
                   
-                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
-                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
                   const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const tierColor = getScoreColor(d.score);
                   
                   return (
@@ -13258,10 +13333,10 @@ export default function ExportReportPage() {
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
                   
-                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning);
-                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
                   const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
+                  const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
+                  const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
                   const tierColor = getScoreColor(d.score);
                   
                   return (
