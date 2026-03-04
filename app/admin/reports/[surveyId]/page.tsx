@@ -4251,6 +4251,37 @@ export default function ExportReportPage() {
   }
 
 
+  // ============================================
+  // CLIENT-SIDE CONTENT PROTECTION
+  // Disables right-click, dev tools shortcuts, text selection, and printing
+  // ============================================
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => { e.preventDefault(); };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // F12 (dev tools)
+      if (e.key === 'F12') { e.preventDefault(); return; }
+      // Ctrl+Shift+I (dev tools), Ctrl+Shift+J (console), Ctrl+Shift+C (element picker)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key)) { e.preventDefault(); return; }
+      // Ctrl+U (view source)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U')) { e.preventDefault(); return; }
+      // Ctrl+S (save page) — allow in edit mode (handled by separate listener)
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S') && !editMode) { e.preventDefault(); return; }
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    // Inject print-blocking and selection-blocking styles
+    const style = document.createElement('style');
+    style.id = 'report-protection-styles';
+    style.textContent = `@media print { body { display: none !important; } } body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }`;
+    document.head.appendChild(style);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      const el = document.getElementById('report-protection-styles');
+      if (el) el.remove();
+    };
+  }, [editMode]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
