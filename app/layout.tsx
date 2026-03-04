@@ -5,6 +5,7 @@ import SavedToast from "@/components/SavedToast";
 import AutoDataSync from "@/lib/supabase/auto-data-sync";
 import SyncConflictBanner from "@/components/SyncConflictBanner";
 import SyncDiagnostics from "@/lib/supabase/SyncDiagnostics";
+import SecurityProtection from "@/components/SecurityProtection";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <SecurityProtection />
         <AutoDataSync />
         <SyncDiagnostics />
         <SyncConflictBanner />
