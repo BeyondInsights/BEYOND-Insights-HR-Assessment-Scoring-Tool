@@ -2884,6 +2884,7 @@ export default function ExportReportPage() {
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
   const [showScoreComparison, setShowScoreComparison] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
+  const [activeReportTab, setActiveReportTab] = useState<'excellence' | 'initiatives' | 'growth'>('excellence');
   
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [showWwcPledgeDetails, setShowWwcPledgeDetails] = useState(false);
@@ -8130,192 +8131,163 @@ export default function ExportReportPage() {
             </div>
           )}
           
-          {/* ============ REPORT SUMMARY HEADER ============ */}
-          <div className="max-w-[1280px] mx-auto mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center shadow-md flex-shrink-0">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+          {/* ============ REPORT SUMMARY ============ */}
+          <div id="report-summary" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+            {/* Header */}
+            <div className="px-12 pt-8 pb-0">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center shadow-md flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Report Summary</h2>
+                  <p className="text-slate-500 text-sm mt-0.5">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">Report Summary</h2>
-                <p className="text-slate-500 text-sm mt-0.5">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
-              </div>
-            </div>
-          </div>
 
-          {/* ============ AREAS OF EXCELLENCE ============ */}
-          <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-6 bg-gradient-to-r from-teal-700 to-teal-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                    <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above <span className="text-teal-300/70 ml-1">· Click any dimension for full details</span></p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setInfoModal('excellence')}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Learn More
-                </button>
+              {/* Tab strip */}
+              <div className="flex border-b border-slate-200">
+                {([
+                  { key: 'excellence' as const, label: 'Areas of Excellence', color: '#0D9488', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: strengthDimensions.length },
+                  { key: 'initiatives' as const, label: 'Initiatives in Progress', color: '#D97706', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: quickWinOpportunities.length },
+                  { key: 'growth' as const, label: 'Areas of Growth', color: '#475569', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: Math.min(growthDimensions.length, 6) },
+                ]).map(tab => {
+                  const isActive = activeReportTab === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveReportTab(tab.key)}
+                      className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative"
+                      style={{ color: isActive ? tab.color : '#94a3b8' }}
+                    >
+                      {tab.icon}
+                      <span style={{ fontWeight: isActive ? 600 : 400 }}>{tab.label}</span>
+                      <span className="text-xs ml-1 tabular-nums" style={{ opacity: 0.7 }}>{tab.count}</span>
+                      {isActive && (
+                        <span className="absolute bottom-0 left-0 right-0 h-[3px]" style={{ backgroundColor: tab.color }} />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
+            {/* Tab content */}
             <div className="px-12 py-8">
-              {strengthDimensions.length > 0 ? (
-                <div className="grid grid-cols-2 gap-5">
-                  {strengthDimensions.slice(0, 6).map((d) => (
-                    <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-teal-300 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2.5">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>D{d.dim}</span>
-                          <p className="font-semibold text-slate-800 text-base">{d.name}</p>
-                        </div>
-                        <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                      </div>
-                      <ul className="space-y-1.5">
-                        {d.strengths.slice(0, 3).map((e: any, i: number) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <svg className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span>{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
+              {/* ---- Excellence tab ---- */}
+              {activeReportTab === 'excellence' && (
+                <div id="areas-of-excellence">
+                  <p className="text-sm text-slate-500 mb-5">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above · Click any dimension for full details</p>
+                  {strengthDimensions.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-5">
+                      {strengthDimensions.slice(0, 6).map((d) => {
+                        const pg = getEmployeePriorityGroup(d.weight);
+                        return (
+                          <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-teal-300 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
+                                <p className="font-semibold text-slate-800 text-base truncate">{d.name}</p>
+                              </div>
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 text-white" style={{ backgroundColor: pg.color }}>{pg.chip}</span>
+                              </div>
+                            </div>
+                            <ul className="space-y-1.5">
+                              {d.strengths.slice(0, 3).map((e: any, i: number) => (
+                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <svg className="w-4 h-4 text-teal-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  <span>{e.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
+                    </div>
+                  )}
                 </div>
               )}
-              <div className="flex items-center gap-2 px-12 pb-6 pt-2">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
-              </div>
-            </div>
-          </div>
 
-          {/* ============ INITIATIVES IN PROGRESS ============ */}
-          {quickWinOpportunities.length > 0 && (
-            <div id="initiatives-in-progress" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-              <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M9 14l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
+              {/* ---- Initiatives tab ---- */}
+              {activeReportTab === 'initiatives' && (
+                <div id="initiatives-in-progress">
+                  <p className="text-sm text-slate-500 mb-5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                  {quickWinOpportunities.length > 0 ? (
+                    <div className="grid grid-cols-2 gap-5">
+                      {quickWinOpportunities.map((item: any, idx: number) => {
+                        const pg = getEmployeePriorityGroup(dimensionAnalysis.find((d: any) => d.dim === item.dimNum)?.weight || 0);
+                        return (
+                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-amber-300 transition-all">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
+                                <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 text-white" style={{ backgroundColor: pg.color }}>{pg.chip}</span>
+                              </div>
+                              <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
+                                <span className="text-sm text-slate-500">{item.dimName}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
-                      <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-slate-500">No initiatives currently in progress.</p>
                     </div>
-                  </div>
-                  <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
-                    <p className="text-white font-semibold">Fastest path to improvement</p>
-                  </div>
+                  )}
                 </div>
-              </div>
-              <div className="px-12 py-8">
-                <div className="grid grid-cols-2 gap-5">
-                  {quickWinOpportunities.map((item: any, idx: number) => {
-                    const pg = getEmployeePriorityGroup(dimensionAnalysis.find((d: any) => d.dim === item.dimNum)?.weight || 0);
-                    return (
-                    <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-violet-300 transition-all">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                        </div>
-                        <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                        <div className="flex items-center gap-2 mt-1.5">
-                          <span className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
-                          <span className="text-sm text-slate-500">{item.dimName}</span>
-                        </div>
-                      </div>
-                    </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center gap-2 mt-5">
-                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
-                </div>
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* ============ GROWTH OPPORTUNITIES ============ */}
-          <div id="growth-opportunities" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-6 bg-gradient-to-r from-slate-700 to-slate-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                    <p className="text-slate-300 mt-0.5 text-sm">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-400/70 ml-1">· Click any dimension for full details</span></p>
+              {/* ---- Growth tab ---- */}
+              {activeReportTab === 'growth' && (
+                <div id="growth-opportunities">
+                  <p className="text-sm text-slate-500 mb-5">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential · Click any dimension for full details</p>
+                  <div className="grid grid-cols-2 gap-5">
+                    {growthDimensions.slice(0, 6).map((d) => {
+                      const pg = getEmployeePriorityGroup(d.weight);
+                      return (
+                        <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
+                              <p className="font-semibold text-slate-800 text-base truncate">{d.name}</p>
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0">
+                              <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
+                              <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 text-white" style={{ backgroundColor: pg.color }}>{pg.chip}</span>
+                            </div>
+                          </div>
+                          {d.needsAttention.length > 0 ? (
+                            <ul className="space-y-1.5">
+                              {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
+                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-500'}`}></span>
+                                  <span>{e.name}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-slate-400">Focus on completing planned initiatives</p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-                <button 
-                  onClick={() => setInfoModal('growth')}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-medium rounded-lg transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  Learn More
-                </button>
-              </div>
-            </div>
-            <div className="px-12 py-8">
-              <div className="grid grid-cols-2 gap-5">
-                {growthDimensions.slice(0, 6).map((d) => (
-                  <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>D{d.dim}</span>
-                        <p className="font-semibold text-slate-800 text-base">{d.name}</p>
-                      </div>
-                      <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                    </div>
-                    {d.needsAttention.length > 0 ? (
-                      <ul className="space-y-1.5">
-                        {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
-                          <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                            <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-500'}`}></span>
-                            <span>{e.name}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="text-sm text-slate-400">Focus on completing planned initiatives</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 px-12 pb-6 pt-2">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
-              </div>
+              )}
             </div>
           </div>
 
