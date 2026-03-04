@@ -4375,7 +4375,6 @@ export default function ExportReportPage() {
   const reportSections = [
     { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
     { id: 'wsi-score-section', label: 'Workplace Support Composite Score', iconKey: 'performance' },
-    { id: 'confirmatory-checklist', label: 'Confirmatory Checklist', iconKey: 'checklist', show: unsureItems > 0 },
     { id: 'dimension-performance-table', label: 'Dimension Support Scores', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
@@ -4744,22 +4743,6 @@ export default function ExportReportPage() {
                 )}
               </div>
               
-              {/* Needs Confirmation Quick Button */}
-              {unsureItems > 0 && (
-                <button 
-                  onClick={() => {
-                    setShowConfirmatoryChecklist(true);
-                    setTimeout(() => {
-                      document.getElementById('confirmatory-checklist')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 100);
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-semibold transition-colors"
-                  style={{ backgroundColor: '#fef3e6', color: '#F37021', border: '1px solid #F37021' }}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                  Confirm ({unsureItems})
-                </button>
-              )}
             </div>
             <div className="flex items-center gap-4">
               
@@ -5833,8 +5816,8 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* ============ CONFIRMATORY CHECKLIST ============ */}
-            {unsureItems > 0 && (
+            {/* ============ CONFIRMATORY CHECKLIST (removed) ============ */}
+            {false && unsureItems > 0 && (
               <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1280px] mx-auto">
                 <button 
                   onClick={() => setShowConfirmatoryChecklist(!showConfirmatoryChecklist)}
