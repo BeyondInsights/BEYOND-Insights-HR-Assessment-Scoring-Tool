@@ -4160,8 +4160,8 @@ export default function ExportReportPage() {
         weightedDimScore: weightedDimScore || 0,
         maturityScore: maturityScore || 0,
         breadthScore: breadthScore || 0,
-        tier: getWSITier(compositeScore || 0).name,
-        executiveSummary: customExecutiveSummary || `${company?.firmographics_data?.company_name || 'This organization'} demonstrates ${getWSITier(compositeScore || 0).name.toLowerCase()} performance in supporting employees managing cancer, with a composite score of ${compositeScore || 0}. The strongest dimension is ${dimensionAnalysis[0]?.name || 'N/A'} (${dimensionAnalysis[0]?.score || 0}), while ${dimensionAnalysis[dimensionAnalysis.length - 1]?.name || 'N/A'} (${dimensionAnalysis[dimensionAnalysis.length - 1]?.score || 0}) represents the greatest opportunity for growth.`,
+        tier: getWSITier(wsiScoreHeader || 0).name,
+        executiveSummary: customExecutiveSummary || `${company?.firmographics_data?.company_name || 'This organization'} demonstrates ${getWSITier(wsiScoreHeader || 0).name.toLowerCase()} performance in supporting employees managing cancer, with a composite score of ${wsiScoreHeader || 0}. The strongest dimension is ${dimensionAnalysis[0]?.name || 'N/A'} (${dimensionAnalysis[0]?.score || 0}), while ${dimensionAnalysis[dimensionAnalysis.length - 1]?.name || 'N/A'} (${dimensionAnalysis[dimensionAnalysis.length - 1]?.score || 0}) represents the greatest opportunity for growth.`,
         dimensions: dimensionAnalysis.map(d => ({
           dim: d.dim,
           name: d.name,
@@ -9423,7 +9423,7 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-3 gap-3">
                         <div className="bg-slate-50 rounded-lg p-3 text-center">
                           <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Current</p>
-                          <p className="text-2xl font-bold text-slate-400">{compositeScore || '--'}</p>
+                          <p className="text-2xl font-bold text-slate-400">{wsiScoreHeader}</p>
                         </div>
                         <div className="bg-slate-800 rounded-lg p-3 text-center">
                           <p className="text-xs text-slate-300 uppercase tracking-wide font-medium mb-1">Projected</p>
@@ -10603,7 +10603,7 @@ export default function ExportReportPage() {
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                  <p className="text-4xl font-bold text-[#F37021]">{compositeScore ?? '--'}</p>
+                  <p className="text-4xl font-bold text-[#F37021]">{wsiScoreHeader}</p>
                   <p className="text-slate-400 text-sm mt-2">Your Score</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
@@ -10647,17 +10647,17 @@ export default function ExportReportPage() {
                 <p className="text-xs text-slate-500 mb-4 text-center">Click on Maturity or Breadth to learn more</p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <div className="text-center px-6 py-4 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 min-w-[120px]">
-                    <p className="text-3xl font-bold text-white">{compositeScore ?? '—'}</p>
+                    <p className="text-3xl font-bold text-white">{wsiScoreHeader}</p>
                     <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-2">Composite</p>
                   </div>
                   <span className="text-2xl text-slate-400 font-light">=</span>
                   <div className="text-center px-5 py-3 bg-white rounded-xl border-2 border-slate-200 min-w-[100px]">
-                    <p className="text-2xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
+                    <p className="text-2xl font-bold text-slate-700">{_wsiWeightedDim}</p>
                     <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
                     <p className="text-xs text-slate-400">× 90%</p>
                   </div>
                   <span className="text-xl text-slate-400 font-light">+</span>
-                  <div 
+                  <div
                     onClick={() => setActiveScoreOverlay('maturity')}
                     className="text-center px-5 py-3 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all"
                   >
@@ -11237,7 +11237,7 @@ export default function ExportReportPage() {
                             {/* Company's Current Score */}
                             <div className="mt-4 pt-4 border-t border-slate-200 text-center">
                               <p className="text-sm text-slate-600">
-                                <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{compositeScore}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
+                                <span className="font-semibold text-slate-800">{companyName}</span> Current Score: <span className="font-bold text-lg" style={{ color: tier?.color }}>{wsiScoreHeader}</span> · <span className="font-semibold" style={{ color: tier?.color }}>{tier?.name}</span>
                               </p>
                             </div>
                           </div>
@@ -11389,7 +11389,7 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-8">
                           <div className="text-right">
                             <p className="text-slate-500 text-sm font-medium">{'Workplace Support Index'}</p>
-                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{wsiScoreHeader}</p>
                           </div>
                           {tier && (
                             <div className="flex flex-col items-center">
@@ -11425,7 +11425,7 @@ export default function ExportReportPage() {
                           : (tier?.color || '#666');
                         return (
                           <p className="text-slate-700 leading-relaxed text-lg">
-                            With a composite score of <strong>{compositeScore}</strong>, {companyName} is <strong className="font-semibold" style={{ color: execDescColor }}>{execDescriptor}</strong> in supporting employees managing cancer
+                            With a composite score of <strong>{wsiScoreHeader}</strong>, {companyName} is <strong className="font-semibold" style={{ color: execDescColor }}>{execDescriptor}</strong> in supporting employees managing cancer
                             {execBenchDiff !== null && <span> (benchmark: {benchmarks?.compositeScore})</span>}
                             {percentileRank !== null && totalCompanies > 1 && (
                               <span>, placing in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
@@ -12543,7 +12543,7 @@ export default function ExportReportPage() {
                           <div className="grid grid-cols-3 gap-2">
                             <div className="bg-slate-50 rounded p-2 text-center">
                               <p className="text-[9px] text-slate-500 uppercase font-medium mb-1">Current</p>
-                              <p className="text-xl font-bold text-slate-400">{compositeScore || '--'}</p>
+                              <p className="text-xl font-bold text-slate-400">{wsiScoreHeader}</p>
                             </div>
                             <div className="bg-slate-800 rounded p-2 text-center">
                               <p className="text-[9px] text-slate-300 uppercase font-medium mb-1">Projected</p>
@@ -14225,12 +14225,12 @@ export default function ExportReportPage() {
                         <p className="font-bold text-slate-700 mb-4 text-center">Score Composition</p>
                         <div className="flex items-center justify-center gap-4 flex-wrap">
                           <div className="text-center px-5 py-3 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 min-w-[100px]">
-                            <p className="text-2xl font-bold text-white">{compositeScore ?? '—'}</p>
+                            <p className="text-2xl font-bold text-white">{wsiScoreHeader}</p>
                             <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-1">Composite</p>
                           </div>
                           <span className="text-xl text-slate-400 font-light">=</span>
                           <div className="text-center px-4 py-2.5 bg-white rounded-xl border-2 border-slate-200 min-w-[90px]">
-                            <p className="text-xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
+                            <p className="text-xl font-bold text-slate-700">{_wsiWeightedDim}</p>
                             <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
                             <p className="text-xs text-slate-400">× 90%</p>
                           </div>
@@ -14341,7 +14341,7 @@ export default function ExportReportPage() {
                         {/* Stats row */}
                         <div className="grid grid-cols-3 gap-6 max-w-3xl w-full mb-8">
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                            <p className="text-3xl font-bold text-[#F37021]">{compositeScore ?? '--'}</p>
+                            <p className="text-3xl font-bold text-[#F37021]">{wsiScoreHeader}</p>
                             <p className="text-slate-400 text-sm mt-1">Your Score</p>
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
@@ -14772,7 +14772,7 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Key talking points:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Start with the composite score - <strong style={{ color: tier?.color }}>{compositeScore}</strong> places them in the <strong>{tier?.name}</strong> tier</li>
+                        <li>Start with the composite score - <strong style={{ color: tier?.color }}>{wsiScoreHeader}</strong> places them in the <strong>{tier?.name}</strong> tier</li>
                         <li>Highlight assessment date and that this represents current state, not aspirational</li>
                         <li>Mention the {totalElements} support elements evaluated across {Object.keys(dimensionScores).length} dimensions</li>
                       </ul>
