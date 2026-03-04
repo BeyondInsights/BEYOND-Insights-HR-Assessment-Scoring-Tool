@@ -8079,6 +8079,21 @@ export default function ExportReportPage() {
             </div>
           )}
           
+          {/* ============ REPORT SUMMARY HEADER ============ */}
+          <div className="max-w-[1280px] mx-auto mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center shadow-md flex-shrink-0">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Report Summary</h2>
+                <p className="text-slate-500 text-sm mt-0.5">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
+              </div>
+            </div>
+          </div>
+
           {/* ============ AREAS OF EXCELLENCE ============ */}
           <div id="areas-of-excellence" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-teal-700 to-teal-800">
@@ -8109,7 +8124,10 @@ export default function ExportReportPage() {
                   {strengthDimensions.slice(0, 6).map((d) => (
                     <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-teal-300 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                       <div className="flex items-center justify-between mb-3">
-                        <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                        <div className="flex items-center gap-2.5">
+                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>D{d.dim}</span>
+                          <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                        </div>
                         <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                       </div>
                       <ul className="space-y-1.5">
@@ -8202,7 +8220,10 @@ export default function ExportReportPage() {
                 {growthDimensions.slice(0, 6).map((d) => (
                   <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                     <div className="flex items-center justify-between mb-3">
-                      <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>D{d.dim}</span>
+                        <p className="font-semibold text-slate-800 text-base">{d.name}</p>
+                      </div>
                       <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
                     </div>
                     {d.needsAttention.length > 0 ? (
