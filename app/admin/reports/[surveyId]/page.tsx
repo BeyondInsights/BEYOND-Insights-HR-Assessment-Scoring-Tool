@@ -5087,7 +5087,7 @@ export default function ExportReportPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
                               </div>
-                              <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
+                              <p className="text-lg font-bold text-slate-800">A shared purpose in creating a resilient workforce</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
                               We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
@@ -5118,6 +5118,97 @@ export default function ExportReportPage() {
             </div>
             
             
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The 13 Dimensions of Workplace Support</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showDimensionsOverview ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showDimensionsOverview && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-6">
+                      {/* Lead-in text */}
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
+                      </p>
+                      
+                      {/* Dimensions Grid - 3x4 + 1 */}
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
+                          { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
+                          { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
+                          { dim: 4, name: 'Cancer Support Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
+                          { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
+                          { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
+                          { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
+                          { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
+                          { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
+                          { dim: 10, name: 'Caregiver & Family Support', color: '#F59E0B', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
+                          { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
+                          { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
+                          { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
+                        ].map((d) => {
+                          const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
+                          const elementCount = dimData?.elements?.length || 0;
+                          const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
+                          const epGroup = getEmployeePriorityGroup(weightPct);
+                          return (
+                            <div
+                              key={d.dim}
+                              className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all"
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <div
+                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
+                                  style={{ backgroundColor: epGroup.color }}
+                                  title={epGroup.label}
+                                >
+                                  {d.dim}
+                                </div>
+                                <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
+                              </div>
+                              <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                  <span>{elementCount} support elements</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        </div>
+                        <p className="text-sm text-slate-600">
+                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
                         {/* The Three Levels of Workplace Support — Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
@@ -5246,98 +5337,6 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-            {/* The 13 Dimensions Overview — Collapsible */}
-            <div className="px-12 py-6 bg-white border-b border-slate-200">
-              <button
-                onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The 13 Dimensions of Workplace Cancer Support</span>
-                  </div>
-                </div>
-                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showDimensionsOverview ? 'rotate-180' : ''}`}>
-                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </button>
-              
-              {showDimensionsOverview && (
-                <div className="mt-4 pb-1">
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <div className="p-6">
-                      {/* Lead-in text */}
-                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                        Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
-                      </p>
-                      
-                      {/* Dimensions Grid - 3x4 + 1 */}
-                      <div className="grid grid-cols-3 gap-4">
-                        {[
-                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
-                          { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
-                          { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
-                          { dim: 4, name: 'Cancer Support Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
-                          { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
-                          { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
-                          { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
-                          { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
-                          { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
-                          { dim: 10, name: 'Caregiver & Family Support', color: '#F59E0B', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
-                          { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
-                          { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
-                          { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
-                        ].map((d) => {
-                          const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
-                          const elementCount = dimData?.elements?.length || 0;
-                          const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
-                          const epGroup = getEmployeePriorityGroup(weightPct);
-                          return (
-                            <div
-                              key={d.dim}
-                              className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all"
-                            >
-                              <div className="flex items-center gap-3 mb-2">
-                                <div
-                                  className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm"
-                                  style={{ backgroundColor: epGroup.color }}
-                                  title={epGroup.label}
-                                >
-                                  {d.dim}
-                                </div>
-                                <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
-                              </div>
-                              <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                  <span>{elementCount} support elements</span>
-                                </div>
-                                <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        </div>
-                        <p className="text-sm text-slate-600">
-                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* How to Use This Report — Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
@@ -5351,7 +5350,6 @@ export default function ExportReportPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-sm font-bold text-slate-800 group-hover:text-sky-800 transition-colors">How to Use This Report</span>
-                    <span className="text-sm text-slate-600 ml-3 font-medium">A guide to getting the most from your report</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`}>
@@ -5364,46 +5362,54 @@ export default function ExportReportPage() {
                   <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
                     <div className="p-6">
                       <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                        <strong className="text-slate-800">Use this report to align on priorities, confirm what&apos;s in place, and build a practical action plan.</strong> It&apos;s designed as a starting point for strategic conversations, not a one-size-fits-all prescription.
+                        This report is interactive in many areas. Throughout the report, you will be able to see your performance benchmarked against other participating companies, both at the dimension level and across each element assessed in the survey. Company-identifying information has been withheld; only you will know how your organization performed.
                       </p>
                       <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                        Every organization is different. Your industry, workforce, and current capabilities shape what&apos;s realistic and impactful. Some recommendations will align with your priorities; others may not be feasible yet, and that&apos;s expected.
+                        This report provides a comprehensive review of your organization&apos;s self-reported support infrastructure for employees managing cancer and other serious health conditions across 13 dimensions. It highlights strengths and identifies opportunities to expand or initiate support based on what matters most to employees.
                       </p>
-                      
-                      <p className="text-sm font-semibold text-slate-800 mb-3">To get the most from this report:</p>
-                      <div className="grid grid-cols-2 gap-3 mb-5">
+
+                      <p className="text-sm font-semibold text-slate-800 mb-3">How to apply the report findings:</p>
+                      <div className="space-y-2.5 mb-6">
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
                           <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-white">1</span>
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
                           </div>
-                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Review</strong> your overall composite and dimension scores and the specific support elements within each</p>
+                          <p className="text-sm text-slate-600">As a <strong className="text-slate-800">starting point for strategic conversations</strong> to shape current and future programs</p>
                         </div>
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
                           <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-white">2</span>
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                           </div>
-                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Identify</strong> where quick wins align with your existing infrastructure</p>
+                          <p className="text-sm text-slate-600">To <strong className="text-slate-800">identify policies and benefits</strong> that best support employees managing cancer and other serious health conditions, whether they are currently facing a diagnosis or may in their working years</p>
                         </div>
                         <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
                           <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-white">3</span>
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                           </div>
-                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Confirm</strong> areas where deeper exploration or validation is needed</p>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> for hands-on guidance, industry context, and implementation support to help you prioritize based on what matters most</p>
                         </div>
-                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
-                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-xs font-bold text-white">4</span>
-                          </div>
-                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Act</strong>: connect with Cancer and Careers to build a tailored action plan for {companyName}</p>
+                      </div>
+
+                      <p className="text-sm font-semibold text-slate-800 mb-3">Cancer and Careers can help you:</p>
+                      <div className="space-y-2 mb-5">
+                        <div className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                          <p className="text-sm text-slate-600">Understand the patterns behind any gaps</p>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                          <p className="text-sm text-slate-600">Focus on where the biggest returns are likely</p>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                          <p className="text-sm text-slate-600">Translate insights into a realistic and impactful plan</p>
                         </div>
                       </div>
                     </div>
-                    
-                    <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
-                      <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                      <p className="text-sm text-slate-200">
-                        <strong className="text-white">Ready for next steps?</strong> The Cancer and Careers team can provide hands-on guidance, 
-                        industry context, and implementation support to help you prioritize what matters most.
+
+                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        Every organization is different. Your industry, workforce, benefits structure, and current capabilities all shape what&apos;s realistic for your team. Some recommendations may already align with your priorities; others may not be feasible now or ever, and that&apos;s expected.
                       </p>
                     </div>
                   </div>
@@ -11249,7 +11255,7 @@ export default function ExportReportPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                   </svg>
                                 </div>
-                                <p className="text-lg font-bold text-slate-800">We&apos;re on this journey together</p>
+                                <p className="text-lg font-bold text-slate-800">A shared purpose in creating a resilient workforce</p>
                               </div>
                               <p className="text-sm text-slate-700 leading-relaxed mb-4">
                                 We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
@@ -11278,7 +11284,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 3: The 13 Dimensions of Workplace Cancer Support */}
+                {/* Slide 3: The 13 Dimensions of Workplace Support */}
                 {currentSlide === 3 && (
                   <div className="p-8">
                     {/* Header bar */}
@@ -11287,7 +11293,7 @@ export default function ExportReportPage() {
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                       </div>
                       <div className="text-left">
-                        <span className="text-base font-bold text-slate-800">The 13 Dimensions of Workplace Cancer Support</span>
+                        <span className="text-base font-bold text-slate-800">The 13 Dimensions of Workplace Support</span>
                       </div>
                       <div className="ml-auto w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center rotate-180">
                         <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
