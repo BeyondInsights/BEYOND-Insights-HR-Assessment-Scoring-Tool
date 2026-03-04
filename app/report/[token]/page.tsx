@@ -4260,13 +4260,13 @@ export default function ExportReportPage() {
   const strategicPriorityDims = combinedPriority.filter((d, i, arr) => arr.findIndex(x => x.dim === d.dim) === i).slice(0, 4);
   
   // Initiatives in progress - sorted: Planning first, then Assessing
-  const quickWinOpportunities = dimensionAnalysis
+  const allInProgressItems = dimensionAnalysis
     .flatMap(d => [
       ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Planning', sortOrder: 1 })),
       ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Assessing', sortOrder: 2 }))
     ])
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .slice(0, 8);
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+  const quickWinOpportunities = allInProgressItems.slice(0, 8);
   
   // Roadmap items
   const quickWinItems = dimensionAnalysis
@@ -9211,8 +9211,8 @@ export default function ExportReportPage() {
                   <p className="text-slate-400 text-sm mt-2">Strong Dimensions</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                  <p className="text-4xl font-bold text-violet-400">{quickWinOpportunities?.length ?? '--'}</p>
-                  <p className="text-slate-400 text-sm mt-2">Quick Wins Identified</p>
+                  <p className="text-4xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
+                  <p className="text-slate-400 text-sm mt-2">Initiatives In Progress</p>
                 </div>
               </div>
               
@@ -12776,8 +12776,8 @@ export default function ExportReportPage() {
                             <p className="text-slate-400 text-sm mt-1">Strong Dimensions</p>
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                            <p className="text-3xl font-bold text-violet-400">{quickWinOpportunities?.length ?? '--'}</p>
-                            <p className="text-slate-400 text-sm mt-1">Quick Wins Identified</p>
+                            <p className="text-3xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
+                            <p className="text-slate-400 text-sm mt-1">Initiatives In Progress</p>
                           </div>
                         </div>
                         
