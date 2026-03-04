@@ -5121,9 +5121,7 @@ export default function ExportReportPage() {
             
             
             {/* Visual separator — page break between context and company report */}
-            <div className="my-16 mx-12">
-              <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
-            </div>
+            <div className="py-4 bg-slate-100 border-t border-b border-slate-200 -mx-0 my-12"></div>
 
             {/* Company info + score */}
             <div className="px-12 py-10 border-b border-slate-100">

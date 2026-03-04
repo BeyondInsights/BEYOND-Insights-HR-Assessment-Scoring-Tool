@@ -653,6 +653,10 @@ export default function LoginPage() {
                     Information about the 2027 assessment cycle, including the application window and eligibility details, will be announced later this year.
                   </p>
                 </div>
+                <p className="mt-6 text-sm text-slate-500">
+                  If you completed the 2026 assessment and have questions about your submission, please contact{' '}
+                  <a href="mailto:cacbestcompanies@cew.org" className="text-blue-600 hover:text-blue-800 underline">cacbestcompanies@cew.org</a>.
+                </p>
               </div>
             ) : (
             /* ASSESSMENT_WINDOW_CLOSED — Everything below is the original login form. Set ASSESSMENT_WINDOW_CLOSED = false to re-enable. */
