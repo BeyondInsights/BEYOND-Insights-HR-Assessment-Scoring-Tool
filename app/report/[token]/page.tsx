@@ -4467,19 +4467,10 @@ export default function ExportReportPage() {
                 
                 <div className="p-6">
                   <p className="text-sm text-slate-700 leading-relaxed mb-5">
-                    The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong className="text-slate-800">qualitative 
-                    and quantitative research</strong> with the people who live this every day — HR leaders, employees managing cancer, 
-                    and the general workforce.
+                    Guided by Cancer and Careers, an organization with 25 years of experience at the intersection of work and health, the 13 dimensions assessed in the Index were shaped through <strong className="text-slate-800">qualitative and quantitative research</strong>. The research is grounded in the experiences of three key audiences: employees currently or recently managing a cancer diagnosis, employees from the general population, and leaders who oversee company benefits and policies that impact employees and the workplace every day.
                   </p>
-                  
+
                   <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
-                      <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                      </div>
-                      <p className="text-sm font-bold text-violet-800">HR Leaders</p>
-                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
-                    </div>
                     <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-center">
                       <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
@@ -4491,27 +4482,31 @@ export default function ExportReportPage() {
                       <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                       </div>
-                      <p className="text-sm font-bold text-sky-800">General Workforce</p>
+                      <p className="text-sm font-bold text-sky-800">General Population</p>
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
+                    </div>
+                    <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
+                      <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                      </div>
+                      <p className="text-sm font-bold text-violet-800">HR Leaders</p>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                     </div>
                   </div>
                   <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
-                  
+
                   <p className="text-sm text-slate-700 leading-relaxed">
-                    This same research drives how each dimension is weighted in your composite score. Dimensions that 
-                    employees managing cancer and HR leaders consistently ranked as most critical carry greater weight. 
-                    While some dimensions are more heavily weighted, <strong className="text-slate-800">all dimensions can have a lasting impact</strong> on 
-                    employees facing serious health challenges.
+                    This same research drives how each dimension is weighted in the index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
                   </p>
                 </div>
-                
+
                 <div className="px-6 py-5 bg-slate-800">
                   <p className="text-sm text-center leading-relaxed">
                     <strong className="text-white">13 dimensions.</strong>
                     <span className="text-slate-500 mx-2">•</span>
                     <strong className="text-violet-400">Research-driven weights.</strong>
                     <span className="text-slate-500 mx-2">•</span>
-                    <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and the general workforce.</span>
+                    <span className="text-slate-300">Grounded in the voices of employees, the general population, and HR leaders.</span>
                   </p>
                 </div>
               </div>
@@ -9680,20 +9675,11 @@ export default function ExportReportPage() {
                     
                     {/* Intro text */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
-                      The 13 dimensions in this assessment weren't developed in a silo. They were shaped through <strong className="text-slate-800">qualitative 
-                      and quantitative research</strong> with the people who live this every day — HR leaders, employees managing cancer, 
-                      and the general workforce.
+                      Guided by Cancer and Careers, an organization with 25 years of experience at the intersection of work and health, the 13 dimensions assessed in the Index were shaped through <strong className="text-slate-800">qualitative and quantitative research</strong>. The research is grounded in the experiences of three key audiences: employees currently or recently managing a cancer diagnosis, employees from the general population, and leaders who oversee company benefits and policies that impact employees and the workplace every day.
                     </p>
-                    
+
                     {/* 3 Research Cards */}
                     <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="bg-violet-50 rounded-xl p-5 border border-violet-100 text-center">
-                        <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                        </div>
-                        <p className="text-sm font-bold text-violet-800 mb-2">HR Leaders</p>
-                        <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
-                      </div>
                       <div className="bg-amber-50 rounded-xl p-5 border border-amber-100 text-center">
                         <div className="w-12 h-12 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
@@ -9705,19 +9691,24 @@ export default function ExportReportPage() {
                         <div className="w-12 h-12 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                         </div>
-                        <p className="text-sm font-bold text-sky-800 mb-2">General Workforce</p>
+                        <p className="text-sm font-bold text-sky-800 mb-2">General Population</p>
                         <p className="text-xs text-slate-600 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
+                      </div>
+                      <div className="bg-violet-50 rounded-xl p-5 border border-violet-100 text-center">
+                        <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                        </div>
+                        <p className="text-sm font-bold text-violet-800 mb-2">HR Leaders</p>
+                        <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                       </div>
                     </div>
                     <p className="text-[10px] text-slate-400 italic mt-3 mb-6">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
-                    
+
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
-                      This same research drives how each dimension is weighted in your composite score. Dimensions that 
-                      employees managing cancer and HR leaders consistently ranked as most critical carry greater weight. While some 
-                      dimensions are more heavily weighted, all dimensions can have a lasting impact on your employees.
+                      This same research drives how each dimension is weighted in the index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
                     </p>
-                    
+
                     {/* Bottom bar */}
                     <div className="px-6 py-4 bg-slate-800 rounded-xl">
                       <p className="text-sm text-center leading-relaxed">
@@ -9725,7 +9716,7 @@ export default function ExportReportPage() {
                         <span className="text-slate-500 mx-2">•</span>
                         <strong className="text-amber-400">Research-driven weights.</strong>
                         <span className="text-slate-500 mx-2">•</span>
-                        <span className="text-slate-300">Grounded in the voices of HR leaders, employees, and the general workforce.</span>
+                        <span className="text-slate-300">Grounded in the voices of employees, the general population, and HR leaders.</span>
                       </p>
                     </div>
                   </div>
