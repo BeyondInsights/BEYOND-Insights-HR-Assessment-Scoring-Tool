@@ -635,19 +635,22 @@ export default function LoginPage() {
 
             {/* ASSESSMENT_WINDOW_CLOSED — Banner replaces login form when assessment is closed */}
             {ASSESSMENT_WINDOW_CLOSED ? (
-              <div className="text-center py-8">
-                <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6">
+              <div className="py-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6 text-center">
                   Assessment Window Closed
                 </h2>
-                <div className="space-y-4 text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl mx-auto">
+                <div className="space-y-4 text-base sm:text-lg text-slate-600 leading-relaxed">
                   <p>
-                    Thank you to all organizations that participated in the 2026 assessment. The assessment window is now closed.
+                    Thank you to all organizations that participated in the 2026 assessment.
                   </p>
                   <p>
                     Companies selected for this year&apos;s Best Companies for Working with Cancer will be notified the week of March 9th.
                   </p>
                   <p>
                     Check back the week of March 23rd for the public announcement of recognized companies.
+                  </p>
+                  <p>
+                    Information about the 2027 assessment cycle, including the application window and eligibility details, will be announced later this year.
                   </p>
                 </div>
               </div>
