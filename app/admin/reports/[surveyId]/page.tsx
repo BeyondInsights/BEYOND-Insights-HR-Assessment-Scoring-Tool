@@ -4256,15 +4256,15 @@ export default function ExportReportPage() {
   // Disables right-click, dev tools shortcuts, text selection, and printing
   // ============================================
   useEffect(() => {
+    // Console warning
+    console.log('%cSTOP', 'color: red; font-size: 60px; font-weight: bold;');
+    console.log('%cThis is proprietary software. Unauthorized access, copying, or reverse engineering of this code is prohibited.', 'font-size: 16px;');
+
     const handleContextMenu = (e: MouseEvent) => { e.preventDefault(); };
     const handleKeyDown = (e: KeyboardEvent) => {
-      // F12 (dev tools)
       if (e.key === 'F12') { e.preventDefault(); return; }
-      // Ctrl+Shift+I (dev tools), Ctrl+Shift+J (console), Ctrl+Shift+C (element picker)
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key)) { e.preventDefault(); return; }
-      // Ctrl+U (view source)
       if ((e.ctrlKey || e.metaKey) && (e.key === 'u' || e.key === 'U')) { e.preventDefault(); return; }
-      // Ctrl+S (save page) — allow in edit mode (handled by separate listener)
       if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S') && !editMode) { e.preventDefault(); return; }
     };
     document.addEventListener('contextmenu', handleContextMenu);
@@ -4272,7 +4272,11 @@ export default function ExportReportPage() {
     // Inject print-blocking and selection-blocking styles
     const style = document.createElement('style');
     style.id = 'report-protection-styles';
-    style.textContent = `@media print { body { display: none !important; } } body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }`;
+    style.textContent = [
+      '@media print { body * { display: none !important; } body::after { display: block !important; content: "Please use the built-in export function to download this report."; font-size: 24px; text-align: center; padding: 60px; color: #334155; } }',
+      'body { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }',
+      'input, textarea, [contenteditable="true"] { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }',
+    ].join(' ');
     document.head.appendChild(style);
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
