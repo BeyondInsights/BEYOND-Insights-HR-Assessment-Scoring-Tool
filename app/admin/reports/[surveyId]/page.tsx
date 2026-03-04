@@ -10603,15 +10603,15 @@ export default function ExportReportPage() {
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                  <p className="text-4xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
+                  <p className="text-4xl font-bold text-[#F37021]">{compositeScore ?? '--'}</p>
                   <p className="text-slate-400 text-sm mt-2">Your Score</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                  <p className="text-4xl font-bold text-emerald-400">{strengthDimensions?.length || '--'}</p>
-                  <p className="text-slate-400 text-sm mt-2">Leading Dimensions</p>
+                  <p className="text-4xl font-bold text-emerald-400">{strengthDimensions?.length ?? '--'}</p>
+                  <p className="text-slate-400 text-sm mt-2">Strong Dimensions</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                  <p className="text-4xl font-bold text-violet-400">{quickWinOpportunities?.length || '--'}</p>
+                  <p className="text-4xl font-bold text-violet-400">{quickWinOpportunities?.length ?? '--'}</p>
                   <p className="text-slate-400 text-sm mt-2">Quick Wins Identified</p>
                 </div>
               </div>
@@ -14341,15 +14341,15 @@ export default function ExportReportPage() {
                         {/* Stats row */}
                         <div className="grid grid-cols-3 gap-6 max-w-3xl w-full mb-8">
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                            <p className="text-3xl font-bold text-[#F37021]">{compositeScore || '--'}</p>
+                            <p className="text-3xl font-bold text-[#F37021]">{compositeScore ?? '--'}</p>
                             <p className="text-slate-400 text-sm mt-1">Your Score</p>
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                            <p className="text-3xl font-bold text-emerald-400">{strengthDimensions?.length || '--'}</p>
-                            <p className="text-slate-400 text-sm mt-1">Leading Dimensions</p>
+                            <p className="text-3xl font-bold text-emerald-400">{strengthDimensions?.length ?? '--'}</p>
+                            <p className="text-slate-400 text-sm mt-1">Strong Dimensions</p>
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
-                            <p className="text-3xl font-bold text-violet-400">{quickWinOpportunities?.length || '--'}</p>
+                            <p className="text-3xl font-bold text-violet-400">{quickWinOpportunities?.length ?? '--'}</p>
                             <p className="text-slate-400 text-sm mt-1">Quick Wins Identified</p>
                           </div>
                         </div>
