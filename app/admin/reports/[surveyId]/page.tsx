@@ -8125,7 +8125,7 @@ export default function ExportReportPage() {
                     <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-teal-300 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-2.5">
-                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>D{d.dim}</span>
+                          <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>D{d.dim}</span>
                           <p className="font-semibold text-slate-800 text-base">{d.name}</p>
                         </div>
                         <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
@@ -8148,6 +8148,12 @@ export default function ExportReportPage() {
                   <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
                 </div>
               )}
+              <div className="flex items-center gap-2 px-12 pb-6 pt-2">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
+              </div>
             </div>
           </div>
 
@@ -8175,17 +8181,29 @@ export default function ExportReportPage() {
               </div>
               <div className="px-12 py-8">
                 <div className="grid grid-cols-2 gap-5">
-                  {quickWinOpportunities.map((item: any, idx: number) => (
+                  {quickWinOpportunities.map((item: any, idx: number) => {
+                    const pg = getEmployeePriorityGroup(dimensionAnalysis.find((d: any) => d.dim === item.dimNum)?.weight || 0);
+                    return (
                     <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-violet-300 transition-all">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                         </div>
                         <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                        <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
+                          <span className="text-sm text-slate-500">{item.dimName}</span>
+                        </div>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-2 mt-5">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
                 </div>
               </div>
             </div>
@@ -8221,7 +8239,7 @@ export default function ExportReportPage() {
                   <div key={d.dim} className="border border-slate-200 rounded-xl p-4 hover:shadow-md hover:border-slate-400 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getScoreColor(d.score) }}>D{d.dim}</span>
+                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>D{d.dim}</span>
                         <p className="font-semibold text-slate-800 text-base">{d.name}</p>
                       </div>
                       <span className="text-xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
@@ -8240,6 +8258,12 @@ export default function ExportReportPage() {
                     )}
                   </div>
                 ))}
+              </div>
+              <div className="flex items-center gap-2 px-12 pb-6 pt-2">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
               </div>
             </div>
           </div>
