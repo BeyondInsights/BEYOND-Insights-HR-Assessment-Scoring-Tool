@@ -10194,7 +10194,7 @@ export default function ExportReportPage() {
             };
             const defaultBalanceInsight = balanceLookup[wsiTier.name] || balanceLookup['Building'];
 
-            const defaultWhatsNext = '1. Confirm flagged items to finalize scoring \u2192 2. Choose 2\u20133 Most Critical priorities \u2192 3. Turn element gaps into an action plan with owners and milestones';
+            const defaultWhatsNext = '1. Choose 2\u20133 Most Critical priorities \u2192 2. Turn element gaps into an action plan with owners and milestones';
 
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
