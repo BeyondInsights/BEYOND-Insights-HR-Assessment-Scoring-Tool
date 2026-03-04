@@ -1650,7 +1650,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
                 </g>
               ))}
               <text x={PLOT_WIDTH/2} y="34" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-                SUPPORT SCORE →
+                DIMENSION SUPPORT SCORE →
               </text>
             </g>
             
@@ -1669,7 +1669,7 @@ function StrategicPriorityMatrix({ dimensionAnalysis, getScoreColor }: { dimensi
             
             {/* Y-axis label */}
             <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600" fontFamily="system-ui">
-              ↑ IMPACT WEIGHT
+              ↑ DIMENSION IMPACT WEIGHT
             </text>
             
             {/* Data points - at true positions, no nudging */}
@@ -2953,7 +2953,7 @@ export default function ExportReportPage() {
     strategicLift?: { name: string; reason: string } 
   }>>({});
   const [interactiveLink, setInteractiveLink] = useState<{ url: string; password: string } | null>(null);
-  const [showBenchmarkRings, setShowBenchmarkRings] = useState(false);
+  const [matrixView, setMatrixView] = useState<'company' | 'benchmarks' | 'both'>('company');
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
@@ -6837,17 +6837,24 @@ export default function ExportReportPage() {
                   <p className="text-slate-500 mt-0.5">Dimensions plotted by support score vs. impact weight. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
-                <button 
-                  onClick={() => setShowBenchmarkRings(!showBenchmarkRings)}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-all ${
-                    showBenchmarkRings 
-                      ? 'bg-slate-700 border-slate-700 text-white shadow-sm' 
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
-                  }`}
-                >
-                  {showBenchmarkRings ? '● Benchmarks On' : '○ Show Benchmarks'}
-                </button>
+              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                {([
+                  { key: 'company' as const, label: 'Your Scores' },
+                  { key: 'benchmarks' as const, label: 'Benchmarks' },
+                  { key: 'both' as const, label: 'Both' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setMatrixView(opt.key)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                      matrixView === opt.key
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div ref={matrixRef} id="export-matrix" className="px-4 py-6 bg-gradient-to-b from-slate-50 to-white">
@@ -6968,9 +6975,9 @@ export default function ExportReportPage() {
                               <text y="20" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}</text>
                             </g>
                           ))}
-                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">SUPPORT SCORE →</text>
+                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION SUPPORT SCORE →</text>
                         </g>
-                        
+
                         {/* Y-axis */}
                         <g>
                           {[0, 5, 10, 15].map((val) => {
@@ -6983,10 +6990,10 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">IMPACT WEIGHT ↑</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION IMPACT WEIGHT ↑</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
-                        {showBenchmarkRings && (() => {
+                        {(matrixView === 'benchmarks' || matrixView === 'both') && (() => {
                           const benchDims = dimensionAnalysis.filter((d) => getBenchmarkScore(d.dim) !== null);
                           const benchPositions = benchDims.map((d) => {
                             const bs = getBenchmarkScore(d.dim)!;
@@ -7039,7 +7046,7 @@ export default function ExportReportPage() {
                         })()}
                         
                         {/* Data points - Company scores at true positions with Employee Priority ring */}
-                        {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => {
+                        {(matrixView === 'company' || matrixView === 'both') && [...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => {
                           const xPos = (d.score / 100) * PLOT_WIDTH;
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
@@ -7137,7 +7144,7 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
-                      {showBenchmarkRings && (
+                      {matrixView === 'both' && (
                         <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-8 text-sm">
                           <div className="flex items-center gap-2">
                             <span className="w-6 h-6 rounded-full bg-emerald-500 shadow-sm"></span>
@@ -11959,8 +11966,8 @@ export default function ExportReportPage() {
                         <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
                         <p className="text-slate-500 mt-1">Dimensions plotted by support score vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
-                      <div className="px-4 py-2 rounded-lg border-2 border-slate-200 text-slate-600 text-sm font-semibold">
-                        ○ Show Benchmarks
+                      <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                        <span className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-slate-900 shadow-sm">Your Scores</span>
                       </div>
                     </div>
                     
@@ -12017,9 +12024,9 @@ export default function ExportReportPage() {
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">SUPPORT SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION SUPPORT SCORE →</text>
                               </g>
-                              
+
                               {/* Y-axis */}
                               {[0, 5, 10, 15].map((val) => {
                                 const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
@@ -12027,8 +12034,8 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
-                              
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION IMPACT WEIGHT ↑</text>
+
                               {/* Data points - at true positions, no nudging */}
                               {(() => {
                                 const OVERLAP_DIST = 18;
@@ -12123,8 +12130,8 @@ export default function ExportReportPage() {
                         <h3 className="font-bold text-slate-900 text-2xl">Strategic Priority Matrix</h3>
                         <p className="text-slate-500 mt-1">Dimensions plotted by support score vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
                       </div>
-                      <div className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold">
-                        ● Benchmarks On
+                      <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+                        <span className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-slate-900 shadow-sm">Both</span>
                       </div>
                     </div>
                     
@@ -12181,9 +12188,9 @@ export default function ExportReportPage() {
                                     <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
                                   </g>
                                 ))}
-                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">SUPPORT SCORE →</text>
+                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION SUPPORT SCORE →</text>
                               </g>
-                              
+
                               {/* Y-axis */}
                               {[0, 5, 10, 15].map((val) => {
                                 const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
@@ -12191,7 +12198,7 @@ export default function ExportReportPage() {
                                   <text key={val} x="-8" y={yPos + 3} textAnchor="end" fill="#6B7280" fontSize="10">{val}%</text>
                                 );
                               })}
-                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">IMPACT WEIGHT ↑</text>
+                              <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION IMPACT WEIGHT ↑</text>
                               
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
