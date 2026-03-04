@@ -5118,49 +5118,51 @@ export default function ExportReportPage() {
             {/* Visual separator — page break between context and company report */}
             <div className="py-4 bg-slate-100 border-t border-b border-slate-200 -mx-0 my-12"></div>
 
-            {/* Company info + score */}
-            <div className="px-12 py-10 border-b border-slate-100">
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared Exclusively for</p>
-                  <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
+            {/* Company info + score — Dark Hero Header */}
+            <div className="px-12 py-12 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
+                  <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
+                  <p className="text-sm text-slate-400 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
                   {isWwcPledge && (
-                    <div className="mt-4 flex items-center gap-3">
+                    <div className="mt-5 flex items-center gap-3">
                       <div className="w-10 h-10 flex-shrink-0">
                         <svg viewBox="0 0 300 300" className="w-full h-full">
                           <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                          <path fill="#434345" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                          <path fill="#ffffff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
                         </svg>
                       </div>
                       <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
-                        <p className="text-xs font-medium text-slate-600">The <span className="font-bold text-slate-800">Working with Cancer</span></p>
-                        <p className="text-sm font-semibold text-slate-800">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
+                        <p className="text-xs font-medium text-slate-300">The <span className="font-bold text-white">Working with Cancer</span></p>
+                        <p className="text-sm font-semibold text-white">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
                       </div>
                     </div>
                   )}
                   {(contactName || contactEmail) && (
-                    <div className="mt-3 text-base text-slate-500">
-                      {contactName && <span className="font-medium text-slate-600">{contactName}</span>}
-                      {contactName && contactEmail && <span className="mx-3 text-slate-300">|</span>}
+                    <div className="mt-3 text-sm text-slate-400">
+                      {contactName && <span className="font-medium text-slate-300">{contactName}</span>}
+                      {contactName && contactEmail && <span className="mx-3 text-slate-600">|</span>}
                       {contactEmail && <span>{contactEmail}</span>}
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-8">
-                  <div className="text-right">
-                    <p className="text-slate-500 text-sm font-medium">Composite Score</p>
-                    <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }} data-export="composite-score">{compositeScore ?? '—'}</p>
+                <div className="flex items-center gap-6 flex-shrink-0">
+                  <div className="text-center">
+                    <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Workplace Support Composite Score</p>
+                    <p className="text-8xl font-bold mt-1 leading-none text-white" data-export="composite-score">{compositeScore ?? '—'}</p>
+                    <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
                   </div>
                   {tier && (
-                    <div className={`px-6 py-4 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
+                    <div className="px-7 py-5 rounded-xl border-2 text-center" style={{ borderColor: tier.color + '60', backgroundColor: tier.color + '15' }}>
                       <p className="text-2xl font-bold" style={{ color: tier.color }} data-export="tier-name">{tier.name}</p>
-                      <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
+                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
                       {isProvisional && (
-                        <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
+                        <p className="text-xs text-amber-400 font-medium mt-1">Provisional*</p>
                       )}
-                      <button 
+                      <button
                         onClick={() => setShowTierOverlay(true)}
-                        className="mt-3 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:border-slate-400 transition-all shadow-sm"
+                        className="mt-3 px-4 py-1.5 text-xs font-semibold text-slate-300 bg-transparent border border-slate-500 rounded-lg hover:bg-white/10 hover:border-slate-400 transition-all"
                       >
                         Show All Tiers
                       </button>
@@ -5237,7 +5239,9 @@ export default function ExportReportPage() {
                 </div>
               </div>
             </div>
-            
+            {/* Divider below hero */}
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent my-1"></div>
+
             {/* ============ CONFIRMATORY CHECKLIST ============ */}
             {unsureItems > 0 && (
               <div id="confirmatory-checklist" className="px-12 py-6 bg-white border-b border-slate-200 max-w-[1280px] mx-auto">
