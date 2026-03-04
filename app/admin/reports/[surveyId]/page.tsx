@@ -194,7 +194,7 @@ const DIMENSION_NAMES: Record<number, string> = {
 
 const DIMENSION_SHORT_NAMES: Record<number, string> = {
   1: 'Leave & Flexibility', 2: 'Insurance & Financial', 3: 'Manager Preparedness',
-  4: 'Navigation', 5: 'Accommodations', 6: 'Culture', 7: 'Career Continuity',
+  4: 'Specialized Resources', 5: 'Accommodations', 6: 'Culture', 7: 'Career Continuity',
   8: 'Work Continuation', 9: 'Executive Commitment', 10: 'Caregiver Support',
   11: 'Prevention & Wellness', 12: 'Continuous Improvement', 13: 'Communication',
 };
@@ -2776,6 +2776,7 @@ const SUPPORT_LEVELS = {
     name: 'Core Support', abbr: 'Core', tagline: 'Essential supports',
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
+    shortDesc: 'Baseline practices that ensure employees can access treatment, leave, and essential workplace supports.',
     desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs.',
     boldPhrase: 'These elements form the baseline supports most organizations aim to have in place.',
     italic: 'Establishes clear access to essential supports when employees need them most.',
@@ -2784,6 +2785,7 @@ const SUPPORT_LEVELS = {
     name: 'Enhanced Support', abbr: 'Enh', tagline: 'Expanded supports',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
+    shortDesc: 'Expanded practices that strengthen consistency, coordination, and manager readiness.',
     desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness, making support easier to access and more reliable across teams and situations.',
     boldPhrase: 'Strengthen consistency, coordination, and manager readiness.',
     italic: 'Strengthens day-to-day consistency and ease of access across teams and managers.',
@@ -2792,6 +2794,7 @@ const SUPPORT_LEVELS = {
     name: 'Advanced Support', abbr: 'Adv', tagline: 'Differentiating supports',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
+    shortDesc: 'Proactive practices that deepen support continuity and innovative program design.',
     desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care. These often involve dedicated resources, cross-functional ownership, or innovative design.',
     boldPhrase: 'Less commonly offered, proactively strengthen continuity of work and care.',
     italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
@@ -2872,12 +2875,14 @@ export default function ExportReportPage() {
   const [showLevelsOverview, setShowLevelsOverview] = useState(false);
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const [expandedWSICard, setExpandedWSICard] = useState<string | null>(null);
+  const [expandedLearnMore, setExpandedLearnMore] = useState<string | null>(null);
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
   const [showReportSections, setShowReportSections] = useState(false);
   const [expandedReportSection, setExpandedReportSection] = useState<string | null>(null);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
+  const [showScoreComparison, setShowScoreComparison] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
   
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
@@ -6155,7 +6160,7 @@ export default function ExportReportPage() {
                           {/* Index Score */}
                           <div className="flex flex-col items-center justify-center px-7 py-3 rounded-xl bg-slate-900 min-w-[100px]">
                             <p className="text-5xl font-bold text-white leading-none">{wsiScore}</p>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mt-1.5">Index Score</p>
+                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mt-1.5">Your Score</p>
                             {(() => {
                               const diff = wsiScore - 59;
                               return diff !== 0 ? (
@@ -6186,6 +6191,90 @@ export default function ExportReportPage() {
                           </p>
                         </div>
                       </div>
+
+                      {/* See How Your Score Compares */}
+                      {(() => {
+                        const computeDist = (scores: number[]) => {
+                          if (scores.length === 0) return { leading: 0, advancing: 0, accelerating: 0, building: 0 };
+                          const n = scores.length;
+                          return {
+                            leading: Math.round((scores.filter(s => s >= 80).length / n) * 100),
+                            advancing: Math.round((scores.filter(s => s >= 64 && s < 80).length / n) * 100),
+                            accelerating: Math.round((scores.filter(s => s >= 50 && s < 64).length / n) * 100),
+                            building: Math.round((scores.filter(s => s < 50).length / n) * 100),
+                          };
+                        };
+                        const comparisonCards = [
+                          { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, color: '#334155' },
+                          { label: 'Core Support', score: coreData.score, scores: tierBenchmarks.core, color: '#047857' },
+                          { label: 'Enhanced Support', score: enhData.score, scores: tierBenchmarks.enhanced, color: '#B45309' },
+                          { label: 'Advanced Support', score: advData.score, scores: tierBenchmarks.advanced, color: '#7C3AED' },
+                        ];
+                        const tierColors = { leading: '#047857', advancing: '#1D4ED8', accelerating: '#B45309', building: '#B91C1C' };
+                        return (
+                          <div className="mt-4">
+                            <button
+                              onClick={() => setShowScoreComparison(!showScoreComparison)}
+                              className="w-full flex items-center justify-between px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition-colors"
+                            >
+                              <span className="text-sm font-medium text-slate-700">See how your score compares to other participating companies</span>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-400 flex-shrink-0" style={{ transform: showScoreComparison ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                            {showScoreComparison && (
+                              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {comparisonCards.map(card => {
+                                  const dist = computeDist(card.scores);
+                                  const tier = getTier(card.score);
+                                  const total = dist.leading + dist.advancing + dist.accelerating + dist.building;
+                                  const segments = [
+                                    { key: 'leading', pct: dist.leading, color: tierColors.leading, label: 'Leading' },
+                                    { key: 'advancing', pct: dist.advancing, color: tierColors.advancing, label: 'Advancing' },
+                                    { key: 'accelerating', pct: dist.accelerating, color: tierColors.accelerating, label: 'Accelerating' },
+                                    { key: 'building', pct: dist.building, color: tierColors.building, label: 'Building' },
+                                  ];
+                                  // Compute marker position: percentage position along the bar based on score
+                                  const markerPct = Math.min(Math.max(card.score, 0), 100);
+                                  return (
+                                    <div key={card.label} className="rounded-xl border border-slate-200 bg-white p-4">
+                                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">{card.label}</p>
+                                      <div className="flex items-baseline gap-2 mb-1">
+                                        <span className="text-3xl font-bold" style={{ color: card.color }}>{card.score}</span>
+                                        <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ backgroundColor: tier.color + '15', color: tier.color }}>{tier.name}</span>
+                                      </div>
+                                      {/* Distribution bar */}
+                                      <div className="relative mt-3 mb-1">
+                                        <div className="flex h-3 rounded-full overflow-hidden">
+                                          {segments.map(seg => seg.pct > 0 ? (
+                                            <div key={seg.key} style={{ width: `${total > 0 ? (seg.pct / total) * 100 : 25}%`, backgroundColor: seg.color }} />
+                                          ) : null)}
+                                        </div>
+                                        {/* You marker */}
+                                        <div className="absolute flex flex-col items-center" style={{ left: `${markerPct}%`, top: '-14px', transform: 'translateX(-50%)' }}>
+                                          <span className="text-[9px] font-bold" style={{ color: card.color }}>You</span>
+                                          <svg width="8" height="6" viewBox="0 0 8 6"><polygon points="4,6 0,0 8,0" fill={card.color} /></svg>
+                                        </div>
+                                      </div>
+                                      {/* Legend */}
+                                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3">
+                                        {segments.map(seg => (
+                                          <div key={seg.key} className="flex items-center gap-1">
+                                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: seg.color }} />
+                                            <span className="text-[10px] text-slate-500">{seg.label}</span>
+                                            <span className="text-[10px] font-semibold text-slate-600">{seg.pct}%</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      {card.scores.length > 0 && (
+                                        <p className="text-[10px] text-slate-400 mt-2">{card.scores.length} companies compared</p>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                     
                     {/* Three Level Cards */}
@@ -6254,45 +6343,63 @@ export default function ExportReportPage() {
                                 <p className="text-base font-bold" style={{ color: t.color }}>
                                   {t.key === 'core' ? M_CORE_PCT : t.key === 'enhanced' ? M_ENH_PCT : M_ADV_PCT}%
                                 </p>
-                                <p className="text-[10px] text-slate-400">WSI weight</p>
+                                <p className="text-[10px] text-slate-400">Composite Score weight</p>
                               </div>
                             </div>
                             
-                            {/* Description */}
-                            <div className="px-5 py-4 flex-1" style={{ minHeight: '140px' }}>
-                              <p className="text-xs text-slate-600 leading-relaxed mb-1.5">{t.desc}</p>
-                              {t.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-1.5">{t.boldPhrase}</p>}
-                              <p className="text-xs italic leading-relaxed" style={{ color: t.color, opacity: 0.7 }}>{t.italic}</p>
-                            </div>
-                            
-                            {/* Element Status */}
-                            <div className="px-5 py-3" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Element Status</p>
-                              <div className="space-y-1">
-                                {[
-                                  { label: 'In Place', count: t.inPlace, color: '#10B981', textColor: 'text-emerald-700' },
-                                  { label: 'In Development', count: t.inDev, color: '#3B82F6', textColor: 'text-blue-700' },
-                                  { label: 'Under Review', count: t.review, color: '#F59E0B', textColor: 'text-amber-700' },
-                                  { label: 'Not Planned', count: t.gaps, color: '#F87171', textColor: 'text-red-600' },
-                                  { label: 'To Confirm', count: t.toConfirm, color: '#8B5CF6', textColor: 'text-violet-700' },
-                                ].map(s => (
-                                  <div key={s.label} className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
-                                    <span className="text-xs text-slate-500 flex-1">{s.label}</span>
-                                    <span className={`text-xs font-bold tabular-nums ${s.count > 0 ? s.textColor : 'text-slate-300'}`}>{s.count}</span>
-                                  </div>
-                                ))}
-                              </div>
-                              {/* View Elements toggle */}
-                              <button 
-                                onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
-                                className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-white/60"
-                                style={{ color: t.color }}
+                            {/* Short descriptor */}
+                            <p className="text-xs text-slate-500 px-5 pb-2 pt-3">{t.shortDesc}</p>
+
+                            {/* Learn More toggle */}
+                            <div className="px-5 pb-3">
+                              <button
+                                onClick={() => setExpandedLearnMore(expandedLearnMore === t.key ? null : t.key)}
+                                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+                                style={{ backgroundColor: t.light, color: t.color, border: `1px solid ${t.border}` }}
                               >
-                                {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                <span>Learn More</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedLearnMore === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                               </button>
                             </div>
+
+                            {/* Learn More expanded content */}
+                            {expandedLearnMore === t.key && (
+                              <>
+                                {/* Description */}
+                                <div className="px-5 pb-3">
+                                  <p className="text-xs text-slate-600 leading-relaxed">{t.desc}</p>
+                                </div>
+
+                                {/* Element Status */}
+                                <div className="px-5 py-3" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
+                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Element Status</p>
+                                  <div className="space-y-1">
+                                    {[
+                                      { label: 'In Place', count: t.inPlace, color: '#10B981', textColor: 'text-emerald-700' },
+                                      { label: 'In Development', count: t.inDev, color: '#3B82F6', textColor: 'text-blue-700' },
+                                      { label: 'Under Review', count: t.review, color: '#F59E0B', textColor: 'text-amber-700' },
+                                      { label: 'Not Planned', count: t.gaps, color: '#F87171', textColor: 'text-red-600' },
+                                      { label: 'To Confirm', count: t.toConfirm, color: '#8B5CF6', textColor: 'text-violet-700' },
+                                    ].map(s => (
+                                      <div key={s.label} className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
+                                        <span className="text-xs text-slate-500 flex-1">{s.label}</span>
+                                        <span className={`text-xs font-bold tabular-nums ${s.count > 0 ? s.textColor : 'text-slate-300'}`}>{s.count}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {/* View Elements toggle */}
+                                  <button
+                                    onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
+                                    className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-white/60"
+                                    style={{ color: t.color }}
+                                  >
+                                    {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                  </button>
+                                </div>
+                              </>
+                            )}
                             
                             {/* Expanded element list by dimension */}
                             {expandedWSICard === t.key && (() => {
