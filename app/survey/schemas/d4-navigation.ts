@@ -1,7 +1,7 @@
 export const d4Schema = {
   d4a: {
     type: 'grid',
-    label: 'Cancer Support Resources Programs',
+    label: 'Specialized Resources Programs',
     statusOptions: [
       'Currently offer',
       'In active planning / development',

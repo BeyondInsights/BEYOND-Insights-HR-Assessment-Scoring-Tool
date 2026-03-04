@@ -56,7 +56,7 @@ const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
-  4: 'Cancer Support Resources',
+  4: 'Specialized Resources',
   5: 'Workplace Accommodations',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',
@@ -2385,7 +2385,7 @@ function TechnicalMethodologyModal({ onClose }: { onClose: () => void }) {
                 <h3 className="font-bold text-gray-900 text-lg mb-3">13 Dimensions Assessed</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {[
-                    { num: 4, name: 'Cancer Support Resources', weight: '14%' },
+                    { num: 4, name: 'Specialized Resources', weight: '14%' },
                     { num: 8, name: 'Work Continuation & Reintegration', weight: '13%' },
                     { num: 3, name: 'Manager Preparedness', weight: '12%' },
                     { num: 2, name: 'Insurance & Financial Protection', weight: '11%' },

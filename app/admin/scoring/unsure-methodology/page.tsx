@@ -27,7 +27,7 @@ const DEFAULT_BLEND_WEIGHTS = {
 
 const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility', 2: 'Insurance & Financial Protection',
-  3: 'Manager Preparedness & Capability', 4: 'Cancer Support Resources',
+  3: 'Manager Preparedness & Capability', 4: 'Specialized Resources',
   5: 'Workplace Accommodations', 6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement', 8: 'Work Continuation & Resumption',
   9: 'Executive Commitment & Resources', 10: 'Caregiver & Family Support',

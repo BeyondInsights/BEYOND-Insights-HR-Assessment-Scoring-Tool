@@ -304,7 +304,7 @@ export default function DashboardPage() {
   ]
 
   const dimensions = [
-    'Medical Leave & Flexibility','Insurance & Financial Protection','Manager Preparedness & Capability','Cancer Support Resources',
+    'Medical Leave & Flexibility','Insurance & Financial Protection','Manager Preparedness & Capability','Specialized Resources',
     'Workplace Accommodations & Modifications','Culture & Psychological Safety','Career Continuity & Advancement','Work Continuation and Resumption',
     'Executive Commitment & Resources','Caregiver & Family Support','Prevention, Wellness & Legal Compliance','Continuous Improvement & Outcomes','Communication & Awareness',
   ]

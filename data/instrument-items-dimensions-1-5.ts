@@ -880,7 +880,7 @@ export const DIMENSIONS_1_5_SUMMARY = {
     completionFlag: 'dimension3_complete',
   },
   dimension4: {
-    name: "Cancer Support Resources",
+    name: "Specialized Resources",
     totalItems: D4_ITEMS.length,
     gridItems: D4_ITEMS.filter(i => i.gridItem).length,
     route: '/survey/dimensions/4',

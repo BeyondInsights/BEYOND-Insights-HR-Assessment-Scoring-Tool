@@ -30,7 +30,7 @@ export const DIMENSION_WEIGHTS: Record<number, number> = {
   2: 10,   // Insurance & Financial
   5: 10,   // Workplace Accommodations
   1: 10,   // Medical Leave & Flexibility
-  4: 8,    // Cancer Support Resources
+  4: 8,    // Specialized Resources
   6: 7,    // Culture & Psychological Safety
   7: 5,    // Career Continuity
   10: 4,   // Caregiver & Family
@@ -70,7 +70,7 @@ export const DIMENSION_NAMES: Record<number, string> = {
   1: 'Medical Leave & Flexibility',
   2: 'Insurance & Financial Protection',
   3: 'Manager Preparedness & Capability',
-  4: 'Cancer Support Resources',
+  4: 'Specialized Resources',
   5: 'Workplace Accommodations & Modifications',
   6: 'Culture & Psychological Safety',
   7: 'Career Continuity & Advancement',

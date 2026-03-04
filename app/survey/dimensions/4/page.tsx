@@ -228,7 +228,7 @@ export default function Dimension4Page() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">
-              Dimension 4: Cancer Support Resources</span>
+              Dimension 4: Specialized Resources</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
@@ -469,7 +469,7 @@ export default function Dimension4Page() {
             }`}>
               {/* VALIDATION: Required asterisk */}
               <p className="font-bold text-gray-900 mb-4">
-                Are the <span className="text-blue-600 font-bold">Cancer Support Resources</span> your 
+                Are the <span className="text-blue-600 font-bold">Specialized Resources</span> your 
                 organization <span className="text-blue-600 font-bold">currently offers</span>...?
                 <span className="text-red-600 ml-1">*</span>
               </p>
@@ -659,7 +659,7 @@ export default function Dimension4Page() {
               Dimension 4 Complete!
             </h2>
             <p className="text-gray-600 mb-8">
-              You've successfully completed the Cancer Support Resources dimension.
+              You've successfully completed the Specialized Resources dimension.
             </p>
             <button
               onClick={async () => { 
