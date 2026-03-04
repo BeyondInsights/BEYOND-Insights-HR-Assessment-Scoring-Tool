@@ -637,7 +637,7 @@ export default function LoginPage() {
             {ASSESSMENT_WINDOW_CLOSED ? (
               <div className="py-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6 text-center">
-                  Assessment Window Closed
+                  2026 Assessment Window Closed
                 </h2>
                 <div className="space-y-4 text-base sm:text-lg text-slate-600 leading-relaxed">
                   <p>
