@@ -1000,13 +1000,14 @@ function getBenchmarkNarrative(score: number, benchmark: number | null, dimName:
 
 // Identify meaningful cross-dimension patterns
 // Identify meaningful cross-dimension patterns (ranked by severity, tier-consistent)
-// Methodology: Evaluates cross-dimensional bottleneck rules and surfaces the top 3 
+// Methodology: Evaluates cross-dimensional tension rules and surfaces the top 3
 // based on the size of the mismatch and the opportunity in the weaker dimension.
-function getCrossDimensionPatterns(dimAnalysis: any[]): { 
-  bottlenecks: { pattern: string; implication: string; recommendation: string }[];
+function getCrossDimensionPatterns(dimAnalysis: any[]): {
+  tensions: { pattern: string; implication: string; recommendation: string }[];
   positiveInsights: { pattern: string; implication: string; recommendation: string }[];
+  noteworthyInsights: { pattern: string; implication: string; recommendation: string }[];
 } {
-  type Cand = { pattern: string; implication: string; recommendation: string; score: number; family: 'enablement' | 'program' | 'leadership' | 'positive' };
+  type Cand = { pattern: string; implication: string; recommendation: string; score: number; family: 'enablement' | 'program' | 'leadership' | 'positive' | 'noteworthy' };
   const cands: Cand[] = [];
 
   const findDim = (num: number) => dimAnalysis.find(d => d.dim === num);
@@ -1069,17 +1070,17 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     }, (insurance.score - navigation.score) + 0.25 * opp(navigation));
   }
 
-  // 3) Enablement bottleneck (front door is unclear + managers not equipped)
+  // 3) Enablement tension (front door is unclear + managers not equipped)
   if (manager && navigation && communication && manager.score < 55 && navigation.score < 55 && communication.score < 55) {
     add({
-      pattern: `Enablement bottleneck: Navigation (${navigation.score}), Communication (${communication.score}), and Manager Preparedness (${manager.score}) are all underdeveloped`,
+      pattern: `Enablement tension: Navigation (${navigation.score}), Communication (${communication.score}), and Manager Preparedness (${manager.score}) are all underdeveloped`,
       implication: 'Employees do not know where to start. Managers lack clear tools. Low confidence and underutilization result.',
       recommendation: 'Create one clear entry point for support. Give managers a short playbook. Run a simple 3-touch awareness cadence. This unlocks multiple dimensions at once.',
       family: 'enablement'
     }, (55 - Math.min(manager.score, navigation.score, communication.score)) + 0.3 * (opp(manager) + opp(navigation) + opp(communication)) / 3);
   }
 
-  // 4) Low communication with strong programs (awareness bottleneck)
+  // 4) Low communication with strong programs (awareness tension)
   if (communication && isWeak(communication)) {
     const strongDims = dimAnalysis.filter(d => d.dim !== 13 && isLeadingPlus(d));
     if (strongDims.length >= 2) {
@@ -1137,7 +1138,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
         pattern: `${totalGaps} gaps + ${totalConfirming} items needing confirmation with limited Continuous Improvement infrastructure (${continuous.score})`,
         implication: 'Many improvement opportunities exist. Without systematic review, progress stalls and lessons are lost.',
         recommendation: 'Establish quarterly program reviews and employee feedback mechanisms. Build infrastructure that sustains improvements.',
-        family: 'leadership'
+        family: 'noteworthy'
       }, (totalItems - 25) + 0.25 * opp(continuous));
     }
   }
@@ -1174,25 +1175,25 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     }, 30 + (avgScore - 72) * 2);
   }
 
-  // Separate positive insights from bottlenecks
+  // Separate positive, noteworthy, and tension candidates
   const positiveCands = cands.filter(c => c.family === 'positive');
-  const bottleneckCands = cands.filter(c => c.family !== 'positive');
+  const noteworthyCands = cands.filter(c => c.family === 'noteworthy');
+  const tensionCands = cands.filter(c => c.family !== 'positive' && c.family !== 'noteworthy');
 
-  // Anti-redundancy: pick max 1 per family for bottlenecks
+  // Anti-redundancy: pick max 1 per family for tensions
   const familyWinners: Cand[] = [];
   const families: Array<'enablement' | 'program' | 'leadership'> = ['enablement', 'program', 'leadership'];
-  
+
   for (const family of families) {
-    const familyCands = bottleneckCands.filter(c => c.family === family);
+    const familyCands = tensionCands.filter(c => c.family === family);
     if (familyCands.length > 0) {
-      // Sort by score descending, pick the top one
       const winner = familyCands.sort((a, b) => b.score - a.score)[0];
       familyWinners.push(winner);
     }
   }
 
   // Rank family winners by severity and take top 3
-  const rankedBottlenecks = familyWinners
+  const rankedTensions = familyWinners
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map(({ score, family, ...rest }) => rest);
@@ -1203,8 +1204,14 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     .slice(0, 1)
     .map(({ score, family, ...rest }) => rest);
 
-  // Fallback if no bottlenecks found
-  if (rankedBottlenecks.length === 0) {
+  // Noteworthy insights (e.g. gaps + confirmation items)
+  const rankedNoteworthy = noteworthyCands
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 1)
+    .map(({ score, family, ...rest }) => rest);
+
+  // Fallback if no tensions found
+  if (rankedTensions.length === 0) {
     const byScoreAsc = [...dimAnalysis].sort((a, b) => (a.score ?? 0) - (b.score ?? 0));
     const byScoreDesc = [...dimAnalysis].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     const lowest = byScoreAsc[0];
@@ -1218,18 +1225,20 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
       : '';
 
     return {
-      bottlenecks: [{
-        pattern: 'No major cross-dimensional bottlenecks detected',
-        implication: `Scores do not match common bottleneck patterns. Program appears balanced. Strengths can support weaker areas.${unsureText}`,
+      tensions: [{
+        pattern: 'No major cross-dimensional tensions detected',
+        implication: `Scores do not match common tension patterns. Program appears balanced. Strengths can support weaker areas.${unsureText}`,
         recommendation: `Use strongest area (${strongest?.name}, ${strongest?.score}) as a repeatable playbook. Target ${lowest?.name} (${lowest?.score}) with 1-2 feasible improvements in the next 60-90 days.`
       }],
-      positiveInsights: rankedPositive
+      positiveInsights: rankedPositive,
+      noteworthyInsights: rankedNoteworthy
     };
   }
 
   return {
-    bottlenecks: rankedBottlenecks,
-    positiveInsights: rankedPositive
+    tensions: rankedTensions,
+    positiveInsights: rankedPositive,
+    noteworthyInsights: rankedNoteworthy
   };
 }
 
@@ -2945,7 +2954,7 @@ export default function ExportReportPage() {
   
   const [showDimSelector, setShowDimSelector] = useState(false);
   const [showTierOverlay, setShowTierOverlay] = useState(false);
-  const [dimPerfSortBy, setDimPerfSortBy] = useState<'score' | 'benchmark' | 'priority'>('score');
+  const [dimPerfSortBy, setDimPerfSortBy] = useState<'score' | 'benchmark' | 'priority'>('priority');
   const [elementBenchmarks, setElementBenchmarks] = useState<Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>>({});
   const [customObservations, setCustomObservations] = useState<Record<string, string>>({});
   const [customDimRoadmaps, setCustomDimRoadmaps] = useState<Record<number, { 
@@ -3396,7 +3405,7 @@ export default function ExportReportPage() {
   const infoContent = {
     crossDimensional: {
       title: 'Cross-Dimensional Insights',
-      what: 'Surfaces likely bottlenecks where a lower-scoring capability may be limiting the impact of stronger programs elsewhere. These are the hidden friction points that often explain why good investments underperform.',
+      what: 'Surfaces likely tensions where a lower-scoring capability may be limiting the impact of stronger programs elsewhere. These are the hidden friction points that often explain why good investments underperform.',
       how: 'We analyze dimension score profiles across participating organizations to identify recurring combinations where strength in one area is frequently paired with a gap in another. The ten most common patterns are organized into four themes: Enablement and Access, Program Design, Leadership and Infrastructure, and Positive Momentum. When your profile aligns with a known pattern, the system surfaces an explanation and a recommended starting action.',
       when: 'Use this section to align HR and leaders on root causes, prioritize two or three moves that unlock multiple areas, and clarify what needs confirmation before finalizing scores. Treat themes as a lens for prioritization rather than a rigid classification.',
       questions: ['Where are we investing, yet employees may still struggle to access support?', 'What is the weak link limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?'],
@@ -3411,7 +3420,7 @@ export default function ExportReportPage() {
           patterns: [
             { pattern: 'Strong culture, managers unprepared', desc: 'Employees feel safe disclosing but managers lack tools to respond effectively' },
             { pattern: 'Good benefits, weak navigation', desc: 'Offerings exist but are hard to find or use when needed' },
-            { pattern: 'Enablement bottleneck', desc: 'Navigation, communication, and manager readiness all underdeveloped' },
+            { pattern: 'Enablement tension', desc: 'Navigation, communication, and manager readiness all underdeveloped' },
             { pattern: 'Strong programs, low awareness', desc: 'Resources exist but employees do not know what is available' }
           ]
         },
@@ -4592,8 +4601,8 @@ export default function ExportReportPage() {
     .slice(0, 2);
   
   const combinedPriority = [
-    ...bottom2ByScore.map(d => ({ ...d, selectionReason: 'risk' as const })),
-    ...top2ByOpportunity.map(d => ({ ...d, selectionReason: 'impact' as const }))
+    ...top2ByOpportunity.map(d => ({ ...d, selectionReason: 'impact' as const })),
+    ...bottom2ByScore.map(d => ({ ...d, selectionReason: 'risk' as const }))
   ];
   const strategicPriorityDims = combinedPriority.filter((d, i, arr) => arr.findIndex(x => x.dim === d.dim) === i).slice(0, 4);
   
@@ -4645,7 +4654,7 @@ export default function ExportReportPage() {
   // POLISHED DESIGN RENDER v2
   // Full feature parity with original, polished styling
   // ============================================
-  const { bottlenecks: patterns, positiveInsights } = getCrossDimensionPatterns(dimensionAnalysis);
+  const { tensions: patterns, positiveInsights, noteworthyInsights } = getCrossDimensionPatterns(dimensionAnalysis);
   const rankings = getImpactRankings(dimensionAnalysis, compositeScore || 0);
   
   const GLOBAL_PRINT_STYLES = [
@@ -5177,7 +5186,7 @@ export default function ExportReportPage() {
                                   style={{ backgroundColor: epGroup.color }}
                                   title={epGroup.label}
                                 >
-                                  {d.dim}
+                                  D{d.dim}
                                 </div>
                                 <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
                               </div>
@@ -6719,7 +6728,7 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Dimension Support Scores</h3>
-                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
+                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {dimPerfSortBy === 'score' ? `${companyName}${companyName.endsWith('s') ? "'" : "'s"} score` : dimPerfSortBy === 'benchmark' ? 'benchmark score' : 'employee priority weight'}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
@@ -6768,7 +6777,7 @@ export default function ExportReportPage() {
                     >
                       <div className="w-64 flex items-center gap-3 pl-2">
                         <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>
-                          {d.dim}
+                          D{d.dim}
                         </span>
                         <span className="text-sm text-slate-800 font-semibold hover:text-slate-900">{d.name}</span>
                       </div>
@@ -6944,9 +6953,9 @@ export default function ExportReportPage() {
                         {/* Quadrant labels - Top - More refined colors */}
                         <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#be123c" />
                         <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
-                        
+
                         <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#0d9488" />
-                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">CORE STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY STRENGTHS</text>
                         
                         {/* Quadrant backgrounds - Refined, distinct */}
                         <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" fillOpacity="0.8" />
@@ -6963,10 +6972,10 @@ export default function ExportReportPage() {
                         
                         {/* Bottom labels - More refined */}
                         <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#64748b" />
-                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">MONITOR</text>
-                        
+                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">SECONDARY GAPS</text>
+
                         <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#4f46e5" />
-                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">LEVERAGE</text>
+                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">SECONDARY STRENGTHS</text>
                         
                         {/* X-axis */}
                         <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 12})`}>
@@ -6991,7 +7000,7 @@ export default function ExportReportPage() {
                             );
                           })}
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION IMPACT WEIGHT ↑</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">EMPLOYEE PRIORITY WEIGHT ↑</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {(matrixView === 'benchmarks' || matrixView === 'both') && (() => {
@@ -7267,7 +7276,10 @@ export default function ExportReportPage() {
                   
                   {/* Table Body */}
                   <div className="flex-1 overflow-y-auto">
-                    {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).map((elem: any, i: number) => {
+                    {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).sort((a: any, b: any) => {
+                      const statusOrder: Record<string, number> = { currently: 0, planning: 1, assessing: 2, unsure: 3, notAble: 4 };
+                      return (statusOrder[getStatusInfo(a).key] ?? 5) - (statusOrder[getStatusInfo(b).key] ?? 5);
+                    }).map((elem: any, i: number) => {
                       const statusInfo = getStatusInfo(elem);
                       const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
                       const total = bench.total || 1;
@@ -7276,7 +7288,7 @@ export default function ExportReportPage() {
                       const pctAssessing = Math.round((bench.assessing / total) * 100);
                       const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
                       const observation = getDefaultObservation(elem, bench);
-                      
+
                       return (
                         <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
                           {/* Element Name */}
@@ -7880,7 +7892,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="ml-[52px]">
                       <p className="text-slate-300 text-sm leading-relaxed mb-3">
-                        Highlights likely bottlenecks where a lower-scoring area may be limiting the impact of stronger programs elsewhere. 
+                        Highlights likely tensions where a lower-scoring area may be limiting the impact of stronger programs elsewhere.
                         Based on the most common cross-dimensional patterns observed to date across participating organizations.
                       </p>
                       <div className="flex items-center gap-6">
@@ -7889,7 +7901,7 @@ export default function ExportReportPage() {
                             <circle cx="10" cy="10" r="6" />
                             <path d="M14.5 14.5L20 20" strokeLinecap="round" />
                           </svg>
-                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional bottlenecks detected' || patterns.length !== 1 ? 'bottlenecks' : 'bottleneck'} flagged</span>
+                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional tensions detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional tensions detected' || patterns.length !== 1 ? 'tensions' : 'tension'} flagged</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -8007,8 +8019,8 @@ export default function ExportReportPage() {
                   ))}
                 </div>
 
-                {/* Also Worth Noting - Positive Insights */}
-                {positiveInsights.length > 0 && (
+                {/* Also Worth Noting - Positive & Noteworthy Insights */}
+                {(positiveInsights.length > 0 || noteworthyInsights.length > 0) && (
                   <div className="mt-5 pt-5 border-t border-slate-200">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -8018,13 +8030,22 @@ export default function ExportReportPage() {
                       </div>
                       <h4 className="text-sm font-semibold text-slate-700">Also Worth Noting</h4>
                     </div>
-                    {positiveInsights.map((p, idx) => (
-                      <div key={idx} className="bg-gradient-to-r from-emerald-50 to-white rounded-xl border border-emerald-200 p-4">
-                        <h5 className="font-semibold text-emerald-800 text-sm mb-2">{p.pattern}</h5>
-                        <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
-                        <p className="text-emerald-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
-                      </div>
-                    ))}
+                    <div className="space-y-3">
+                      {positiveInsights.map((p, idx) => (
+                        <div key={`pos-${idx}`} className="bg-gradient-to-r from-emerald-50 to-white rounded-xl border border-emerald-200 p-4">
+                          <h5 className="font-semibold text-emerald-800 text-sm mb-2">{p.pattern}</h5>
+                          <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
+                          <p className="text-emerald-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                        </div>
+                      ))}
+                      {noteworthyInsights.map((p, idx) => (
+                        <div key={`note-${idx}`} className="bg-gradient-to-r from-amber-50 to-white rounded-xl border border-amber-200 p-4">
+                          <h5 className="font-semibold text-amber-800 text-sm mb-2">{p.pattern}</h5>
+                          <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
+                          <p className="text-amber-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -8042,7 +8063,7 @@ export default function ExportReportPage() {
                     <div>
                       <h4 className="font-semibold text-white text-sm">How to use these insights</h4>
                       <p className="text-violet-100 text-sm mt-1 leading-relaxed">
-                        Use these patterns as a <span className="font-semibold text-white">discussion guide for leadership alignment</span>. Validate internally where needed, then assign owners to the recommended actions. These bottlenecks often explain why existing investments underperform. Addressing them typically <span className="font-semibold text-white">unlocks value across multiple dimensions</span>.
+                        Use these patterns as a <span className="font-semibold text-white">discussion guide for leadership alignment</span>. Validate internally where needed, then assign owners to the recommended actions. These tensions often explain why existing investments underperform. Addressing them typically <span className="font-semibold text-white">unlocks value across multiple dimensions</span>.
                       </p>
                     </div>
                   </div>
@@ -8181,13 +8202,6 @@ export default function ExportReportPage() {
                 <div className="grid grid-cols-2 gap-5">
                   {quickWinOpportunities.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-md hover:border-violet-300 transition-all">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'In Development' ? 'bg-violet-600' : 'bg-slate-600'}`}>
-                        {item.type === 'In Development' ? (
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                        ) : (
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        )}
-                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
@@ -8300,6 +8314,60 @@ export default function ExportReportPage() {
                 </p>
 
                 <div className="grid grid-cols-2 gap-6">
+                  {/* Strategic Leverage Card */}
+                  <div className="bg-gradient-to-br from-slate-100 to-white rounded-2xl border-2 border-slate-300 overflow-hidden">
+                    <div className="px-6 py-4 bg-slate-700 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M17 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h5 className="font-bold text-white text-lg">Strategic Leverage</h5>
+                          <p className="text-slate-300 text-xs">High-impact improvement paths</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
+                    </div>
+                    <div className="p-6">
+                      <p className="text-slate-600 text-sm mb-4">
+                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.
+                      </p>
+                      <div className="space-y-3">
+                        {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
+                          <div key={d.dim} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
+                                {d.dim}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
+                                <div className="text-xs text-slate-500 font-medium mb-1">Score</div>
+                                <div className="flex items-end gap-1">
+                                  <span className="text-xl font-bold text-slate-600">{d.score}</span>
+                                  <span className="text-xs text-slate-400 mb-1">/100</span>
+                                </div>
+                              </div>
+                              <div className="bg-slate-700 rounded-lg p-2.5">
+                                <div className="text-xs text-slate-300 font-medium mb-1">Weight</div>
+                                <div className="flex items-end gap-1">
+                                  <span className="text-xl font-bold text-white">{d.weight}</span>
+                                  <span className="text-xs text-slate-300 mb-1">%</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Foundation Focus Card */}
                   <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl border-2 border-amber-200 overflow-hidden">
                     <div className="px-6 py-4 bg-amber-500 flex items-center justify-between">
@@ -8346,60 +8414,6 @@ export default function ExportReportPage() {
                                 <div className="flex items-end gap-1">
                                   <span className="text-xl font-bold text-slate-700">{d.weight}</span>
                                   <span className="text-xs text-slate-400 mb-1">%</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Strategic Leverage Card */}
-                  <div className="bg-gradient-to-br from-slate-100 to-white rounded-2xl border-2 border-slate-300 overflow-hidden">
-                    <div className="px-6 py-4 bg-slate-700 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M17 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h5 className="font-bold text-white text-lg">Strategic Leverage</h5>
-                          <p className="text-slate-300 text-xs">High-impact improvement paths</p>
-                        </div>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
-                    </div>
-                    <div className="p-6">
-                      <p className="text-slate-600 text-sm mb-4">
-                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.
-                      </p>
-                      <div className="space-y-3">
-                        {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
-                          <div key={d.dim} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
-                                {d.dim}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
-                                <div className="text-xs text-slate-500 font-medium mb-1">Score</div>
-                                <div className="flex items-end gap-1">
-                                  <span className="text-xl font-bold text-slate-600">{d.score}</span>
-                                  <span className="text-xs text-slate-400 mb-1">/100</span>
-                                </div>
-                              </div>
-                              <div className="bg-slate-700 rounded-lg p-2.5">
-                                <div className="text-xs text-slate-300 font-medium mb-1">Weight</div>
-                                <div className="flex items-end gap-1">
-                                  <span className="text-xl font-bold text-white">{d.weight}</span>
-                                  <span className="text-xs text-slate-300 mb-1">%</span>
                                 </div>
                               </div>
                             </div>
