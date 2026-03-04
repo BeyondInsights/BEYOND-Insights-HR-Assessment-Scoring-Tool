@@ -176,6 +176,9 @@ const clearLocalStoragePreserveAuth = () => {
   console.log('Cleared localStorage but preserved', supabaseKeys.length, 'Supabase auth keys')
 }
 
+// ASSESSMENT_WINDOW_CLOSED — Set to false to re-enable login functionality
+const ASSESSMENT_WINDOW_CLOSED = true
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
@@ -630,6 +633,27 @@ export default function LoginPage() {
               </div>
             </div>
 
+            {/* ASSESSMENT_WINDOW_CLOSED — Banner replaces login form when assessment is closed */}
+            {ASSESSMENT_WINDOW_CLOSED ? (
+              <div className="text-center py-8">
+                <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6">
+                  Assessment Window Closed
+                </h2>
+                <div className="space-y-4 text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl mx-auto">
+                  <p>
+                    Thank you to all organizations that participated in the 2026 assessment. The assessment window is now closed.
+                  </p>
+                  <p>
+                    Companies selected for this year&apos;s Best Companies for Working with Cancer will be notified the week of March 9th.
+                  </p>
+                  <p>
+                    Check back the week of March 23rd for the public announcement of recognized companies.
+                  </p>
+                </div>
+              </div>
+            ) : (
+            /* ASSESSMENT_WINDOW_CLOSED — Everything below is the original login form. Set ASSESSMENT_WINDOW_CLOSED = false to re-enable. */
+            <>
             {/* Generated App ID Display */}
             {showAppId && generatedAppId && (
               <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
@@ -639,7 +663,7 @@ export default function LoginPage() {
                   </svg>
                   <div className="flex-1">
                     <p className="font-semibold text-green-900 text-lg mb-2">
-                      ✅ You're All Set!
+                      ✅ You&apos;re All Set!
                     </p>
                     <p className="text-sm text-green-800 mb-3 font-semibold">
                       Your unique Survey ID:
@@ -649,7 +673,7 @@ export default function LoginPage() {
                         {formatAppId(generatedAppId)}
                       </p>
                     </div>
-                    
+
                     <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
                       <p className="text-sm text-slate-900 font-semibold mb-2">
                         🔐 Important - Save This ID!
@@ -661,10 +685,10 @@ export default function LoginPage() {
 
                     <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded">
                       <p className="text-xs text-amber-900">
-                        <strong>💡 Pro Tip:</strong> Write down your Survey ID or take a screenshot. You'll need it to access your Survey from any device.
+                        <strong>💡 Pro Tip:</strong> Write down your Survey ID or take a screenshot. You&apos;ll need it to access your Survey from any device.
                       </p>
                     </div>
-                    
+
                     <button
                       onClick={handleProceedToSurvey}
                       className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
@@ -713,8 +737,8 @@ export default function LoginPage() {
                       setSuccessMessage('')
                     }}
                     className={`flex-1 py-3 rounded-lg font-bold transition-all ${
-                      isNewUser 
-                        ? 'bg-white text-slate-900 shadow-md' 
+                      isNewUser
+                        ? 'bg-white text-slate-900 shadow-md'
                         : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
@@ -728,8 +752,8 @@ export default function LoginPage() {
                       setSuccessMessage('')
                     }}
                     className={`flex-1 py-3 rounded-lg font-bold transition-all ${
-                      !isNewUser 
-                        ? 'bg-white text-slate-900 shadow-md' 
+                      !isNewUser
+                        ? 'bg-white text-slate-900 shadow-md'
                         : 'text-slate-700 hover:text-slate-900'
                     }`}
                   >
@@ -796,7 +820,7 @@ export default function LoginPage() {
                 </form>
 
                 {/* Help Text */}
-                <div 
+                <div
                   className="mt-6 space-y-3 text-sm text-slate-800 p-4 rounded-lg border-2"
                   style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}
                 >
@@ -806,16 +830,16 @@ export default function LoginPage() {
                         <svg className="w-5 h-5 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <p className="font-bold text-slate-900">New Users - Here's How It Works:</p>
+                        <p className="font-bold text-slate-900">New Users - Here&apos;s How It Works:</p>
                       </div>
                       <ol className="space-y-2 ml-2">
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">1.</span>
-                          <span>Enter your email and click "Start Survey"</span>
+                          <span>Enter your email and click &quot;Start Survey&quot;</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">2.</span>
-                          <span>You'll receive a unique Survey ID - save it!</span>
+                          <span>You&apos;ll receive a unique Survey ID - save it!</span>
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">3.</span>
@@ -827,7 +851,7 @@ export default function LoginPage() {
                         </li>
                         <li className="flex items-start">
                           <span className="font-bold text-[#F37021] mr-2">5.</span>
-                          <span>To return: Use the "Returning User" option with your email and Survey ID</span>
+                          <span>To return: Use the &quot;Returning User&quot; option with your email and Survey ID</span>
                         </li>
                       </ol>
                     </div>
@@ -843,7 +867,7 @@ export default function LoginPage() {
                         To continue your Survey, enter the email address you used when you started, along with your Survey ID.
                       </p>
                       <p className="text-sm bg-white/60 border border-blue-300 rounded p-3">
-                        <strong>💾 Don't worry -</strong> All your progress has been saved. You'll pick up exactly where you left off!
+                        <strong>💾 Don&apos;t worry -</strong> All your progress has been saved. You&apos;ll pick up exactly where you left off!
                       </p>
                     </div>
                   )}
@@ -874,6 +898,9 @@ export default function LoginPage() {
                   </button>
                 </div>
               </>
+            )}
+            </>
+            /* ASSESSMENT_WINDOW_CLOSED — End of original login form */
             )}
 
             {/* CAC logo */}
