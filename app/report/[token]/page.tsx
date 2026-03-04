@@ -4424,7 +4424,7 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-slate-400 text-sm font-medium">Prepared for</p>
+                  <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
                   <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                   <p className="text-slate-400 text-sm font-medium">Report Date</p>
                   <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
@@ -5120,11 +5120,16 @@ export default function ExportReportPage() {
             </div>
             
             
+            {/* Visual separator — page break between context and company report */}
+            <div className="my-16 mx-12">
+              <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent"></div>
+            </div>
+
             {/* Company info + score */}
             <div className="px-12 py-10 border-b border-slate-100">
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
+                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared Exclusively for</p>
                   <h2 className="text-4xl font-bold text-slate-900 mt-2" data-export="company-name">{companyName}</h2>
                   {isWwcPledge && (
                     <div className="mt-4 flex items-center gap-3">
@@ -9623,7 +9628,7 @@ export default function ExportReportPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-slate-400 text-sm font-medium">Prepared for</p>
+                          <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
                           <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                           <p className="text-slate-400 text-sm font-medium">Report Date</p>
                           <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
@@ -9957,7 +9962,7 @@ export default function ExportReportPage() {
                     <div className="px-12 py-8 border-b border-slate-100">
                       <div className="flex items-end justify-between">
                         <div>
-                          <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared for</p>
+                          <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared Exclusively for</p>
                           <h2 className="text-5xl font-bold text-slate-900 mt-2">{companyName}</h2>
                           {isWwcPledge && (
                             <div className="mt-4 flex items-center gap-3">
