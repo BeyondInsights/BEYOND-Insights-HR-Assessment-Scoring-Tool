@@ -7317,80 +7317,49 @@ export default function ExportReportPage() {
                     
                     {/* Geographic Consistency */}
                     {!isSingleCountryCompany && (
-                      <div className="mx-4 mb-4 bg-indigo-50 rounded-xl border border-indigo-200 overflow-hidden">
-                        <div className="px-5 py-3 bg-indigo-100 border-b border-indigo-200">
-                          <div className="flex items-center justify-between">
+                      <div className="mx-4 mb-4 bg-indigo-50 rounded-lg border border-indigo-200 px-5 py-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
                             <h4 className="font-bold text-indigo-800 text-sm">Geographic Consistency</h4>
-                            {d.geoMultiplier < 1.0 && (
-                              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-200 text-indigo-800">
-                                Score adjusted by {d.geoMultiplier}x
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-indigo-600 mt-1">
-                            How consistently are these practices available across your operating locations?
-                          </p>
-                        </div>
-                        <div className="p-5">
-                          <div className="grid grid-cols-3 gap-3">
-                            {(() => {
-                              const geoBench = (window as any).__geoBenchmarks?.[d.dim] || { consistent: 0, varies: 0, select: 0, total: 0 };
-                              const total = geoBench.total || 1;
-                              const gm = d.geoMultiplier ?? 1.0;
-                              const scope = gm <= 0.80 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
-
-                              return [
-                                {
-                                  key: 'consistent',
-                                  label: 'Consistent across all locations',
-                                  multiplier: '1.00',
-                                  multiplierLabel: 'No adjustment',
-                                  selected: scope === 'consistent',
-                                  benchPct: Math.round((geoBench.consistent / total) * 100),
-                                },
-                                {
-                                  key: 'varies',
-                                  label: 'Varies by location',
-                                  multiplier: '0.90',
-                                  multiplierLabel: '10% reduction',
-                                  selected: scope === 'varies',
-                                  benchPct: Math.round((geoBench.varies / total) * 100),
-                                },
-                                {
-                                  key: 'select',
-                                  label: 'Select locations only',
-                                  multiplier: '0.80',
-                                  multiplierLabel: '20% reduction',
-                                  selected: scope === 'select',
-                                  benchPct: Math.round((geoBench.select / total) * 100),
-                                },
-                              ].map(opt => (
-                                <div key={opt.key} className={`rounded-xl p-4 border-2 transition-all ${opt.selected ? 'border-indigo-400 bg-white shadow-sm' : 'border-transparent bg-white/60'}`}>
-                                  <div className="flex items-center gap-2 mb-2">
-                                    {opt.selected && (
-                                      <span className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                      </span>
-                                    )}
-                                    <span className={`text-sm font-semibold ${opt.selected ? 'text-indigo-900' : 'text-slate-500'}`}>{opt.label}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between mt-3">
-                                    <span className="text-xs text-slate-400">Multiplier</span>
-                                    <span className={`text-sm font-bold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>×{opt.multiplier}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between mt-1">
-                                    <span className="text-xs text-slate-400">Benchmark</span>
-                                    <span className={`text-sm font-semibold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.benchPct}% of companies</span>
-                                  </div>
-                                </div>
-                              ));
-                            })()}
+                            <p className="text-xs text-indigo-500">How consistently are these practices available across your operating locations?</p>
                           </div>
                           {d.geoMultiplier < 1.0 && (
-                            <p className="text-xs text-indigo-600 mt-4 leading-relaxed">
-                              Because practices in this dimension are not yet consistent across all locations, the raw element score is multiplied by <strong>{d.geoMultiplier}</strong> to produce the final dimension score. Expanding coverage to all locations would increase this dimension&apos;s score.
-                            </p>
+                            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-200 text-indigo-700">
+                              Score adjusted by ×{d.geoMultiplier.toFixed(2)}
+                            </span>
                           )}
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {(() => {
+                            const geoBench = (window as any).__geoBenchmarks?.[d.dim] || { consistent: 0, varies: 0, select: 0, total: 0 };
+                            const total = geoBench.total || 1;
+                            const gm = d.geoMultiplier ?? 1.0;
+                            const scope = gm <= 0.80 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
+
+                            return [
+                              { key: 'consistent', label: 'Consistent across all', multiplier: '1.00', pct: Math.round((geoBench.consistent / total) * 100) },
+                              { key: 'varies', label: 'Varies by location', multiplier: '0.90', pct: Math.round((geoBench.varies / total) * 100) },
+                              { key: 'select', label: 'Select locations only', multiplier: '0.80', pct: Math.round((geoBench.select / total) * 100) },
+                            ].map(opt => {
+                              const isSelected = scope === opt.key;
+                              return (
+                                <div key={opt.key} className={`flex items-center justify-between px-3 py-2 rounded-lg border text-xs ${isSelected ? 'bg-white border-indigo-400 shadow-sm' : 'bg-white/50 border-transparent'}`}>
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    {isSelected && (
+                                      <span className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                      </span>
+                                    )}
+                                    <span className={`font-medium truncate ${isSelected ? 'text-indigo-900' : 'text-slate-500'}`}>{opt.label}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+                                    <span className={`tabular-nums ${isSelected ? 'font-bold text-indigo-700' : 'text-slate-400'}`}>×{opt.multiplier}</span>
+                                    <span className={`tabular-nums ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>{opt.pct}%</span>
+                                  </div>
+                                </div>
+                              );
+                            });
+                          })()}
                         </div>
                       </div>
                     )}
