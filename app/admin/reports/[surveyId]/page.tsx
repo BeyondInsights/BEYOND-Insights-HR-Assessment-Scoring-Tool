@@ -5743,11 +5743,11 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-6 flex-shrink-0">
                   <div>
                     <p className="text-sm text-slate-400 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
-                    <div className="flex items-end gap-6 mt-2">
+                    <div className="flex items-end gap-10 mt-2">
                       {/* Benchmark */}
                       <div className="text-center">
                         <p className="text-5xl font-bold text-slate-500 leading-none">59</p>
-                        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark</p>
+                        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
                       </div>
                       {/* Your Score */}
                       <div className="text-center">
@@ -6438,14 +6438,14 @@ export default function ExportReportPage() {
                               {/* Table header — two rows */}
                               <div className="bg-slate-50 border-b border-slate-200">
                                 {/* Row 1: Your cols + Benchmark Distribution spanning header */}
-                                <div className="grid grid-cols-[380px_1fr] gap-0 px-6">
-                                  <div></div>
-                                  <div className="text-center py-2 border-l border-slate-200">
+                                <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6">
+                                  <div className="col-span-3"></div>
+                                  <div className="col-span-4 text-center py-2 border-l border-slate-200">
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</p>
                                   </div>
                                 </div>
                                 {/* Row 2: Individual column headers */}
-                                <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 py-2">
+                                <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-2">
                                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider"></div>
                                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Score</div>
                                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Your Tier</div>
@@ -6468,7 +6468,7 @@ export default function ExportReportPage() {
                                 const dist = computeDist(row.scores);
                                 const tierInfo = getTierInfo(row.score);
                                 return (
-                                  <div key={row.label} className={`grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 py-4 items-center ${i < compRows.length - 1 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50/50' : ''}`}>
+                                  <div key={row.label} className={`grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-4 items-center ${i < compRows.length - 1 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50/50' : ''}`}>
                                     {/* Row label */}
                                     <div className="flex items-center gap-2">
                                       <div className="w-1 h-8 rounded-full" style={{ backgroundColor: row.accentColor }} />
@@ -6481,7 +6481,7 @@ export default function ExportReportPage() {
                                     </div>
 
                                     {/* Tier badge */}
-                                    <div className="text-center">
+                                    <div className="text-center pr-3">
                                       <span className="inline-block text-sm font-bold px-3 py-1 rounded-lg" style={{ backgroundColor: tierInfo.color + '15', color: tierInfo.color }}>
                                         {tierInfo.label}
                                       </span>
@@ -6491,7 +6491,7 @@ export default function ExportReportPage() {
                                     {[dist.leading, dist.advancing, dist.accelerating, dist.building].map((pct, j) => {
                                       const isYourTier = tierDefs[j].label === tierInfo.label;
                                       return (
-                                        <div key={j} className={`text-center ${j === 0 ? 'border-l border-slate-200' : ''}`}>
+                                        <div key={j} className={`text-center ${j === 0 ? 'border-l border-slate-200 pl-3' : ''}`}>
                                           <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-400'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
                                             {pct}%
                                           </span>
