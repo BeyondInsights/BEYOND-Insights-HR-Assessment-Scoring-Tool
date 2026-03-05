@@ -10221,30 +10221,43 @@ export default function ExportReportPage() {
 
             // Dimension-to-theme mapping (short labels for pattern bullets)
             const dimThemeShort: Record<number, string> = {
-              1: 'Protection', 2: 'Financial safety', 3: 'Manager execution',
-              4: 'Resource access', 5: 'Accommodations', 6: 'Culture',
-              7: 'Career continuity', 8: 'Return-to-work', 9: 'Leadership',
+              1: 'Leave policies', 2: 'Financial protection', 3: 'Manager training',
+              4: 'Resource navigation', 5: 'Accommodations', 6: 'Culture',
+              7: 'Career continuity', 8: 'Return-to-work', 9: 'Executive sponsorship',
               10: 'Caregiver support', 11: 'Prevention', 12: 'Improvement systems', 13: 'Communication',
             };
 
-            // Dimension-to-capability-type mapping (for headline themes)
-            const dimCapabilityType: Record<number, string> = {
-              1: 'employee-facing', 2: 'employee-facing', 3: 'operational',
-              4: 'employee-facing', 5: 'operational', 6: 'cultural',
-              7: 'structural', 8: 'structural', 9: 'strategic',
-              10: 'breadth', 11: 'proactive', 12: 'systemic', 13: 'employee-facing',
+            // Per-dimension narrative phrases — no grouping, no contradictions
+            const dimStrengthPhrase: Record<number, string> = {
+              1: 'medical leave and protection policies',
+              2: 'insurance and financial safety nets',
+              3: 'manager preparedness and capability',
+              4: 'specialized resource access',
+              5: 'workplace accommodation delivery',
+              6: 'culture and psychological safety',
+              7: 'career continuity safeguards',
+              8: 'return-to-work support structures',
+              9: 'executive commitment and sponsorship',
+              10: 'caregiver and family support coverage',
+              11: 'prevention and wellness programs',
+              12: 'continuous improvement infrastructure',
+              13: 'communication and awareness systems',
             };
 
-            // Capability type to narrative phrase
-            const capabilityNarrative: Record<string, string> = {
-              'employee-facing': 'employee-facing communication and access',
-              'operational': 'manager-level execution and accommodation delivery',
-              'cultural': 'workplace culture and psychological safety',
-              'structural': 'work continuity and career protection',
-              'strategic': 'leadership commitment and sponsorship',
-              'breadth': 'caregiver and family support coverage',
-              'proactive': 'prevention and early intervention',
-              'systemic': 'continuous improvement infrastructure',
+            const dimGapPhrase: Record<number, string> = {
+              1: 'medical leave consistency',
+              2: 'financial protection access',
+              3: 'manager readiness',
+              4: 'resource navigation',
+              5: 'accommodation consistency',
+              6: 'cultural safety',
+              7: 'career continuity',
+              8: 'return-to-work transitions',
+              9: 'executive engagement',
+              10: 'caregiver support',
+              11: 'prevention programming',
+              12: 'improvement systems',
+              13: 'employee-facing communication',
             };
 
             const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
@@ -10266,61 +10279,63 @@ export default function ExportReportPage() {
               })
               .slice(0, 3);
 
-            // Build headline using capability types, NOT dimension names
-            const strengthCapTypes = [...new Set(topStrengths.map(d => dimCapabilityType[d.dim]))];
-            const strengthCapTypeSet = new Set(strengthCapTypes);
+            // Build headline using per-dimension phrases (no grouping = no contradictions)
+            const strengthPhrase1 = dimStrengthPhrase[topStrengths[0]?.dim] || 'foundational support';
+            const strengthPhrase2 = dimStrengthPhrase[topStrengths[1]?.dim] || '';
+            const strengthSummary = strengthPhrase2
+              ? `${strengthPhrase1} and ${strengthPhrase2}`
+              : strengthPhrase1;
 
-            // Exclude gap capability types already cited as strengths to avoid contradictions
-            let gapCapTypes = [...new Set(focusCandidates.map(d => dimCapabilityType[d.dim]))].filter(t => !strengthCapTypeSet.has(t));
-            // If all gap types overlapped, extend search beyond top 3 focus candidates
-            if (gapCapTypes.length === 0) {
-              gapCapTypes = [...new Set(
-                [...dimensionAnalysis]
-                  .filter(d => !topStrengths.some(s => s.dim === d.dim))
-                  .sort((a, b) => a.score - b.score)
-                  .map(d => dimCapabilityType[d.dim])
-              )].filter(t => !strengthCapTypeSet.has(t)).slice(0, 2);
-            }
+            const gapPhrase1 = dimGapPhrase[focusCandidates[0]?.dim] || 'operational consistency';
+            const gapPhrase2 = focusCandidates.length > 1 ? (dimGapPhrase[focusCandidates[1]?.dim] || '') : '';
+            const gapSummary = gapPhrase2
+              ? `${gapPhrase1} and ${gapPhrase2}`
+              : gapPhrase1;
 
-            const primaryStrengthPhrase = capabilityNarrative[strengthCapTypes[0]] || 'foundational support';
-            const secondaryStrengthPhrase = strengthCapTypes.length > 1 ? (capabilityNarrative[strengthCapTypes[1]] || '') : '';
-            const primaryGapPhrase = capabilityNarrative[gapCapTypes[0]] || 'operational consistency';
-            const secondaryGapPhrase = gapCapTypes.length > 1 ? (capabilityNarrative[gapCapTypes[1]] || '') : '';
+            // Contradiction check: ensure no strength phrase word overlaps with a gap dimension name
+            const strengthWords = strengthSummary.toLowerCase();
+            const hasContradiction = focusCandidates.some(d => {
+              const dimKeyword = d.name.toLowerCase().split(/[\s&]+/)[0];
+              return strengthWords.includes(dimKeyword);
+            });
 
-            const strengthSummary = secondaryStrengthPhrase
-              ? `${primaryStrengthPhrase} and ${secondaryStrengthPhrase}`
-              : primaryStrengthPhrase;
-            const gapSummary = secondaryGapPhrase
-              ? `${primaryGapPhrase} and ${secondaryGapPhrase}`
-              : primaryGapPhrase;
+            const safeStrengthSummary = hasContradiction
+              ? `strong performance in its highest-scoring dimensions (${topStrengths.slice(0, 2).map(d => d.name).join(' and ')})`
+              : `strong ${strengthSummary}`;
 
-            const defaultHeadline = `${companyName} shows strong ${strengthSummary}. Gaps remain in ${gapSummary}. Policies exist but execution is inconsistent.`;
+            // Closing clause based on tier
+            const closingClause = wsiTier.name === 'Leading'
+              ? 'Execution is consistent; refinement is the opportunity.'
+              : wsiTier.name === 'Advancing'
+              ? 'Policies exist but execution is inconsistent.'
+              : wsiTier.name === 'Accelerating'
+              ? 'Foundation is emerging; targeted investment will accelerate progress.'
+              : 'Building foundational capabilities is the immediate priority.';
 
-            // Pattern bullets — short, distinct, max ~8 words each
-            // Exclude gap themes whose capability type contradicts the strength narrative
-            const strengthThemeLabels = [...new Set(topStrengths.map(d => dimThemeShort[d.dim]))];
-            let gapThemeLabels = [...new Set(
-              focusCandidates
-                .filter(d => !strengthCapTypeSet.has(dimCapabilityType[d.dim]))
-                .map(d => dimThemeShort[d.dim])
-            )];
-            // If all gap themes were filtered, extend from broader pool
-            if (gapThemeLabels.length === 0) {
-              gapThemeLabels = [...new Set(
-                [...dimensionAnalysis]
-                  .filter(d => !topStrengths.some(s => s.dim === d.dim) && !strengthCapTypeSet.has(dimCapabilityType[d.dim]))
-                  .sort((a, b) => a.score - b.score)
-                  .map(d => dimThemeShort[d.dim])
-              )].slice(0, 2);
-            }
+            const defaultHeadline = `${companyName} shows ${safeStrengthSummary}. Gaps remain in ${gapSummary}. ${closingClause}`;
 
-            const patternBullet1 = strengthThemeLabels.length >= 2
-              ? `${strengthThemeLabels[0]} and ${strengthThemeLabels[1]} are well-established`
-              : `${strengthThemeLabels[0] || 'Core support'} is well-established`;
-            const patternBullet2 = gapThemeLabels.length >= 2
-              ? `${gapThemeLabels[0]} and ${gapThemeLabels[1]} need attention`
-              : `${gapThemeLabels[0] || 'Key areas'} need${gapThemeLabels.length === 1 ? 's' : ''} attention`;
-            const patternBullet3 = 'The gap is delivery, not intent';
+            // Pattern bullets using per-dimension themes with contradiction filtering
+            const strengthThemes = topStrengths.slice(0, 2).map(d => dimThemeShort[d.dim]);
+            const gapThemes = focusCandidates
+              .slice(0, 2)
+              .map(d => dimThemeShort[d.dim])
+              .filter(theme => !strengthThemes.some(st => {
+                const stWords = st.toLowerCase().split(/\s+/);
+                const thWords = theme.toLowerCase().split(/\s+/);
+                return stWords.some(w => thWords.includes(w) && w.length > 3);
+              }));
+
+            const finalGapThemes = gapThemes.length > 0
+              ? gapThemes
+              : focusCandidates.slice(0, 2).map(d => d.name.replace(/ & /g, '/'));
+
+            const patternBullet1 = strengthThemes.length >= 2
+              ? `${strengthThemes[0]} and ${strengthThemes[1]} are well-established`
+              : `${strengthThemes[0] || 'Core support'} is well-established`;
+            const patternBullet2 = finalGapThemes.length >= 2
+              ? `${finalGapThemes[0]} and ${finalGapThemes[1]} need attention`
+              : `${finalGapThemes[0] || 'Key areas'} need${finalGapThemes.length === 1 ? 's' : ''} attention`;
+            const patternBullet3 = closingClause;
 
             const defaultPatternBullets: string[] = [patternBullet1, patternBullet2, patternBullet3];
 
