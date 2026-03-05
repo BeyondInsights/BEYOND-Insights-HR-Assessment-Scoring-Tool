@@ -2940,7 +2940,7 @@ export default function ExportReportPage() {
       1: 'How Index Was Developed', 
       2: 'Understanding Your Workplace Support Composite Score',
       3: 'The 13 Dimensions',
-      4: 'Executive Summary',
+      4: 'Executive Overview',
       5: 'Dimension Support Scores'
     };
     for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
@@ -3111,7 +3111,7 @@ export default function ExportReportPage() {
       1: 'How Index Was Developed', 
       2: 'Understanding Your Workplace Support Composite Score',
       3: 'The 13 Dimensions',
-      4: 'Executive Summary',
+      4: 'Executive Overview',
       5: 'Dimension Support Scores'
     };
     // Dimension deep dives: slides 6-18
@@ -5514,7 +5514,7 @@ export default function ExportReportPage() {
             <div className="px-12 py-12 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
+                  <p className="text-slate-400 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
                   <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
                   <p className="text-sm text-slate-400 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
                   {isWwcPledge && (
@@ -5778,9 +5778,9 @@ export default function ExportReportPage() {
               </div>
             )}
             
-            {/* Executive Summary */}
+            {/* Executive Overview */}
             <div className="px-12 pt-6 pb-8 bg-white">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Overview</h3>
 
               <div data-export="executive-summary-text">
                   <p className="text-lg text-slate-700 leading-relaxed">
@@ -11350,7 +11350,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 4: Executive Summary + Key Findings */}
+                {/* Slide 4: Executive Overview + Key Findings */}
                 {currentSlide === 4 && (
                   <div className="overflow-hidden">
                     {/* Top section - Prepared For header */}
@@ -11400,9 +11400,9 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Executive Summary section */}
+                    {/* Executive Overview section */}
                     <div className="px-12 py-8 bg-slate-50">
-                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
+                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Overview</h3>
                       {(() => {
                         const execBenchDiff = compositeScore && benchmarks?.compositeScore ? compositeScore - benchmarks.compositeScore : null;
                         const execDescriptor = execBenchDiff !== null
@@ -15029,7 +15029,7 @@ export default function ExportReportPage() {
                            i === 1 ? 'How Index Was Developed' :
                            i === 2 ? ('Workplace Support Composite Score') :
                            i === 3 ? 'The 13 Dimensions' :
-                           i === 4 ? 'Executive Summary' :
+                           i === 4 ? 'Executive Overview' :
                            i === 5 ? 'Dimension Scores' :
                            i >= 6 && i <= 18 ? `D${i - 5} Deep Dive` :
                            i === 19 ? 'Strategic Priority Matrix' :
