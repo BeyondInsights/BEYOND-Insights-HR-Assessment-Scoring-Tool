@@ -7624,15 +7624,16 @@ export default function ExportReportPage() {
                   
                   // Derive current raw points from actual score (same as Impact-Ranked)
                   // This ensures consistency between What-If and Impact-Ranked projections
-                  const geoMult = whatIfGeoOverride !== null ? whatIfGeoOverride : (dimInfo?.geoMultiplier ?? 1.0);
+                  const originalGeoMult = dimInfo?.geoMultiplier ?? 1.0;
+                  const projectedGeoMult = whatIfGeoOverride !== null ? whatIfGeoOverride : originalGeoMult;
                   const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
-                  
+
                   let currentRawScore: number;
                   if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
                     const adjustedScore = (actualDimScore - dimInfo.followUpScore * 0.15) / 0.85;
-                    currentRawScore = geoMult > 0 ? adjustedScore / geoMult : adjustedScore;
+                    currentRawScore = originalGeoMult > 0 ? adjustedScore / originalGeoMult : adjustedScore;
                   } else {
-                    currentRawScore = geoMult > 0 ? actualDimScore / geoMult : actualDimScore;
+                    currentRawScore = originalGeoMult > 0 ? actualDimScore / originalGeoMult : actualDimScore;
                   }
                   const currentRawPoints = Math.round((currentRawScore / 100) * maxPoints);
                   
@@ -7661,7 +7662,7 @@ export default function ExportReportPage() {
                   // Calculate projected dimension score with geo multiplier and follow-up blending
                   // projectedRawPoints already calculated above using delta approach
                   const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
-                  const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
+                  const projectedAdjustedScore = Math.round(projectedRawScore * projectedGeoMult);
                   
                   // For follow-up dimensions, blend with existing follow-up score
                   // Follow-up weighting: 85% grid score + 15% follow-up score
