@@ -6434,37 +6434,31 @@ export default function ExportReportPage() {
                                 </p>
                               </div>
 
-                              {/* Tier scale legend */}
-                              <div className="px-6 py-3 border-b border-slate-100">
-                                <div className="flex items-center gap-1">
-                                  {tierDefs.map((td) => (
-                                    <div key={td.key} className="flex-1 text-center py-2 first:rounded-l-lg last:rounded-r-lg" style={{ backgroundColor: td.color + '12' }}>
-                                      <p className="text-xs font-bold" style={{ color: td.color }}>{td.label}</p>
-                                      <p className="text-xs text-slate-400">{td.range}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-
                               {/* Table header — two rows */}
                               <div className="bg-slate-50 border-b border-slate-200">
-                                {/* Merged header row */}
-                                <div className="grid grid-cols-[200px_80px_100px_1fr] gap-0 px-6 pt-3 pb-1">
+                                {/* Row 1: Your cols + Benchmark Distribution spanning header */}
+                                <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6">
                                   <div></div>
                                   <div></div>
                                   <div></div>
-                                  <div className="text-center">
-                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</span>
+                                  <div className="col-span-4 text-center py-2 border-l border-slate-200">
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</p>
                                   </div>
                                 </div>
-                                {/* Column headers */}
-                                <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 pb-3">
+                                {/* Row 2: Individual column headers */}
+                                <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 py-2">
                                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider"></div>
                                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Score</div>
                                   <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Your Tier</div>
-                                  {tierDefs.map(td => (
-                                    <div key={td.key} className="text-xs font-semibold uppercase tracking-wider text-center" style={{ color: td.color }}>
-                                      {td.label}
+                                  {[
+                                    { label: 'Leading', range: '80\u2013100', color: '#047857' },
+                                    { label: 'Advancing', range: '64\u201379', color: '#1D4ED8' },
+                                    { label: 'Accelerating', range: '50\u201363', color: '#B45309' },
+                                    { label: 'Building', range: '0\u201349', color: '#B91C1C' },
+                                  ].map((td, i) => (
+                                    <div key={td.label} className={`text-center ${i === 0 ? 'border-l border-slate-200' : ''}`}>
+                                      <p className="text-xs font-bold uppercase tracking-wider" style={{ color: td.color }}>{td.label}</p>
+                                      <p className="text-[11px] text-slate-400">{td.range}</p>
                                     </div>
                                   ))}
                                 </div>
@@ -6498,7 +6492,7 @@ export default function ExportReportPage() {
                                     {[dist.leading, dist.advancing, dist.accelerating, dist.building].map((pct, j) => {
                                       const isYourTier = tierDefs[j].label === tierInfo.label;
                                       return (
-                                        <div key={j} className="text-center">
+                                        <div key={j} className={`text-center ${j === 0 ? 'border-l border-slate-200' : ''}`}>
                                           <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-400'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
                                             {pct}%
                                           </span>
@@ -8329,7 +8323,6 @@ export default function ExportReportPage() {
                       {quickWinOpportunities.map((item: any, idx: number) => {
                         const dimObj = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
                         const pg = getEmployeePriorityGroup(dimObj?.weight || 0);
-                        const dimTierColor = dimObj?.tier?.color || '#64748B';
                         return (
                           <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-violet-400 hover:-translate-y-0.5 transition-all">
                             <div className="flex-1 min-w-0">
@@ -8339,7 +8332,7 @@ export default function ExportReportPage() {
                               </div>
                               <p className="text-lg text-slate-800 font-bold leading-snug">{item.name}</p>
                               <div className="flex items-center gap-2 mt-2">
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: dimTierColor }}>D{item.dimNum}</span>
+                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
                                 <span className="text-base text-slate-500">{item.dimName}</span>
                               </div>
                             </div>
@@ -8366,7 +8359,7 @@ export default function ExportReportPage() {
                         <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-red-300 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier?.color || '#64748B' }}>D{d.dim}</span>
+                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
                               <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
                             </div>
                             <div className="flex items-center gap-3 flex-shrink-0">
