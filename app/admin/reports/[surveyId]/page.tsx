@@ -5343,6 +5343,91 @@ export default function ExportReportPage() {
               )}
             </div>
 
+            {/* Understanding Your Report Sections — Collapsible */}
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowReportSections(!showReportSections)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-100 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-base font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">Report Sections and What They Measure</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-emerald-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              
+              {showReportSections && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    {/* REPORT SECTIONS - Expandable Grid */}
+                    <div className="p-8">
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <p className="text-sm text-slate-500 mt-0.5">Click any section to learn more about what it measures and how it fits</p>
+                        </div>
+                      </div>
+                      
+                      {/* Compact Grid of Sections */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                          { id: 'composite', name: 'Workplace Support Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
+                          { id: 'dimensions', name: 'Dimension Scores', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
+                          { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
+                          { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
+                          { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
+                          { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
+                          { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
+                          { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Priority Matrix clarifies which gaps are most consequential.' },
+                          { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
+                          { id: 'whatif', name: 'What-If Scenario Builder', color: 'bg-teal-600', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'Projections of how advancing specific elements could shift future dimension and composite scores.', fits: 'Decision support. Compare investment paths, build internal alignment, and translate priorities into a realistic, staged roadmap.' },
+                          { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-800', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Two to four integrated moves that synthesize the full story, anchored in your priority gaps, informed by cross-dimensional patterns, and sequenced with work already in motion.', fits: 'The sponsor-ready agenda. A coherent plan leadership can own, fund, and execute.' },
+                          { id: 'roadmap', name: 'Implementation Roadmap', color: 'bg-purple-600', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2', measures: 'A phased timeline that sequences quick wins, foundational capabilities, and longer-term initiatives into an executable plan.', fits: 'Turns priorities into action. Assigns owners, sets milestones, and creates accountability for progress.' },
+                        ].map((section) => (
+                          <button
+                            key={section.id}
+                            onClick={() => setExpandedReportSection(expandedReportSection === section.id ? null : section.id)}
+                            className={`text-left p-4 rounded-xl border-2 transition-all ${expandedReportSection === section.id ? 'border-emerald-400 bg-emerald-50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-lg ${section.color} flex items-center justify-center flex-shrink-0`}>
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={section.icon} /></svg>
+                              </div>
+                              <span className="text-sm font-semibold text-slate-800">{section.name}</span>
+                            </div>
+                            {expandedReportSection === section.id && (
+                              <div className="mt-4 pt-4 border-t border-emerald-200 space-y-3">
+                                <div>
+                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">What it measures</p>
+                                  <p className="text-sm text-slate-600 leading-relaxed">{section.measures}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">How it fits</p>
+                                  <p className="text-sm text-slate-600 leading-relaxed">{section.fits}</p>
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="px-8 py-5 bg-slate-800">
+                      <p className="text-base text-slate-200 text-center">
+                        <strong className="text-white">From insight to action.</strong> Each section builds toward a focused plan you can execute with confidence.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* How to Use This Report — Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
@@ -5361,7 +5446,7 @@ export default function ExportReportPage() {
                   <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </button>
-              
+
               {showReportGuide && (
                 <div className="mt-4 pb-1">
                   <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
@@ -5421,293 +5506,7 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-            
-            {/* Understanding Your Report Sections — Collapsible */}
-            <div className="px-12 py-6 bg-white border-b border-slate-200">
-              <button
-                onClick={() => setShowReportSections(!showReportSections)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-100 transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-base font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">Your Report at a Glance</span>
-                    <span className="text-sm text-slate-500 ml-3">From diagnosis to action plan</span>
-                  </div>
-                </div>
-                <div className={`w-7 h-7 rounded-full bg-white border border-emerald-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
-                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </button>
-              
-              {showReportSections && (
-                <div className="mt-4 pb-1">
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    {/* THE JOURNEY - Visual Story Arc */}
-                    <div className="p-8 bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
-                      <div className="text-center mb-8">
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">The Journey This Report Takes You On</h3>
-                        <p className="text-base text-slate-600 max-w-2xl mx-auto">Five stages that move you from understanding where you stand today to having a funded, actionable plan.</p>
-                      </div>
-                      
-                      {/* Horizontal Journey Flow */}
-                      <div className="relative">
-                        {/* Connecting Line */}
-                        <div className="absolute top-12 left-[10%] right-[10%] h-1 bg-gradient-to-r from-emerald-200 via-emerald-400 to-emerald-600 rounded-full hidden lg:block"></div>
-                        
-                        {/* 5 Steps */}
-                        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-4">
-                          {/* Step 1: DIAGNOSE */}
-                          <div className="relative">
-                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
-                              <span className="text-2xl font-bold text-white">1</span>
-                            </div>
-                            <div className="mt-4 text-center">
-                              <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Diagnose</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Where do we stand?</p>
-                            </div>
-                            <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Establish your <strong className="text-slate-600">baseline</strong> with composite and dimension scores, <strong className="text-slate-600">benchmarked</strong> against other participants.</p>
-                              <div className="mt-5 space-y-1.5 h-24">
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">{'Workplace Support Composite Score'}</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-slate-700 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Dimension Scores</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-slate-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Benchmarks</span>
-                                </div>
-                              </div>
-                              <div className="mt-4 pt-3 border-t border-slate-200 h-12">
-                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Focus on where the biggest returns are likely.</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Step 2: PRIORITIZE */}
-                          <div className="relative">
-                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
-                              <span className="text-2xl font-bold text-white">2</span>
-                            </div>
-                            <div className="mt-4 text-center">
-                              <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Prioritize</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What matters most?</p>
-                            </div>
-                            <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Use the <strong className="text-slate-600">Strategic Priority Matrix</strong> to identify where investment delivers the <strong className="text-slate-600">greatest return</strong>.</p>
-                              <div className="mt-5 space-y-1.5 h-24">
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-violet-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Strategic Priority Matrix</span>
-                                </div>
-                                <div className="h-6"></div>
-                                <div className="h-6"></div>
-                              </div>
-                              <div className="mt-4 pt-3 border-t border-slate-200 h-12">
-                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Understand the patterns behind these gaps.</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Step 3: UNDERSTAND */}
-                          <div className="relative">
-                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
-                              <span className="text-2xl font-bold text-white">3</span>
-                            </div>
-                            <div className="mt-4 text-center">
-                              <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Understand</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">Why do patterns emerge?</p>
-                            </div>
-                            <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">See how strengths and gaps <strong className="text-slate-600">cluster</strong>. Address <strong className="text-slate-600">root causes</strong> that influence multiple areas.</p>
-                              <div className="mt-5 space-y-1.5 h-24">
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Cross-Dimensional Insights</span>
-                                </div>
-                                <div className="h-6"></div>
-                                <div className="h-6"></div>
-                              </div>
-                              <div className="mt-4 pt-3 border-t border-slate-200 h-12">
-                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Turn these insights into a roadmap.</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Step 4: BUILD */}
-                          <div className="relative">
-                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
-                              <span className="text-2xl font-bold text-white">4</span>
-                            </div>
-                            <div className="mt-4 text-center">
-                              <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Build</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our roadmap?</p>
-                            </div>
-                            <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20"><strong className="text-slate-600">Protect</strong> strengths, target <strong className="text-slate-600">high-impact gaps</strong>, and build on work already underway.</p>
-                              <div className="mt-5 space-y-1.5 h-24">
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Areas of Excellence</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Areas for Growth</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-sky-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Initiatives In Progress</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-purple-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Implementation Roadmap</span>
-                                </div>
-                              </div>
-                              <div className="mt-4 pt-3 border-t border-slate-200 h-12">
-                                <p className="text-sm text-slate-500"><span className="font-semibold text-slate-600">Next:</span> Finalize and activate the plan.</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Step 5: ACT */}
-                          <div className="relative">
-                            <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg border-4 border-white relative z-10">
-                              <span className="text-2xl font-bold text-white">5</span>
-                            </div>
-                            <div className="mt-4 text-center">
-                              <p className="text-base font-bold text-slate-800 uppercase tracking-wide">Act</p>
-                              <p className="text-sm font-semibold text-slate-700 mt-1 h-10">What&apos;s our plan?</p>
-                            </div>
-                            <div className="mt-3 text-left pl-2">
-                              <p className="text-sm text-slate-500 leading-relaxed h-20">Model <strong className="text-slate-600">scenarios</strong>, finalize <strong className="text-slate-600">priorities</strong>, and land on a plan leadership can <strong className="text-slate-600">fund and execute</strong>.</p>
-                              <div className="mt-5 space-y-1.5 h-24">
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-amber-500 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Impact-Ranked Priorities</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-teal-600 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">What-If Scenarios</span>
-                                </div>
-                                <div className="flex items-center gap-2 h-6">
-                                  <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
-                                  </div>
-                                  <span className="text-xs text-slate-600">Strategic Recommendations</span>
-                                </div>
-                              </div>
-                              <div className="mt-4 pt-3 border-t border-slate-200 h-12">
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* CAC Partnership Note */}
-                      <div className="mt-14 p-8 bg-emerald-50 rounded-xl border border-emerald-200">
-                        <div className="flex items-center gap-6">
-                          <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={120} height={45} className="object-contain flex-shrink-0" />
-                          <div>
-                            <p className="text-base font-semibold text-emerald-800">Work with Cancer and Careers at every stage</p>
-                            <p className="text-sm text-emerald-700 mt-2 leading-relaxed">From interpreting your results and clarifying what they mean for your organization, to aligning on priorities, shaping a phased roadmap, pressure-testing scenarios, and preparing for stakeholder conversations. Our team brings deep expertise in workplace cancer support to help you turn these insights into lasting impact for your employees.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* REPORT SECTIONS - Expandable Grid */}
-                    <div className="p-8 border-t border-slate-200 mt-4">
-                      <div className="flex items-center justify-between mb-6">
-                        <div>
-                          <h3 className="text-lg font-bold text-slate-800">Report Sections</h3>
-                          <p className="text-sm text-slate-500 mt-0.5">Click any section to learn more about what it measures and how it fits</p>
-                        </div>
-                      </div>
-                      
-                      {/* Compact Grid of Sections */}
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                        {[
-                          { id: 'composite', name: 'Workplace Support Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
-                          { id: 'dimensions', name: 'Dimension Scores', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
-                          { id: 'matrix', name: 'Strategic Priority Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
-                          { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
-                          { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
-                          { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
-                          { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
-                          { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Priority Matrix clarifies which gaps are most consequential.' },
-                          { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
-                          { id: 'whatif', name: 'What-If Scenario Builder', color: 'bg-teal-600', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'Projections of how advancing specific elements could shift future dimension and composite scores.', fits: 'Decision support. Compare investment paths, build internal alignment, and translate priorities into a realistic, staged roadmap.' },
-                          { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-800', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Two to four integrated moves that synthesize the full story, anchored in your priority gaps, informed by cross-dimensional patterns, and sequenced with work already in motion.', fits: 'The sponsor-ready agenda. A coherent plan leadership can own, fund, and execute.' },
-                          { id: 'roadmap', name: 'Implementation Roadmap', color: 'bg-purple-600', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2', measures: 'A phased timeline that sequences quick wins, foundational capabilities, and longer-term initiatives into an executable plan.', fits: 'Turns priorities into action. Assigns owners, sets milestones, and creates accountability for progress.' },
-                        ].map((section) => (
-                          <button
-                            key={section.id}
-                            onClick={() => setExpandedReportSection(expandedReportSection === section.id ? null : section.id)}
-                            className={`text-left p-4 rounded-xl border-2 transition-all ${expandedReportSection === section.id ? 'border-emerald-400 bg-emerald-50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-9 h-9 rounded-lg ${section.color} flex items-center justify-center flex-shrink-0`}>
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={section.icon} /></svg>
-                              </div>
-                              <span className="text-sm font-semibold text-slate-800">{section.name}</span>
-                            </div>
-                            {expandedReportSection === section.id && (
-                              <div className="mt-4 pt-4 border-t border-emerald-200 space-y-3">
-                                <div>
-                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">What it measures</p>
-                                  <p className="text-sm text-slate-600 leading-relaxed">{section.measures}</p>
-                                </div>
-                                <div>
-                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">How it fits</p>
-                                  <p className="text-sm text-slate-600 leading-relaxed">{section.fits}</p>
-                                </div>
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Footer */}
-                    <div className="px-8 py-5 bg-slate-800">
-                      <p className="text-base text-slate-200 text-center">
-                        <strong className="text-white">From insight to action.</strong> Each section builds toward a focused plan you can execute with confidence.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            
+
             {/* Visual separator — page break between context and company report */}
             <div className="my-0"></div>
 
