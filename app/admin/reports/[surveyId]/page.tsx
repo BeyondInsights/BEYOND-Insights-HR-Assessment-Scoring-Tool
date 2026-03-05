@@ -4905,7 +4905,8 @@ export default function ExportReportPage() {
                   <p className="text-[10px] text-slate-400 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
                 </div>
                 <div className="pt-1">
-                  <p className="text-base text-slate-600 leading-relaxed">
+                  <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
                     How organizations support employees through diagnosis, treatment, and recovery has become a meaningful indicator of workplace culture, trust, and leadership.
                   </p>
                 </div>
@@ -11049,7 +11050,8 @@ export default function ExportReportPage() {
                           <p className="text-[10px] text-slate-400 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
                         </div>
                         <div className="pt-2">
-                          <p className="text-lg text-slate-600 leading-relaxed">
+                          <h3 className="text-xl font-bold text-slate-800 mb-3">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
+                          <p className="text-base text-slate-600 leading-relaxed">
                             How organizations support employees through diagnosis, treatment, and recovery has become a meaningful indicator of workplace culture, trust, and leadership.
                           </p>
                         </div>
