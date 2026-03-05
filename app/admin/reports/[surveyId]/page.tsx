@@ -6235,7 +6235,7 @@ export default function ExportReportPage() {
                         const Icon = t.icon;
 
                         return (
-                          <div key={t.key} className="rounded-xl overflow-hidden bg-white" style={{ border: `1px solid ${t.border}` }}>
+                          <div key={t.key} className="rounded-xl overflow-hidden bg-white flex flex-col" style={{ border: `1px solid ${t.border}` }}>
                             {/* Card header */}
                             <div className="px-5 py-4 flex items-center gap-3" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
                               <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
@@ -6247,8 +6247,8 @@ export default function ExportReportPage() {
                               </div>
                             </div>
 
-                            {/* Description */}
-                            <div className="px-5 py-3">
+                            {/* Description — flex-1 to push View Details to consistent bottom */}
+                            <div className="px-5 py-3 flex-1">
                               <p className="text-sm text-slate-600 leading-relaxed">{t.shortDesc}</p>
                             </div>
 
