@@ -4898,7 +4898,7 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of adults will be<br/>diagnosed with cancer</p>
                     </div>
                     <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
-                      <p className="text-4xl font-bold text-violet-600">72%<span className="text-lg align-top">*</span></p>
+                      <p className="text-4xl font-bold text-violet-600">70%<span className="text-lg align-top">*</span></p>
                       <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
                     </div>
                   </div>
