@@ -688,7 +688,7 @@ function getTwoStepRoadmap(
   if (allItems.length > 0) {
     const item = allItems[0];
     const isQuick = item.isPlanning || item.pct >= 60;
-    const effortTag = isQuick ? 'Quick Win (60-day)' : 'Strategic Initiative (6-month)';
+    const effortTag = isQuick ? 'Accelerate' : 'Build';
     const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity — already in development' : `${item.pct}% of participating organizations offer this`;
     quickWin = { name: item.name, reason: `${label}; ${item.pct}% of participating organizations offer this`, effortTag, projectedLift: Math.round(item.lift * 10) / 10 };
   }
@@ -698,7 +698,7 @@ function getTwoStepRoadmap(
   if (allItems.length > 1) {
     const item = allItems[1];
     const isQuick = item.isPlanning || item.pct >= 60;
-    const effortTag = isQuick ? 'Quick Win (60-day)' : 'Strategic Initiative (6-month)';
+    const effortTag = isQuick ? 'Accelerate' : 'Build';
     const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'In development' : `${item.pct}% adoption among participating organizations`;
     strategicLift = { name: item.name, reason: `${label}; adding this would meaningfully expand support coverage`, effortTag, projectedLift: Math.round(item.lift * 10) / 10 };
   }
@@ -3037,7 +3037,7 @@ export default function ExportReportPage() {
   const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   const [showImpactRanked, setShowImpactRanked] = useState(false);
-  const [recViewMode, setRecViewMode] = useState<'default' | 'leverage' | 'foundation' | 'roadmap'>('default');
+  const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced' | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -8759,7 +8759,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-white text-3xl tracking-tight">Strategic Recommendations</h3>
-                      <p className="text-slate-500 text-base mt-1">From diagnosis to action in four priority dimensions</p>
+                      <p className="text-slate-400 text-base mt-1">Deep-dive analysis with element-level actions for your priority dimensions</p>
                     </div>
                   </div>
                   
@@ -8771,11 +8771,12 @@ export default function ExportReportPage() {
                         <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
                           <span className="text-white text-xs font-bold">1</span>
                         </div>
-                        <span className="text-white/70 text-xs font-medium uppercase tracking-wide">What we found</span>
+                        <span className="text-white/70 text-xs font-medium uppercase tracking-wide">What this section provides</span>
                       </div>
                       <p className="text-slate-200 text-sm leading-relaxed">
-                        Your report identified <span className="text-white font-semibold">specific gaps and opportunities</span> across 13 dimensions. 
-                        This section focuses on the <span className="text-white font-semibold">four dimensions</span> where targeted action will have the greatest effect on employee experience.
+                        For each priority dimension, you'll see every support element categorized by action urgency: elements already in motion,
+                        <span className="text-white font-semibold"> table-stakes gaps</span> most participating organizations have already closed, and
+                        <span className="text-white font-semibold"> differentiator opportunities</span> to set you apart. Each includes benchmark data and projected score impact.
                       </p>
                     </div>
                     
@@ -8793,8 +8794,9 @@ export default function ExportReportPage() {
                         <span className="text-white/70 text-xs font-medium uppercase tracking-wide">How to use it</span>
                       </div>
                       <p className="text-slate-200 text-sm leading-relaxed">
-                        Every organization is different. Some recommendations will align with your priorities; others may not be feasible yet. 
-                        <span className="text-white font-semibold"> Use these insights as a starting point</span> for conversations with Cancer and Careers about what&apos;s realistic and impactful for your workforce.
+                        Start with <span className="text-white font-semibold">&quot;Complete What&apos;s In Motion&quot;</span> elements — these are your quickest wins.
+                        Then address <span className="text-white font-semibold">&quot;Table-Stakes Gaps&quot;</span> where participating organizations have already invested.
+                        <span className="text-white font-semibold underline"> Use these as a starting point</span> for conversations with Cancer and Careers about what&apos;s realistic for your organization.
                       </p>
                     </div>
                   </div>
@@ -8809,57 +8811,123 @@ export default function ExportReportPage() {
               </div>
             </div>
 
-            <div className="p-10">
-              {/* View Mode Selector */}
-              <div className="mb-8">
-                <p className="text-slate-600 text-base leading-relaxed mb-6 max-w-4xl">
-                  Deep-dive analysis with element-level recommendations, benchmark comparisons, and CAC resource alignment. Choose which dimensions to explore:
-                </p>
+            {/* Dimension selection — two compelling cards */}
+            <div className="p-10 pt-6">
+              <p className="text-lg text-slate-700 font-medium mb-2">Choose which dimensions to explore in depth:</p>
+              <p className="text-base text-slate-500 mb-6">Each dimension includes element-level gap analysis, benchmark comparisons, prioritized actions, and projected score impact.</p>
 
-                <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1.5">
-                  {([
-                    { key: 'default' as const, label: 'All 4 Priority Dimensions', desc: '2 Strategic Leverage + 2 Foundation Focus' },
-                    { key: 'leverage' as const, label: 'Strategic Leverage', desc: 'Highest weighted opportunity' },
-                    { key: 'foundation' as const, label: 'Foundation Focus', desc: 'Largest support gaps' },
-                    { key: 'roadmap' as const, label: 'From Your Roadmap', desc: 'Top 4 by projected impact' },
-                  ]).map(opt => (
-                    <button
-                      key={opt.key}
-                      onClick={() => setRecViewMode(opt.key)}
-                      className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
-                        recViewMode === opt.key
-                          ? 'bg-white text-slate-900 shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
-                      }`}
-                    >
-                      <span className="block font-semibold">{opt.label}</span>
-                      <span className="block text-xs mt-0.5 font-normal" style={{ color: recViewMode === opt.key ? '#64748b' : '#94a3b8' }}>{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className="grid grid-cols-2 gap-6">
+                {/* Option 1: Your Top 5 Priorities */}
+                <button
+                  onClick={() => setRecViewMode('roadmap')}
+                  className={`text-left rounded-2xl overflow-hidden transition-all ${
+                    recViewMode === 'roadmap'
+                      ? 'ring-3 ring-indigo-500 shadow-lg'
+                      : 'hover:shadow-md hover:-translate-y-0.5'
+                  }`}
+                  style={{ border: recViewMode === 'roadmap' ? '2px solid #4F46E5' : '2px solid #e2e8f0' }}
+                >
+                  <div className={`px-6 py-4 ${recViewMode === 'roadmap' ? 'bg-indigo-600' : 'bg-slate-700'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white text-lg">Your Top 5 Priorities</h4>
+                          <p className="text-white/70 text-sm">Ranked by projected score impact</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-lg bg-white/20 text-white text-sm font-bold">5 dimensions</span>
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 bg-white">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
+                      The 5 dimensions from Your Improvement Roadmap where focused investment will have the <strong className="text-slate-800">greatest measurable impact</strong> on your composite score. Prioritized by a combination of improvement opportunity and implementation readiness.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      {rankings.slice(0, 5).map((r: any, i: number) => (
+                        <span key={i} className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
+                          D{r.dimNum}
+                        </span>
+                      ))}
+                      <span className="text-xs text-slate-400 ml-1">
+                        +{Math.round(rankings.slice(0, 5).reduce((s: number, r: any) => s + r.potentialGain12, 0) * 10) / 10} projected WSI pts
+                      </span>
+                    </div>
+                  </div>
+                </button>
 
-                <p className="text-sm text-slate-500 mt-4">
-                  {recViewMode === 'default' && 'Showing 2 dimensions selected by strategic opportunity (highest impact × weight) and 2 selected by greatest need (lowest scores). This balanced approach addresses both immediate gaps and high-leverage improvements.'}
-                  {recViewMode === 'leverage' && 'Showing 2 dimensions where the combination of impact importance and improvement headroom creates the greatest potential for system-wide improvement. Dimensions scoring above 85 are excluded.'}
-                  {recViewMode === 'foundation' && 'Showing 2 dimensions with the lowest scores — where employees managing cancer are most likely to experience gaps in support today.'}
-                  {recViewMode === 'roadmap' && 'Showing the top 4 dimensions from Your Improvement Roadmap, ranked by projected Year-1 composite score impact.'}
-                </p>
+                {/* Option 2: Balanced 2+2 Method */}
+                <button
+                  onClick={() => setRecViewMode('balanced')}
+                  className={`text-left rounded-2xl overflow-hidden transition-all ${
+                    recViewMode === 'balanced'
+                      ? 'ring-3 ring-slate-500 shadow-lg'
+                      : 'hover:shadow-md hover:-translate-y-0.5'
+                  }`}
+                  style={{ border: recViewMode === 'balanced' ? '2px solid #334155' : '2px solid #e2e8f0' }}
+                >
+                  <div className={`px-6 py-4 ${recViewMode === 'balanced' ? 'bg-slate-800' : 'bg-slate-600'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white text-lg">Balanced 2+2 Method</h4>
+                          <p className="text-white/70 text-sm">Strategic opportunity + greatest need</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1 rounded-lg bg-white/20 text-white text-sm font-bold">4 dimensions</span>
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 bg-white">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
+                      A curated selection: <strong className="text-slate-800">2 Strategic Leverage</strong> dimensions (highest weighted opportunity) and <strong className="text-slate-800">2 Foundation Focus</strong> dimensions (largest support gaps). Balances quick impact with foundational improvement.
+                    </p>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-slate-700"></span>
+                        <span className="text-xs text-slate-500">
+                          Leverage: {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map(d => `D${d.dim}`).join(', ')}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <span className="text-xs text-slate-500">
+                          Foundation: {strategicPriorityDims.filter(d => d.selectionReason === 'risk').map(d => `D${d.dim}`).join(', ')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </button>
               </div>
+
+              {/* Empty state — show when nothing selected */}
+              {recViewMode === null && (
+                <div className="mt-8 py-12 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-semibold text-slate-600 mb-2">Select an approach above</h4>
+                  <p className="text-sm text-slate-400 max-w-md">Choose &quot;Your Top 5 Priorities&quot; for the broadest coverage, or &quot;Balanced 2+2 Method&quot; for a curated focus on the most strategic and foundational dimensions.</p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
+          {recViewMode !== null && (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {(() => {
                 let dimsToShow: typeof strategicPriorityDims;
-                if (recViewMode === 'leverage') {
-                  dimsToShow = strategicPriorityDims.filter(d => d.selectionReason === 'impact');
-                } else if (recViewMode === 'foundation') {
-                  dimsToShow = strategicPriorityDims.filter(d => d.selectionReason === 'risk');
-                } else if (recViewMode === 'roadmap') {
-                  const roadmapDimNums = rankings.slice(0, 4).map(r => r.dimNum);
-                  dimsToShow = roadmapDimNums.map(dimNum => {
+                if (recViewMode === 'roadmap') {
+                  const roadmapDimNums = rankings.slice(0, 5).map((r: any) => r.dimNum);
+                  dimsToShow = roadmapDimNums.map((dimNum: number) => {
                     const da = dimensionAnalysis.find(dim => dim.dim === dimNum);
                     if (!da) return null;
                     const inStrategic = strategicPriorityDims.find(sp => sp.dim === dimNum);
@@ -9011,12 +9079,15 @@ export default function ExportReportPage() {
                           : `${Math.abs(benchDiff)} points below the benchmark — one of your largest gaps relative to participating organizations.`
                         : 'Benchmark data not available for this dimension.';
 
+                      const topTableStakes = tier2[0];
+                      const topInMotion = tier1[0];
+
                       const insightParts: string[] = [];
-                      if (tier1.length > 0) {
-                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — completing ${tier1.length > 1 ? 'these' : 'this'} is the fastest path to score improvement`);
+                      if (tier1.length > 0 && topInMotion) {
+                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — starting with "${topInMotion.name}" (${topInMotion.peerPct ?? '?'}% peer adoption) is the fastest path to score improvement`);
                       }
-                      if (tier2.length > 0) {
-                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes element${tier2.length > 1 ? 's' : ''} that most participating organizations already offer`);
+                      if (tier2.length > 0 && topTableStakes) {
+                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes — most notably "${topTableStakes.name}" which ${topTableStakes.peerPct}% of participating organizations already offer`);
                       }
                       if (tier3.length > 0 && tier2.length === 0) {
                         insightParts.push(`${tier3.length} gap${tier3.length > 1 ? 's represent' : ' represents'} differentiator opportunities where fewer than half of participating organizations have invested`);
@@ -9037,6 +9108,11 @@ export default function ExportReportPage() {
                           <div className="mb-6">
                             <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Prioritized Actions</h4>
 
+                            {/* Next 90 Days */}
+                            {(tier1.length > 0 || tier2.length > 0) && (
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-2">Next 90 Days</p>
+                            )}
+
                             {renderTier(
                               tier1, "Complete What's In Motion", '#2563EB', '#eff6ff',
                               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
@@ -9049,10 +9125,20 @@ export default function ExportReportPage() {
                               true
                             )}
 
+                            {/* 3 to 12 Months */}
+                            {tier3.length > 0 && (
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">3 to 12 Months</p>
+                            )}
+
                             {renderTier(
                               tier3, 'Build Differentiators', '#7C3AED', '#f5f3ff',
                               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
                               true
+                            )}
+
+                            {/* Ongoing */}
+                            {tier4.length > 0 && (
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">Ongoing — Protect</p>
                             )}
 
                             {tier4.length > 0 && (
@@ -9118,6 +9204,7 @@ export default function ExportReportPage() {
               })()}
             </div>
           </div>
+          )}
 
           {/* Additional Analyzed Dimensions */}
           {additionalAnalyzedDims.length > 0 && (
@@ -9269,12 +9356,15 @@ export default function ExportReportPage() {
                           : `${Math.abs(benchDiff)} points below the benchmark — one of your largest gaps relative to participating organizations.`
                         : 'Benchmark data not available for this dimension.';
 
+                      const topTableStakes = tier2[0];
+                      const topInMotion = tier1[0];
+
                       const insightParts: string[] = [];
-                      if (tier1.length > 0) {
-                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — completing ${tier1.length > 1 ? 'these' : 'this'} is the fastest path to score improvement`);
+                      if (tier1.length > 0 && topInMotion) {
+                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — starting with "${topInMotion.name}" (${topInMotion.peerPct ?? '?'}% peer adoption) is the fastest path to score improvement`);
                       }
-                      if (tier2.length > 0) {
-                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes element${tier2.length > 1 ? 's' : ''} that most participating organizations already offer`);
+                      if (tier2.length > 0 && topTableStakes) {
+                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes — most notably "${topTableStakes.name}" which ${topTableStakes.peerPct}% of participating organizations already offer`);
                       }
                       if (tier3.length > 0 && tier2.length === 0) {
                         insightParts.push(`${tier3.length} gap${tier3.length > 1 ? 's represent' : ' represents'} differentiator opportunities where fewer than half of participating organizations have invested`);
@@ -9295,6 +9385,11 @@ export default function ExportReportPage() {
                           <div className="mb-6">
                             <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Prioritized Actions</h4>
 
+                            {/* Next 90 Days */}
+                            {(tier1.length > 0 || tier2.length > 0) && (
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-2">Next 90 Days</p>
+                            )}
+
                             {renderTier(
                               tier1, "Complete What's In Motion", '#2563EB', '#eff6ff',
                               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
@@ -9307,10 +9402,20 @@ export default function ExportReportPage() {
                               true
                             )}
 
+                            {/* 3 to 12 Months */}
+                            {tier3.length > 0 && (
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">3 to 12 Months</p>
+                            )}
+
                             {renderTier(
                               tier3, 'Build Differentiators', '#7C3AED', '#f5f3ff',
                               <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
                               true
+                            )}
+
+                            {/* Ongoing */}
+                            {tier4.length > 0 && (
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">Ongoing — Protect</p>
                             )}
 
                             {tier4.length > 0 && (
@@ -10021,7 +10126,20 @@ export default function ExportReportPage() {
               const tierShift = projectedTier.name !== currentTier.name
                 ? ` \u2014 potentially moving from ${currentTier.name} to ${projectedTier.name}`
                 : '';
-              return `Addressing ${topImpact.dimName} could improve your composite score by up to +${Math.round(topImpact.potentialGain12)} points${tierShift}.`;
+              // Find the top gap element in this dimension for specificity
+              const topDim = dimensionAnalysis.find((da: any) => da.dim === topImpact.dimNum);
+              const dimBenchImpact = elementBenchmarks[topImpact.dimNum] || {};
+              const topGapElement = (topDim?.gaps || [])
+                .map((el: any) => {
+                  const bench = dimBenchImpact[el.name];
+                  return { name: el.name, peerPct: bench ? Math.round((bench.currently / bench.total) * 100) : 0 };
+                })
+                .sort((a: any, b: any) => b.peerPct - a.peerPct)[0];
+              const elementCite = topGapElement && topGapElement.peerPct > 0
+                ? ` Start with "${topGapElement.name}" \u2014 ${topGapElement.peerPct}% of participating organizations already offer this.`
+                : '';
+
+              return `Addressing ${topImpact.dimName} could improve your composite score by up to +${Math.round(topImpact.potentialGain12)} points${tierShift}.${elementCite}`;
             })();
 
             // Enhancement 3: Unsure-item upside
@@ -10294,11 +10412,15 @@ export default function ExportReportPage() {
                                 const impact = impactRankings.find((ir: any) => ir.dimNum === d.dim);
                                 if (!impact) return null;
                                 const isQuickWin = impact.effortTag === 'quick-win';
-                                return (
-                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${isQuickWin ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
-                                    {isQuickWin ? '60-Day Win' : '6-Month Build'}
-                                  </span>
-                                );
+                                return isQuickWin ? (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                      Accelerate <span className="font-normal text-emerald-500">— advance work in motion</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
+                                      Build <span className="font-normal text-slate-400">— stand up new capabilities</span>
+                                    </span>
+                                  );
                               })()}
                             </div>
                             <div className="pl-7 mt-0.5 space-y-0.5">
@@ -13202,7 +13324,7 @@ export default function ExportReportPage() {
                               </svg>
                             </div>
                             <p className="text-slate-800 font-semibold text-xs mb-1">Current Strengths</p>
-                            <p className="text-slate-500 text-xs leading-relaxed">What's working today. Your foundation to build upon.</p>
+                            <p className="text-slate-500 text-xs leading-relaxed">What&apos;s working today. Your foundation to build upon.</p>
                           </div>
                           <div className="p-3 border border-slate-200 rounded-lg bg-white">
                             <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center mb-2">
