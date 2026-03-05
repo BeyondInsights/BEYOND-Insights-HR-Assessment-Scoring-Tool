@@ -8147,24 +8147,32 @@ export default function ExportReportPage() {
                 </div>
               </div>
 
-              {/* Tab strip */}
-              <div className="flex border-b border-slate-200">
+              {/* Tab strip — full-width, equal thirds */}
+              <div className="grid grid-cols-3 border-b border-slate-200">
                 {([
-                  { key: 'excellence' as const, label: 'Areas of Excellence', color: '#0D9488', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: strengthDimensions.length },
-                  { key: 'initiatives' as const, label: 'Initiatives in Progress', color: '#D97706', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: quickWinOpportunities.length },
-                  { key: 'growth' as const, label: 'Areas of Growth', color: '#475569', icon: <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: Math.min(growthDimensions.length, 6) },
+                  { key: 'excellence' as const, label: 'Areas of Excellence', color: '#0D9488', lightBg: '#f0fdfa', lightBorder: '#99f6e4', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: strengthDimensions.length, subtitle: `${strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above` },
+                  { key: 'initiatives' as const, label: 'Initiatives in Progress', color: '#D97706', lightBg: '#fffbeb', lightBorder: '#fde68a', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: quickWinOpportunities.length, subtitle: 'in planning or under consideration' },
+                  { key: 'growth' as const, label: 'Areas of Growth', color: '#475569', lightBg: '#f8fafc', lightBorder: '#cbd5e1', icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>, count: Math.min(growthDimensions.length, 6), subtitle: `${Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with growth potential` },
                 ]).map(tab => {
                   const isActive = activeReportTab === tab.key;
                   return (
                     <button
                       key={tab.key}
                       onClick={() => setActiveReportTab(tab.key)}
-                      className="flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors relative"
-                      style={{ color: isActive ? tab.color : '#94a3b8' }}
+                      className="relative flex flex-col items-center text-center px-4 py-5 transition-all"
+                      style={{
+                        backgroundColor: isActive ? tab.lightBg : 'transparent',
+                        color: isActive ? tab.color : '#94a3b8',
+                      }}
                     >
-                      {tab.icon}
-                      <span style={{ fontWeight: isActive ? 600 : 400 }}>{tab.label}</span>
-                      <span className="text-xs ml-1 tabular-nums" style={{ opacity: 0.7 }}>{tab.count}</span>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span style={{ color: isActive ? tab.color : '#cbd5e1' }}>{tab.icon}</span>
+                        <span className="text-sm tracking-wide" style={{ fontWeight: isActive ? 700 : 500 }}>{tab.label}</span>
+                      </div>
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-bold tabular-nums" style={{ color: isActive ? tab.color : '#cbd5e1' }}>{tab.count}</span>
+                        <span className="text-xs" style={{ color: isActive ? tab.color : '#94a3b8', opacity: 0.8 }}>{tab.subtitle}</span>
+                      </div>
                       {isActive && (
                         <span className="absolute bottom-0 left-0 right-0 h-[3px]" style={{ backgroundColor: tab.color }} />
                       )}
@@ -8179,7 +8187,7 @@ export default function ExportReportPage() {
               {/* ---- Excellence tab ---- */}
               {activeReportTab === 'excellence' && (
                 <div id="areas-of-excellence">
-                  <p className="text-sm text-slate-500 mb-5">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above · Click any dimension for full details</p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
                   {strengthDimensions.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
                       {strengthDimensions.slice(0, 6).map((d) => {
@@ -8221,7 +8229,7 @@ export default function ExportReportPage() {
               {/* ---- Initiatives tab ---- */}
               {activeReportTab === 'initiatives' && (
                 <div id="initiatives-in-progress">
-                  <p className="text-sm text-slate-500 mb-5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in planning or under consideration <span className="text-slate-400 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
                       {quickWinOpportunities.map((item: any, idx: number) => {
@@ -8254,7 +8262,7 @@ export default function ExportReportPage() {
               {/* ---- Growth tab ---- */}
               {activeReportTab === 'growth' && (
                 <div id="growth-opportunities">
-                  <p className="text-sm text-slate-500 mb-5">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential · Click any dimension for full details</p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
                   <div className="grid grid-cols-2 gap-5">
                     {growthDimensions.slice(0, 6).map((d) => {
                       const pg = getEmployeePriorityGroup(d.weight);
