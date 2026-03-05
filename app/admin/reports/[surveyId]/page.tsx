@@ -7259,7 +7259,7 @@ export default function ExportReportPage() {
                           const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                           if (!d) return (
                             <div key={dimNum} className="flex items-start gap-2 px-2 py-1.5 rounded text-slate-400">
-                              <span className="w-6 h-6 rounded bg-slate-200 flex items-center justify-center text-xs font-bold">{dimNum}</span>
+                              <span className="w-6 h-6 rounded bg-slate-200 flex items-center justify-center text-[10px] font-bold">D{dimNum}</span>
                               <span className="text-sm">Unknown Dimension</span>
                             </div>
                           );
@@ -7271,7 +7271,7 @@ export default function ExportReportPage() {
                               onMouseLeave={() => setHoveredMatrixDim(null)}
                               onClick={() => setDimensionDetailModal(d.dim)}
                             >
-                              <span className="w-6 h-6 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>{d.dim}</span>
+                              <span className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>D{d.dim}</span>
                               <span className="text-sm text-slate-700 font-medium leading-snug">{d.name}</span>
                             </div>
                           );
