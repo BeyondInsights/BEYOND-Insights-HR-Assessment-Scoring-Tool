@@ -8911,343 +8911,207 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* Benchmark Narrative */}
-                    {benchmarkNarrative && (
-                      <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                        <p className="text-base text-slate-600">{benchmarkNarrative}</p>
-                      </div>
-                    )}
-                    
-                    <div className="px-10 py-6">
-                      {/* Current State - 3 columns */}
-                      <div className="grid grid-cols-3 gap-6 mb-6">
-                        {/* Improvement Opportunities */}
-                        <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
-                          <div className="px-4 py-3 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <circle cx="12" cy="12" r="6" />
-                                <circle cx="12" cy="12" r="2" />
-                              </svg>
-                            </div>
-                            <h5 className="font-bold text-white text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
-                          </div>
-                          <div className="p-4 max-h-64 overflow-y-auto">
-                            {d.needsAttention?.length > 0 ? (
-                              <ul className="space-y-2">
-                                {d.needsAttention.map((item: any, i: number) => (
-                                  <li key={i} className="text-base text-slate-700 flex items-start gap-2">
-                                    <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                                      item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'
-                                    }`}></span>
-                                    <span>{item.name}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : <p className="text-base text-slate-500">No gaps identified</p>}
-                          </div>
-                        </div>
-                        
-                        {/* In Development */}
-                        <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
-                          <div className="px-4 py-3 bg-violet-600 border-b border-violet-500 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
-                              </svg>
-                            </div>
-                            <h5 className="font-bold text-white text-base">In Development ({d.planning?.length || 0})</h5>
-                          </div>
-                          <div className="p-4 max-h-64 overflow-y-auto">
-                            {d.planning?.length > 0 ? (
-                              <ul className="space-y-2">
-                                {d.planning.map((item: any, i: number) => (
-                                  <li key={i} className="text-base text-slate-700 flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                    <span>{item.name}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : <p className="text-base text-slate-500">No initiatives in planning</p>}
-                          </div>
-                        </div>
-                        
-                        {/* Strengths */}
-                        <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
-                          <div className="px-4 py-3 bg-teal-600 border-b border-teal-500 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                                <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
-                                <circle cx="12" cy="12" r="9" />
-                              </svg>
-                            </div>
-                            <h5 className="font-bold text-white text-base">Strengths ({d.strengths?.length || 0})</h5>
-                          </div>
-                          <div className="p-4 max-h-64 overflow-y-auto">
-                            {d.strengths?.length > 0 ? (
-                              <ul className="space-y-2">
-                                {d.strengths.map((s: any, i: number) => (
-                                  <li key={i} className="text-base text-slate-700 flex items-start gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-teal-500 mt-2 flex-shrink-0"></span>
-                                    <span>{s.name}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : <p className="text-base text-slate-500">Building toward first strengths</p>}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Strategic Insight & CAC Help - 2 columns */}
-                      <div className="grid grid-cols-2 gap-6">
-                        {/* Left Column: Evidence + Insight */}
-                        <div className="space-y-4">
-                          {(evidence.topStrength || evidence.biggestGap || evidence.inFlight) && (
-                            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                              <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
-                              <div className="space-y-2">
-                                {evidence.topStrength && (() => {
-                                  const cls = evidence.topStrength.benchPct < 35 ? 'Signature Strength' : 'Competitive Standard';
-                                  const st = CLASSIFICATION_STYLES[cls];
-                                  return (
-                                    <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-teal-600 text-sm">✓</span>
-                                      </span>
-                                      <p className="text-base text-slate-700">
-                                        <span className="font-semibold text-teal-700">{evidence.topStrength.name}</span>
-                                        <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
-                                        <span className="text-slate-500 ml-1">({evidence.topStrength.benchPct}% of participating organizations)</span>
-                                      </p>
-                                    </div>
-                                  );
-                                })()}
-                                {evidence.biggestGap && (() => {
-                                  const cls = evidence.biggestGap.benchPct > 60 ? 'Table Stakes Gap' : 'Aspirational Gap';
-                                  const st = CLASSIFICATION_STYLES[cls];
-                                  return (
-                                    <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-red-600 text-sm">✗</span>
-                                      </span>
-                                      <p className="text-base text-slate-700">
-                                        <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                        <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
-                                        <span className="text-slate-500 ml-1">({evidence.biggestGap.benchPct}% of participating organizations)</span>
-                                      </p>
-                                    </div>
-                                  );
-                                })()}
-                                {evidence.inFlight && (() => {
-                                  const cls = evidence.inFlight.benchPct > 60 ? 'Momentum Opportunity' : 'In Progress';
-                                  const st = CLASSIFICATION_STYLES[cls];
-                                  return (
-                                    <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-blue-600 text-sm">↗</span>
-                                      </span>
-                                      <p className="text-base text-slate-700">
-                                        <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
-                                        <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
-                                        <span className="text-slate-500 ml-1">({evidence.inFlight.benchPct}% of participating organizations)</span>
-                                      </p>
-                                    </div>
-                                  );
-                                })()}
+                    {/* ---- Prioritized Actions (restructured) ---- */}
+                    {(() => {
+                      const dimBench = elementBenchmarks[d.dim] || {};
+                      const geoMult = d.geoMultiplier ?? 1.0;
+                      const allElements = [
+                        ...(d.strengths || []).map((el: any) => ({ ...el, isStrength: true })),
+                        ...(d.gaps || []).map((el: any) => ({ ...el, isGap: true })),
+                        ...(d.planning || []).map((el: any) => ({ ...el, isPlanning: true })),
+                        ...(d.assessing || []).map((el: any) => ({ ...el, isAssessing: true })),
+                        ...(d.unsure || []).map((el: any) => ({ ...el, isUnsure: true })),
+                      ];
+                      const elementCount = allElements.length || 1;
+                      const maxPoints = elementCount * 5;
+
+                      const tier1: any[] = [];
+                      const tier2: any[] = [];
+                      const tier3: any[] = [];
+                      const tier4: any[] = [];
+                      const unsureItems: any[] = [];
+
+                      allElements.forEach((el: any) => {
+                        const bench = dimBench[el.name];
+                        const peerPct = bench ? Math.round((bench.currently / bench.total) * 100) : null;
+                        const enriched = { ...el, peerPct };
+
+                        if (el.isUnsure) { unsureItems.push(enriched); }
+                        else if (el.isStrength) { tier4.push(enriched); }
+                        else if (el.isPlanning || el.isAssessing) { tier1.push(enriched); }
+                        else if (peerPct !== null && peerPct > 50) { tier2.push(enriched); }
+                        else { tier3.push(enriched); }
+                      });
+
+                      const sortByPeers = (a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0);
+                      tier1.sort(sortByPeers);
+                      tier2.sort(sortByPeers);
+                      tier3.sort(sortByPeers);
+
+                      const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                      const dimWeightPct = Math.round((d.weight / totalDimWeight) * 100);
+                      const perElementDimGain = maxPoints > 0 ? Math.round((5 / maxPoints) * 100 * geoMult) : 0;
+                      const perElementCompositeGain = Math.round(perElementDimGain * dimWeightPct / 100 * 0.9 * 10) / 10;
+
+                      const renderTier = (
+                        items: any[],
+                        label: string,
+                        color: string,
+                        lightBg: string,
+                        icon: React.ReactNode,
+                        showImpact: boolean
+                      ) => {
+                        if (items.length === 0) return null;
+                        return (
+                          <div className="mb-4 last:mb-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
+                                {icon}
                               </div>
+                              <h5 className="text-sm font-bold uppercase tracking-wider" style={{ color }}>{label}</h5>
+                              <span className="text-sm text-slate-400">({items.length})</span>
                             </div>
-                          )}
-                          
-                          <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-slate-200 bg-white'}`}>
-                            <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-slate-700 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              </div>
-                              Strategic Insight
-                              {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
-                            </h5>
-                            {editMode ? (
-                              <textarea
-                                value={customInsights[d.dim]?.insight ?? dynamicInsight.insight}
-                                onChange={(e) => updateCustomInsight(d.dim, 'insight', e.target.value)}
-                                className="w-full text-base text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                                placeholder="Enter custom strategic insight..."
-                              />
-                            ) : (
-                              <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.insight || dynamicInsight.insight}</p>
+                            <div className="rounded-lg border overflow-hidden" style={{ borderColor: color + '30' }}>
+                              {items.map((el: any, i: number) => (
+                                <div key={i} className={`flex items-center gap-4 px-4 py-2.5 ${i < items.length - 1 ? 'border-b' : ''}`} style={{ borderColor: color + '15', backgroundColor: i % 2 === 0 ? lightBg : 'white' }}>
+                                  <span className="flex-1 text-sm text-slate-700">{el.name}</span>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                    el.isPlanning ? 'bg-blue-100 text-blue-700' :
+                                    el.isAssessing ? 'bg-amber-100 text-amber-700' :
+                                    el.isStrength ? 'bg-emerald-100 text-emerald-700' :
+                                    'bg-slate-100 text-slate-600'
+                                  }`}>
+                                    {el.isPlanning ? 'In Dev' : el.isAssessing ? 'Review' : el.isStrength ? 'In Place' : 'Not in Place'}
+                                  </span>
+                                  {el.peerPct !== null && (
+                                    <span className="text-xs text-slate-400 w-28 text-right tabular-nums">
+                                      {el.peerPct}% of orgs
+                                    </span>
+                                  )}
+                                  {showImpact && (
+                                    <span className="text-xs font-semibold text-indigo-600 w-20 text-right tabular-nums">
+                                      +{perElementCompositeGain} WSI pts
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      };
+
+                      const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
+                      const whereYouStand = benchDiff !== null
+                        ? benchDiff >= 10
+                          ? `${Math.abs(benchDiff)} points above the benchmark — a clear strength to protect and build on.`
+                          : benchDiff >= 0
+                          ? `${benchDiff} points above the benchmark. Solid, with room to extend your lead.`
+                          : benchDiff >= -10
+                          ? `${Math.abs(benchDiff)} points below the benchmark. A few targeted element changes can close this gap.`
+                          : `${Math.abs(benchDiff)} points below the benchmark — one of your largest gaps relative to participating organizations.`
+                        : 'Benchmark data not available for this dimension.';
+
+                      const insightParts: string[] = [];
+                      if (tier1.length > 0) {
+                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — completing ${tier1.length > 1 ? 'these' : 'this'} is the fastest path to score improvement`);
+                      }
+                      if (tier2.length > 0) {
+                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes element${tier2.length > 1 ? 's' : ''} that most participating organizations already offer`);
+                      }
+                      if (tier3.length > 0 && tier2.length === 0) {
+                        insightParts.push(`${tier3.length} gap${tier3.length > 1 ? 's represent' : ' represents'} differentiator opportunities where fewer than half of participating organizations have invested`);
+                      }
+                      if (tier1.length === 0 && tier2.length > 0) {
+                        insightParts.push('no elements are currently in development — starting with the table-stakes gaps would close the most visible gaps');
+                      }
+
+                      const totalGainIfAllFixed = (tier1.length + tier2.length + tier3.length) * perElementCompositeGain;
+                      const strategicInsight = insightParts.length > 0
+                        ? `${insightParts.join('. ')}. Addressing all ${tier1.length + tier2.length + tier3.length} actionable elements could contribute approximately +${Math.round(totalGainIfAllFixed * 10) / 10} points to your composite score.`
+                        : `${tier4.length} elements are in place. Focus on strengthening consistency and depth of existing practices.`;
+
+                      return (
+                        <div className="px-10 py-6">
+                          <p className="text-base text-slate-600 mb-6">{whereYouStand}</p>
+
+                          <div className="mb-6">
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Prioritized Actions</h4>
+
+                            {renderTier(
+                              tier1, "Complete What's In Motion", '#2563EB', '#eff6ff',
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+                              true
                             )}
-                            {editMode && customInsights[d.dim]?.insight && (
-                              <button 
-                                onClick={() => updateCustomInsight(d.dim, 'insight', '')}
-                                className="mt-2 text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Reset to default
-                              </button>
+
+                            {renderTier(
+                              tier2, 'Close Table-Stakes Gaps', '#DC2626', '#fef2f2',
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
+                              true
+                            )}
+
+                            {renderTier(
+                              tier3, 'Build Differentiators', '#7C3AED', '#f5f3ff',
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
+                              true
+                            )}
+
+                            {tier4.length > 0 && (
+                              <div className="mb-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-emerald-600">
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  </div>
+                                  <h5 className="text-sm font-bold uppercase tracking-wider text-emerald-600">Strengths to Protect</h5>
+                                  <span className="text-sm text-slate-400">({tier4.length})</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {tier4.map((el: any, i: number) => (
+                                    <span key={i} className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                                      {el.name}
+                                      {el.peerPct !== null && <span className="text-emerald-400 ml-1.5 text-xs">({el.peerPct}%)</span>}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {unsureItems.length > 0 && (
+                              <div className="mt-4 px-4 py-3 bg-violet-50 rounded-lg border border-violet-200">
+                                <p className="text-sm text-violet-700">
+                                  <strong>{unsureItems.length} element{unsureItems.length > 1 ? 's' : ''} pending confirmation</strong> — confirming these could change the action plan above.{' '}
+                                  {unsureItems.slice(0, 2).map((u: any) => u.name).join(', ')}{unsureItems.length > 2 ? ` and ${unsureItems.length - 2} more` : ''}.
+                                </p>
+                              </div>
                             )}
                           </div>
-                        </div>
-                        
-                        {/* Right Column: Roadmap + CAC Help */}
-                        <div className="space-y-4">
-                          {(roadmap.quickWin || roadmap.strategicLift) && (
-                            <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-indigo-200 bg-indigo-50'}`}>
-                              <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                                Recommended Roadmap
-                                {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
-                              </h5>
-                              <div className="space-y-3">
-                                {roadmap.quickWin && (
-                                  <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                    {(() => {
-                                      const qwName = customDimRoadmaps[d.dim]?.quickWin?.name || roadmap.quickWin.name;
-                                      const qwLift = calculateElementLift(d.dim, qwName);
-                                      return (
-                                        <>
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">{roadmap.quickWin.effortTag || 'QUICK WIN'}</span>
-                                      {qwLift > 0.05 && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">~+{qwLift.toFixed(1)} WSI pts</span>}
-                                    </div>
-                                    {editMode ? (
-                                      <>
-                                        <input
-                                          type="text"
-                                          value={customDimRoadmaps[d.dim]?.quickWin?.name ?? roadmap.quickWin.name}
-                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'quickWin', 'name', e.target.value)}
-                                          className="w-full text-base font-medium text-slate-800 bg-white border border-amber-200 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                          placeholder="Quick win item name..."
-                                        />
-                                        <input
-                                          type="text"
-                                          value={customDimRoadmaps[d.dim]?.quickWin?.reason ?? roadmap.quickWin.reason}
-                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'quickWin', 'reason', e.target.value)}
-                                          className="w-full text-sm text-slate-500 bg-white border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                          placeholder="Reason / rationale..."
-                                        />
-                                        {customDimRoadmaps[d.dim]?.quickWin && (
-                                          <button
-                                            onClick={() => resetCustomDimRoadmap(d.dim, 'quickWin')}
-                                            className="mt-1 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                                          >
-                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                            </svg>
-                                            Reset
-                                          </button>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <p className="text-base font-medium text-slate-800">{qwName}</p>
-                                        <p className="text-sm text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.quickWin?.reason || roadmap.quickWin.reason}</p>
-                                      </>
-                                    )}
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
-                                )}
-                                {roadmap.strategicLift && (
-                                  <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                    {(() => {
-                                      const slName = customDimRoadmaps[d.dim]?.strategicLift?.name || roadmap.strategicLift.name;
-                                      const slLift = calculateElementLift(d.dim, slName);
-                                      return (
-                                        <>
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">{roadmap.strategicLift.effortTag || 'STRATEGIC'}</span>
-                                      {slLift > 0.05 && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">~+{slLift.toFixed(1)} WSI pts</span>}
-                                    </div>
-                                    {editMode ? (
-                                      <>
-                                        <input
-                                          type="text"
-                                          value={customDimRoadmaps[d.dim]?.strategicLift?.name ?? roadmap.strategicLift.name}
-                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'strategicLift', 'name', e.target.value)}
-                                          className="w-full text-base font-medium text-slate-800 bg-white border border-amber-200 rounded px-2 py-1 mb-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                          placeholder="Strategic item name..."
-                                        />
-                                        <input
-                                          type="text"
-                                          value={customDimRoadmaps[d.dim]?.strategicLift?.reason ?? roadmap.strategicLift.reason}
-                                          onChange={(e) => updateCustomDimRoadmap(d.dim, 'strategicLift', 'reason', e.target.value)}
-                                          className="w-full text-sm text-slate-500 bg-white border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                          placeholder="Reason / rationale..."
-                                        />
-                                        {customDimRoadmaps[d.dim]?.strategicLift && (
-                                          <button 
-                                            onClick={() => resetCustomDimRoadmap(d.dim, 'strategicLift')}
-                                            className="mt-1 text-xs text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                                          >
-                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                            </svg>
-                                            Reset
-                                          </button>
-                                        )}
-                                      </>
-                                    ) : (
-                                      <>
-                                        <p className="text-base font-medium text-slate-800">{slName}</p>
-                                        <p className="text-sm text-slate-500 mt-1">{customDimRoadmaps[d.dim]?.strategicLift?.reason || roadmap.strategicLift.reason}</p>
-                                      </>
-                                    )}
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
+
+                          <div className="px-5 py-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                              </div>
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-slate-800 text-sm mb-1">Strategic Insight</h5>
+                                {editMode ? (
+                                  <textarea
+                                    value={customObservations[`strat_insight_${d.dim}`] ?? strategicInsight}
+                                    onChange={(e) => {
+                                      setCustomObservations(prev => ({ ...prev, [`strat_insight_${d.dim}`]: e.target.value }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                    className="w-full text-sm text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
+                                  />
+                                ) : (
+                                  <p className="text-sm text-slate-600 leading-relaxed">
+                                    {customObservations[`strat_insight_${d.dim}`] || strategicInsight}
+                                  </p>
                                 )}
                               </div>
                             </div>
-                          )}
-                          {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
-                            <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                              <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
-                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                Roadmap Pending Confirmation
-                              </h5>
-                              <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
-                            </div>
-                          )}
-                          
-                          {/* COMMENTED OUT - May restore later
-                          <div className={`border rounded-xl p-4 ${editMode ? 'border-amber-300 bg-amber-50' : 'border-violet-200 bg-violet-50'}`}>
-                            <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                              How Cancer and Careers Can Help
-                              {editMode && <span className="text-sm font-normal text-amber-600">(click to edit)</span>}
-                            </h5>
-                            {editMode ? (
-                              <textarea
-                                value={customInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
-                                onChange={(e) => updateCustomInsight(d.dim, 'cacHelp', e.target.value)}
-                                className="w-full text-base text-slate-600 leading-relaxed bg-white border border-amber-200 rounded-lg p-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                                placeholder="Enter custom CAC help text..."
-                              />
-                            ) : (
-                              <p className="text-base text-slate-600 leading-relaxed">{customInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
-                            )}
-                            {editMode && customInsights[d.dim]?.cacHelp && (
-                              <button 
-                                onClick={() => updateCustomInsight(d.dim, 'cacHelp', '')}
-                                className="mt-2 text-sm text-amber-600 hover:text-amber-800 flex items-center gap-1"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                </svg>
-                                Reset to default
-                              </button>
-                            )}
                           </div>
-                          END COMMENTED OUT */}
                         </div>
-                      </div>
-                    </div>
+                      );
+                    })()}
                   </div>
                 );
               });
@@ -9305,220 +9169,207 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                      {/* Benchmark Narrative */}
-                      {benchmarkNarrative && (
-                        <div className="px-10 py-3 bg-slate-100 border-b border-slate-200">
-                          <p className="text-base text-slate-600">{benchmarkNarrative}</p>
-                        </div>
-                      )}
-                      
-                      <div className="px-10 py-6">
-                        {/* Current State - 3 columns */}
-                        <div className="grid grid-cols-3 gap-6 mb-6">
-                          {/* Improvement Opportunities */}
-                          <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
-                            <div className="px-4 py-3 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <circle cx="12" cy="12" r="10" />
-                                  <circle cx="12" cy="12" r="6" />
-                                  <circle cx="12" cy="12" r="2" />
-                                </svg>
+                    {/* ---- Prioritized Actions (restructured) ---- */}
+                    {(() => {
+                      const dimBench = elementBenchmarks[d.dim] || {};
+                      const geoMult = d.geoMultiplier ?? 1.0;
+                      const allElements = [
+                        ...(d.strengths || []).map((el: any) => ({ ...el, isStrength: true })),
+                        ...(d.gaps || []).map((el: any) => ({ ...el, isGap: true })),
+                        ...(d.planning || []).map((el: any) => ({ ...el, isPlanning: true })),
+                        ...(d.assessing || []).map((el: any) => ({ ...el, isAssessing: true })),
+                        ...(d.unsure || []).map((el: any) => ({ ...el, isUnsure: true })),
+                      ];
+                      const elementCount = allElements.length || 1;
+                      const maxPoints = elementCount * 5;
+
+                      const tier1: any[] = [];
+                      const tier2: any[] = [];
+                      const tier3: any[] = [];
+                      const tier4: any[] = [];
+                      const unsureItems: any[] = [];
+
+                      allElements.forEach((el: any) => {
+                        const bench = dimBench[el.name];
+                        const peerPct = bench ? Math.round((bench.currently / bench.total) * 100) : null;
+                        const enriched = { ...el, peerPct };
+
+                        if (el.isUnsure) { unsureItems.push(enriched); }
+                        else if (el.isStrength) { tier4.push(enriched); }
+                        else if (el.isPlanning || el.isAssessing) { tier1.push(enriched); }
+                        else if (peerPct !== null && peerPct > 50) { tier2.push(enriched); }
+                        else { tier3.push(enriched); }
+                      });
+
+                      const sortByPeers = (a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0);
+                      tier1.sort(sortByPeers);
+                      tier2.sort(sortByPeers);
+                      tier3.sort(sortByPeers);
+
+                      const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                      const dimWeightPct = Math.round((d.weight / totalDimWeight) * 100);
+                      const perElementDimGain = maxPoints > 0 ? Math.round((5 / maxPoints) * 100 * geoMult) : 0;
+                      const perElementCompositeGain = Math.round(perElementDimGain * dimWeightPct / 100 * 0.9 * 10) / 10;
+
+                      const renderTier = (
+                        items: any[],
+                        label: string,
+                        color: string,
+                        lightBg: string,
+                        icon: React.ReactNode,
+                        showImpact: boolean
+                      ) => {
+                        if (items.length === 0) return null;
+                        return (
+                          <div className="mb-4 last:mb-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
+                                {icon}
                               </div>
-                              <h5 className="font-bold text-white text-base">Improvement Opportunities ({d.needsAttention?.length || 0})</h5>
+                              <h5 className="text-sm font-bold uppercase tracking-wider" style={{ color }}>{label}</h5>
+                              <span className="text-sm text-slate-400">({items.length})</span>
                             </div>
-                            <div className="p-4 max-h-64 overflow-y-auto">
-                              {d.needsAttention?.length > 0 ? (
-                                <ul className="space-y-2">
-                                  {d.needsAttention.map((item: any, i: number) => (
-                                    <li key={i} className="text-base text-slate-700 flex items-start gap-2">
-                                      <span className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'}`}></span>
-                                      <span>{item.name}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-base text-slate-500">No improvement opportunities identified</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* In Development */}
-                          <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
-                            <div className="px-4 py-3 bg-violet-600 border-b border-violet-500 flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6l2.1-2.1" strokeLinecap="round" />
-                                </svg>
-                              </div>
-                              <h5 className="font-bold text-white text-base">In Development ({d.planning?.length || 0})</h5>
-                            </div>
-                            <div className="p-4 max-h-64 overflow-y-auto">
-                              {d.planning?.length > 0 ? (
-                                <ul className="space-y-2">
-                                  {d.planning.map((item: any, i: number) => (
-                                    <li key={i} className="text-base text-slate-700 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                      <span>{item.name}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-base text-slate-500">No initiatives in development</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Current Strengths */}
-                          <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
-                            <div className="px-4 py-3 bg-teal-600 border-b border-teal-500 flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                                <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                                  <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
-                                  <circle cx="12" cy="12" r="9" />
-                                </svg>
-                              </div>
-                              <h5 className="font-bold text-white text-base">Current Strengths ({d.strengths?.length || 0})</h5>
-                            </div>
-                            <div className="p-4 max-h-64 overflow-y-auto">
-                              {d.strengths?.length > 0 ? (
-                                <ul className="space-y-2">
-                                  {d.strengths.map((item: any, i: number) => (
-                                    <li key={i} className="text-base text-slate-700 flex items-start gap-2">
-                                      <span className="w-2 h-2 rounded-full bg-teal-500 mt-2 flex-shrink-0"></span>
-                                      <span>{item.name}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p className="text-base text-slate-500">No strengths identified</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Strategic Insight & CAC Help - 2 columns - EXACT MATCH TO MAIN 4 */}
-                        <div className="grid grid-cols-2 gap-6">
-                          {/* Left Column: Evidence + Insight */}
-                          <div className="space-y-4">
-                            {(evidence.topStrength || evidence.biggestGap) && (
-                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                                <h5 className="font-bold text-slate-700 mb-3 text-sm uppercase tracking-wide">Key Evidence</h5>
-                                <div className="space-y-2">
-                                  {evidence.topStrength && (
-                                    <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-emerald-600 text-sm">✓</span>
-                                      </span>
-                                      <p className="text-base text-slate-700">
-                                        <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
-                                        <span className="text-slate-500"> ({evidence.topStrength.benchPct})% of participants)</span>
-                                      </p>
-                                    </div>
+                            <div className="rounded-lg border overflow-hidden" style={{ borderColor: color + '30' }}>
+                              {items.map((el: any, i: number) => (
+                                <div key={i} className={`flex items-center gap-4 px-4 py-2.5 ${i < items.length - 1 ? 'border-b' : ''}`} style={{ borderColor: color + '15', backgroundColor: i % 2 === 0 ? lightBg : 'white' }}>
+                                  <span className="flex-1 text-sm text-slate-700">{el.name}</span>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                    el.isPlanning ? 'bg-blue-100 text-blue-700' :
+                                    el.isAssessing ? 'bg-amber-100 text-amber-700' :
+                                    el.isStrength ? 'bg-emerald-100 text-emerald-700' :
+                                    'bg-slate-100 text-slate-600'
+                                  }`}>
+                                    {el.isPlanning ? 'In Dev' : el.isAssessing ? 'Review' : el.isStrength ? 'In Place' : 'Not in Place'}
+                                  </span>
+                                  {el.peerPct !== null && (
+                                    <span className="text-xs text-slate-400 w-28 text-right tabular-nums">
+                                      {el.peerPct}% of orgs
+                                    </span>
                                   )}
-                                  {evidence.biggestGap && (
-                                    <div className="flex items-start gap-2">
-                                      <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-red-600 text-sm">✗</span>
-                                      </span>
-                                      <p className="text-base text-slate-700">
-                                        <span className="font-medium">Gap:</span> <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
-                                        <span className="text-slate-500"> ({evidence.biggestGap.benchPct})% of participants)</span>
-                                      </p>
-                                    </div>
+                                  {showImpact && (
+                                    <span className="text-xs font-semibold text-indigo-600 w-20 text-right tabular-nums">
+                                      +{perElementCompositeGain} WSI pts
+                                    </span>
                                   )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      };
+
+                      const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
+                      const whereYouStand = benchDiff !== null
+                        ? benchDiff >= 10
+                          ? `${Math.abs(benchDiff)} points above the benchmark — a clear strength to protect and build on.`
+                          : benchDiff >= 0
+                          ? `${benchDiff} points above the benchmark. Solid, with room to extend your lead.`
+                          : benchDiff >= -10
+                          ? `${Math.abs(benchDiff)} points below the benchmark. A few targeted element changes can close this gap.`
+                          : `${Math.abs(benchDiff)} points below the benchmark — one of your largest gaps relative to participating organizations.`
+                        : 'Benchmark data not available for this dimension.';
+
+                      const insightParts: string[] = [];
+                      if (tier1.length > 0) {
+                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — completing ${tier1.length > 1 ? 'these' : 'this'} is the fastest path to score improvement`);
+                      }
+                      if (tier2.length > 0) {
+                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes element${tier2.length > 1 ? 's' : ''} that most participating organizations already offer`);
+                      }
+                      if (tier3.length > 0 && tier2.length === 0) {
+                        insightParts.push(`${tier3.length} gap${tier3.length > 1 ? 's represent' : ' represents'} differentiator opportunities where fewer than half of participating organizations have invested`);
+                      }
+                      if (tier1.length === 0 && tier2.length > 0) {
+                        insightParts.push('no elements are currently in development — starting with the table-stakes gaps would close the most visible gaps');
+                      }
+
+                      const totalGainIfAllFixed = (tier1.length + tier2.length + tier3.length) * perElementCompositeGain;
+                      const strategicInsight = insightParts.length > 0
+                        ? `${insightParts.join('. ')}. Addressing all ${tier1.length + tier2.length + tier3.length} actionable elements could contribute approximately +${Math.round(totalGainIfAllFixed * 10) / 10} points to your composite score.`
+                        : `${tier4.length} elements are in place. Focus on strengthening consistency and depth of existing practices.`;
+
+                      return (
+                        <div className="px-10 py-6">
+                          <p className="text-base text-slate-600 mb-6">{whereYouStand}</p>
+
+                          <div className="mb-6">
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Prioritized Actions</h4>
+
+                            {renderTier(
+                              tier1, "Complete What's In Motion", '#2563EB', '#eff6ff',
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
+                              true
+                            )}
+
+                            {renderTier(
+                              tier2, 'Close Table-Stakes Gaps', '#DC2626', '#fef2f2',
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
+                              true
+                            )}
+
+                            {renderTier(
+                              tier3, 'Build Differentiators', '#7C3AED', '#f5f3ff',
+                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
+                              true
+                            )}
+
+                            {tier4.length > 0 && (
+                              <div className="mb-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-emerald-600">
+                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  </div>
+                                  <h5 className="text-sm font-bold uppercase tracking-wider text-emerald-600">Strengths to Protect</h5>
+                                  <span className="text-sm text-slate-400">({tier4.length})</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {tier4.map((el: any, i: number) => (
+                                    <span key={i} className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
+                                      {el.name}
+                                      {el.peerPct !== null && <span className="text-emerald-400 ml-1.5 text-xs">({el.peerPct}%)</span>}
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
                             )}
-                            
-                            <div className="border border-slate-200 rounded-xl p-4 bg-white">
-                              <h5 className="font-bold text-slate-800 mb-3 text-sm uppercase tracking-wide flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-md bg-slate-700 flex items-center justify-center flex-shrink-0">
-                                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
-                                  </svg>
-                                </div>
-                                Strategic Insight
-                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
-                              </h5>
-                              {editMode ? (
-                                <textarea
-                                  value={customAdditionalDimInsights[d.dim]?.insight ?? dynamicInsight.insight}
-                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
-                                    ...prev,
-                                    [d.dim]: { ...prev[d.dim], insight: e.target.value, roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
-                                  }))}
-                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                                />
-                              ) : (
-                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.insight || dynamicInsight.insight}</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Right Column: Roadmap + CAC Help */}
-                          <div className="space-y-4">
-                            {(roadmap.quickWin || roadmap.strategicLift) && (
-                              <div className="border border-indigo-200 rounded-xl p-4 bg-indigo-50">
-                                <h5 className="font-bold text-indigo-800 mb-3 text-sm uppercase tracking-wide">Recommended Roadmap</h5>
-                                <div className="space-y-3">
-                                  {roadmap.quickWin && (
-                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
-                                        
-                                      </div>
-                                      <p className="text-base font-medium text-slate-800">{roadmap.quickWin.name}</p>
-                                      <p className="text-sm text-slate-500 mt-1">{roadmap.quickWin.reason}</p>
-                                    </div>
-                                  )}
-                                  {roadmap.strategicLift && (
-                                    <div className="bg-white rounded-lg p-3 border border-indigo-100">
-                                      <div className="flex items-center gap-2 mb-1">
-                                        <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
-                                        
-                                      </div>
-                                      <p className="text-base font-medium text-slate-800">{roadmap.strategicLift.name}</p>
-                                      <p className="text-sm text-slate-500 mt-1">{roadmap.strategicLift.reason}</p>
-                                    </div>
-                                  )}
-                                </div>
+
+                            {unsureItems.length > 0 && (
+                              <div className="mt-4 px-4 py-3 bg-violet-50 rounded-lg border border-violet-200">
+                                <p className="text-sm text-violet-700">
+                                  <strong>{unsureItems.length} element{unsureItems.length > 1 ? 's' : ''} pending confirmation</strong> — confirming these could change the action plan above.{' '}
+                                  {unsureItems.slice(0, 2).map((u: any) => u.name).join(', ')}{unsureItems.length > 2 ? ` and ${unsureItems.length - 2} more` : ''}.
+                                </p>
                               </div>
                             )}
-                            {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
-                              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
-                                <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
-                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                Roadmap Pending Confirmation
-                              </h5>
-                                <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
+                          </div>
+
+                          <div className="px-5 py-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
                               </div>
-                          )}
-                            
-                            {/* COMMENTED OUT - May restore later
-                            <div className="border border-violet-200 rounded-xl p-4 bg-violet-50">
-                              <h5 className="font-bold text-violet-800 mb-3 text-sm uppercase tracking-wide">
-                                How Cancer and Careers Can Help
-                                {editMode && <span className="text-amber-600 text-xs font-normal normal-case ml-2">(editable)</span>}
-                              </h5>
-                              {editMode ? (
-                                <textarea
-                                  value={customAdditionalDimInsights[d.dim]?.cacHelp ?? dynamicInsight.cacHelp}
-                                  onChange={(e) => setCustomAdditionalDimInsights(prev => ({
-                                    ...prev,
-                                    [d.dim]: { ...prev[d.dim], insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: e.target.value }
-                                  }))}
-                                  className="w-full text-base text-slate-600 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y"
-                                />
-                              ) : (
-                                <p className="text-base text-slate-600 leading-relaxed">{customAdditionalDimInsights[d.dim]?.cacHelp || dynamicInsight.cacHelp}</p>
-                              )}
+                              <div className="flex-1">
+                                <h5 className="font-semibold text-slate-800 text-sm mb-1">Strategic Insight</h5>
+                                {editMode ? (
+                                  <textarea
+                                    value={customAdditionalDimInsights[d.dim]?.insight ?? strategicInsight}
+                                    onChange={(e) => setCustomAdditionalDimInsights(prev => ({
+                                      ...prev,
+                                      [d.dim]: { ...prev[d.dim], insight: e.target.value, roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
+                                    }))}
+                                    className="w-full text-sm text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
+                                  />
+                                ) : (
+                                  <p className="text-sm text-slate-600 leading-relaxed">
+                                    {customAdditionalDimInsights[d.dim]?.insight || strategicInsight}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            END COMMENTED OUT */}
                           </div>
                         </div>
-                      </div>
+                      );
+                    })()}
                     </div>
                   );
                 })}
