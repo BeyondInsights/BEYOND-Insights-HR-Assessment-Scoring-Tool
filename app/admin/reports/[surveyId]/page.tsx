@@ -7009,7 +7009,7 @@ export default function ExportReportPage() {
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
                               <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
-                              <circle r={isHovered ? 20 : 16} fill={getScoreColor(d.score)} style={{ transition: 'all 0.2s ease' }} />
+                              <circle r={isHovered ? 20 : 16} fill={getEmployeePriorityGroup(d.weight).color} style={{ transition: 'all 0.2s ease' }} />
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
                             </g>
                           );
@@ -7028,7 +7028,7 @@ export default function ExportReportPage() {
                                 return (
                                   <g key={dim}>
                                     <line x1={cx} y1={cy + 8} x2={cluster.x + 12} y2={cluster.y - 12} stroke="#94A3B8" strokeWidth="1" strokeDasharray="2 2" />
-                                    <circle cx={cx} cy={cy} r="10" fill={getScoreColor(dd?.score || 0)} opacity="0.4" stroke={getScoreColor(dd?.score || 0)} strokeWidth="1.5" />
+                                    <circle cx={cx} cy={cy} r="10" fill={getEmployeePriorityGroup(dd?.weight || 0).color} opacity="0.4" stroke={getEmployeePriorityGroup(dd?.weight || 0).color} strokeWidth="1.5" />
                                     <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="white" fontSize="8" fontWeight="700">D{dim}</text>
                                   </g>
                                 );
@@ -7060,7 +7060,7 @@ export default function ExportReportPage() {
                     {hoveredData && (
                       <div className="absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-64 z-30 transition-opacity duration-150" style={getTooltipStyle()}>
                         <div className="flex items-center gap-3 mb-3">
-                          <span className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ backgroundColor: getScoreColor(hoveredData.score) }}>D{hoveredData.dim}</span>
+                          <span className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ backgroundColor: getEmployeePriorityGroup(hoveredData.weight).color }}>D{hoveredData.dim}</span>
                           <div className="flex-1"><p className="font-bold text-slate-800 text-sm leading-tight">{hoveredData.name}</p></div>
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -7093,7 +7093,7 @@ export default function ExportReportPage() {
                               onMouseLeave={() => setHoveredMatrixDim(null)}
                               onClick={() => setDimensionDetailModal(d.dim)}
                             >
-                              <span className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>D{d.dim}</span>
+                              <span className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>D{d.dim}</span>
                               <span className="text-sm text-slate-700 font-medium leading-snug">{d.name}</span>
                             </div>
                           );
