@@ -5709,7 +5709,7 @@ export default function ExportReportPage() {
             
             
             {/* Visual separator — page break between context and company report */}
-            <div className="py-4 bg-slate-100 border-t border-b border-slate-200 -mx-0 my-12"></div>
+            <div className="my-0"></div>
 
             {/* Company info + score — Dark Hero Header */}
             <div className="px-12 py-12 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
@@ -5741,10 +5741,20 @@ export default function ExportReportPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-6 flex-shrink-0">
-                  <div className="text-center">
-                    <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Workplace Support Composite Score</p>
-                    <p className="text-8xl font-bold mt-1 leading-none text-white" data-export="composite-score">{wsiScoreHeader}</p>
-                    <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
+                  <div>
+                    <p className="text-sm text-slate-400 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
+                    <div className="flex items-end gap-6 mt-2">
+                      {/* Benchmark */}
+                      <div className="text-center">
+                        <p className="text-5xl font-bold text-slate-500 leading-none">59</p>
+                        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark</p>
+                      </div>
+                      {/* Your Score */}
+                      <div className="text-center">
+                        <p className="text-8xl font-bold leading-none text-white" data-export="composite-score">{wsiScoreHeader}</p>
+                        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
+                      </div>
+                    </div>
                   </div>
                   {tier && (
                     <div className="px-7 py-5 rounded-xl border-2 text-center" style={{ borderColor: ratingColorHeader + '60', backgroundColor: ratingColorHeader + '15' }}>
@@ -6215,20 +6225,11 @@ export default function ExportReportPage() {
                         <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>15% Advanced</span>
                       </div>
 
-                      {/* Overall Support Rating bar */}
-                      <div className="mt-6 px-6 py-4 rounded-xl bg-white border border-slate-200">
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Overall Support Rating</p>
-                        <p className="text-base text-slate-700 leading-relaxed">
-                          <strong style={{ color: rating.color }}>{rating.label}</strong>
-                          <span className="mx-2 text-slate-300">&mdash;</span>
-                          {rating.desc}
-                        </p>
-                      </div>
                     </div>
                     
                     {/* Support Level Details */}
                     <div className="px-8 py-6 border-t border-slate-200">
-                      <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">What Each Level Includes</p>
+                      <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">What Each Support Level Includes</p>
                       <div className="grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
                         const Icon = t.icon;
@@ -6437,11 +6438,9 @@ export default function ExportReportPage() {
                               {/* Table header — two rows */}
                               <div className="bg-slate-50 border-b border-slate-200">
                                 {/* Row 1: Your cols + Benchmark Distribution spanning header */}
-                                <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6">
+                                <div className="grid grid-cols-[380px_1fr] gap-0 px-6">
                                   <div></div>
-                                  <div></div>
-                                  <div></div>
-                                  <div className="col-span-4 text-center py-2 border-l border-slate-200">
+                                  <div className="text-center py-2 border-l border-slate-200">
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</p>
                                   </div>
                                 </div>
