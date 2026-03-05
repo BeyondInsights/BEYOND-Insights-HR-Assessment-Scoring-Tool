@@ -5532,7 +5532,7 @@ export default function ExportReportPage() {
             </div>
 
             {/* Visual separator — page break between context and company report */}
-            <div className="my-0"></div>
+            <div className="py-3 my-6"></div>
 
             {/* Company info + score — Dark Hero Header */}
             <div className="px-12 py-12 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
@@ -6894,17 +6894,20 @@ export default function ExportReportPage() {
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Quadrant backgrounds — stronger top row, muted bottom */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" fillOpacity="0.95" />
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ecfdf5" fillOpacity="0.95" />
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fafafa" fillOpacity="0.95" />
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" fillOpacity="0.7" />
+                        {/* Priority Gaps (top-left) — warm rose */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ffe4e6" fillOpacity="0.85" />
+                        {/* Priority Strengths (top-right) — fresh mint green */}
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#d1fae5" fillOpacity="0.7" />
+                        {/* Secondary Gaps (bottom-left) — warm sand/cream */}
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef3c7" fillOpacity="0.4" />
+                        {/* Secondary Strengths (bottom-right) — cool lavender */}
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#e0e7ff" fillOpacity="0.5" />
 
                         {/* Quadrant watermark labels */}
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT * 0.25} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="20" fontWeight="800" fontFamily="system-ui" opacity="0.07">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT * 0.25} textAnchor="middle" dominantBaseline="middle" fill="#0d9488" fontSize="20" fontWeight="800" fontFamily="system-ui" opacity="0.07">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT * 0.75} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.05">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT * 0.75} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.05">SECONDARY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT * 0.25} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="22" fontWeight="800" fontFamily="system-ui" opacity="0.15">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT * 0.25} textAnchor="middle" dominantBaseline="middle" fill="#0d9488" fontSize="22" fontWeight="800" fontFamily="system-ui" opacity="0.15">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT * 0.75} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.10">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT * 0.75} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.10">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
                         {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
@@ -6982,20 +6985,6 @@ export default function ExportReportPage() {
                             }
                           }
                           return (<>
-                            {matrixView === 'both' && benchPositions.map((bp) => {
-                              const companyD = dimensionAnalysis.find(d => d.dim === bp.dim);
-                              if (!companyD) return null;
-                              const compX = (companyD.score / 100) * PLOT_WIDTH;
-                              const compY = PLOT_HEIGHT - ((Math.min(companyD.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
-                              return (
-                                <line
-                                  key={`connect-${bp.dim}`}
-                                  x1={compX} y1={compY}
-                                  x2={bp.x} y2={bp.y}
-                                  stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4"
-                                />
-                              );
-                            })}
                             {benchPositions.map((bp) => (
                               <g key={`bench-${bp.dim}`}>
                                 <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
