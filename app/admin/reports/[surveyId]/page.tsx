@@ -6027,6 +6027,13 @@ export default function ExportReportPage() {
                     
                     {/* Support Level Details */}
                     <div className="px-8 py-6 border-t border-slate-200">
+                    {/* Methodology footnote */}
+                    <div className="px-8 py-4">
+                      <p className="text-sm text-slate-500 leading-relaxed">
+                        <strong className="text-slate-600">How scores are calculated:</strong> Your organization was assessed across 152 support elements grouped into 13 dimensions. Each element is classified into one of three support levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Workplace Support Composite Score weights each dimension based on employee-identified priorities and each element based on its measured impact on employee wellbeing and organizational outcomes.
+                      </p>
+                    </div>
+
                       <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">What Each Support Level Includes</p>
                       <div className="grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
@@ -6165,13 +6172,6 @@ export default function ExportReportPage() {
                         );
                       })}
                       </div>
-                    </div>
-
-                    {/* Methodology footnote */}
-                    <div className="px-8 py-3 mt-4">
-                      <p className="text-sm text-slate-400">
-                        <strong className="text-slate-500">How scores are calculated:</strong> Your organization was assessed across 152 support elements grouped into 13 dimensions. The Workplace Support Composite Score weights each dimension based on employee-identified priorities and each element based on its measured impact on employee wellbeing and organizational outcomes.
-                      </p>
                     </div>
 
                     {/* How does Company compare? — Dropdown */}
