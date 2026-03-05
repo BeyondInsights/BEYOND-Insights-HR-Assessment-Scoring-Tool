@@ -2884,7 +2884,7 @@ export default function ExportReportPage() {
   const [expandedReportSection, setExpandedReportSection] = useState<string | null>(null);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
-  const [activeReportTab, setActiveReportTab] = useState<'excellence' | 'initiatives' | 'growth'>('excellence');
+  const [activeReportTab, setActiveReportTab] = useState<'excellence' | 'initiatives' | 'growth' | null>(null);
   
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [showWwcPledgeDetails, setShowWwcPledgeDetails] = useState(false);
@@ -6902,7 +6902,7 @@ export default function ExportReportPage() {
 
                         {/* Quadrant labels — top pair at top edge, bottom pair at bottom edge */}
                         <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#0d9488" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.85">PRIORITY STRENGTHS</text>
                         <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY GAPS</text>
                         <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY STRENGTHS</text>
 
@@ -8177,7 +8177,7 @@ export default function ExportReportPage() {
                   return (
                     <button
                       key={tab.key}
-                      onClick={() => setActiveReportTab(tab.key)}
+                      onClick={() => setActiveReportTab(activeReportTab === tab.key ? null : tab.key)}
                       className="relative text-left rounded-xl p-5 transition-all"
                       style={{
                         backgroundColor: isActive ? tab.lightBg : '#ffffff',
@@ -8208,7 +8208,7 @@ export default function ExportReportPage() {
             </div>
 
             {/* Tab content */}
-            <div className="px-12 py-8">
+            {activeReportTab !== null && <div className="px-12 py-8">
               {/* ---- Excellence tab ---- */}
               {activeReportTab === 'excellence' && (
                 <div id="areas-of-excellence">
@@ -8325,7 +8325,7 @@ export default function ExportReportPage() {
                   </div>
                 </div>
               )}
-            </div>
+            </div>}
           </div>
 
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
