@@ -4975,7 +4975,7 @@ export default function ExportReportPage() {
                   <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
 
                   <p className="text-sm text-slate-700 leading-relaxed">
-                    This same research drives how each dimension is weighted in the index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
+                    This same research drives how each dimension is weighted in the Index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
                   </p>
                 </div>
 
@@ -11250,7 +11250,7 @@ export default function ExportReportPage() {
 
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
-                      This same research drives how each dimension is weighted in the index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
+                      This same research drives how each dimension is weighted in the Index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
                     </p>
 
                     {/* Bottom bar */}
