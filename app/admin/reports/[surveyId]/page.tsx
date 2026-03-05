@@ -6818,8 +6818,7 @@ export default function ExportReportPage() {
                 const MAX_WEIGHT = 15;
                 const CHART_WIDTH = 1000;
                 const CHART_HEIGHT = 450;
-                const LABEL_HEIGHT = 26;
-                const MARGIN = { top: LABEL_HEIGHT + 12, right: 30, bottom: LABEL_HEIGHT + 60, left: 70 };
+                const MARGIN = { top: 16, right: 30, bottom: 55, left: 70 };
                 const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                 const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
                 
@@ -6895,35 +6894,43 @@ export default function ExportReportPage() {
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Quadrant labels - Top - More refined colors */}
-                        <rect x={0} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#be123c" />
-                        <text x={PLOT_WIDTH/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY GAPS</text>
+                        {/* Quadrant backgrounds — stronger top row, muted bottom */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" fillOpacity="0.95" />
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ecfdf5" fillOpacity="0.95" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fafafa" fillOpacity="0.95" />
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" fillOpacity="0.7" />
 
-                        <rect x={PLOT_WIDTH/2 + 4} y={-LABEL_HEIGHT - 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#0d9488" />
-                        <text x={PLOT_WIDTH * 3/4} y={-LABEL_HEIGHT/2 - 6 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">PRIORITY STRENGTHS</text>
-                        
-                        {/* Quadrant backgrounds - Refined, distinct */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" fillOpacity="0.8" />
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" fillOpacity="0.8" />
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" fillOpacity="0.9" />
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" fillOpacity="0.8" />
-                        
+                        {/* Quadrant watermark labels */}
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT * 0.25} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="20" fontWeight="800" fontFamily="system-ui" opacity="0.07">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT * 0.25} textAnchor="middle" dominantBaseline="middle" fill="#0d9488" fontSize="20" fontWeight="800" fontFamily="system-ui" opacity="0.07">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT * 0.75} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.05">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT * 0.75} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.05">SECONDARY STRENGTHS</text>
+
+                        {/* Priority Gaps emphasis glow - only if dimensions exist there */}
+                        {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
+                          <rect
+                            x={1} y={1}
+                            width={PLOT_WIDTH/2 - 2} height={PLOT_HEIGHT/2 - 2}
+                            fill="none"
+                            stroke="#be123c"
+                            strokeWidth="2"
+                            strokeDasharray="8 4"
+                            opacity="0.25"
+                            rx="4"
+                          >
+                            <animate attributeName="stroke-dashoffset" values="0;24" dur="3s" repeatCount="indefinite" />
+                          </rect>
+                        )}
+
                         {/* Grid lines - SOLID */}
                         <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1.5" />
                         <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" />
-                        
+
                         {/* Border */}
                         <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#64748B" strokeWidth="2" rx="4" />
-                        
-                        {/* Bottom labels - More refined */}
-                        <rect x={0} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#64748b" />
-                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">SECONDARY GAPS</text>
 
-                        <rect x={PLOT_WIDTH/2 + 4} y={PLOT_HEIGHT + 6} width={PLOT_WIDTH/2 - 4} height={LABEL_HEIGHT} rx="6" fill="#4f46e5" />
-                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 6 + LABEL_HEIGHT/2 + 1} textAnchor="middle" dominantBaseline="middle" fill="#FFFFFF" fontSize="11" fontWeight="700" fontFamily="system-ui">SECONDARY STRENGTHS</text>
-                        
                         {/* X-axis */}
-                        <g transform={`translate(0, ${PLOT_HEIGHT + LABEL_HEIGHT + 12})`}>
+                        <g transform={`translate(0, ${PLOT_HEIGHT + 8})`}>
                           {[0, 25, 50, 75, 100].map((val) => (
                             <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
                               <line y1="0" y2="6" stroke="#64748B" strokeWidth="1.5" />
@@ -6975,6 +6982,20 @@ export default function ExportReportPage() {
                             }
                           }
                           return (<>
+                            {matrixView === 'both' && benchPositions.map((bp) => {
+                              const companyD = dimensionAnalysis.find(d => d.dim === bp.dim);
+                              if (!companyD) return null;
+                              const compX = (companyD.score / 100) * PLOT_WIDTH;
+                              const compY = PLOT_HEIGHT - ((Math.min(companyD.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
+                              return (
+                                <line
+                                  key={`connect-${bp.dim}`}
+                                  x1={compX} y1={compY}
+                                  x2={bp.x} y2={bp.y}
+                                  stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="4 3" opacity="0.4"
+                                />
+                              );
+                            })}
                             {benchPositions.map((bp) => (
                               <g key={`bench-${bp.dim}`}>
                                 <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
@@ -7008,8 +7029,22 @@ export default function ExportReportPage() {
                           const epRing = getEmployeePriorityGroup(d.weight);
                           return (
                             <g key={d.dim} transform={`translate(${xPos}, ${yPos})`} style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}>
-                              <circle r={isHovered ? 22 : 18} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
-                              <circle r={isHovered ? 20 : 16} fill={getEmployeePriorityGroup(d.weight).color} style={{ transition: 'all 0.2s ease' }} />
+                              {(() => {
+                                const minR = 14;
+                                const maxR = 24;
+                                const minWeight = 2;
+                                const maxWeight = 14;
+                                const normalizedWeight = Math.min(Math.max(d.weight, minWeight), maxWeight);
+                                const baseR = minR + ((normalizedWeight - minWeight) / (maxWeight - minWeight)) * (maxR - minR);
+                                const r = isHovered ? baseR + 4 : baseR;
+                                const innerR = r - 2;
+                                return (
+                                  <>
+                                    <circle r={r} fill="white" filter="url(#dropShadowPolished)" style={{ transition: 'all 0.2s ease' }} />
+                                    <circle r={innerR} fill={getEmployeePriorityGroup(d.weight).color} style={{ transition: 'all 0.2s ease' }} />
+                                  </>
+                                );
+                              })()}
                               <text textAnchor="middle" dominantBaseline="central" fill="white" fontSize={isHovered ? 12 : 11} fontWeight="800" fontFamily="system-ui">D{d.dim}</text>
                             </g>
                           );
@@ -7047,7 +7082,7 @@ export default function ExportReportPage() {
                           <div
                             key={d.dim}
                             className="absolute rounded-full cursor-pointer"
-                            style={{ left: `${xPercent}%`, top: `${yPercent}%`, width: '55px', height: '55px', transform: 'translate(-50%, -50%)' }}
+                            style={{ left: `${xPercent}%`, top: `${yPercent}%`, width: '60px', height: '60px', transform: 'translate(-50%, -50%)' }}
                             onMouseEnter={() => setHoveredMatrixDim(d.dim)}
                             onMouseLeave={() => setHoveredMatrixDim(null)}
                             onClick={() => setDimensionDetailModal(d.dim)}
