@@ -5223,7 +5223,7 @@ export default function ExportReportPage() {
                           <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <p className="text-sm text-slate-600">
-                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their importance to employees managing cancer and their impact on employee wellbeing and organizational outcomes. Every dimension and every support element matters and improvements in any area create meaningful, lasting impact for all employees, creating a more resilient workforce.
                         </p>
                       </div>
                       <div className="flex items-center gap-2 mt-2 pt-3 border-t border-slate-200">
