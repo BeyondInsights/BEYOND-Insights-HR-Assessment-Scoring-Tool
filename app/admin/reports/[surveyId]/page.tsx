@@ -10274,34 +10274,6 @@ export default function ExportReportPage() {
               return `Addressing ${topImpact.dimName} could improve your composite score by up to +${Math.round(topImpact.potentialGain12)} points${tierShift}.${elementCite}`;
             })();
 
-            // Enhancement 3: Unsure-item upside
-            const unsureUpside = (() => {
-              const totalUnsure = dimensionAnalysis.reduce((sum: number, d: any) => sum + (d.unsure?.length || 0), 0);
-              if (totalUnsure < 5) return null;
-              const halfConfirmed = Math.floor(totalUnsure / 2);
-              const pointsGained = halfConfirmed * 5;
-              const totalElements = dimensionAnalysis.reduce((sum: number, d: any) => sum + (d.elements?.length || 0), 0);
-              const avgPointsPerElement = totalElements > 0 ? pointsGained / totalElements : 0;
-              const estimatedCompositeGain = Math.round(avgPointsPerElement * 20 * 0.9);
-              const projectedWithUnsure = Math.min(100, (wsiScoreHeader ?? 0) + estimatedCompositeGain);
-              const projectedTier = getWSITier(projectedWithUnsure);
-              if (estimatedCompositeGain < 2) return null;
-              return { totalUnsure, halfConfirmed, projectedScore: projectedWithUnsure, projectedTier: projectedTier.name, gain: estimatedCompositeGain };
-            })();
-
-            // Enhancement 4: Geographic impact callout
-            const geoImpact = (() => {
-              if (isSingleCountryCompany) return null;
-              const affectedDims = dimensionAnalysis.filter((d: any) => (d.geoMultiplier ?? 1.0) < 1.0);
-              if (affectedDims.length < 2) return null;
-              const avgGain = affectedDims.reduce((sum: number, d: any) => {
-                const gm = d.geoMultiplier ?? 1.0;
-                if (gm >= 1.0) return sum;
-                const rawScore = gm > 0 ? d.score / gm : d.score;
-                return sum + (rawScore - d.score);
-              }, 0) / affectedDims.length;
-              return { count: affectedDims.length, avgGain: Math.round(avgGain), dims: affectedDims.map((d: any) => d.name).slice(0, 3) };
-            })();
 
             // Enhancement 6: Per-dimension percentile ranks
             const getDimPercentile = (dimNum: number, score: number): number | null => {
@@ -10366,35 +10338,12 @@ export default function ExportReportPage() {
                   ) : (
                     <p className="text-lg text-slate-700 font-medium leading-relaxed">
                       {customNextSteps.headlineInsight || defaultHeadline}
-                    </p>
-                  )}
-                  {/* Enhancement 1: Impact callout */}
-                  {!editMode && !customNextSteps.headlineInsight && impactCallout && (
-                    <p className="text-base text-indigo-700 font-semibold mt-3">
-                      {impactCallout}
+                      {!customNextSteps.headlineInsight && impactCallout && (
+                        <span className="text-slate-800 font-semibold"> {impactCallout}</span>
+                      )}
                     </p>
                   )}
                 </div>
-
-                {/* Enhancement 3: Unsure upside callout */}
-                {!editMode && unsureUpside && (
-                  <div className="mx-10 mb-4 px-5 py-3 bg-violet-50 rounded-lg border border-violet-200">
-                    <p className="text-sm text-violet-800">
-                      <strong>{unsureUpside.totalUnsure} elements are pending confirmation.</strong> If roughly half are already in place, your projected score could rise to approximately <strong>{unsureUpside.projectedScore}</strong> ({unsureUpside.projectedTier} tier).
-                      <span className="text-violet-600"> Confirming these items is the fastest path to an accurate score.</span>
-                    </p>
-                  </div>
-                )}
-
-                {/* Enhancement 4: Geographic impact callout */}
-                {!editMode && geoImpact && (
-                  <div className="mx-10 mb-4 px-5 py-3 bg-indigo-50 rounded-lg border border-indigo-200">
-                    <p className="text-sm text-indigo-800">
-                      <strong>Geographic consistency is reducing scores in {geoImpact.count} dimensions</strong> (including {geoImpact.dims.join(', ')}).
-                      Standardizing practices across all locations would improve these dimensions by an average of <strong>+{geoImpact.avgGain} points</strong> each.
-                    </p>
-                  </div>
-                )}
 
                 {/* "What This Pattern Suggests" — 3 short bullets */}
                 <div className="mx-10 mb-4 px-5 py-3 bg-slate-50 rounded-lg border border-slate-100">
@@ -10417,32 +10366,11 @@ export default function ExportReportPage() {
                     <div>
                       <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2 block">What this pattern suggests</span>
                       <div className="flex flex-wrap gap-2 items-center">
-                        {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => {
-                          const lower = bullet.toLowerCase();
-                          const isPositive = /well-established|strong|in place/.test(lower);
-                          const isAttention = /need.?attention|gaps|require/.test(lower);
-                          return (
-                            <span key={i} className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-full px-4 py-1.5 text-sm text-slate-700">
-                              {isPositive ? (
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                                  <circle cx="7" cy="7" r="6" stroke="#047857" strokeWidth="2"/>
-                                  <path d="M4 7l2 2 4-4" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              ) : isAttention ? (
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                                  <path d="M7 1.5l5.5 10H1.5L7 1.5z" stroke="#B45309" strokeWidth="2" strokeLinejoin="round"/>
-                                  <path d="M7 6v2" stroke="#B45309" strokeWidth="2" strokeLinecap="round"/>
-                                  <circle cx="7" cy="10" r="0.5" fill="#B45309"/>
-                                </svg>
-                              ) : (
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                                  <path d="M2 7h10M9 4l3 3-3 3" stroke="#1D4ED8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                </svg>
-                              )}
+                        {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => (
+                            <span key={i} className="inline-flex items-center bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm text-slate-700 shadow-sm">
                               {bullet}
                             </span>
-                          );
-                        })}
+                        ))}
                       </div>
                     </div>
                   )}
@@ -10505,12 +10433,9 @@ export default function ExportReportPage() {
                                 const atRisk = assessingCount + unsureCount;
                                 if (atRisk === 0) return null;
                                 return (
-                                  <div className="mt-1">
-                                    <span className="inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1">
-                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                      {atRisk} element{atRisk > 1 ? 's' : ''} under review or pending — monitor to protect this strength
-                                    </span>
-                                  </div>
+                                  <p className="mt-1 text-xs text-amber-600">
+                                    {atRisk} element{atRisk > 1 ? 's' : ''} under review or pending — monitor to protect this strength
+                                  </p>
                                 );
                               })()}
                             </div>
