@@ -115,7 +115,7 @@ function PolishedMatrix({ dimensionAnalysis, getScoreColor }: any) {
             <text transform={`translate(15, ${PADDING + PLOT_HEIGHT/2}) rotate(-90)`} textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500">Impact Weight ↑</text>
           </g>
         </svg>
-      </div><div className="mt-4 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500"><span className="font-semibold text-slate-500 uppercase tracking-wide">Ring = Employee Priority:</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Enabling</span></div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
+      </div><div className="mt-4 pt-4 border-t border-slate-200 flex flex-wrap items-center justify-center gap-6 text-xs text-slate-500"><span className="font-semibold text-slate-500 uppercase tracking-wide">Ring = Employee Priority:</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span><span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Important</span></div>{showBenchmarks && (<div className="flex items-center justify-center gap-6 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-500"><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-slate-600"></span>Your score</span><span className="flex items-center gap-2"><span className="w-3 h-3 rounded-full border-2 border-slate-400 border-dashed"></span>Benchmark</span></div>)}</div>
     </div>
   );
 }
@@ -577,7 +577,7 @@ function getScoreColor(score: number): string {
 function getEmployeePriorityGroup(weight: number): { label: string; chip: string; color: string; bgColor: string; borderColor: string; ringColor: string } {
   if (weight >= 10) return { label: 'Most Critical to Employees', chip: 'Most Critical', color: '#7C3AED', bgColor: 'bg-violet-50', borderColor: 'border-violet-200', ringColor: '#7C3AED' };
   if (weight >= 7)  return { label: 'Highly Important to Employees', chip: 'Highly Important', color: '#D97706', bgColor: 'bg-amber-50', borderColor: 'border-amber-200', ringColor: '#D97706' };
-  return { label: 'Completes the Support Ecosystem', chip: 'Enabling', color: '#475569', bgColor: 'bg-slate-50', borderColor: 'border-slate-200', ringColor: '#475569' };
+  return { label: 'Completes the Support Ecosystem', chip: 'Important', color: '#475569', bgColor: 'bg-slate-50', borderColor: 'border-slate-200', ringColor: '#475569' };
 }
 
 const EMPLOYEE_PRIORITY_FOOTNOTE = "These groupings reflect what employees managing cancer consistently described as most critical to their workplace experience. All dimensions matter\u2014this simply indicates where employee need is most acute.";
@@ -2463,7 +2463,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       <thead>
                         <tr className="border-b-2 border-slate-200">
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
-                          <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Type</th>
+                          <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Support Level</th>
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>{'In Place'}</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>{'In Development'}</th>
@@ -5162,6 +5162,14 @@ export default function ExportReportPage() {
                 <div className="mt-4 pb-1">
                   <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="p-6">
+                      {/* Employee Priority Legend */}
+                      <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-200">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Important</span>
+                        <span className="text-xs text-slate-500 ml-1">= dimension badge color</span>
+                      </div>
                       {/* Lead-in text */}
                       <p className="text-sm text-slate-700 leading-relaxed mb-5">
                         Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
@@ -5225,13 +5233,6 @@ export default function ExportReportPage() {
                         <p className="text-sm text-slate-600">
                           Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their importance to employees managing cancer and their impact on employee wellbeing and organizational outcomes. Every dimension and every support element matters and improvements in any area create meaningful, lasting impact for all employees, creating a more resilient workforce.
                         </p>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2 pt-3 border-t border-slate-200">
-                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
-                        <span className="text-xs text-slate-500 ml-1">= dimension badge color</span>
                       </div>
                     </div>
                   </div>
@@ -5566,13 +5567,13 @@ export default function ExportReportPage() {
                     <div className="flex items-end gap-10 mt-2">
                       {/* Benchmark */}
                       <div className="text-center">
-                        <p className="text-5xl font-bold text-slate-500 leading-none">59</p>
-                        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
+                        <p className="text-5xl font-bold text-slate-300 leading-none">59</p>
+                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
                       </div>
                       {/* Your Score */}
                       <div className="text-center">
                         <p className="text-8xl font-bold leading-none text-white" data-export="composite-score">{wsiScoreHeader}</p>
-                        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
+                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
                       </div>
                     </div>
                   </div>
@@ -6699,7 +6700,7 @@ export default function ExportReportPage() {
                 <div className="w-64 pl-2">Dimension</div>
                 <div className="flex-1 text-center">Performance</div>
                 <div className="w-24 text-center">Your Score</div>
-                <div className="w-28 text-center">Benchmark</div>
+                <div className="w-28 text-center">Benchmark<br/><span className="normal-case tracking-normal font-medium text-slate-400" style={{ fontSize: '9px' }}>avg (+/− yours)</span></div>
                 <div className="w-36 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
               </div>
               <div className="divide-y divide-slate-100">
@@ -6769,6 +6770,12 @@ export default function ExportReportPage() {
               <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">
                 *{EMPLOYEE_PRIORITY_FOOTNOTE}
               </p>
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Support Level:</span>
+                <div className="flex items-center gap-1.5"><CoreSupportIcon size={14} color="#047857" /><span className="text-xs text-slate-600 font-medium">Core</span></div>
+                <div className="flex items-center gap-1.5"><EnhancedSupportIcon size={14} color="#B45309" /><span className="text-xs text-slate-600 font-medium">Enhanced</span></div>
+                <div className="flex items-center gap-1.5"><AdvancedSupportIcon size={14} color="#7C3AED" /><span className="text-xs text-slate-600 font-medium">Advanced</span></div>
+              </div>
             </div>
           </div>
           
@@ -6901,10 +6908,10 @@ export default function ExportReportPage() {
                         <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#e0e7ff" fillOpacity="0.5" />
 
                         {/* Quadrant labels — top pair at top edge, bottom pair at bottom edge */}
-                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.85">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.85">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
                         {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
@@ -6982,12 +6989,15 @@ export default function ExportReportPage() {
                             }
                           }
                           return (<>
-                            {benchPositions.map((bp) => (
+                            {benchPositions.map((bp) => {
+                              const epColor = getEmployeePriorityGroup(dimensionAnalysis.find(d => d.dim === bp.dim)?.weight || 0).color;
+                              return (
                               <g key={`bench-${bp.dim}`}>
-                                <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke="#8B5CF6" strokeWidth="2.5" strokeDasharray="5 3" />
-                                <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill="#6D28D9" fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
+                                <circle cx={bp.x} cy={bp.y} r={20} fill="#E2E8F0" fillOpacity="0.8" stroke={epColor} strokeWidth="2.5" strokeDasharray="5 3" />
+                                <text x={bp.x} y={bp.y + 1} textAnchor="middle" dominantBaseline="middle" fill={epColor} fontSize="10" fontWeight="800" fontFamily="system-ui">D{bp.dim}</text>
                               </g>
-                            ))}
+                              );
+                            })}
                             {benchClusters.map((cluster, ci) => {
                               // Skip callout circles for adjusted dimensions and D4
                               const hiddenDims = cluster.dims.slice(0, -1).filter(dim => ![1, 3, 4, 7].includes(dim));
@@ -6995,11 +7005,12 @@ export default function ExportReportPage() {
                               return hiddenDims.map((dim, i) => {
                                 const cx = cluster.x + 28 + i * 24;
                                 const cy = cluster.y - 22;
+                                const calloutColor = getEmployeePriorityGroup(dimensionAnalysis.find(d => d.dim === dim)?.weight || 0).color;
                                 return (
                                   <g key={`bench-callout-${ci}-${dim}`}>
-                                    <line x1={cx} y1={cy + 8} x2={cluster.x + 12} y2={cluster.y - 12} stroke="#8B5CF6" strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
-                                    <circle cx={cx} cy={cy} r="10" fill="#E2E8F0" fillOpacity="0.5" stroke="#8B5CF6" strokeWidth="1.5" strokeDasharray="3 2" />
-                                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill="#6D28D9" fontSize="8" fontWeight="700" opacity="0.7">D{dim}</text>
+                                    <line x1={cx} y1={cy + 8} x2={cluster.x + 12} y2={cluster.y - 12} stroke={calloutColor} strokeWidth="1" strokeDasharray="2 2" opacity="0.5" />
+                                    <circle cx={cx} cy={cy} r="10" fill="#E2E8F0" fillOpacity="0.5" stroke={calloutColor} strokeWidth="1.5" strokeDasharray="3 2" />
+                                    <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central" fill={calloutColor} fontSize="8" fontWeight="700" opacity="0.7">D{dim}</text>
                                   </g>
                                 );
                               });
@@ -7120,18 +7131,26 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
-                      {matrixView === 'both' && (
-                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-center gap-8 text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-emerald-500 shadow-sm"></span>
-                            <span className="text-slate-700 font-medium">Your Company</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="w-6 h-6 rounded-full bg-slate-200 border-2 border-dashed border-violet-500 flex items-center justify-center text-violet-700 text-[8px] font-bold">D</span>
-                            <span className="text-slate-700 font-medium">Participant Benchmark</span>
-                          </div>
+                      <div className="mt-3 pt-3 border-t border-slate-100">
+                        <div className="flex items-center justify-center gap-6 text-xs mb-2">
+                          <span className="font-semibold text-slate-500 uppercase tracking-wider">Employee Priority:</span>
+                          <div className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#7C3AED' }}></span><span className="text-slate-600 font-medium">Most Critical</span></div>
+                          <div className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#D97706' }}></span><span className="text-slate-600 font-medium">Highly Important</span></div>
+                          <div className="flex items-center gap-1.5"><span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#475569' }}></span><span className="text-slate-600 font-medium">Important</span></div>
                         </div>
-                      )}
+                        {matrixView === 'both' && (
+                          <div className="flex items-center justify-center gap-8 text-sm mt-2">
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-slate-900 shadow-sm"></span>
+                              <span className="text-slate-700 font-medium">Your Company</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-6 h-6 rounded-full bg-slate-200 border-2 border-dashed border-slate-500 flex items-center justify-center text-slate-600 text-[8px] font-bold">D</span>
+                              <span className="text-slate-700 font-medium">Participant Benchmark</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -7226,7 +7245,7 @@ export default function ExportReportPage() {
                   {/* Table Header Row */}
                   <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
                     <div className="col-span-3">Support Element</div>
-                    <div className="col-span-1 text-center">Type</div>
+                    <div className="col-span-1 text-center">Support Level</div>
                     <div className="col-span-1 text-center">Your Status</div>
                     <div className="col-span-4 text-center">
                       <div>Benchmark Distribution</div>
@@ -12253,7 +12272,7 @@ export default function ExportReportPage() {
                             <span className="font-semibold uppercase tracking-wide">Ring = Employee Priority:</span>
                             <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span>
                             <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span>
-                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Enabling</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Important</span>
                           </div>
                         </div>
                       );
@@ -12463,7 +12482,7 @@ export default function ExportReportPage() {
                             <span className="font-semibold uppercase tracking-wide">Ring = Employee Priority:</span>
                             <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#7C3AED' }}></span>Most Critical</span>
                             <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#D97706' }}></span>Highly Important</span>
-                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Enabling</span>
+                            <span className="flex items-center gap-1"><span className="w-5 h-5 rounded-full border-[3px]" style={{ borderColor: '#475569' }}></span>Important</span>
                           </div>
                         </div>
                       );
