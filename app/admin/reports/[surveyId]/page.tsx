@@ -666,7 +666,7 @@ function getTwoStepRoadmap(
   planning: any[],
   assessing: any[],
   elementBenchmarks: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>>
-): { quickWin: { name: string; reason: string } | null; strategicLift: { name: string; reason: string } | null } {
+): { quickWin: { name: string; reason: string; effortTag: string; projectedLift: number } | null; strategicLift: { name: string; reason: string; effortTag: string; projectedLift: number } | null } {
   const dimBenchmarks = elementBenchmarks[dimNum] || {};
 
   // Build a classified + sorted pool: Table Stakes Gaps first, then Momentum Opportunities, then Aspirational Gaps
@@ -679,23 +679,28 @@ function getTwoStepRoadmap(
     const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
     const cls = classifyElement(item, pct);
     const priority = cls === 'Table Stakes Gap' ? 0 : cls === 'Momentum Opportunity' ? 1 : cls === 'Aspirational Gap' ? 2 : 3;
-    return { ...item, pct, cls, priority };
+    const lift = calculateElementLift(dimNum, item.name);
+    return { ...item, pct, cls, priority, lift };
   }).sort((a, b) => a.priority - b.priority || b.pct - a.pct);
 
-  // Quick win: first item in priority order
+  // Quick win: first item in priority order (typically a table-stakes gap or momentum opportunity)
   let quickWin = null;
   if (allItems.length > 0) {
     const item = allItems[0];
-    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity. Already in development' : `${item.pct}% of participating organizations offer this`;
-    quickWin = { name: item.name, reason: `${label}; ${item.pct}% of participating organizations offer this` };
+    const isQuick = item.isPlanning || item.pct >= 60;
+    const effortTag = isQuick ? 'Quick Win (60-day)' : 'Strategic Initiative (6-month)';
+    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity — already in development' : `${item.pct}% of participating organizations offer this`;
+    quickWin = { name: item.name, reason: `${label}; ${item.pct}% of participating organizations offer this`, effortTag, projectedLift: Math.round(item.lift * 10) / 10 };
   }
 
   // Strategic lift: second item in priority order
   let strategicLift = null;
   if (allItems.length > 1) {
     const item = allItems[1];
-    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'In development' : `${item.pct}% peer adoption`;
-    strategicLift = { name: item.name, reason: `${label}; adding this would meaningfully expand support coverage` };
+    const isQuick = item.isPlanning || item.pct >= 60;
+    const effortTag = isQuick ? 'Quick Win (60-day)' : 'Strategic Initiative (6-month)';
+    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'In development' : `${item.pct}% adoption among participating organizations`;
+    strategicLift = { name: item.name, reason: `${label}; adding this would meaningfully expand support coverage`, effortTag, projectedLift: Math.round(item.lift * 10) / 10 };
   }
 
   return { quickWin, strategicLift };
@@ -990,12 +995,11 @@ function calculateElementLift(dimNum: number, elementName: string): number {
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  const descriptor = diff >= 8 ? 'a clear leader' : diff >= 2 ? 'ahead of participating organizations' : diff >= -1 ? 'in line with participating organizations' : 'behind participating organizations';
-  if (diff >= 8) return `At ${score}, ${descriptor} in ${dimName}. ${diff} points above the ${benchmark} average. A genuine differentiator.`;
-  if (diff >= 2) return `At ${score}, ${descriptor} in ${dimName} (benchmark: ${benchmark}). Room to widen the lead.`;
-  if (diff >= -1) return `At ${score}, ${descriptor} in ${dimName} (benchmark: ${benchmark}). An opportunity to differentiate.`;
-  if (diff >= -8) return `At ${score}, ${descriptor} in ${dimName}. ${Math.abs(diff)} points below the ${benchmark} benchmark. Targeted improvements can close this gap.`;
-  return `At ${score}, ${descriptor} in ${dimName}. ${Math.abs(diff)} points below the ${benchmark} benchmark. Priority area for focused investment.`;
+  if (diff >= 15) return `At ${score}, your ${dimName} score is ${diff} points above the ${benchmark} benchmark — a genuine differentiator. Protect this advantage.`;
+  if (diff >= 5) return `At ${score}, you're ${diff} points above the ${benchmark} benchmark in ${dimName}. A solid position with room to extend your lead.`;
+  if (diff >= -2) return `At ${score}, your ${dimName} score is in line with the ${benchmark} benchmark. An opportunity to differentiate from participating organizations.`;
+  if (diff >= -10) return `At ${score}, you're ${Math.abs(diff)} points below the ${benchmark} benchmark in ${dimName}. Targeted improvements in a few elements can close this gap.`;
+  return `At ${score}, ${dimName} is ${Math.abs(diff)} points below the ${benchmark} benchmark. This represents one of your largest gaps relative to participating organizations — prioritize this dimension.`;
 }
 
 // Identify meaningful cross-dimension patterns
@@ -3033,6 +3037,7 @@ export default function ExportReportPage() {
   const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   const [showImpactRanked, setShowImpactRanked] = useState(false);
+  const [recViewMode, setRecViewMode] = useState<'default' | 'leverage' | 'foundation' | 'roadmap'>('default');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -3455,7 +3460,7 @@ export default function ExportReportPage() {
       ]
     },
     impactRanked: {
-      title: 'Impact-Ranked Improvement Priorities',
+      title: 'Your Improvement Roadmap',
       what: 'Your Year 1 roadmap showing the top priority dimensions ranked by projected overall score impact. Each dimension shows specific support elements to advance, with benchmark data showing what percentage of participants currently offer each element.',
       how: 'Two tracks: ACCELERATE advances work already in motion (Complete Implementation moves Planning→Offering, Move into Active Planning moves Assessing→Planning). BUILD introduces new capabilities (Stand Up/Implement moves Not Offered→Offering, Design+Scope moves Not Offered→Planning). "Overall Contribution" shows how much each dimension adds to your composite score.',
       when: 'Use projected scores to frame strategic conversations with leadership. Cancer and Careers can assist with action plans for converting key support elements. The benchmark percentages help prioritize: elements offered by most participants represent table stakes, while less common elements may be differentiators.',
@@ -4412,8 +4417,8 @@ export default function ExportReportPage() {
     { id: 'areas-of-excellence', label: 'Areas of Excellence', iconKey: 'excellence' },
     { id: 'initiatives-in-progress', label: 'Initiatives In Development or Under Review', iconKey: 'progress' },
     { id: 'growth-opportunities', label: 'Growth Opportunities', iconKey: 'growth' },
+    { id: 'impact-ranked-priorities', label: 'Improvement Roadmap', iconKey: 'impact' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
-    { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', iconKey: 'impact' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap', iconKey: 'roadmap' },
     // { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', iconKey: 'pledge' },
     { id: 'next-steps-section', label: 'Report at a Glance', iconKey: 'progress' },
@@ -5406,7 +5411,7 @@ export default function ExportReportPage() {
                           { id: 'matrix', name: 'Interactive Performance Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
-                          { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
+                          { id: 'impactranked', name: 'Improvement Roadmap', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
                           { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
                           { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Interactive Performance Matrix clarifies which gaps are most consequential.' },
                           { id: 'inprogress', name: 'Initiatives In Development or Under Review', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
@@ -8347,6 +8352,389 @@ export default function ExportReportPage() {
             </div>}
           </div>
 
+          {/* Improvement Roadmap Teaser Card */}
+          <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
+            <button
+              onClick={() => setShowImpactRanked(!showImpactRanked)}
+              className="w-full group px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 border border-slate-600 rounded-xl transition-all flex items-center justify-center gap-4 shadow-md"
+            >
+              <div className="w-11 h-11 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
+                <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              </div>
+              <div className="text-left flex-1">
+                <span className="text-white font-semibold text-base block">Your Improvement Roadmap</span>
+                <span className="text-slate-300 group-hover:text-slate-200 text-sm">The 5 dimensions where focused investment will have the greatest impact on your overall score</span>
+              </div>
+              <div className={`w-7 h-7 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-200 ${showImpactRanked ? 'rotate-180' : ''}`}>
+                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
+            </button>
+          </div>
+
+          {/* ============ IMPACT-RANKED PRIORITIES ============ */}
+          {showImpactRanked && (() => {
+            const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
+            const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
+            const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
+            const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
+            const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
+            
+            // Calculate max contribution for bar scaling
+            const maxContribution = Math.max(...rankings.slice(0, 5).map(r => r.potentialGain12));
+            
+            const displayedRankings = showAllImpactDimensions ? rankings.slice(0, 5) : rankings.slice(0, 3);
+            const dimColors = [
+              { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600', bar: 'bg-indigo-500' },
+              { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600', bar: 'bg-teal-500' },
+              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-500' },
+              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600', bar: 'bg-amber-500' },
+              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600', bar: 'bg-rose-500' },
+            ];
+            
+            // Helper to get benchmark % for an element
+            const getElementBenchmark = (dimNum: number, elementName: string) => {
+              const dimBench = elementBenchmarks[dimNum];
+              if (!dimBench) return null;
+              const el = dimBench[elementName];
+              if (!el || !el.total) return null;
+              return Math.round((el.currently / el.total) * 100);
+            };
+            
+            return (
+              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+                {/* Header */}
+                <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-white text-2xl tracking-tight">Your Improvement Roadmap</h3>
+                      <p className="text-slate-300 mt-1 text-sm">The dimensions with the highest potential to improve your score, ranked by impact. Each shows specific elements to advance and the projected score gain.</p>
+                    </div>
+                    <button 
+                      onClick={() => setInfoModal('impactRanked')}
+                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      How It Works
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="px-8 py-5 pb-8">
+                  {/* Intro text explaining the 5 priority dimensions */}
+                  <p className="text-slate-600 text-base mb-5">Based on your report, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on employee experiences and your overall score. Recommendations are prioritized by <span className="font-semibold text-slate-700">improvement opportunity</span> and <span className="font-semibold text-slate-700">implementation readiness</span>.</p>
+                  
+                  {/* 2x2 grid - Top: Accelerate/Build, Bottom: Roadmap/Impact */}
+                  <div className="mb-5 grid grid-cols-2 gap-4">
+                    {/* Accelerate Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Accelerate <span className="text-slate-500 font-normal">({totalAccel})</span></h4>
+                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, converts work already in motion into tangible progress.</span> These initiatives have organizational momentum.</p>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-3">
+                        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+                          <span className="px-2.5 py-0.5 bg-slate-600 text-white text-sm font-semibold rounded">Implement</span>
+                          <span className="text-sm text-slate-600 self-center">Planning → Offering</span>
+                          <span className="px-2.5 py-0.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded">Active Planning</span>
+                          <span className="text-sm text-slate-600 self-center">Assessing → Planning</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Build Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Build <span className="text-slate-500 font-normal">({totalBuild})</span></h4>
+                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, introduces net-new capabilities where gaps exist today.</span> Closing them drives the biggest score gains.</p>
+                        </div>
+                      </div>
+                      <div className="bg-indigo-50 rounded-lg p-3">
+                        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
+                          <span className="px-2.5 py-0.5 bg-indigo-600 text-white text-sm font-semibold rounded">Stand Up</span>
+                          <span className="text-sm text-slate-600 self-center">Not Offered → Offering</span>
+                          <span className="px-2.5 py-0.5 bg-violet-100 text-violet-700 text-sm font-semibold rounded">Design + Scope</span>
+                          <span className="text-sm text-slate-600 self-center">Not Offered → Planning</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Year 1 Roadmap Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg mb-1">Year 1 Roadmap</h4>
+                          <p className="text-sm text-slate-700">Advance <span className="font-bold text-slate-900">{totalElementsY1}</span> support elements across <span className="font-bold text-slate-900">5</span> priority dimensions.</p>
+                          <p className="text-xs text-slate-500 mt-1">Prioritized by impact on overall composite score and implementation readiness</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Projected Impact Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 p-5">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-bold text-slate-900 text-lg">Projected Impact</h4>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-slate-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Current</p>
+                          <p className="text-2xl font-bold text-slate-500">{wsiScoreHeader}</p>
+                        </div>
+                        <div className="bg-slate-800 rounded-lg p-3 text-center">
+                          <p className="text-xs text-slate-300 uppercase tracking-wide font-medium mb-1">Projected</p>
+                          <p className="text-2xl font-bold text-white">{projectedCompositeY1}</p>
+                        </div>
+                        <div className="bg-emerald-50 rounded-lg p-3 text-center">
+                          <p className="text-xs text-emerald-600 uppercase tracking-wide font-medium mb-1">Gain</p>
+                          <p className="text-2xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 text-center mt-2">If roadmap delivered</p>
+                    </div>
+                  </div>
+                  
+                  {/* Dimension Cards */}
+                  <div className="space-y-4">
+                    {displayedRankings.map((r, idx) => {
+                      const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
+                      const colors = dimColors[idx];
+                      const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
+                      const buildCount = r.buildToOffering12 + r.buildToPlanning12;
+                      const totalDimElements = accelCount + buildCount;
+                      const expanded = expandedPriorities[r.dimNum] || { accel: false, build: false };
+                      
+                      // Contribution bar width as percentage of total gain (e.g., +5.5 of +11.5 = 48%)
+                      const barWidth = totalGainY1 > 0 ? (r.potentialGain12 / totalGainY1) * 100 : 0;
+                      
+                      // Cap lists at 3 by default
+                      const displayedAccel = expanded.accel ? accelerateItems : accelerateItems.slice(0, 3);
+                      const displayedBuild = expanded.build ? buildItems : buildItems.slice(0, 3);
+                      
+                      return (
+                      <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        {/* Header with contribution bar */}
+                        <div className={`${colors.bg}`}>
+                          <div className="px-5 py-3 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
+                              <div>
+                                <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
+                                {/* Bundle summary line - feedback #5 */}
+                                <p className="text-white/70 text-xs mt-0.5">
+                                  Year 1 plan: {accelCount} accelerated + {buildCount} built ({totalDimElements} total)
+                                </p>
+                              </div>
+                            </div>
+                            {/* Right side: Contribution + Share bar */}
+                            <div className="text-right">
+                              <div className="mb-1">
+                                <span className="text-white/80 text-xs">Contribution to Projected Composite:</span>
+                                <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
+                              </div>
+                              {/* Share bar aligned right */}
+                              <div className="flex items-center gap-2 justify-end">
+                                <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
+                                <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-white/70 rounded-full transition-all duration-500"
+                                    style={{ width: `${barWidth}%` }}
+                                  />
+                                </div>
+                                <span className="text-white/80 text-[10px] font-medium w-8">{Math.round(barWidth)}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Content - 3 columns */}
+                        <div className={`p-4 ${colors.light}`}>
+                          <div className="grid grid-cols-12 gap-4">
+                            {/* ACCELERATE */}
+                            <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                                </div>
+                                <span className="font-semibold text-slate-700">Accelerate ({accelCount})</span>
+                              </div>
+                              {accelerateItems.length > 0 ? (
+                                <div className="space-y-2">
+                                  {displayedAccel.map((item, i) => {
+                                    const bench = getElementBenchmark(r.dimNum, item.name);
+                                    return (
+                                      <div key={i} className="flex items-start justify-between gap-2">
+                                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                                          <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
+                                          <span className="text-sm text-slate-600">{item.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                          {bench !== null && (
+                                            <span className="text-[10px] text-slate-500">{bench}%</span>
+                                          )}
+                                          <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                            item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
+                                          }`}>
+                                            {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                  {/* Show more link - feedback #4 */}
+                                  {accelerateItems.length > 3 && !expanded.accel && (
+                                    <button 
+                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: true } }))}
+                                      className="text-xs text-slate-500 hover:text-slate-700 font-medium mt-1"
+                                    >
+                                      Show {accelerateItems.length - 3} more accelerated elements
+                                    </button>
+                                  )}
+                                  {expanded.accel && accelerateItems.length > 3 && (
+                                    <button 
+                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: false } }))}
+                                      className="text-xs text-slate-500 hover:text-slate-600 mt-1"
+                                    >
+                                      Show less
+                                    </button>
+                                  )}
+                                  {/* Benchmark legend */}
+                                  {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                    <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-slate-500 italic">No in-flight elements</p>
+                              )}
+                            </div>
+                            
+                            {/* BUILD */}
+                            <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
+                              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
+                                <div className="w-7 h-7 rounded-lg bg-indigo-700 flex items-center justify-center">
+                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                </div>
+                                <span className="font-semibold text-slate-700">Build ({buildCount})</span>
+                              </div>
+                              {buildItems.length > 0 ? (
+                                <div className="space-y-2">
+                                  {displayedBuild.map((item, i) => {
+                                    const bench = getElementBenchmark(r.dimNum, item.name);
+                                    return (
+                                      <div key={i} className="flex items-start justify-between gap-2">
+                                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                                          <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-indigo-500"></span>
+                                          <span className="text-sm text-slate-600">{item.name}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                          {bench !== null && (
+                                            <span className="text-[10px] text-slate-500">{bench}%</span>
+                                          )}
+                                          <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                            item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
+                                          }`}>
+                                            {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                  {/* Show more link - feedback #4 */}
+                                  {buildItems.length > 3 && !expanded.build && (
+                                    <button 
+                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: true } }))}
+                                      className="text-xs text-slate-500 hover:text-slate-700 font-medium mt-1"
+                                    >
+                                      Show {buildItems.length - 3} more build elements
+                                    </button>
+                                  )}
+                                  {expanded.build && buildItems.length > 3 && (
+                                    <button 
+                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: false } }))}
+                                      className="text-xs text-slate-500 hover:text-slate-600 mt-1"
+                                    >
+                                      Show less
+                                    </button>
+                                  )}
+                                  {/* Benchmark legend */}
+                                  {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
+                                    <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-slate-500 italic">Focus on accelerating</p>
+                              )}
+                            </div>
+                            
+                            {/* DIMENSION SCORE - feedback #7: emphasize Current → Projected */}
+                            <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
+                              <div className="space-y-2">
+                                {/* Primary: Current → Projected */}
+                                <div className="flex items-center justify-center gap-3">
+                                  <span className="text-4xl font-bold text-slate-500">{r.currentScore}</span>
+                                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                                  <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 text-center">Current → Projected</p>
+                                {/* Secondary: Gain (smaller, use Δ) */}
+                                <div className={`text-center pt-2 mt-2 border-t border-slate-100`}>
+                                  <span className={`text-sm font-semibold text-slate-500`}>Δ +{r.dimPotentialGain12}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Expand/Collapse Button for Dimensions 4-5 */}
+                  {!showAllImpactDimensions && (
+                    <button
+                      onClick={() => setShowAllImpactDimensions(true)}
+                      className="w-full mt-4 py-3 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                      Show Remaining 2 Dimensions
+                    </button>
+                  )}
+                  {showAllImpactDimensions && (
+                    <button
+                      onClick={() => setShowAllImpactDimensions(false)}
+                      className="w-full mt-4 py-2 px-4 text-xs font-medium text-slate-500 hover:text-slate-600 transition-colors flex items-center justify-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                      Collapse
+                    </button>
+                  )}
+                  
+                  {/* Footer notes - separate rows, larger font */}
+                  <div className="mt-6 pt-4 border-t border-slate-200 space-y-1 text-center">
+                    <p className="text-sm text-slate-500">Contributions shown are across all 5 priority dimensions.</p>
+                    <p className="text-sm text-slate-500">Totals may vary slightly due to rounding.</p>
+                    <p className="text-sm text-slate-500">Projections assume sustained execution; actual results depend on feasibility and confirmation of any "Needs Confirmation" items.</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
           <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
             {/* Header with visual interest */}
@@ -8422,303 +8810,68 @@ export default function ExportReportPage() {
             </div>
 
             <div className="p-10">
-              {/* Selection Methodology - Visual Explanation */}
-              <div className="mb-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-900 text-lg">Balanced 2+2 Selection</h4>
-                    <p className="text-slate-500 text-sm">Two by greatest need, two by strategic opportunity</p>
-                  </div>
-                </div>
-                
-                {/* Expanded explanation */}
-                <p className="text-slate-600 text-sm leading-relaxed mb-6 max-w-4xl">
-                  Rather than addressing all 13 dimensions at once, we prioritize <span className="font-semibold text-slate-800">four dimensions</span> using a balanced methodology. 
-                  This ensures you address both <span className="font-semibold text-slate-800">immediate support gaps</span> (where employees are most likely to fall through the cracks today) 
-                  and <span className="font-semibold text-slate-800">high-leverage opportunities</span> (where investment yields system-wide improvements). 
-                  Dimensions scoring above 85 are excluded from Strategic Leverage selection since they're already strong.
+              {/* View Mode Selector */}
+              <div className="mb-8">
+                <p className="text-slate-600 text-base leading-relaxed mb-6 max-w-4xl">
+                  Deep-dive analysis with element-level recommendations, benchmark comparisons, and CAC resource alignment. Choose which dimensions to explore:
                 </p>
 
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Strategic Leverage Card */}
-                  <div className="bg-gradient-to-br from-slate-100 to-white rounded-2xl border-2 border-slate-300 overflow-hidden">
-                    <div className="px-6 py-4 bg-slate-700 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 17l6-6 4 4 8-8" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M17 7h4v4" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h5 className="font-bold text-white text-lg">Strategic Leverage</h5>
-                          <p className="text-slate-300 text-xs">High-impact improvement paths</p>
-                        </div>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
-                    </div>
-                    <div className="p-6">
-                      <p className="text-slate-600 text-sm mb-4">
-                        <span className="font-semibold text-slate-800">Highest weighted opportunity</span>: where impact importance × headroom creates system-wide impact.
-                      </p>
-                      <div className="space-y-3">
-                        {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
-                          <div key={d.dim} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>
-                                D{d.dim}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
-                                <div className="text-xs text-slate-500 font-medium mb-1">Score</div>
-                                <div className="flex items-end gap-1">
-                                  <span className="text-xl font-bold text-slate-600">{d.score}</span>
-                                  <span className="text-xs text-slate-500 mb-1">/100</span>
-                                </div>
-                              </div>
-                              <div className="bg-slate-700 rounded-lg p-2.5">
-                                <div className="text-xs text-slate-300 font-medium mb-1">Weight</div>
-                                <div className="flex items-end gap-1">
-                                  <span className="text-xl font-bold text-white">{d.weight}</span>
-                                  <span className="text-xs text-slate-300 mb-1">%</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Foundation Focus Card */}
-                  <div className="bg-gradient-to-br from-amber-50 to-white rounded-2xl border-2 border-amber-200 overflow-hidden">
-                    <div className="px-6 py-4 bg-amber-500 flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M3 21h18" strokeLinecap="round" />
-                            <path d="M5 21v-6l7-8 7 8v6" strokeLinecap="round" strokeLinejoin="round" />
-                            <circle cx="12" cy="13" r="2" />
-                          </svg>
-                        </div>
-                        <div>
-                          <h5 className="font-bold text-white text-lg">Foundation Focus</h5>
-                          <p className="text-amber-100 text-xs">Core support gaps to address</p>
-                        </div>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-white/20 text-white text-sm font-semibold">2 dimensions</span>
-                    </div>
-                    <div className="p-6">
-                      <p className="text-slate-600 text-sm mb-4">
-                        <span className="font-semibold text-slate-800">Lowest-scoring dimensions</span>: where employees managing cancer are most likely to experience gaps in support today.
-                      </p>
-                      <div className="space-y-3">
-                        {strategicPriorityDims.filter(d => d.selectionReason === 'risk').map((d) => (
-                          <div key={d.dim} className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>
-                                D{d.dim}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
-                              </div>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="bg-amber-500 rounded-lg p-2.5">
-                                <div className="text-xs text-amber-100 font-medium mb-1">Score</div>
-                                <div className="flex items-end gap-1">
-                                  <span className="text-xl font-bold text-white">{d.score}</span>
-                                  <span className="text-xs text-amber-200 mb-1">/100</span>
-                                </div>
-                              </div>
-                              <div className="bg-slate-50 rounded-lg p-2.5 border border-slate-200">
-                                <div className="text-xs text-slate-500 font-medium mb-1">Weight</div>
-                                <div className="flex items-end gap-1">
-                                  <span className="text-xl font-bold text-slate-700">{d.weight}</span>
-                                  <span className="text-xs text-slate-500 mb-1">%</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
+                <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1.5">
+                  {([
+                    { key: 'default' as const, label: 'All 4 Priority Dimensions', desc: '2 Strategic Leverage + 2 Foundation Focus' },
+                    { key: 'leverage' as const, label: 'Strategic Leverage', desc: 'Highest weighted opportunity' },
+                    { key: 'foundation' as const, label: 'Foundation Focus', desc: 'Largest support gaps' },
+                    { key: 'roadmap' as const, label: 'From Your Roadmap', desc: 'Top 4 by projected impact' },
+                  ]).map(opt => (
+                    <button
+                      key={opt.key}
+                      onClick={() => setRecViewMode(opt.key)}
+                      className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                        recViewMode === opt.key
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
+                      }`}
+                    >
+                      <span className="block font-semibold">{opt.label}</span>
+                      <span className="block text-xs mt-0.5 font-normal" style={{ color: recViewMode === opt.key ? '#64748b' : '#94a3b8' }}>{opt.desc}</span>
+                    </button>
+                  ))}
                 </div>
-              </div>
 
-              {/* Action Framework */}
-              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-8 mb-10 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 opacity-5">
-                  <svg viewBox="0 0 200 200" className="w-full h-full">
-                    <circle cx="100" cy="100" r="80" fill="none" stroke="white" strokeWidth="2"/>
-                    <circle cx="100" cy="100" r="60" fill="none" stroke="white" strokeWidth="2"/>
-                    <circle cx="100" cy="100" r="40" fill="none" stroke="white" strokeWidth="2"/>
-                  </svg>
-                </div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                        {/* Custom roadmap/path icon */}
-                        <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M4 19h4v-7H4v7zM10 19h4V8h-4v11zM16 19h4V4h-4v15z" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-white text-xl">From Insight to Action</h4>
-                        <p className="text-slate-500 text-sm">A practical framework to move from diagnosis to ownership</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4">
-                    {/* Step 1: Validate */}
-                    <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
-                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">1</div>
-                      <div className="flex items-center gap-3 mb-3 pt-2">
-                        <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                          {/* Custom validate/confirm icon */}
-                          <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 11l3 3L22 4" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <h5 className="font-bold text-white">Validate</h5>
-                      </div>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        Review the four priorities. Do they match your internal view? Flag any <span className="text-amber-300 font-medium">"Needs Confirmation"</span> items that require verification before committing resources.
-                      </p>
-                    </div>
-
-                    {/* Step 2: Assign */}
-                    <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
-                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">2</div>
-                      <div className="flex items-center gap-3 mb-3 pt-2">
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                          {/* Custom assign/people icon */}
-                          <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="9" cy="7" r="3" />
-                            <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" strokeLinecap="round" />
-                            <path d="M16 3.13a4 4 0 010 7.75" strokeLinecap="round" />
-                            <path d="M21 21v-2a4 4 0 00-3-3.87" strokeLinecap="round" />
-                          </svg>
-                        </div>
-                        <h5 className="font-bold text-white">Assign Owners</h5>
-                      </div>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        For each dimension, select <span className="text-emerald-300 font-medium">2–3 specific actions</span>. Assign clear ownership: HR, Benefits, Communications, People Leaders, or cross-functional teams.
-                      </p>
-                    </div>
-
-                    {/* Step 3: Execute */}
-                    <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
-                      <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">3</div>
-                      <div className="flex items-center gap-3 mb-3 pt-2">
-                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                          {/* Custom execute/launch icon */}
-                          <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M5 12h14M12 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
-                        </div>
-                        <h5 className="font-bold text-white">Sequence & Track</h5>
-                      </div>
-                      <p className="text-slate-300 text-sm leading-relaxed">
-                        Prioritize <span className="text-blue-300 font-medium">quick wins</span> over foundation work. Set regular checkpoints to measure progress.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Analyze Another Dimension note */}
-                  <div className="mt-6 pt-5 border-t border-white/10">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10" />
-                          <path d="M12 8v8M8 12h8" strokeLinecap="round" />
-                        </svg>
-                      </div>
-                      <p className="text-slate-500 text-sm">
-                        <span className="text-violet-300 font-medium">Need deeper analysis on another dimension?</span> Use the &quot;Analyze Another Dimension&quot; button at the bottom of this section to add any dimension to this strategic review.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* What Each Analysis Includes */}
-              <div>
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <h4 className="font-bold text-slate-900">What You'll Find in Each Dimension Analysis</h4>
-                </div>
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-amber-500 flex items-center justify-center mb-3">
-                      {/* Gap/target icon */}
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <circle cx="12" cy="12" r="6" />
-                        <circle cx="12" cy="12" r="2" />
-                      </svg>
-                    </div>
-                    <h5 className="font-semibold text-slate-900 text-sm mb-1">Gaps to Address</h5>
-                    <p className="text-slate-500 text-xs leading-relaxed">Support elements not currently offered. Your primary improvement targets.</p>
-                  </div>
-                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center mb-3">
-                      {/* In progress/building icon */}
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" strokeLinecap="round" />
-                      </svg>
-                    </div>
-                    <h5 className="font-semibold text-slate-900 text-sm mb-1">In Development</h5>
-                    <p className="text-slate-500 text-xs leading-relaxed">Initiatives already underway. Candidates to accelerate or prioritize.</p>
-                  </div>
-                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center mb-3">
-                      {/* Shield/strength icon */}
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
-                        <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z" />
-                        <circle cx="12" cy="12" r="9" />
-                      </svg>
-                    </div>
-                    <h5 className="font-semibold text-slate-900 text-sm mb-1">Current Strengths</h5>
-                    <p className="text-slate-500 text-xs leading-relaxed">What's working today. Your foundation to build upon.</p>
-                  </div>
-                  <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                    <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center mb-3">
-                      {/* Insight/lightbulb icon */}
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M9 18h6M10 22h4M12 2a7 7 0 017 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 01-1 1h-6a1 1 0 01-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 017-7z" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </div>
-                    <h5 className="font-semibold text-slate-900 text-sm mb-1">Strategic Insight</h5>
-                    <p className="text-slate-500 text-xs leading-relaxed">Tailored recommendations with CAC resource alignment</p>
-                  </div>
-                </div>
+                <p className="text-sm text-slate-500 mt-4">
+                  {recViewMode === 'default' && 'Showing 2 dimensions selected by strategic opportunity (highest impact × weight) and 2 selected by greatest need (lowest scores). This balanced approach addresses both immediate gaps and high-leverage improvements.'}
+                  {recViewMode === 'leverage' && 'Showing 2 dimensions where the combination of impact importance and improvement headroom creates the greatest potential for system-wide improvement. Dimensions scoring above 85 are excluded.'}
+                  {recViewMode === 'foundation' && 'Showing 2 dimensions with the lowest scores — where employees managing cancer are most likely to experience gaps in support today.'}
+                  {recViewMode === 'roadmap' && 'Showing the top 4 dimensions from Your Improvement Roadmap, ranked by projected Year-1 composite score impact.'}
+                </p>
               </div>
             </div>
           </div>
-          
+
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
-              {strategicPriorityDims.map((d, idx) => {
+              {(() => {
+                let dimsToShow: typeof strategicPriorityDims;
+                if (recViewMode === 'leverage') {
+                  dimsToShow = strategicPriorityDims.filter(d => d.selectionReason === 'impact');
+                } else if (recViewMode === 'foundation') {
+                  dimsToShow = strategicPriorityDims.filter(d => d.selectionReason === 'risk');
+                } else if (recViewMode === 'roadmap') {
+                  const roadmapDimNums = rankings.slice(0, 4).map(r => r.dimNum);
+                  dimsToShow = roadmapDimNums.map(dimNum => {
+                    const da = dimensionAnalysis.find(dim => dim.dim === dimNum);
+                    if (!da) return null;
+                    const inStrategic = strategicPriorityDims.find(sp => sp.dim === dimNum);
+                    return {
+                      ...da,
+                      selectionReason: inStrategic?.selectionReason || 'roadmap',
+                    };
+                  }).filter(Boolean) as typeof strategicPriorityDims;
+                } else {
+                  dimsToShow = strategicPriorityDims;
+                }
+                return dimsToShow.map((d, idx) => {
                 const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
                 const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
@@ -8746,8 +8899,14 @@ export default function ExportReportPage() {
                             </div>
                           </div>
                         </div>
-                        <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${d.selectionReason === 'risk' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-slate-600/30 text-slate-300 border border-slate-500/40'}`}>
-                          {d.selectionReason === 'risk' ? 'Foundation Focus' : 'Strategic Leverage'}
+                        <span className={`px-3 py-1.5 rounded-lg text-sm font-semibold ${
+                          d.selectionReason === 'risk'
+                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                            : d.selectionReason === 'roadmap'
+                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
+                            : 'bg-slate-600/30 text-slate-300 border border-slate-500/40'
+                        }`}>
+                          {d.selectionReason === 'risk' ? 'Foundation Focus' : d.selectionReason === 'roadmap' ? 'Roadmap Priority' : 'Strategic Leverage'}
                         </span>
                       </div>
                     </div>
@@ -8952,7 +9111,7 @@ export default function ExportReportPage() {
                                       return (
                                         <>
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">QUICK WIN</span>
+                                      <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-sm font-bold rounded">{roadmap.quickWin.effortTag || 'QUICK WIN'}</span>
                                       {qwLift > 0.05 && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">~+{qwLift.toFixed(1)} WSI pts</span>}
                                     </div>
                                     {editMode ? (
@@ -9002,7 +9161,7 @@ export default function ExportReportPage() {
                                       return (
                                         <>
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">STRATEGIC</span>
+                                      <span className="px-2 py-1 bg-indigo-100 text-indigo-700 text-sm font-bold rounded">{roadmap.strategicLift.effortTag || 'STRATEGIC'}</span>
                                       {slLift > 0.05 && <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">~+{slLift.toFixed(1)} WSI pts</span>}
                                     </div>
                                     {editMode ? (
@@ -9091,10 +9250,11 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                 );
-              })}
+              });
+              })()}
             </div>
           </div>
-          
+
           {/* Additional Analyzed Dimensions */}
           {additionalAnalyzedDims.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
@@ -9434,389 +9594,6 @@ export default function ExportReportPage() {
             </div>
           </div>
           
-          {/* Impact-Ranked Priorities Teaser Card */}
-          <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
-            <button
-              onClick={() => setShowImpactRanked(!showImpactRanked)}
-              className="w-full group px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 border border-slate-600 rounded-xl transition-all flex items-center justify-center gap-4 shadow-md"
-            >
-              <div className="w-11 h-11 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
-                <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-              </div>
-              <div className="text-left flex-1">
-                <span className="text-white font-semibold text-base block">Impact-Ranked Improvement Priorities</span>
-                <span className="text-slate-300 group-hover:text-slate-200 text-sm">Which dimensions will have the highest potential impact on employee experiences and your overall score, and which elements to prioritize in each</span>
-              </div>
-              <div className={`w-7 h-7 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-200 ${showImpactRanked ? 'rotate-180' : ''}`}>
-                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </div>
-            </button>
-          </div>
-
-          {/* ============ IMPACT-RANKED PRIORITIES ============ */}
-          {showImpactRanked && (() => {
-            const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
-            const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-            const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
-            const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
-            const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
-            
-            // Calculate max contribution for bar scaling
-            const maxContribution = Math.max(...rankings.slice(0, 5).map(r => r.potentialGain12));
-            
-            const displayedRankings = showAllImpactDimensions ? rankings.slice(0, 5) : rankings.slice(0, 3);
-            const dimColors = [
-              { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600', bar: 'bg-indigo-500' },
-              { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600', bar: 'bg-teal-500' },
-              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-500' },
-              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600', bar: 'bg-amber-500' },
-              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600', bar: 'bg-rose-500' },
-            ];
-            
-            // Helper to get benchmark % for an element
-            const getElementBenchmark = (dimNum: number, elementName: string) => {
-              const dimBench = elementBenchmarks[dimNum];
-              if (!dimBench) return null;
-              const el = dimBench[elementName];
-              if (!el || !el.total) return null;
-              return Math.round((el.currently / el.total) * 100);
-            };
-            
-            return (
-              <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-                {/* Header */}
-                <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-white text-2xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
-                      <p className="text-slate-300 mt-1 text-sm">A strategic roadmap for Year 1: which dimensions to focus on and which support elements to advance for maximum impact on your overall score.</p>
-                    </div>
-                    <button 
-                      onClick={() => setInfoModal('impactRanked')}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      How It Works
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="px-8 py-5 pb-8">
-                  {/* Intro text explaining the 5 priority dimensions */}
-                  <p className="text-slate-600 text-base mb-5">Based on your report, we identified <span className="font-semibold text-slate-700">these 5 dimensions</span> as having the highest potential impact on employee experiences and your overall score. Recommendations are prioritized by <span className="font-semibold text-slate-700">improvement opportunity</span> and <span className="font-semibold text-slate-700">implementation readiness</span>.</p>
-                  
-                  {/* 2x2 grid - Top: Accelerate/Build, Bottom: Roadmap/Impact */}
-                  <div className="mb-5 grid grid-cols-2 gap-4">
-                    {/* Accelerate Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Accelerate <span className="text-slate-500 font-normal">({totalAccel})</span></h4>
-                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, converts work already in motion into tangible progress.</span> These initiatives have organizational momentum.</p>
-                        </div>
-                      </div>
-                      <div className="bg-slate-50 rounded-lg p-3">
-                        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
-                          <span className="px-2.5 py-0.5 bg-slate-600 text-white text-sm font-semibold rounded">Implement</span>
-                          <span className="text-sm text-slate-600 self-center">Planning → Offering</span>
-                          <span className="px-2.5 py-0.5 bg-amber-100 text-amber-700 text-sm font-semibold rounded">Active Planning</span>
-                          <span className="text-sm text-slate-600 self-center">Assessing → Planning</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Build Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Build <span className="text-slate-500 font-normal">({totalBuild})</span></h4>
-                          <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, introduces net-new capabilities where gaps exist today.</span> Closing them drives the biggest score gains.</p>
-                        </div>
-                      </div>
-                      <div className="bg-indigo-50 rounded-lg p-3">
-                        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2">
-                          <span className="px-2.5 py-0.5 bg-indigo-600 text-white text-sm font-semibold rounded">Stand Up</span>
-                          <span className="text-sm text-slate-600 self-center">Not Offered → Offering</span>
-                          <span className="px-2.5 py-0.5 bg-violet-100 text-violet-700 text-sm font-semibold rounded">Design + Scope</span>
-                          <span className="text-sm text-slate-600 self-center">Not Offered → Planning</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Year 1 Roadmap Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-slate-900 text-lg mb-1">Year 1 Roadmap</h4>
-                          <p className="text-sm text-slate-700">Advance <span className="font-bold text-slate-900">{totalElementsY1}</span> support elements across <span className="font-bold text-slate-900">5</span> priority dimensions.</p>
-                          <p className="text-xs text-slate-500 mt-1">Prioritized by impact on overall composite score and implementation readiness</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Projected Impact Card */}
-                    <div className="bg-white rounded-xl border border-slate-200 p-5">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-bold text-slate-900 text-lg">Projected Impact</h4>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-slate-50 rounded-lg p-3 text-center">
-                          <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Current</p>
-                          <p className="text-2xl font-bold text-slate-500">{wsiScoreHeader}</p>
-                        </div>
-                        <div className="bg-slate-800 rounded-lg p-3 text-center">
-                          <p className="text-xs text-slate-300 uppercase tracking-wide font-medium mb-1">Projected</p>
-                          <p className="text-2xl font-bold text-white">{projectedCompositeY1}</p>
-                        </div>
-                        <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                          <p className="text-xs text-emerald-600 uppercase tracking-wide font-medium mb-1">Gain</p>
-                          <p className="text-2xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-500 text-center mt-2">If roadmap delivered</p>
-                    </div>
-                  </div>
-                  
-                  {/* Dimension Cards */}
-                  <div className="space-y-4">
-                    {displayedRankings.map((r, idx) => {
-                      const { accelerateItems, buildItems } = getActionItemsByAdoption(r.dimNum, dimensionAnalysis, elementBenchmarks);
-                      const colors = dimColors[idx];
-                      const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
-                      const buildCount = r.buildToOffering12 + r.buildToPlanning12;
-                      const totalDimElements = accelCount + buildCount;
-                      const expanded = expandedPriorities[r.dimNum] || { accel: false, build: false };
-                      
-                      // Contribution bar width as percentage of total gain (e.g., +5.5 of +11.5 = 48%)
-                      const barWidth = totalGainY1 > 0 ? (r.potentialGain12 / totalGainY1) * 100 : 0;
-                      
-                      // Cap lists at 3 by default
-                      const displayedAccel = expanded.accel ? accelerateItems : accelerateItems.slice(0, 3);
-                      const displayedBuild = expanded.build ? buildItems : buildItems.slice(0, 3);
-                      
-                      return (
-                      <div key={r.dimNum} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        {/* Header with contribution bar */}
-                        <div className={`${colors.bg}`}>
-                          <div className="px-5 py-3 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
-                              <div>
-                                <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
-                                {/* Bundle summary line - feedback #5 */}
-                                <p className="text-white/70 text-xs mt-0.5">
-                                  Year 1 plan: {accelCount} accelerated + {buildCount} built ({totalDimElements} total)
-                                </p>
-                              </div>
-                            </div>
-                            {/* Right side: Contribution + Share bar */}
-                            <div className="text-right">
-                              <div className="mb-1">
-                                <span className="text-white/80 text-xs">Contribution to Projected Composite:</span>
-                                <span className="text-white text-xl font-bold ml-2">+{r.potentialGain12}</span>
-                              </div>
-                              {/* Share bar aligned right */}
-                              <div className="flex items-center gap-2 justify-end">
-                                <span className="text-white/60 text-[10px] whitespace-nowrap">Share of Projected Lift:</span>
-                                <div className="w-24 h-1.5 bg-white/20 rounded-full overflow-hidden">
-                                  <div 
-                                    className="h-full bg-white/70 rounded-full transition-all duration-500"
-                                    style={{ width: `${barWidth}%` }}
-                                  />
-                                </div>
-                                <span className="text-white/80 text-[10px] font-medium w-8">{Math.round(barWidth)}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Content - 3 columns */}
-                        <div className={`p-4 ${colors.light}`}>
-                          <div className="grid grid-cols-12 gap-4">
-                            {/* ACCELERATE */}
-                            <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
-                              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                <div className="w-7 h-7 rounded-lg bg-slate-700 flex items-center justify-center">
-                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                </div>
-                                <span className="font-semibold text-slate-700">Accelerate ({accelCount})</span>
-                              </div>
-                              {accelerateItems.length > 0 ? (
-                                <div className="space-y-2">
-                                  {displayedAccel.map((item, i) => {
-                                    const bench = getElementBenchmark(r.dimNum, item.name);
-                                    return (
-                                      <div key={i} className="flex items-start justify-between gap-2">
-                                        <div className="flex items-start gap-2 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
-                                          <span className="text-sm text-slate-600">{item.name}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                          {bench !== null && (
-                                            <span className="text-[10px] text-slate-500">{bench}%</span>
-                                          )}
-                                          <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                            item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
-                                          }`}>
-                                            {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                  {/* Show more link - feedback #4 */}
-                                  {accelerateItems.length > 3 && !expanded.accel && (
-                                    <button 
-                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: true } }))}
-                                      className="text-xs text-slate-500 hover:text-slate-700 font-medium mt-1"
-                                    >
-                                      Show {accelerateItems.length - 3} more accelerated elements
-                                    </button>
-                                  )}
-                                  {expanded.accel && accelerateItems.length > 3 && (
-                                    <button 
-                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: false } }))}
-                                      className="text-xs text-slate-500 hover:text-slate-600 mt-1"
-                                    >
-                                      Show less
-                                    </button>
-                                  )}
-                                  {/* Benchmark legend */}
-                                  {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                    <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
-                                  )}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-slate-500 italic">No in-flight elements</p>
-                              )}
-                            </div>
-                            
-                            {/* BUILD */}
-                            <div className="col-span-5 bg-white rounded-lg border border-slate-200 p-4">
-                              <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-100">
-                                <div className="w-7 h-7 rounded-lg bg-indigo-700 flex items-center justify-center">
-                                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                                </div>
-                                <span className="font-semibold text-slate-700">Build ({buildCount})</span>
-                              </div>
-                              {buildItems.length > 0 ? (
-                                <div className="space-y-2">
-                                  {displayedBuild.map((item, i) => {
-                                    const bench = getElementBenchmark(r.dimNum, item.name);
-                                    return (
-                                      <div key={i} className="flex items-start justify-between gap-2">
-                                        <div className="flex items-start gap-2 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-indigo-500"></span>
-                                          <span className="text-sm text-slate-600">{item.name}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                          {bench !== null && (
-                                            <span className="text-[10px] text-slate-500">{bench}%</span>
-                                          )}
-                                          <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                            item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
-                                          }`}>
-                                            {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                  {/* Show more link - feedback #4 */}
-                                  {buildItems.length > 3 && !expanded.build && (
-                                    <button 
-                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: true } }))}
-                                      className="text-xs text-slate-500 hover:text-slate-700 font-medium mt-1"
-                                    >
-                                      Show {buildItems.length - 3} more build elements
-                                    </button>
-                                  )}
-                                  {expanded.build && buildItems.length > 3 && (
-                                    <button 
-                                      onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: false } }))}
-                                      className="text-xs text-slate-500 hover:text-slate-600 mt-1"
-                                    >
-                                      Show less
-                                    </button>
-                                  )}
-                                  {/* Benchmark legend */}
-                                  {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                    <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
-                                  )}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-slate-500 italic">Focus on accelerating</p>
-                              )}
-                            </div>
-                            
-                            {/* DIMENSION SCORE - feedback #7: emphasize Current → Projected */}
-                            <div className="col-span-2 bg-white rounded-lg border border-slate-200 p-4">
-                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
-                              <div className="space-y-2">
-                                {/* Primary: Current → Projected */}
-                                <div className="flex items-center justify-center gap-3">
-                                  <span className="text-4xl font-bold text-slate-500">{r.currentScore}</span>
-                                  <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                                  <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
-                                </div>
-                                <p className="text-xs text-slate-500 text-center">Current → Projected</p>
-                                {/* Secondary: Gain (smaller, use Δ) */}
-                                <div className={`text-center pt-2 mt-2 border-t border-slate-100`}>
-                                  <span className={`text-sm font-semibold text-slate-500`}>Δ +{r.dimPotentialGain12}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      );
-                    })}
-                  </div>
-                  
-                  {/* Expand/Collapse Button for Dimensions 4-5 */}
-                  {!showAllImpactDimensions && (
-                    <button
-                      onClick={() => setShowAllImpactDimensions(true)}
-                      className="w-full mt-4 py-3 px-4 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      Show Remaining 2 Dimensions
-                    </button>
-                  )}
-                  {showAllImpactDimensions && (
-                    <button
-                      onClick={() => setShowAllImpactDimensions(false)}
-                      className="w-full mt-4 py-2 px-4 text-xs font-medium text-slate-500 hover:text-slate-600 transition-colors flex items-center justify-center gap-1"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                      Collapse
-                    </button>
-                  )}
-                  
-                  {/* Footer notes - separate rows, larger font */}
-                  <div className="mt-6 pt-4 border-t border-slate-200 space-y-1 text-center">
-                    <p className="text-sm text-slate-500">Contributions shown are across all 5 priority dimensions.</p>
-                    <p className="text-sm text-slate-500">Totals may vary slightly due to rounding.</p>
-                    <p className="text-sm text-slate-500">Projections assume sustained execution; actual results depend on feasibility and confirmation of any "Needs Confirmation" items.</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
           
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
           <div id="implementation-roadmap" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
@@ -12744,7 +12521,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 28: Impact-Ranked Priorities (Dims 1-3) */}
+                {/* Slide 28: Improvement Roadmap (Dims 1-3) */}
                 {currentSlide === 31 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
@@ -12768,7 +12545,7 @@ export default function ExportReportPage() {
                     <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-bold text-white text-xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                          <h3 className="font-bold text-white text-xl tracking-tight">Your Improvement Roadmap</h3>
                           <p className="text-slate-300 mt-1 text-sm">Year 1 roadmap: advance {totalElementsY1} support elements across 5 priority dimensions</p>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white text-sm font-medium rounded-lg">
@@ -13012,7 +12789,7 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 29: Impact-Ranked Priorities (Dims 4-5) */}
+                {/* Slide 29: Improvement Roadmap (Dims 4-5) */}
                 {currentSlide === 32 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
@@ -13036,7 +12813,7 @@ export default function ExportReportPage() {
                     <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                       <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-bold text-white text-xl tracking-tight">Impact-Ranked Improvement Priorities</h3>
+                          <h3 className="font-bold text-white text-xl tracking-tight">Your Improvement Roadmap</h3>
                           <p className="text-slate-300 mt-1 text-sm">Year 1 roadmap: advance {totalElementsY1} support elements across 5 priority dimensions (continued)</p>
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 text-white text-sm font-medium rounded-lg">
@@ -15364,8 +15141,8 @@ export default function ExportReportPage() {
                            i === 25 ? 'Strategic Recommendations' :
                            i === 26 ? 'From Insight to Action' :
                            i >= 27 && i <= 30 ? `Recommendation ${i - 26}` :
-                           i === 31 ? 'Impact-Ranked Priorities' :
-                           i === 32 ? 'Impact-Ranked Priorities (4-5)' :
+                           i === 31 ? 'Improvement Roadmap' :
+                           i === 32 ? 'Improvement Roadmap (4-5)' :
                            i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
                            i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
                            // i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' : // Commented out - will likely bring back
