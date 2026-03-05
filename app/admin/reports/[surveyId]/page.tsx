@@ -8158,8 +8158,8 @@ export default function ExportReportPage() {
                   {
                     key: 'excellence' as const,
                     label: 'Areas of Excellence',
-                    desc: 'dimensions at Leading or above',
-                    color: '#0369A1',
+                    desc: 'dimensions at Advancing or above',
+                    color: '#0284C7',
                     lightBg: '#f0f9ff',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>,
                     count: strengthDimensions.length
@@ -8223,10 +8223,10 @@ export default function ExportReportPage() {
               {activeReportTab === 'excellence' && (
                 <div id="areas-of-excellence">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Areas of Excellence</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Advancing or above <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
                   {strengthDimensions.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
-                      {strengthDimensions.slice(0, 6).map((d) => {
+                      {strengthDimensions.map((d) => {
                         const pg = getEmployeePriorityGroup(d.weight);
                         return (
                           <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-cyan-400 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
@@ -13034,7 +13034,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
-                            <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above</p>
+                            <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Advancing or above</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
@@ -13046,7 +13046,7 @@ export default function ExportReportPage() {
                     <div className="px-12 py-6">
                       {strengthDimensions.length > 0 ? (
                         <div className="grid grid-cols-2 gap-5">
-                          {strengthDimensions.slice(0, 6).map((d) => (
+                          {strengthDimensions.map((d) => (
                             <div key={d.dim} className="border border-slate-200 rounded-xl p-4 bg-white">
                               <div className="flex items-center justify-between mb-3">
                                 <p className="font-semibold text-slate-800 text-base">{d.name}</p>
