@@ -10443,23 +10443,6 @@ export default function ExportReportPage() {
 
           {/* ============ YOUR REPORT AT A GLANCE ============ */}
           {(() => {
-            // "Why It Matters" lookup keyed by dimension
-            const whyItMatters: Record<number, string> = {
-              1: 'Structured leave reduces anxiety at the moment employees need support most.',
-              2: 'Financial protection prevents employees from delaying treatment due to cost concerns.',
-              3: 'Confident managers reduce escalations and create consistent employee experiences.',
-              4: 'Accessible resources mean employees can find and trust support pathways at diagnosis.',
-              5: 'Fast, consistent accommodations prevent productivity loss and build trust.',
-              6: 'Psychological safety enables earlier disclosure and smoother accommodation requests.',
-              7: 'Career continuity signals that cancer doesn\'t derail professional growth.',
-              8: 'Structured return-to-work protects continuity and long-term retention.',
-              9: 'Executive commitment signals organizational priority and unlocks resources.',
-              10: 'Caregiver support retains a hidden-but-critical segment of your workforce.',
-              11: 'Prevention and wellness programs reduce severity and demonstrate proactive care.',
-              12: 'Continuous improvement ensures support systems evolve with employee needs.',
-              13: 'Strong communication ensures employees know what\'s available when they need it.',
-            };
-
             // Plays lookup keyed by dimension
             const playsLookup: Record<number, { play: string; firstStep: string }> = {
               1: { play: 'Tighten the leave experience end-to-end', firstStep: 'Map the leave journey and close handoff gaps between HR, benefits, and manager.' },
@@ -10477,195 +10460,66 @@ export default function ExportReportPage() {
               13: { play: 'Ensure employees know what\'s available', firstStep: 'Test communication reach. Survey whether employees can name 3 cancer support resources.' },
             };
 
-            // Dimension-to-theme mapping (short labels for pattern bullets)
-            const dimThemeShort: Record<number, string> = {
-              1: 'Leave policies', 2: 'Financial protection', 3: 'Manager training',
-              4: 'Resource navigation', 5: 'Accommodations', 6: 'Culture',
-              7: 'Career continuity', 8: 'Return-to-work', 9: 'Executive sponsorship',
-              10: 'Caregiver support', 11: 'Prevention', 12: 'Improvement systems', 13: 'Communication',
-            };
-
-            // Per-dimension narrative phrases — no grouping, no contradictions
-            const dimStrengthPhrase: Record<number, string> = {
-              1: 'medical leave and protection policies',
-              2: 'insurance and financial safety nets',
-              3: 'manager preparedness and capability',
-              4: 'specialized resource access',
-              5: 'workplace accommodation delivery',
-              6: 'culture and psychological safety',
-              7: 'career continuity safeguards',
-              8: 'return-to-work support structures',
-              9: 'executive commitment and sponsorship',
-              10: 'caregiver and family support coverage',
-              11: 'prevention and wellness programs',
-              12: 'continuous improvement infrastructure',
-              13: 'communication and awareness systems',
-            };
-
-            const dimGapPhrase: Record<number, string> = {
-              1: 'medical leave consistency',
-              2: 'financial protection access',
-              3: 'manager readiness',
-              4: 'resource navigation',
-              5: 'accommodation consistency',
-              6: 'cultural safety',
-              7: 'career continuity',
-              8: 'return-to-work transitions',
-              9: 'executive engagement',
-              10: 'caregiver support',
-              11: 'prevention programming',
-              12: 'improvement systems',
-              13: 'employee-facing communication',
-            };
-
             const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
             const wsiBenchDiff = wsiScoreHeader != null && wsiBenchmarkScore != null ? wsiScoreHeader - wsiBenchmarkScore : null;
             const wsiTier = getWSITier(wsiScoreHeader ?? 0);
 
+            // ========== EXECUTIVE READOUT \u2014 3 sentences ==========
             const topStrengths = [...dimensionAnalysis]
               .sort((a, b) => b.score - a.score)
               .filter(d => d.score >= 64 || (d.benchmark != null && d.score >= d.benchmark))
               .slice(0, 3);
 
-            const priorityRankOrder = (w: number) => w >= 10 ? 0 : w >= 7 ? 1 : 2;
             const focusCandidates = [...dimensionAnalysis]
               .filter(d => !topStrengths.some(s => s.dim === d.dim))
               .sort((a, b) => {
+                const priorityRankOrder = (w: number) => w >= 10 ? 0 : w >= 7 ? 1 : 2;
                 const rankDiff = priorityRankOrder(a.weight) - priorityRankOrder(b.weight);
                 if (rankDiff !== 0) return rankDiff;
-                const aGap = a.benchmark != null ? a.score - a.benchmark : 0;
-                const bGap = b.benchmark != null ? b.score - b.benchmark : 0;
-                if (aGap !== bGap) return aGap - bGap;
                 return a.score - b.score;
               })
               .slice(0, 3);
 
-            // Build headline using per-dimension phrases (no grouping = no contradictions)
-            const strengthPhrase1 = dimStrengthPhrase[topStrengths[0]?.dim] || 'foundational support';
-            const strengthPhrase2 = dimStrengthPhrase[topStrengths[1]?.dim] || '';
-            const strengthSummary = strengthPhrase2
-              ? `${strengthPhrase1} and ${strengthPhrase2}`
-              : strengthPhrase1;
+            // Sentence 1: Strengths
+            const s1 = topStrengths.length >= 2
+              ? `${companyName} is ahead of peers in ${topStrengths[0].name} and ${topStrengths[1].name}, indicating ${
+                  topStrengths[0].score >= 80 && topStrengths[1].score >= 80
+                    ? 'mature support infrastructure in these areas'
+                    : 'solid foundations to build on'
+                }.`
+              : topStrengths.length === 1
+              ? `${companyName} leads in ${topStrengths[0].name} (${topStrengths[0].score}), providing a foundation to extend.`
+              : `${companyName} has room to build across all dimensions.`;
 
-            const gapWithContext = (d: any): string => {
-              const phrase = dimGapPhrase[d.dim] || d.name;
-              if (d.benchmark != null) {
-                const diff = d.score - d.benchmark;
-                if (diff <= -10) return `${phrase} (${Math.abs(diff)} points behind participating organizations)`;
-                if (diff <= -3) return `${phrase} (behind participating organizations)`;
-                if (diff >= 3) return `${phrase} (ahead of participating organizations but below potential)`;
-              }
-              return phrase;
-            };
+            // Sentence 2: Gaps
+            const topGap = focusCandidates[0];
+            const secondGap = focusCandidates[1];
+            const gapBenchDiff = topGap?.benchmark != null ? Math.abs(topGap.score - topGap.benchmark) : null;
 
-            const gapSummary1 = gapWithContext(focusCandidates[0]);
-            const gapSummary2 = focusCandidates.length > 1 ? gapWithContext(focusCandidates[1]) : '';
-            const gapSummary = gapSummary2 ? `${gapSummary1} and ${gapSummary2}` : gapSummary1;
+            const s2 = topGap && secondGap
+              ? `The main constraints on overall performance are ${topGap.name}${gapBenchDiff ? ` (${gapBenchDiff} points below peers)` : ''} and ${secondGap.name}, where gaps create inconsistent employee experience.`
+              : topGap
+              ? `The primary constraint is ${topGap.name}${gapBenchDiff ? ` (${gapBenchDiff} points below peers)` : ''}, which limits the consistency of support.`
+              : 'No major gaps identified relative to peers.';
 
-            // Contradiction check: ensure no strength phrase word overlaps with a gap dimension name
-            const strengthWords = strengthSummary.toLowerCase();
-            const hasContradiction = focusCandidates.some(d => {
-              const dimKeyword = d.name.toLowerCase().split(/[\s&]+/)[0];
-              return strengthWords.includes(dimKeyword);
-            });
+            // Sentence 3: First move
+            const topGapDimData = topGap ? dimensionAnalysis.find((da: any) => da.dim === topGap.dim) : null;
+            const topGapBench = topGap ? (elementBenchmarks[topGap.dim] || {}) : {};
+            const topTableStakesElement = (topGapDimData?.gaps || [])
+              .filter((el: any) => !el.isPlanning && !el.isAssessing && !el.isUnsure)
+              .map((el: any) => {
+                const bench = topGapBench[el.name];
+                return { name: el.name, peerPct: bench ? Math.round((bench.currently / bench.total) * 100) : 0 };
+              })
+              .sort((a: any, b: any) => b.peerPct - a.peerPct)[0];
 
-            const safeStrengthSummary = hasContradiction
-              ? `strong performance in its highest-scoring dimensions (${topStrengths.slice(0, 2).map(d => d.name).join(' and ')})`
-              : `strong ${strengthSummary}`;
+            const s3 = topTableStakesElement && topTableStakesElement.peerPct > 30
+              ? `Start with "\$\{topTableStakesElement.name}" in ${topGap?.name} \u2014 ${topTableStakesElement.peerPct}% of peers already offer this.`
+              : topGap
+              ? `Start by addressing the highest-impact gaps in ${topGap.name}.`
+              : '';
 
-            // Closing clause based on tier
-            const closingClause = wsiTier.name === 'Leading'
-              ? 'Execution is consistent; refinement is the opportunity.'
-              : wsiTier.name === 'Advancing'
-              ? 'Policies exist but execution is inconsistent.'
-              : wsiTier.name === 'Accelerating'
-              ? 'Foundation is emerging; targeted investment will accelerate progress.'
-              : 'Building foundational capabilities is the immediate priority.';
-
-            const defaultHeadline = `${companyName} shows ${safeStrengthSummary}. Gaps remain in ${gapSummary}. ${closingClause}`;
-
-            // Pattern bullets using per-dimension themes with contradiction filtering
-            const strengthThemes = topStrengths.slice(0, 2).map(d => dimThemeShort[d.dim]);
-            const gapThemes = focusCandidates
-              .slice(0, 2)
-              .map(d => dimThemeShort[d.dim])
-              .filter(theme => !strengthThemes.some(st => {
-                const stWords = st.toLowerCase().split(/\s+/);
-                const thWords = theme.toLowerCase().split(/\s+/);
-                return stWords.some(w => thWords.includes(w) && w.length > 3);
-              }));
-
-            const finalGapThemes = gapThemes.length > 0
-              ? gapThemes
-              : focusCandidates.slice(0, 2).map(d => d.name.replace(/ & /g, '/'));
-
-            const patternBullet1 = strengthThemes.length >= 2
-              ? `${strengthThemes[0]} and ${strengthThemes[1]} are well-established`
-              : `${strengthThemes[0] || 'Core support'} is well-established`;
-            const patternBullet2 = finalGapThemes.length >= 2
-              ? `${finalGapThemes[0]} and ${finalGapThemes[1]} need attention`
-              : `${finalGapThemes[0] || 'Key areas'} need${finalGapThemes.length === 1 ? 's' : ''} attention`;
-            const patternBullet3 = closingClause;
-
-            const defaultPatternBullets: string[] = [patternBullet1, patternBullet2, patternBullet3];
-
-            // Balance micro-insight by tier
-            const balanceLookup: Record<string, string> = {
-              'Leading': 'Focus on reducing friction and variability. Support delivery differs too much across managers and teams.',
-              'Advancing': 'Foundation is solid. Policies exist but execution varies across teams.',
-              'Accelerating': 'Strengthen highest-impact areas before expanding breadth. Depth before width.',
-              'Building': 'Prioritize the Most Critical dimensions first. Build a strong base before broadening.',
-            };
-            const defaultBalanceInsight = balanceLookup[wsiTier.name] || balanceLookup['Building'];
-
-            const defaultWhatsNext = '1. Choose 2\u20133 Most Critical priorities \u2192 2. Turn element gaps into an action plan with owners and milestones';
-
-            // Enhancement 1: Composite impact callout
-            const impactRankings = getImpactRankings(dimensionAnalysis, wsiScoreHeader ?? 0);
-            const topImpact = impactRankings[0];
-
-            const impactCallout = (() => {
-              if (!topImpact || topImpact.potentialGain12 < 1) return '';
-              const currentTier = getWSITier(wsiScoreHeader ?? 0);
-              const projectedComposite = Math.round((wsiScoreHeader ?? 0) + topImpact.potentialGain12);
-              const projectedTier = getWSITier(projectedComposite);
-              const tierShift = projectedTier.name !== currentTier.name
-                ? ` \u2014 potentially moving from ${currentTier.name} to ${projectedTier.name}`
-                : '';
-              // Find the top gap element in this dimension for specificity
-              const topDim = dimensionAnalysis.find((da: any) => da.dim === topImpact.dimNum);
-              const dimBenchImpact = elementBenchmarks[topImpact.dimNum] || {};
-              const topGapElement = (topDim?.gaps || [])
-                .map((el: any) => {
-                  const bench = dimBenchImpact[el.name];
-                  return { name: el.name, peerPct: bench ? Math.round((bench.currently / bench.total) * 100) : 0 };
-                })
-                .sort((a: any, b: any) => b.peerPct - a.peerPct)[0];
-              const elementCite = topGapElement && topGapElement.peerPct > 0
-                ? ` Start with "${topGapElement.name}" \u2014 ${topGapElement.peerPct}% of participating organizations already offer this.`
-                : '';
-
-              return `Addressing ${topImpact.dimName} could improve your composite score by up to +${Math.round(topImpact.potentialGain12)} points${tierShift}.${elementCite}`;
-            })();
-
-
-            // Enhancement 6: Per-dimension percentile ranks
-            const getDimPercentile = (dimNum: number, score: number): number | null => {
-              const allAssessments = (window as any).__allAssessments || [];
-              if (allAssessments.length === 0) return null;
-              const allDimScores: number[] = [];
-              allAssessments.forEach((a: any) => {
-                try {
-                  const result = calculateCompanyScores(a);
-                  const ds = result.scores.dimensionScores[dimNum];
-                  if (ds != null) allDimScores.push(ds);
-                } catch {}
-              });
-              if (allDimScores.length === 0) return null;
-              const belowCount = allDimScores.filter((s: number) => s < score).length;
-              return Math.round((belowCount / allDimScores.length) * 100);
-            };
-
+            const defaultHeadline = [s1, s2, s3].filter(Boolean).join(' ');
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
                 {/* Header bar */}
@@ -10692,126 +10546,52 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* Headline insight — NO ITALICS, theme-based */}
-                <div className="px-10 pt-6 pb-3">
+                {/* === EXECUTIVE READOUT === */}
+                <div className="px-10 py-8">
                   {editMode ? (
                     <div>
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">Headline Insight</label>
+                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Executive Readout</label>
                       <textarea
                         value={customNextSteps.headlineInsight ?? defaultHeadline}
                         onChange={(e) => {
                           setCustomNextSteps(prev => ({ ...prev, headlineInsight: e.target.value }));
                           setHasUnsavedChanges(true);
                         }}
-                        className="w-full text-sm text-slate-700 bg-slate-50 border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
+                        className="w-full text-lg text-slate-700 bg-slate-50 border border-slate-300 rounded-lg px-4 py-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y leading-relaxed"
                       />
                       {customNextSteps.headlineInsight && (
                         <button onClick={() => { setCustomNextSteps(prev => ({ ...prev, headlineInsight: undefined })); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'\u21BA'} Reset</button>
                       )}
                     </div>
                   ) : (
-                    <p className="text-lg text-slate-700 font-medium leading-relaxed">
+                    <p className="text-xl text-slate-700 leading-relaxed">
                       {customNextSteps.headlineInsight || defaultHeadline}
-                      {!customNextSteps.headlineInsight && impactCallout && (
-                        <span className="text-slate-800 font-semibold"> {impactCallout}</span>
-                      )}
                     </p>
                   )}
                 </div>
 
-                {/* "What This Pattern Suggests" — 3 short bullets */}
-                <div className="mx-10 mb-4 px-5 py-3 bg-slate-50 rounded-lg border border-slate-100">
-                  {editMode ? (
-                    <div>
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">Pattern Insights (one per line)</label>
-                      <textarea
-                        value={(customNextSteps.patternBullets || defaultPatternBullets).join('\n')}
-                        onChange={(e) => {
-                          setCustomNextSteps(prev => ({ ...prev, patternBullets: e.target.value.split('\n') }));
-                          setHasUnsavedChanges(true);
-                        }}
-                        className="w-full text-xs text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
-                      />
-                      {customNextSteps.patternBullets && (
-                        <button onClick={() => { setCustomNextSteps(prev => ({ ...prev, patternBullets: undefined })); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'\u21BA'} Reset</button>
-                      )}
-                    </div>
-                  ) : (
-                    <div>
-                      <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2 block">What this pattern suggests</span>
-                      <div className="flex flex-wrap gap-2 items-center">
-                        {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => (
-                            <span key={i} className="inline-flex items-center bg-white border border-slate-200 rounded-lg px-4 py-2 text-sm text-slate-700 shadow-sm">
-                              {bullet}
-                            </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {/* === TWO COLUMNS === */}
+                <div className="grid grid-cols-2 gap-10 px-10 pb-8">
 
-                {/* Two-column body */}
-                <div className="grid grid-cols-2 gap-8 px-10 pb-6">
                   {/* LEFT: Protect & Scale */}
-                  <div className="border-l-2 border-emerald-300 pl-6">
-                    <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-4">Protect &amp; Scale</h4>
-                    <div className="space-y-4">
+                  <div>
+                    <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-5 pb-2 border-b-2 border-emerald-200">Protect &amp; Scale</h4>
+                    <div className="space-y-3">
                       {topStrengths.map((d, idx) => {
                         const bDiff = d.benchmark != null ? Math.round(d.score) - d.benchmark : null;
-                        const defaultSubline = whyItMatters[d.dim] || '';
-                        const customSubline = customNextSteps.strengthSublines?.[d.dim];
                         return (
-                          <div key={d.dim}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-slate-500 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
+                          <div key={d.dim} className="flex items-center justify-between py-2">
+                            <div className="flex items-center gap-3">
+                              <span className="text-slate-400 text-sm font-semibold w-5">{idx + 1}.</span>
                               <span className="text-base font-semibold text-slate-800">{d.name}</span>
-                              <span className="text-sm font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</span>
                               {bDiff !== null && (
-                                <span className={`text-sm ${bDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                  ({bDiff >= 0 ? '+' : ''}{bDiff} vs avg)
+                                <span className={`text-sm font-semibold ${bDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  {bDiff >= 0 ? '+' : ''}{bDiff}
                                 </span>
                               )}
-                            </div>
-                            <div className="pl-7 mt-0.5">
-                              {editMode ? (
-                                <div>
-                                  <textarea
-                                    value={customSubline ?? defaultSubline}
-                                    onChange={(e) => {
-                                      setCustomNextSteps(prev => ({
-                                        ...prev,
-                                        strengthSublines: { ...prev.strengthSublines, [d.dim]: e.target.value }
-                                      }));
-                                      setHasUnsavedChanges(true);
-                                    }}
-                                    className="w-full text-xs text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1.5 min-h-[28px] focus:outline-none focus:ring-2 focus:ring-emerald-400/50 resize-y"
-                                  />
-                                  {customSubline && (
-                                    <button onClick={() => {
-                                      setCustomNextSteps(prev => {
-                                        const updated = { ...prev.strengthSublines };
-                                        delete updated[d.dim];
-                                        return { ...prev, strengthSublines: updated };
-                                      });
-                                      setHasUnsavedChanges(true);
-                                    }} className="mt-0.5 text-[10px] text-emerald-600 hover:text-emerald-700">{'\u21BA'} Reset</button>
-                                  )}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-slate-500 leading-relaxed">{customSubline || defaultSubline}</p>
-                              )}
-                              {/* Enhancement 5: At-risk flag */}
-                              {!editMode && (() => {
-                                const assessingCount = d.assessing?.length || 0;
-                                const unsureCount = d.unsure?.length || 0;
-                                const atRisk = assessingCount + unsureCount;
-                                if (atRisk === 0) return null;
-                                return (
-                                  <p className="mt-1 text-xs text-amber-600">
-                                    {atRisk} element{atRisk > 1 ? 's' : ''} under review or pending — monitor to protect this strength
-                                  </p>
-                                );
-                              })()}
                             </div>
                           </div>
                         );
@@ -10819,12 +10599,12 @@ export default function ExportReportPage() {
                     </div>
                   </div>
 
-                  {/* RIGHT: Where to Focus */}
-                  <div className="border-l-2 border-amber-300 pl-6">
-                    <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-4">Where to Focus</h4>
-                    <div className="space-y-4">
-                      {focusCandidates.map((d, idx) => {
-                        const pg = getEmployeePriorityGroup(d.weight);
+                  {/* RIGHT: Next 90 Days */}
+                  <div>
+                    <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-5 pb-2 border-b-2 border-amber-200">Next 90 Days</h4>
+                    <p className="text-sm text-slate-500 mb-4">Pick 2 priorities. Assign owners. Start with the first step under each.</p>
+                    <div className="space-y-5">
+                      {focusCandidates.slice(0, 3).map((d, idx) => {
                         const lookup = playsLookup[d.dim] || { play: `Strengthen ${d.name}`, firstStep: 'Conduct a gap analysis and identify quick wins.' };
                         const customPlay = customNextSteps.plays?.[d.dim];
                         const playTitle = customPlay?.play ?? lookup.play;
@@ -10832,82 +10612,41 @@ export default function ExportReportPage() {
 
                         return (
                           <div key={d.dim}>
-                            <div className="flex items-center gap-2">
-                              <span className="text-slate-500 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
-                              <span className="text-base font-semibold text-slate-800">{d.name}</span>
-                              <span className="px-1.5 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: pg.color + '15', color: pg.color }}>
-                                {pg.chip}
-                              </span>
-                              {/* Enhancement 7: Effort tag */}
-                              {(() => {
-                                const impact = impactRankings.find((ir: any) => ir.dimNum === d.dim);
-                                if (!impact) return null;
-                                const isQuickWin = impact.effortTag === 'quick-win';
-                                return isQuickWin ? (
-                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                      Accelerate <span className="font-normal text-emerald-500">— advance work in motion</span>
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-slate-100 text-slate-600 border border-slate-200">
-                                      Build <span className="font-normal text-slate-400">— stand up new capabilities</span>
-                                    </span>
-                                  );
-                              })()}
-                            </div>
-                            <div className="pl-7 mt-0.5 space-y-0.5">
-                              {editMode ? (
-                                <div className="space-y-1">
-                                  <div>
-                                    <label className="text-[9px] text-slate-500 uppercase tracking-wider">Play</label>
-                                    <input type="text" value={playTitle} onChange={(e) => {
-                                      setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
-                                      setHasUnsavedChanges(true);
-                                    }} className="w-full text-xs text-slate-500 bg-amber-50 border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400/50" />
-                                  </div>
-                                  <div>
-                                    <label className="text-[9px] text-slate-500 uppercase tracking-wider">First Step</label>
-                                    <input type="text" value={firstStep} onChange={(e) => {
-                                      setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], firstStep: e.target.value } } }));
-                                      setHasUnsavedChanges(true);
-                                    }} className="w-full text-xs text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400/50" />
-                                  </div>
-                                  {customPlay && (
-                                    <button onClick={() => {
-                                      setCustomNextSteps(prev => {
-                                        const updated = { ...prev.plays };
-                                        delete updated[d.dim];
-                                        return { ...prev, plays: updated };
-                                      });
-                                      setHasUnsavedChanges(true);
-                                    }} className="text-[10px] text-amber-600 hover:text-amber-700">{'\u21BA'} Reset</button>
-                                  )}
+                            {editMode ? (
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-slate-400 text-sm font-semibold w-5">{idx + 1}.</span>
+                                  <input type="text" value={playTitle} onChange={(e) => {
+                                    setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
+                                    setHasUnsavedChanges(true);
+                                  }} className="flex-1 text-base font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none" />
                                 </div>
-                              ) : (
-                                <>
+                                <input type="text" value={firstStep} onChange={(e) => {
+                                  setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], firstStep: e.target.value } } }));
+                                  setHasUnsavedChanges(true);
+                                }} className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none ml-8" />
+                                {customPlay && (
+                                  <button onClick={() => {
+                                    setCustomNextSteps(prev => { const u = { ...prev.plays }; delete u[d.dim]; return { ...prev, plays: u }; });
+                                    setHasUnsavedChanges(true);
+                                  }} className="text-[10px] text-amber-600 hover:text-amber-700 ml-8">{'\u21BA'} Reset</button>
+                                )}
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="flex items-baseline gap-2">
+                                  <span className="text-slate-400 text-sm font-semibold w-5 flex-shrink-0">{idx + 1}.</span>
+                                  <div>
+                                    <span className="text-base font-semibold text-slate-800">{d.name}</span>
+                                    <span className="text-sm text-slate-400 ml-2">Score: {Math.round(d.score)}</span>
+                                  </div>
+                                </div>
+                                <div className="ml-7 mt-1">
                                   <p className="text-sm text-amber-700 font-medium">{playTitle}</p>
-                                  {/* Enhancement 6: Percentile in score line */}
-                                  {(() => {
-                                    const pctl = getDimPercentile(d.dim, d.score);
-                                    const pctlLabel = pctl !== null ? ` (${pctl}${pctl === 1 ? 'st' : pctl === 2 ? 'nd' : pctl === 3 ? 'rd' : 'th'} percentile)` : '';
-                                    return (
-                                      <p className="text-sm text-slate-500 leading-relaxed">
-                                        Score: {Math.round(d.score)}<span className="text-slate-400">{pctlLabel}</span> · First step: {firstStep}
-                                      </p>
-                                    );
-                                  })()}
-                                  {/* Enhancement 7: Composite gain */}
-                                  {(() => {
-                                    const impact = impactRankings.find((ir: any) => ir.dimNum === d.dim);
-                                    if (!impact || impact.potentialGain12 < 0.5) return null;
-                                    return (
-                                      <p className="text-xs text-indigo-600 font-medium mt-1">
-                                        Year-1 projected gain: +{impact.dimPotentialGain12} dimension points → +{Math.round(impact.potentialGain12)} composite impact
-                                      </p>
-                                    );
-                                  })()}
-                                </>
-                              )}
-                            </div>
+                                  <p className="text-sm text-slate-500 mt-0.5">{firstStep}</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -10915,53 +10654,11 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* Balance micro-insight — NO ITALICS */}
-                <div className="mx-10 mb-4">
-                  {editMode ? (
-                    <div className="border-t border-slate-200 pt-3">
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">Balance Insight</label>
-                      <textarea
-                        value={customNextSteps.balanceInsight ?? defaultBalanceInsight}
-                        onChange={(e) => {
-                          setCustomNextSteps(prev => ({ ...prev, balanceInsight: e.target.value }));
-                          setHasUnsavedChanges(true);
-                        }}
-                        className="w-full text-xs text-slate-600 bg-slate-50 border border-slate-300 rounded px-3 py-2 min-h-[32px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
-                      />
-                      {customNextSteps.balanceInsight && (
-                        <button onClick={() => { setCustomNextSteps(prev => ({ ...prev, balanceInsight: undefined })); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'\u21BA'} Reset</button>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-base text-slate-500 text-center leading-relaxed border-t border-slate-200 pt-4">
-                      {customNextSteps.balanceInsight || defaultBalanceInsight}
-                    </p>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-10 py-4 border-t border-slate-100 bg-slate-50">
-                  {editMode ? (
-                    <div>
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">What&apos;s Next</label>
-                      <textarea
-                        value={customNextSteps.closingMessage || defaultWhatsNext}
-                        onChange={(e) => {
-                          setCustomNextSteps(prev => ({ ...prev, closingMessage: e.target.value }));
-                          setHasUnsavedChanges(true);
-                        }}
-                        className="w-full text-xs text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[32px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
-                      />
-                      {customNextSteps.closingMessage && (
-                        <button onClick={() => { setCustomNextSteps(prev => ({ ...prev, closingMessage: undefined })); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'\u21BA'} Reset</button>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-base text-slate-500 text-center">
-                      <span className="font-semibold text-slate-500">What&apos;s next:</span>{' '}
-                      {customNextSteps.closingMessage || defaultWhatsNext}
-                    </p>
-                  )}
+                {/* === FOOTER === */}
+                <div className="px-10 py-5 border-t border-slate-100 bg-slate-50">
+                  <p className="text-base text-slate-500 text-center">
+                    <strong className="text-slate-700">Next step:</strong> Choose 2 priorities from the right column. Assign an owner to each. Complete the first step within 30 days.
+                  </p>
                 </div>
               </div>
             );
