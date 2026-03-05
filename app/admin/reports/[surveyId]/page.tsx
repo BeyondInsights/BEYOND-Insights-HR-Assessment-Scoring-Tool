@@ -8232,7 +8232,7 @@ export default function ExportReportPage() {
                           <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-cyan-400 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-3 min-w-0">
-                                <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier?.color || '#64748B' }}>D{d.dim}</span>
+                                <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
                                 <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">
