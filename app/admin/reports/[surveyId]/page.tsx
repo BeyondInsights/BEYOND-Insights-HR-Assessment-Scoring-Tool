@@ -7036,8 +7036,8 @@ export default function ExportReportPage() {
                           );
                         })}
                         
-                        {/* Overlap callout annotations */}
-                        {presOverlapClusters.map((cluster, idx) => {
+                        {/* Overlap callout annotations - only show for company scores */}
+                        {(matrixView === 'company' || matrixView === 'both') && presOverlapClusters.map((cluster, idx) => {
                           const hiddenDims = cluster.dims.slice(0, -1).filter(dim => dim !== 4);
                           // Overlap indicator positions computed inline
                           return (
