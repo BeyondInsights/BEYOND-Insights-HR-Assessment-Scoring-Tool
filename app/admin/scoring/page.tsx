@@ -14,7 +14,7 @@
  * 10. Geo multiplier: Single-country = 1.0 (N/A - question doesn't apply)
  *     - 1.0 = Multi-country + Consistent OR Single-country (N/A)
  *     - 0.90 = Multi-country + Varies
- *     - 0.75 = Multi-country + Select locations only
+ *     - 0.80 = Multi-country + Select locations only
  * 11. Tier Stats modal with composite/dimension tier counts + provisional count
  * 12. Sensitivity analysis for weight robustness testing
  * 13. Reliability diagnostics for internal consistency
@@ -120,7 +120,7 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
   
   if (typeof geoResponse === 'number') {
     switch (geoResponse) {
-      case 1: return 0.75;  // Select locations only
+      case 1: return 0.80;  // Select locations only
       case 2: return 0.90;  // Varies by location
       case 3: return 1.0;   // Consistent globally
       default: return 1.0;  // N/A or unknown
@@ -130,7 +130,7 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
   const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
-  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  if (s.includes('select') || s.includes('only available in select')) return 0.80;
   return 1.0;  // Default to N/A treatment
 }
 
@@ -617,7 +617,7 @@ function DimensionScoringModal({ onClose, defaultWeights }: { onClose: () => voi
                 <div className="flex justify-between"><span>Multi-country + Consistent across all locations</span><span className="font-bold text-green-600">x1.00</span></div>
                 <div className="flex justify-between"><span>Single-country (geo question not applicable)</span><span className="font-bold text-green-600">x1.00</span></div>
                 <div className="flex justify-between"><span>Multi-country + Varies by location</span><span className="font-bold text-amber-600">x0.90</span></div>
-                <div className="flex justify-between"><span>Multi-country + Only available in select locations</span><span className="font-bold text-red-600">x0.75</span></div>
+                <div className="flex justify-between"><span>Multi-country + Only available in select locations</span><span className="font-bold text-red-600">x0.80</span></div>
               </div>
               <p className="text-xs text-gray-500 mt-2 italic">
                 Note: The geo multiplier measures consistency across locations. Single-country companies receive 1.0 

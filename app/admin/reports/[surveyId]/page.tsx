@@ -402,12 +402,12 @@ function statusToPoints(status: string | number): { points: number | null; isUns
 function getGeoMultiplier(geoResponse: string | number | undefined | null): number {
   if (geoResponse === undefined || geoResponse === null) return 1.0;
   if (typeof geoResponse === 'number') {
-    switch (geoResponse) { case 1: return 0.75; case 2: return 0.90; case 3: return 1.0; default: return 1.0; }
+    switch (geoResponse) { case 1: return 0.80; case 2: return 0.90; case 3: return 1.0; default: return 1.0; }
   }
   const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
-  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  if (s.includes('select') || s.includes('only available in select')) return 0.80;
   return 1.0;
 }
 
@@ -2215,9 +2215,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             const options = [
                               { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 55 },
                               { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 25 },
-                              { label: 'Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 20 },
+                              { label: 'Only available in select locations', multiplier: 'x0.80', selected: isSelect, color: 'text-red-500', benchPct: 20 },
                             ];
-                            
+
                             return options.map((opt, i) => (
                               <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
                                 <div className="flex items-center gap-2">
@@ -2576,9 +2576,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           const options = [
                             { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 55 },
                             { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 25 },
-                            { label: 'Only available in select locations', multiplier: 'x0.75', selected: isSelect, color: 'text-red-500', benchPct: 20 },
+                            { label: 'Only available in select locations', multiplier: 'x0.80', selected: isSelect, color: 'text-red-500', benchPct: 20 },
                           ];
-                          
+
                           return options.map((opt, i) => (
                             <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${opt.selected ? 'bg-purple-100 border-2 border-purple-400' : 'bg-slate-50'}`}>
                               <div className="flex items-center gap-2">
@@ -4138,7 +4138,7 @@ export default function ExportReportPage() {
           const geoResp = dimData?.[`d${dim}aa`] || dimData?.[`D${dim}aa`];
           const gm = getGeoMultiplier(geoResp);
           geoBenchmarks[dim].total++;
-          if (gm <= 0.75) geoBenchmarks[dim].select++;
+          if (gm <= 0.80) geoBenchmarks[dim].select++;
           else if (gm <= 0.90) geoBenchmarks[dim].varies++;
           else geoBenchmarks[dim].consistent++;
         }
@@ -4345,7 +4345,7 @@ export default function ExportReportPage() {
         hasGeographicMultiplier: !isSingleCountryCompany,
         geographicScope: (() => {
           const gm = geoMultipliers?.[dimNum] ?? 1.0;
-          if (gm <= 0.75) return 'select';
+          if (gm <= 0.80) return 'select';
           if (gm <= 0.90) return 'varies';
           return 'consistent';
         })(),
@@ -7337,7 +7337,7 @@ export default function ExportReportPage() {
                               const geoBench = (window as any).__geoBenchmarks?.[d.dim] || { consistent: 0, varies: 0, select: 0, total: 0 };
                               const total = geoBench.total || 1;
                               const gm = d.geoMultiplier ?? 1.0;
-                              const scope = gm <= 0.75 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
+                              const scope = gm <= 0.80 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
 
                               return [
                                 {
@@ -7359,8 +7359,8 @@ export default function ExportReportPage() {
                                 {
                                   key: 'select',
                                   label: 'Select locations only',
-                                  multiplier: '0.75',
-                                  multiplierLabel: '25% reduction',
+                                  multiplier: '0.80',
+                                  multiplierLabel: '20% reduction',
                                   selected: scope === 'select',
                                   benchPct: Math.round((geoBench.select / total) * 100),
                                 },
@@ -7780,14 +7780,14 @@ export default function ExportReportPage() {
                               <h4 className="text-sm font-bold text-indigo-800">Geographic Consistency</h4>
                               <p className="text-xs text-indigo-600 mt-0.5">
                                 Current response: <strong>{
-                                  (dimInfo?.geoMultiplier ?? 1.0) <= 0.75 ? 'Select locations only' :
+                                  (dimInfo?.geoMultiplier ?? 1.0) <= 0.80 ? 'Select locations only' :
                                   (dimInfo?.geoMultiplier ?? 1.0) <= 0.90 ? 'Varies by location' :
                                   'Consistent across all'
                                 }</strong> (×{(dimInfo?.geoMultiplier ?? 1.0).toFixed(2)})
                                 {whatIfGeoOverride !== null && (
                                   <span className="ml-2 text-violet-600">
                                     → What if: <strong>{
-                                      whatIfGeoOverride <= 0.75 ? 'Select locations only' :
+                                      whatIfGeoOverride <= 0.80 ? 'Select locations only' :
                                       whatIfGeoOverride <= 0.90 ? 'Varies by location' :
                                       'Consistent across all'
                                     }</strong> (×{whatIfGeoOverride.toFixed(2)})
@@ -7808,7 +7808,7 @@ export default function ExportReportPage() {
                             {[
                               { label: 'Consistent across all', value: 1.0, desc: 'No adjustment' },
                               { label: 'Varies by location', value: 0.90, desc: '10% reduction' },
-                              { label: 'Select locations only', value: 0.75, desc: '25% reduction' },
+                              { label: 'Select locations only', value: 0.80, desc: '20% reduction' },
                             ].map(opt => {
                               const currentGeo = whatIfGeoOverride !== null ? whatIfGeoOverride : (dimInfo?.geoMultiplier ?? 1.0);
                               const isSelected = currentGeo === opt.value;

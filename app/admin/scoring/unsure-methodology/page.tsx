@@ -72,7 +72,7 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
   
   if (typeof geoResponse === 'number') {
     switch (geoResponse) {
-      case 1: return 0.75;  // Select locations only
+      case 1: return 0.80;  // Select locations only
       case 2: return 0.90;  // Varies by location
       case 3: return 1.0;   // Consistent globally
       default: return 1.0;  // N/A or unknown
@@ -82,7 +82,7 @@ function getGeoMultiplier(geoResponse: string | number | undefined | null): numb
   const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
-  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  if (s.includes('select') || s.includes('only available in select')) return 0.80;
   return 1.0;  // Default to N/A treatment
 }
 

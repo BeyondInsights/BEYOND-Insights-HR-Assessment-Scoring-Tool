@@ -83,7 +83,7 @@ export function getGeoMultiplier(geoResponse: string | number | undefined | null
   
   if (typeof geoResponse === 'number') {
     switch (geoResponse) {
-      case 1: return 0.75;
+      case 1: return 0.80;
       case 2: return 0.90;
       case 3: return 1.0;
       default: return 1.0;
@@ -93,7 +93,7 @@ export function getGeoMultiplier(geoResponse: string | number | undefined | null
   const s = String(geoResponse).toLowerCase();
   if (s.includes('consistent') || s.includes('generally consistent')) return 1.0;
   if (s.includes('vary') || s.includes('varies')) return 0.90;
-  if (s.includes('select') || s.includes('only available in select')) return 0.75;
+  if (s.includes('select') || s.includes('only available in select')) return 0.80;
   return 1.0;
 }
 
