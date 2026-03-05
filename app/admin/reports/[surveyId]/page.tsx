@@ -8461,8 +8461,8 @@ export default function ExportReportPage() {
                         {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map((d) => (
                           <div key={d.dim} className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
                             <div className="flex items-center gap-3 mb-3">
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
-                                {d.dim}
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>
+                                D{d.dim}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
@@ -8516,8 +8516,8 @@ export default function ExportReportPage() {
                         {strategicPriorityDims.filter(d => d.selectionReason === 'risk').map((d) => (
                           <div key={d.dim} className="bg-white rounded-xl border border-amber-200 p-4 shadow-sm">
                             <div className="flex items-center gap-3 mb-3">
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getScoreColor(d.score) }}>
-                                {d.dim}
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm" style={{ backgroundColor: getEmployeePriorityGroup(d.weight).color }}>
+                                D{d.dim}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
@@ -8714,7 +8714,7 @@ export default function ExportReportPage() {
                 const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
                 const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
                 const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
-                const tierColor = getScoreColor(d.score);
+                const tierColor = getEmployeePriorityGroup(d.weight).color;
 
                 return (
                   <div key={d.dim} id={`dimension-card-${d.dim}`} className={`ppt-break border-l-4 pdf-no-break`} style={{ borderLeftColor: tierColor }}>
@@ -8723,7 +8723,7 @@ export default function ExportReportPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
-                            {d.dim}
+                            D{d.dim}
                           </div>
                           <div>
                             <h4 className="text-xl font-bold text-white">{d.name}</h4>
@@ -9100,24 +9100,24 @@ export default function ExportReportPage() {
                   const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
                   const dynamicInsight = getDynamicInsight(d.dim, d.score, d.tier.name, d.benchmark, d.gaps, d.strengths, d.planning, evidence, roadmap);
                   const benchmarkNarrative = getBenchmarkNarrative(d.score, d.benchmark, d.name);
-                  const tierColor = getScoreColor(d.score);
-                  
+                  const tierColor = getEmployeePriorityGroup(d.weight).color;
+
                   return (
                     <div key={d.dim} className="border-l-4 relative ppt-break pdf-no-break" style={{ borderLeftColor: tierColor }}>
                       {/* Remove button */}
-                      <button 
+                      <button
                         onClick={() => setAdditionalAnalyzedDims(prev => prev.filter(dim => dim !== dimNum))}
                         className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-200 hover:bg-red-100 text-slate-500 hover:text-red-600 flex items-center justify-center transition-colors z-10"
                         title="Remove this analysis"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                       </button>
-                      
+
                       {/* Dimension Header */}
                       <div className="px-10 py-4 bg-slate-700 border-b border-slate-600">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-md" style={{ backgroundColor: tierColor }}>
-                            {d.dim}
+                            D{d.dim}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
@@ -9389,7 +9389,7 @@ export default function ExportReportPage() {
                       .filter(d => !strategicPriorityDims.some(top => top.dim === d.dim))
                       .filter(d => !additionalAnalyzedDims.includes(d.dim))
                       .map(d => {
-                        const tierColor = getScoreColor(d.score);
+                        const tierColor = getEmployeePriorityGroup(d.weight).color;
                         return (
                           <button
                             key={d.dim}
@@ -9401,7 +9401,7 @@ export default function ExportReportPage() {
                           >
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-sm font-bold" style={{ backgroundColor: tierColor }}>
-                                {d.dim}
+                                D{d.dim}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-slate-700 group-hover:text-slate-900 text-sm truncate">{d.name}</p>
