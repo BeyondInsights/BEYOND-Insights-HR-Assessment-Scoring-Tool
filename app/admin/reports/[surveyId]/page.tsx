@@ -45,16 +45,16 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
         <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
           <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? '—'}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
           <span className="text-2xl text-slate-300 font-light">=</span>
-          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '—'}</p><p className="text-xs text-slate-400 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
+          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '—'}</p><p className="text-xs text-slate-500 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
         </div>
-        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : '—'}</span><span className="text-xs text-slate-400">vs benchmark</span></div></div>)}
+        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : '—'}</span><span className="text-xs text-slate-500">vs benchmark</span></div></div>)}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {components.map((comp) => { const isExpanded = expandedCard === comp.id; const diff = comp.score && comp.benchmark ? comp.score - comp.benchmark : null; return (
             <div key={comp.id} className="border border-slate-200 rounded-lg overflow-hidden">
-              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-400 font-medium">{comp.weight}%</span></div></div>
-              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-400">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : '—'} <span className="text-slate-400 font-normal">({comp.benchmark})</span></span></div>)}</div>
-              <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-400 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
-              {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-400">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-400">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-400">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-400">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-400">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-400">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × impact weights</td></tr>)}</tbody></table></div></div>)}
+              <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-500 font-medium">{comp.weight}%</span></div></div>
+              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '—'}<span className="text-sm text-slate-500 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-500">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : '—'} <span className="text-slate-500 font-normal">({comp.benchmark})</span></span></div>)}</div>
+              <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-500 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
+              {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-500">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-500">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-500">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-500">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-500">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-500">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-500">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-500">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × impact weights</td></tr>)}</tbody></table></div></div>)}
             </div>); })}
         </div>
       </div>
@@ -68,18 +68,18 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
     <div className="bg-white rounded-lg border border-slate-200 overflow-hidden mb-6">
       <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Dimension Performance Based on What Matters Most</h3><p className="text-sm text-slate-500 mt-0.5">Sorted by impact weight (most important first)</p></div>
       <div className="px-8 py-4">
-        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-400 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-400 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-400 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-400 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-400 uppercase">vs Avg</div><div className="w-28 text-center text-xs font-medium text-slate-400 uppercase" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div></div>
+        <div className="flex items-center gap-3 pb-3 mb-2 border-b border-slate-200"><div className="w-6 text-center text-xs font-medium text-slate-500 uppercase">#</div><div className="flex-1 text-xs font-medium text-slate-500 uppercase">Dimension</div><div className="w-10 text-center text-xs font-medium text-slate-500 uppercase">Wt</div><div className="w-48 text-center text-xs font-medium text-slate-500 uppercase">Score</div><div className="w-12 text-right text-xs font-medium text-slate-500 uppercase">Score</div><div className="w-20 text-center text-xs font-medium text-slate-500 uppercase">vs Avg</div><div className="w-28 text-center text-xs font-medium text-slate-500 uppercase" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div></div>
         <div className="divide-y divide-slate-100">{sorted.map((d: any, idx: number) => { const diff = d.benchmark !== null ? d.score - d.benchmark : null; const pg = getEmployeePriorityGroup(d.weight); return (
           <div key={d.dim} className={`flex items-center gap-3 py-3 ${idx % 2 === 0 ? '' : 'bg-slate-50/50'}`}>
             <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: pg.color }}>{d.dim}</span></div>
             <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
-            <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
+            <div className="w-10 text-center"><span className="text-xs text-slate-500">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
-            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-500">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
             <div className="w-28 flex justify-center"><span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`} style={{ color: pg.color }}>{pg.chip}</span></div>
           </div>); })}</div>
-        <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
+        <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
       </div>
     </div>
   );
@@ -126,11 +126,11 @@ function PolishedKeyTakeaways({ dimensionAnalysis, inProgressItems }: any) {
   const fastestWin = inProgressItems[0] || null;
   return (
     <div className="bg-slate-800 rounded-lg p-6 mb-6">
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Key Takeaways</p>
+      <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-4">Key Takeaways</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div><p className="text-xs text-slate-400 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || '—'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
-        <div><p className="text-xs text-slate-400 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || '—'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
-        <div><p className="text-xs text-slate-400 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || '—'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
+        <div><p className="text-xs text-slate-500 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || '—'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
+        <div><p className="text-xs text-slate-500 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || '—'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
+        <div><p className="text-xs text-slate-500 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || '—'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
       </div>
     </div>
   );
@@ -142,7 +142,7 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden" onClick={(e: any) => e.stopPropagation()}>
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-4"><span className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg" style={{ backgroundColor: dimension.tier.color }}>{dimension.dim}</span><div><h3 className="font-semibold text-slate-900">{dimension.name}</h3><div className="flex items-center gap-3 mt-1"><span className="text-sm text-slate-500">Score: <span className="font-semibold" style={{ color: dimension.tier.color }}>{dimension.score}</span></span><span className={`text-xs font-medium px-2 py-0.5 rounded ${dimension.tier.bgColor}`} style={{ color: dimension.tier.color }}>{dimension.tier.name}</span></div></div></div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg"><svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg"><svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
         </div>
         <div className="p-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 100px)' }}>
           <div className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100 flex-wrap">
@@ -151,8 +151,8 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-violet-100 text-violet-700">{dimension.assessing?.length || 0}</span><span className="text-xs text-slate-500">{'Under Review'}</span></div>
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
-          <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-400 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-400 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-400 uppercase w-20">Pts</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'In Place'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'In Development'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Under Review'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'To Confirm'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
+          <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-500 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-500 uppercase w-20">Pts</th></tr></thead>
+          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-500 bg-slate-50'; if (el.isStrength) { statusLabel = 'In Place'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'In Development'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Under Review'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'To Confirm'; statusClass = 'text-slate-500 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
         </div>
       </div>
     </div>
@@ -1896,14 +1896,14 @@ function ScoreComponentCard({
           <div className="flex justify-between items-center">
             <span className="text-xs text-slate-500 font-medium">Your Score</span>
             <span className="text-lg font-bold" style={{ color: getScoreColor(score) }}>
-              {score}<span className="text-sm text-slate-400 font-normal"> / 100</span>
+              {score}<span className="text-sm text-slate-500 font-normal"> / 100</span>
             </span>
           </div>
           {diff !== null && (
             <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-200">
               <span className="text-xs text-slate-500">vs. Participant Benchmark</span>
               <span className={`text-sm font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                {diff >= 0 ? '+' : ''}{diff} pts <span className="font-normal text-slate-400">({benchmarkScore} avg)</span>
+                {diff >= 0 ? '+' : ''}{diff} pts <span className="font-normal text-slate-500">({benchmarkScore} avg)</span>
               </span>
             </div>
           )}
@@ -2028,7 +2028,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     <p className={`font-semibold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
                       {d.name}
                     </p>
-                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-500' : 'text-slate-500'}`}>
                       Weight: {d.weight}%
                     </p>
                   </div>
@@ -2058,7 +2058,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     {diff !== null && (
                       <span className={`text-sm font-semibold px-2 py-1 rounded ${
                         isSelected 
-                          ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-400')
+                          ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-500')
                           : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : diff < 0 ? 'text-red-500 bg-red-50' : 'text-slate-500 bg-slate-50')
                       }`}>
                         {diff > 0 ? '+' : ''}{diff}
@@ -2080,7 +2080,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   
                   {/* Expand Icon */}
                   <div className={`w-8 shrink-0 flex justify-center transition-transform duration-200 ${isSelected ? 'rotate-180' : ''}`}>
-                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-500' : 'text-slate-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
@@ -2225,7 +2225,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   <span className={opt.selected ? 'font-semibold text-purple-900' : 'text-slate-600'}>{opt.label}</span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                  <span className="text-slate-400 w-10 text-center">{opt.benchPct}%</span>
+                                  <span className="text-slate-500 w-10 text-center">{opt.benchPct}%</span>
                                   <span className={`font-semibold w-12 text-right ${opt.color}`}>{opt.multiplier}</span>
                                 </div>
                               </div>
@@ -2307,7 +2307,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               });
                             })()}
                           </div>
-                          <p className="text-[10px] text-slate-400 mt-3">Note: If both USA and non-USA values provided, scores are averaged.</p>
+                          <p className="text-[10px] text-slate-500 mt-3">Note: If both USA and non-USA values provided, scores are averaged.</p>
                         </div>
                       )}
                       
@@ -2352,7 +2352,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     )}
                     
                     {/* Benchmark note */}
-                    <p className="text-xs text-slate-400 mt-3 text-right">
+                    <p className="text-xs text-slate-500 mt-3 text-right">
                       Benchmark based on all participating companies
                     </p>
                   </div>
@@ -2396,7 +2396,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     <p className={`font-semibold ${isSelected ? 'text-white' : 'text-slate-800'}`}>
                       {d.name}
                     </p>
-                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-400' : 'text-slate-500'}`}>
+                    <p className={`text-xs mt-0.5 ${isSelected ? 'text-slate-500' : 'text-slate-500'}`}>
                       Weight: {d.weight}%
                     </p>
                   </div>
@@ -2432,7 +2432,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   
                   {/* Expand Arrow */}
                   <div className={`ml-4 transition-transform ${isSelected ? 'rotate-180' : ''}`}>
-                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-400' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className={`w-5 h-5 ${isSelected ? 'text-slate-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
@@ -2660,7 +2660,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             });
                           })()}
                         </div>
-                        <p className="text-[10px] text-slate-400 mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
+                        <p className="text-[10px] text-slate-500 mt-3">Note: D12 Follow-up = Average of D12_1 and D12_2 (if both present)</p>
                       </div>
                     )}
                     
@@ -2706,7 +2706,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   )}
                   
                   {/* Benchmark note */}
-                  <p className="text-xs text-slate-400 mt-3 text-right">
+                  <p className="text-xs text-slate-500 mt-3 text-right">
                     Benchmark based on all participating companies
                   </p>
                 </div>
@@ -2951,7 +2951,7 @@ export default function ExportReportPage() {
       names[33 + i] = `Additional: Dimension ${dimNum}`;
     }
     names[33 + addDimCount] = 'Implementation Roadmap';
-    names[34 + addDimCount] = 'Working with Cancer Pledge';
+    // names[34 + addDimCount] = 'Working with Cancer Pledge'; // Commented out - will likely bring back
     names[35 + addDimCount] = 'How CAC Can Help';
     names[36 + addDimCount] = 'Thank You';
     names[37 + addDimCount] = 'Methodology';
@@ -3128,7 +3128,7 @@ export default function ExportReportPage() {
     }
     // Final slides (shifted by addDimCount)
     slideNames[33 + addDimCount] = 'Implementation Roadmap';
-    slideNames[34 + addDimCount] = 'Working with Cancer Pledge';
+    // slideNames[34 + addDimCount] = 'Working with Cancer Pledge'; // Commented out - will likely bring back
     slideNames[35 + addDimCount] = 'How CAC Can Help';
     slideNames[36 + addDimCount] = 'Thank You';
     slideNames[37 + addDimCount] = 'Methodology';
@@ -3165,7 +3165,7 @@ export default function ExportReportPage() {
     }
     // Final slides (shifted by addDimCount)
     defaultNotes[33 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
-    defaultNotes[34 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.';
+    // defaultNotes[34 + addDimCount] = 'Frame the Pledge as external credibility combined with internal accountability. Position it as a communications lever to deploy once core capabilities are in place. Note that 81% of employees managing cancer say employer commitment matters for trust, but only 16-18% of the general workforce is even aware the Pledge exists. That gap represents a communication opportunity.'; // Commented out - will likely bring back
     defaultNotes[35 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
     defaultNotes[36 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
     defaultNotes[37 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
@@ -4415,7 +4415,7 @@ export default function ExportReportPage() {
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
     { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', iconKey: 'impact' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap', iconKey: 'roadmap' },
-    { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', iconKey: 'pledge' },
+    // { id: 'wwc-pledge-section', label: 'Working with Cancer Pledge', iconKey: 'pledge' },
     { id: 'next-steps-section', label: 'Report at a Glance', iconKey: 'progress' },
     { id: 'cac-help-section', label: 'How CAC Can Help', iconKey: 'help' },
     { id: 'methodology-section', label: 'Methodology', iconKey: 'methodology' },
@@ -4766,7 +4766,7 @@ export default function ExportReportPage() {
                         onClick={() => scrollToSection(section.id)}
                         className="w-full px-4 py-2.5 text-left hover:bg-slate-50 flex items-center gap-3 text-sm text-slate-700 hover:text-slate-900 transition-colors"
                       >
-                        <span className="text-slate-400">{sectionIcons[section.iconKey]}</span>
+                        <span className="text-slate-500">{sectionIcons[section.iconKey]}</span>
                         <span className="font-medium">{section.label}</span>
                       </button>
                     ))}
@@ -4898,15 +4898,15 @@ export default function ExportReportPage() {
                     <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
                   </div>
                   <div>
-                    <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
+                    <p className="text-slate-500 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
                     <h1 className="text-3xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
                     <p className="text-slate-300 mt-1 text-lg">Index 2026</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
+                  <p className="text-slate-500 text-sm font-medium">Prepared Exclusively for</p>
                   <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                  <p className="text-slate-400 text-sm font-medium">Report Date</p>
+                  <p className="text-slate-500 text-sm font-medium">Report Date</p>
                   <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
@@ -4927,7 +4927,7 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-500 mt-1 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
+                  <p className="text-[10px] text-slate-500 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
                 </div>
                 <div className="pt-1">
                   <h3 className="text-lg font-bold text-slate-800 mb-2">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
@@ -4940,7 +4940,7 @@ export default function ExportReportPage() {
               {/* Research Foundation */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-slate-800">
-                  <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
                   <h4 className="font-semibold text-white text-lg">How This Index Was Developed</h4>
                 </div>
                 
@@ -4972,7 +4972,7 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
+                  <p className="text-[10px] text-slate-500 italic mt-3 mb-5">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
 
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in the Index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
@@ -5092,7 +5092,7 @@ export default function ExportReportPage() {
                                   );
                                 })}
                               </div>
-                              <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                              <p className="text-xs text-slate-500 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
                               <div className="mt-4 pt-4 border-t border-slate-200 text-center">
                                 <p className="text-sm text-slate-600">
                                   <span className="font-semibold text-slate-800">{companyName}</span> WSI: <span className="font-bold text-lg" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span> · <span className="font-semibold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
@@ -5209,7 +5209,7 @@ export default function ExportReportPage() {
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                                   <span>{elementCount} support elements</span>
                                 </div>
-                                <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
+                                <span className="text-xs font-bold text-slate-500">{weightPct}% weight</span>
                               </div>
                             </div>
                           );
@@ -5231,7 +5231,7 @@ export default function ExportReportPage() {
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Enabling</span>
-                        <span className="text-xs text-slate-400 ml-1">= dimension badge color</span>
+                        <span className="text-xs text-slate-500 ml-1">= dimension badge color</span>
                       </div>
                     </div>
                   </div>
@@ -5320,7 +5320,7 @@ export default function ExportReportPage() {
                                 <span className="text-lg font-bold" style={{ color: L.color }}>{count}</span>
                                 <span className="text-xs text-slate-500">elements</span>
                               </div>
-                              <span className="text-xs text-slate-400">&middot;</span>
+                              <span className="text-xs text-slate-500">&middot;</span>
                               <span className="text-xs text-slate-500">{pct}% of elements</span>
                             </div>
                             <button onClick={() => setExpandedLevel(isExp ? null : key)} className="text-xs font-medium flex items-center gap-1" style={{ color: L.color }}>
@@ -5339,7 +5339,7 @@ export default function ExportReportPage() {
                                       <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{d}</div>
                                       <span className="text-xs text-slate-600 flex-1 truncate" style={{ minWidth: 0 }}>{dimInfo?.name || `Dimension ${d}`}</span>
                                       <span className="text-xs font-bold flex-shrink-0 w-10 text-right" style={{ color: L.color }}>{cnt.count}</span>
-                                      <span className="text-xs text-slate-400 flex-shrink-0">of {cnt.total}</span>
+                                      <span className="text-xs text-slate-500 flex-shrink-0">of {cnt.total}</span>
                                     </div>
                                   );
                                 })}
@@ -5535,9 +5535,9 @@ export default function ExportReportPage() {
             <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-slate-400 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
+                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
                   <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
-                  <p className="text-sm text-slate-400 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
+                  <p className="text-sm text-slate-500 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
                   {isWwcPledge && (
                     <div className="mt-5 flex items-center gap-3">
                       <div className="w-10 h-10 flex-shrink-0">
@@ -5553,7 +5553,7 @@ export default function ExportReportPage() {
                     </div>
                   )}
                   {(contactName || contactEmail) && (
-                    <div className="mt-3 text-sm text-slate-400">
+                    <div className="mt-3 text-sm text-slate-500">
                       {contactName && <span className="font-medium text-slate-300">{contactName}</span>}
                       {contactName && contactEmail && <span className="mx-3 text-slate-600">|</span>}
                       {contactEmail && <span>{contactEmail}</span>}
@@ -5562,7 +5562,7 @@ export default function ExportReportPage() {
                 </div>
                 <div className="flex items-center gap-6 flex-shrink-0">
                   <div>
-                    <p className="text-sm text-slate-400 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
+                    <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
                     <div className="flex items-end gap-10 mt-2">
                       {/* Benchmark */}
                       <div className="text-center">
@@ -5579,7 +5579,7 @@ export default function ExportReportPage() {
                   {tier && (
                     <div className="px-7 py-5 rounded-xl border-2 text-center" style={{ borderColor: ratingColorHeader + '60', backgroundColor: ratingColorHeader + '15' }}>
                       <p className="text-2xl font-bold" style={{ color: ratingColorHeader }} data-export="tier-name">{supportRatingHeader}</p>
-                      <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
+                      <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
                       {isProvisional && (
                         <p className="text-xs text-amber-400 font-medium mt-1">Provisional*</p>
                       )}
@@ -5598,14 +5598,14 @@ export default function ExportReportPage() {
                       <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl shadow-2xl p-8 max-w-xl mx-4 border border-slate-200" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-6 gap-4">
                           <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">{'Workplace Support Composite Score Tiers'}</h3>
-                          <button onClick={() => setShowTierOverlay(false)} className="text-slate-400 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
+                          <button onClick={() => setShowTierOverlay(false)} className="text-slate-500 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </button>
                         </div>
                         
-                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                               <div className="w-32">Tier</div>
                               <div className="w-24 text-center">Score Range</div>
                               <div className="flex-1 text-center">% of Participants</div>
@@ -5761,7 +5761,7 @@ export default function ExportReportPage() {
                                       {dim.dim}
                                     </span>
                                     <span className="text-sm font-semibold text-slate-800">{DIMENSION_SHORT_NAMES[dim.dim] || dim.name}</span>
-                                    <span className="text-xs text-slate-400 font-medium">({dim.weight}%)</span>
+                                    <span className="text-xs text-slate-500 font-medium">({dim.weight}%)</span>
                                   </div>
                                   <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: '#fff5eb', color: '#F37021' }}>
                                     {dim.unsure.length}
@@ -5791,7 +5791,7 @@ export default function ExportReportPage() {
                             <strong className="text-white">Ready to confirm?</strong> Cancer and Careers can schedule a review session.
                           </p>
                         </div>
-                        <span className="text-slate-400 text-sm font-medium">info@cancerandcareers.org</span>
+                        <span className="text-slate-500 text-sm font-medium">info@cancerandcareers.org</span>
                       </div>
                     </div>
                   </div>
@@ -5972,17 +5972,17 @@ export default function ExportReportPage() {
                   <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                     {/* Unified Score Panel */}
                     <div className="px-8 pt-8 pb-6">
-                      <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Your Scores</p>
+                      <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Your Scores</p>
 
                       {/* 4-column score grid: Composite + 3 support levels */}
                       <div className="grid grid-cols-4 gap-4">
                         {/* Composite Score — primary, slightly emphasized */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
-                          <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Composite</p>
+                          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Composite</p>
                           <p className="text-6xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
                           <p className="text-base font-bold mt-2" style={{ color: rating.color }}>{rating.label}</p>
                           <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
+                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
                             {(() => {
                               const diff = wsiScore - 59;
                               if (diff === 0) return null;
@@ -6001,7 +6001,7 @@ export default function ExportReportPage() {
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
                           {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
+                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
                             <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                               {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
                             </p>
@@ -6014,7 +6014,7 @@ export default function ExportReportPage() {
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
                           {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
+                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
                             <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                               {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
                             </p>
@@ -6027,7 +6027,7 @@ export default function ExportReportPage() {
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
                           {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
+                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
                             <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                               {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
                             </p>
@@ -6037,7 +6037,7 @@ export default function ExportReportPage() {
 
                       {/* Composite weight footnote */}
                       <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-200">
-                        <span className="text-sm text-slate-400">Composite = </span>
+                        <span className="text-sm text-slate-500">Composite = </span>
                         <span className="text-sm font-semibold" style={{ color: '#047857' }}>35% Core</span>
                         <span className="text-sm text-slate-300">+</span>
                         <span className="text-sm font-semibold" style={{ color: '#B45309' }}>50% Enhanced</span>
@@ -6050,7 +6050,7 @@ export default function ExportReportPage() {
                     {/* Support Level Details */}
                     <div className="px-8 py-6 border-t border-slate-200">
                       <div className="mb-5">
-                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">What Each Support Level Includes</p>
+                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
                           Each of the 152 support elements is classified into one of three levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
                         </p>
@@ -6068,7 +6068,7 @@ export default function ExportReportPage() {
                               </div>
                               <div>
                                 <h4 className="text-base font-bold" style={{ color: t.color }}>{t.name}</h4>
-                                <span className="text-sm text-slate-400">{t.total} elements</span>
+                                <span className="text-sm text-slate-500">{t.total} elements</span>
                               </div>
                             </div>
 
@@ -6081,7 +6081,7 @@ export default function ExportReportPage() {
                             <div className="px-5 pb-3">
                               <div className="flex items-center justify-between mb-1.5">
                                 <span className="text-sm font-semibold text-slate-700">{t.score}/100</span>
-                                <span className="text-sm text-slate-400">{t.bench.pctl}th percentile</span>
+                                <span className="text-sm text-slate-500">{t.bench.pctl}th percentile</span>
                               </div>
                               <div className="relative">
                                 <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
@@ -6096,7 +6096,7 @@ export default function ExportReportPage() {
                               {t.bench.avg > 0 && (
                                 <div className="flex items-center justify-end gap-1 mt-1">
                                   <div className="w-3 h-0.5 bg-slate-600 rounded-full" />
-                                  <span className="text-xs text-slate-400">Benchmark: {t.bench.avg}</span>
+                                  <span className="text-xs text-slate-500">Benchmark: {t.bench.avg}</span>
                                 </div>
                               )}
                             </div>
@@ -6117,7 +6117,7 @@ export default function ExportReportPage() {
                             {expandedLearnMore === t.key && (
                               <>
                                 <div className="px-5 py-4" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Element Status</p>
+                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Element Status</p>
                                   <div className="space-y-1.5">
                                     {[
                                       { label: 'In Place', count: t.inPlace, color: '#10B981' },
@@ -6167,7 +6167,7 @@ export default function ExportReportPage() {
                                         <div className="flex items-center gap-2 mb-1.5">
                                           <span className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{dimNum}</span>
                                           <span className="text-xs font-semibold text-slate-700 truncate">{dimInfo?.name || `Dimension ${dimNum}`}</span>
-                                          <span className="text-[10px] text-slate-400 flex-shrink-0">{elems.length} element{elems.length !== 1 ? 's' : ''}</span>
+                                          <span className="text-[10px] text-slate-500 flex-shrink-0">{elems.length} element{elems.length !== 1 ? 's' : ''}</span>
                                         </div>
                                         <div className="pl-2 space-y-0.5 mt-1">
                                           {elems.map((e: any) => {
@@ -6271,9 +6271,9 @@ export default function ExportReportPage() {
                                 </div>
                                 {/* Row 2: Individual column headers */}
                                 <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-2">
-                                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider"></div>
-                                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Score</div>
-                                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Your Tier</div>
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider"></div>
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Score</div>
+                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Your Tier</div>
                                   {[
                                     { label: 'Leading', range: '80\u2013100', color: '#047857' },
                                     { label: 'Advancing', range: '64\u201379', color: '#1D4ED8' },
@@ -6282,7 +6282,7 @@ export default function ExportReportPage() {
                                   ].map((td, i) => (
                                     <div key={td.label} className={`text-center ${i === 0 ? 'border-l border-slate-200' : ''}`}>
                                       <p className="text-xs font-bold uppercase tracking-wider" style={{ color: td.color }}>{td.label}</p>
-                                      <p className="text-[11px] text-slate-400">{td.range}</p>
+                                      <p className="text-[11px] text-slate-500">{td.range}</p>
                                     </div>
                                   ))}
                                 </div>
@@ -6317,7 +6317,7 @@ export default function ExportReportPage() {
                                       const isYourTier = tierDefs[j].label === tierInfo.label;
                                       return (
                                         <div key={j} className={`text-center ${j === 0 ? 'border-l border-slate-200 pl-3' : ''}`}>
-                                          <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-400'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
+                                          <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-500'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
                                             {pct}%
                                           </span>
                                         </div>
@@ -6329,7 +6329,7 @@ export default function ExportReportPage() {
 
                               {/* Footer note */}
                               <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
-                                <p className="text-sm text-slate-400">
+                                <p className="text-sm text-slate-500">
                                   Percentages show the share of participating companies that scored within each tier range.
                                   <strong className="text-slate-500"> Highlighted values</strong> indicate your tier.
                                 </p>
@@ -6346,7 +6346,7 @@ export default function ExportReportPage() {
               
               {/* Combined Key Findings Section */}
               <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-10">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-8">Key Findings</h3>
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-8">Key Findings</h3>
 
                 {/* Top Row - Stats */}
                 <div className="grid grid-cols-4 gap-5 mb-6">
@@ -6371,7 +6371,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #8B5CF6' }}>
-                    <p className="text-6xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-2xl font-normal text-slate-400 ml-1">/13</span></p>
+                    <p className="text-6xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-2xl font-normal text-slate-500 ml-1">/13</span></p>
                     <p className="text-lg text-slate-300 mt-3">dimensions at Advancing+</p>
                     <div className="mt-3 space-y-1">
                       <p className="text-base text-violet-400">{tierCounts.leading} Leading</p>
@@ -6415,7 +6415,7 @@ export default function ExportReportPage() {
                           <div key={d.dim} className="flex items-center justify-between py-2 border-b border-slate-100">
                             <span className="text-sm text-slate-700">{d.name}</span>
                             <div className="flex items-center gap-4">
-                              <span className="text-sm text-slate-400">{d.weight}% weight</span>
+                              <span className="text-sm text-slate-500">{d.weight}% weight</span>
                               <span className="text-sm font-bold" style={{ color: d.tier.color }}>{d.score}</span>
                             </div>
                           </div>
@@ -6468,7 +6468,7 @@ export default function ExportReportPage() {
                               <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
                             </div>
                             <div className="flex items-center gap-6">
-                              <span className="text-slate-400 w-20 text-center">{opt.benchPct}%</span>
+                              <span className="text-slate-500 w-20 text-center">{opt.benchPct}%</span>
                               <span className={`w-16 text-right font-semibold ${opt.selected ? 'text-amber-700' : 'text-slate-500'}`}>{opt.points} pts</span>
                             </div>
                           </div>
@@ -6608,7 +6608,7 @@ export default function ExportReportPage() {
                               const isSelected = cb3bArray.some((v: string) => v.includes(el.key) || el.label.toLowerCase().includes(v.substring(0, 10)));
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
-                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
+                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-500'}>{isSelected ? '✓' : '○'}</span>
                                   <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{el.label}</span>
                                 </div>
                               );
@@ -6627,7 +6627,7 @@ export default function ExportReportPage() {
                               const isSelected = isConditionSelected(condition);
                               return (
                                 <div key={i} className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm ${isSelected ? 'bg-violet-100 border border-violet-300' : 'bg-slate-50'}`}>
-                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-400'}>{isSelected ? '✓' : '○'}</span>
+                                  <span className={isSelected ? 'text-violet-600 font-bold' : 'text-slate-500'}>{isSelected ? '✓' : '○'}</span>
                                   <span className={isSelected ? 'text-violet-900' : 'text-slate-600'}>{condition}</span>
                                 </div>
                               );
@@ -6670,12 +6670,12 @@ export default function ExportReportPage() {
                   </div>
                   <div>
                     <h3 className="font-bold text-white text-xl">Dimension Performance Based on What Matters Most</h3>
-                    <p className="text-slate-400 mt-0.5 text-sm">All 13 dimensions sorted by {dimPerfSortBy === 'score' ? `${companyName}${companyName.endsWith('s') ? "'" : "'s"} score` : dimPerfSortBy === 'benchmark' ? 'benchmark score' : 'employee priority weight'}</p>
+                    <p className="text-slate-500 mt-0.5 text-sm">All 13 dimensions sorted by {dimPerfSortBy === 'score' ? `${companyName}${companyName.endsWith('s') ? "'" : "'s"} score` : dimPerfSortBy === 'benchmark' ? 'benchmark score' : 'employee priority weight'}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-400 font-medium">Sort:</span>
+                    <span className="text-xs text-slate-500 font-medium">Sort:</span>
                     <select
                       value={dimPerfSortBy}
                       onChange={(e) => setDimPerfSortBy(e.target.value as 'score' | 'benchmark' | 'priority')}
@@ -6686,7 +6686,7 @@ export default function ExportReportPage() {
                       <option value="priority">Employee Priority</option>
                     </select>
                   </div>
-                  <span className="flex items-center gap-2 text-xs text-slate-400">
+                  <span className="flex items-center gap-2 text-xs text-slate-500">
                     <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
                     <span>= Benchmark Score</span>
                   </span>
@@ -6766,7 +6766,7 @@ export default function ExportReportPage() {
                   );
                 })}
               </div>
-              <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100 leading-relaxed">
+              <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">
                 *{EMPLOYEE_PRIORITY_FOOTNOTE}
               </p>
             </div>
@@ -7101,7 +7101,7 @@ export default function ExportReportPage() {
                         {Array.from({ length: 13 }, (_, i) => i + 1).map(dimNum => {
                           const d = dimensionAnalysis.find(dim => dim.dim === dimNum);
                           if (!d) return (
-                            <div key={dimNum} className="flex items-start gap-2 px-2 py-1.5 rounded text-slate-400">
+                            <div key={dimNum} className="flex items-start gap-2 px-2 py-1.5 rounded text-slate-500">
                               <span className="w-6 h-6 rounded bg-slate-200 flex items-center justify-center text-[10px] font-bold">D{dimNum}</span>
                               <span className="text-sm">Unknown Dimension</span>
                             </div>
@@ -7374,8 +7374,8 @@ export default function ExportReportPage() {
                                     <span className={`font-medium truncate ${isSelected ? 'text-indigo-900' : 'text-slate-500'}`}>{opt.label}</span>
                                   </div>
                                   <div className="flex items-center gap-3 flex-shrink-0 ml-2">
-                                    <span className={`tabular-nums ${isSelected ? 'font-bold text-indigo-700' : 'text-slate-400'}`}>×{opt.multiplier}</span>
-                                    <span className={`tabular-nums ${isSelected ? 'text-indigo-600' : 'text-slate-400'}`}>{opt.pct}%</span>
+                                    <span className={`tabular-nums ${isSelected ? 'font-bold text-indigo-700' : 'text-slate-500'}`}>×{opt.multiplier}</span>
+                                    <span className={`tabular-nums ${isSelected ? 'text-indigo-600' : 'text-slate-500'}`}>{opt.pct}%</span>
                                   </div>
                                 </div>
                               );
@@ -7425,7 +7425,7 @@ export default function ExportReportPage() {
               <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] overflow-hidden" onClick={e => e.stopPropagation()}>
                 <div className="px-8 py-6 bg-slate-800 flex items-center justify-between">
                   <h3 className="font-bold text-white text-xl">{infoContent[infoModal].title}</h3>
-                  <button onClick={() => setInfoModal(null)} className="text-slate-400 hover:text-white transition-colors">
+                  <button onClick={() => setInfoModal(null)} className="text-slate-500 hover:text-white transition-colors">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -7564,7 +7564,7 @@ export default function ExportReportPage() {
                         {/* Empty State */}
                         <div className="px-8 py-16 flex flex-col items-center justify-center text-center">
                           <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                             </svg>
                           </div>
@@ -7733,7 +7733,7 @@ export default function ExportReportPage() {
                             <div className="p-5">
                               <div className="flex items-center justify-center gap-8">
                                 <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Current Score</p>
+                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Current Score</p>
                                   <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${getScoreBgColor(actualDimScore)} flex items-center justify-center shadow-md`}>
                                     <span className="text-3xl font-bold text-white">{actualDimScore}</span>
                                   </div>
@@ -7744,14 +7744,14 @@ export default function ExportReportPage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                   </svg>
                                   {hasChanges && (
-                                    <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-600' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-400'}`}>
+                                    <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-600' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-500'}`}>
                                       {projectedDimScore > actualDimScore ? '+' : ''}{projectedDimScore - actualDimScore}
                                     </span>
                                   )}
                                 </div>
                                 
                                 <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Projected Score</p>
+                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Projected Score</p>
                                   <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
                                     <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
                                   </div>
@@ -7815,9 +7815,9 @@ export default function ExportReportPage() {
                                 >
                                   <p className={`text-sm font-semibold ${isSelected ? 'text-violet-800' : 'text-slate-600'}`}>
                                     {opt.label}
-                                    {isOriginal && <span className="ml-1.5 text-xs font-normal text-slate-400">(current)</span>}
+                                    {isOriginal && <span className="ml-1.5 text-xs font-normal text-slate-500">(current)</span>}
                                   </p>
-                                  <p className={`text-xs mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-400'}`}>
+                                  <p className={`text-xs mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-500'}`}>
                                     ×{opt.value.toFixed(2)} — {opt.desc}
                                   </p>
                                 </button>
@@ -7862,7 +7862,7 @@ export default function ExportReportPage() {
                                   currentStatus === 'currently' ? 'text-emerald-600 font-medium' :
                                   currentStatus === 'planning' ? 'text-blue-600' :
                                   currentStatus === 'assessing' ? 'text-amber-600' :
-                                  'text-slate-400'
+                                  'text-slate-500'
                                 }`}>
                                   {getStatusLabel(currentStatus)}
                                 </div>
@@ -7905,7 +7905,7 @@ export default function ExportReportPage() {
                       
                       {/* Footer */}
                       <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500">
                           {hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
                         </p>
                         <button 
@@ -7947,7 +7947,7 @@ export default function ExportReportPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-2xl tracking-tight">Cross-Dimensional Insights</h3>
-                        <p className="text-slate-400 text-sm">Connecting the dots across your report</p>
+                        <p className="text-slate-500 text-sm">Connecting the dots across your report</p>
                       </div>
                     </div>
                     <div className="ml-[52px]">
@@ -7957,14 +7957,14 @@ export default function ExportReportPage() {
                       </p>
                       <div className="flex items-center gap-6">
                         <div className="flex items-center gap-1.5">
-                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="10" cy="10" r="6" />
                             <path d="M14.5 14.5L20 20" strokeLinecap="round" />
                           </svg>
                           <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional tensions detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional tensions detected' || patterns.length !== 1 ? 'tensions' : 'tension'} flagged</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="12" cy="12" r="8" />
                             <circle cx="12" cy="12" r="4" />
                             <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
@@ -8137,7 +8137,7 @@ export default function ExportReportPage() {
             {/* Dark accent header */}
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
               <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-              <p className="text-slate-400 text-base mt-1">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
+              <p className="text-slate-500 text-base mt-1">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
             </div>
 
             {/* Tab cards + content area */}
@@ -8180,31 +8180,31 @@ export default function ExportReportPage() {
                       onClick={() => setActiveReportTab(activeReportTab === tab.key ? null : tab.key)}
                       className="relative text-left rounded-xl p-5 transition-all"
                       style={{
-                        backgroundColor: isActive ? tab.lightBg : '#ffffff',
-                        border: isActive ? `2px solid ${tab.color}` : '2px solid #e2e8f0',
-                        boxShadow: isActive ? `0 4px 16px ${tab.color}15` : 'none',
+                        backgroundColor: isActive ? '#1e1e1e' : '#ffffff',
+                        border: isActive ? '2px solid #1e1e1e' : '2px solid #e2e8f0',
+                        boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
                       }}
                     >
                       {isActive && (
-                        <div className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full" style={{ backgroundColor: tab.color }} />
+                        <div className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full" style={{ backgroundColor: '#1e1e1e' }} />
                       )}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? tab.color : '#e2e8f0' }}>
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#333' : '#e2e8f0' }}>
                             <span style={{ color: isActive ? 'white' : '#94a3b8' }}>{tab.icon}</span>
                           </div>
                           <div>
-                            <p className="text-base font-bold" style={{ color: isActive ? tab.color : '#64748b' }}>{tab.label}</p>
-                            <p className="text-sm mt-0.5" style={{ color: isActive ? '#64748b' : '#94a3b8' }}>{tab.desc}</p>
+                            <p className="text-base font-bold" style={{ color: isActive ? '#e5e5e5' : '#64748b' }}>{tab.label}</p>
+                            <p className="text-sm mt-0.5" style={{ color: isActive ? '#a3a3a3' : '#94a3b8' }}>{tab.desc}</p>
                           </div>
                         </div>
-                        <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: isActive ? tab.color : '#cbd5e1' }}>{tab.count}</span>
+                        <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: isActive ? '#e5e5e5' : '#cbd5e1' }}>{tab.count}</span>
                       </div>
                     </button>
                   );
                 })}
               </div>
-              <p className="text-center text-sm text-slate-400 mb-2">Select a tab above to explore your results</p>
+              <p className="text-center text-sm text-slate-500 mb-2">Select a tab above to explore your results</p>
             </div>
 
             {/* Tab content */}
@@ -8213,7 +8213,7 @@ export default function ExportReportPage() {
               {activeReportTab === 'excellence' && (
                 <div id="areas-of-excellence">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Areas of Excellence</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Advancing or above <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Advancing or above <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
                   {strengthDimensions.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
                       {strengthDimensions.map((d) => {
@@ -8256,7 +8256,7 @@ export default function ExportReportPage() {
               {activeReportTab === 'initiatives' && (
                 <div id="initiatives-in-progress">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in planning or under consideration <span className="text-slate-400 font-normal">· Fastest path to improvement</span></p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in planning or under consideration <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
                       {quickWinOpportunities.map((item: any, idx: number) => {
@@ -8269,7 +8269,7 @@ export default function ExportReportPage() {
                                 <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                                 <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
                               </div>
-                              <p className="text-lg text-slate-800 font-bold leading-snug">{item.name}</p>
+                              <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
                               <div className="flex items-center gap-2 mt-2">
                                 <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
                                 <span className="text-base text-slate-500">{item.dimName}</span>
@@ -8291,7 +8291,7 @@ export default function ExportReportPage() {
               {activeReportTab === 'growth' && (
                 <div id="growth-opportunities">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Areas for Growth</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
                   <div className="grid grid-cols-2 gap-5">
                     {growthDimensions.slice(0, 6).map((d) => {
                       const pg = getEmployeePriorityGroup(d.weight);
@@ -8317,7 +8317,7 @@ export default function ExportReportPage() {
                               ))}
                             </ul>
                           ) : (
-                            <p className="text-base text-slate-400">Focus on completing planned initiatives</p>
+                            <p className="text-base text-slate-500">Focus on completing planned initiatives</p>
                           )}
                         </div>
                       );
@@ -8352,7 +8352,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <h3 className="font-bold text-white text-3xl tracking-tight">Strategic Recommendations</h3>
-                      <p className="text-slate-400 text-base mt-1">From diagnosis to action in four priority dimensions</p>
+                      <p className="text-slate-500 text-base mt-1">From diagnosis to action in four priority dimensions</p>
                     </div>
                   </div>
                   
@@ -8463,7 +8463,7 @@ export default function ExportReportPage() {
                                 <div className="text-xs text-slate-500 font-medium mb-1">Score</div>
                                 <div className="flex items-end gap-1">
                                   <span className="text-xl font-bold text-slate-600">{d.score}</span>
-                                  <span className="text-xs text-slate-400 mb-1">/100</span>
+                                  <span className="text-xs text-slate-500 mb-1">/100</span>
                                 </div>
                               </div>
                               <div className="bg-slate-700 rounded-lg p-2.5">
@@ -8525,7 +8525,7 @@ export default function ExportReportPage() {
                                 <div className="text-xs text-slate-500 font-medium mb-1">Weight</div>
                                 <div className="flex items-end gap-1">
                                   <span className="text-xl font-bold text-slate-700">{d.weight}</span>
-                                  <span className="text-xs text-slate-400 mb-1">%</span>
+                                  <span className="text-xs text-slate-500 mb-1">%</span>
                                 </div>
                               </div>
                             </div>
@@ -8557,7 +8557,7 @@ export default function ExportReportPage() {
                       </div>
                       <div>
                         <h4 className="font-bold text-white text-xl">From Insight to Action</h4>
-                        <p className="text-slate-400 text-sm">A practical framework to move from diagnosis to ownership</p>
+                        <p className="text-slate-500 text-sm">A practical framework to move from diagnosis to ownership</p>
                       </div>
                     </div>
                   </div>
@@ -8628,7 +8628,7 @@ export default function ExportReportPage() {
                           <path d="M12 8v8M8 12h8" strokeLinecap="round" />
                         </svg>
                       </div>
-                      <p className="text-slate-400 text-sm">
+                      <p className="text-slate-500 text-sm">
                         <span className="text-violet-300 font-medium">Need deeper analysis on another dimension?</span> Use the &quot;Analyze Another Dimension&quot; button at the bottom of this section to add any dimension to this strategic review.
                       </p>
                     </div>
@@ -8767,7 +8767,7 @@ export default function ExportReportPage() {
                                   </li>
                                 ))}
                               </ul>
-                            ) : <p className="text-base text-slate-400">No gaps identified</p>}
+                            ) : <p className="text-base text-slate-500">No gaps identified</p>}
                           </div>
                         </div>
                         
@@ -8791,7 +8791,7 @@ export default function ExportReportPage() {
                                   </li>
                                 ))}
                               </ul>
-                            ) : <p className="text-base text-slate-400">No initiatives in planning</p>}
+                            ) : <p className="text-base text-slate-500">No initiatives in planning</p>}
                           </div>
                         </div>
                         
@@ -8817,7 +8817,7 @@ export default function ExportReportPage() {
                                   </li>
                                 ))}
                               </ul>
-                            ) : <p className="text-base text-slate-400">Building toward first strengths</p>}
+                            ) : <p className="text-base text-slate-500">Building toward first strengths</p>}
                           </div>
                         </div>
                       </div>
@@ -9031,7 +9031,7 @@ export default function ExportReportPage() {
                           {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
                             <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
                               <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
-                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 Roadmap Pending Confirmation
                               </h5>
                               <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
@@ -9159,7 +9159,7 @@ export default function ExportReportPage() {
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-base text-slate-400">No improvement opportunities identified</p>
+                                <p className="text-base text-slate-500">No improvement opportunities identified</p>
                               )}
                             </div>
                           </div>
@@ -9185,7 +9185,7 @@ export default function ExportReportPage() {
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-base text-slate-400">No initiatives in development</p>
+                                <p className="text-base text-slate-500">No initiatives in development</p>
                               )}
                             </div>
                           </div>
@@ -9213,7 +9213,7 @@ export default function ExportReportPage() {
                                   ))}
                                 </ul>
                               ) : (
-                                <p className="text-base text-slate-400">No strengths identified</p>
+                                <p className="text-base text-slate-500">No strengths identified</p>
                               )}
                             </div>
                           </div>
@@ -9310,7 +9310,7 @@ export default function ExportReportPage() {
                             {!roadmap.quickWin && !roadmap.strategicLift && (d.unsure?.length || 0) > 0 && (
                               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50">
                                 <h5 className="font-bold text-slate-500 mb-2 text-sm uppercase tracking-wide flex items-center gap-2">
-                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                 Roadmap Pending Confirmation
                               </h5>
                                 <p className="text-base text-slate-600 leading-relaxed">{d.unsure.length} element{d.unsure.length > 1 ? 's' : ''} in this dimension {d.unsure.length > 1 ? 'need' : 'needs'} confirmation before specific roadmap recommendations can be provided. Once confirmed, targeted quick wins and strategic actions will be generated based on your actual status.</p>
@@ -9359,7 +9359,7 @@ export default function ExportReportPage() {
                 </div>
                 <div className="text-left">
                   <span className="text-slate-700 group-hover:text-slate-900 font-semibold text-base block">Analyze Another Dimension</span>
-                  <span className="text-slate-400 group-hover:text-slate-500 text-sm">Get detailed analysis for any additional dimension</span>
+                  <span className="text-slate-500 group-hover:text-slate-500 text-sm">Get detailed analysis for any additional dimension</span>
                 </div>
               </button>
               
@@ -9369,7 +9369,7 @@ export default function ExportReportPage() {
                     <p className="text-sm font-semibold text-slate-700">Select a dimension to analyze:</p>
                     <button
                       onClick={() => setShowDimSelector(false)}
-                      className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                      className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-600"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
@@ -9395,7 +9395,7 @@ export default function ExportReportPage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-slate-700 group-hover:text-slate-900 text-sm truncate">{d.name}</p>
-                                <p className="text-xs text-slate-400">Score: {d.score} • {d.tier.name}</p>
+                                <p className="text-xs text-slate-500">Score: {d.score} • {d.tier.name}</p>
                               </div>
                             </div>
                           </button>
@@ -9495,7 +9495,7 @@ export default function ExportReportPage() {
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
+                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Accelerate <span className="text-slate-500 font-normal">({totalAccel})</span></h4>
                           <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, converts work already in motion into tangible progress.</span> These initiatives have organizational momentum.</p>
                         </div>
                       </div>
@@ -9516,7 +9516,7 @@ export default function ExportReportPage() {
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
+                          <h4 className="font-bold text-slate-900 text-lg mb-0.5">Build <span className="text-slate-500 font-normal">({totalBuild})</span></h4>
                           <p className="text-sm text-slate-500"><span className="font-semibold text-slate-700">Within your priority dimensions, introduces net-new capabilities where gaps exist today.</span> Closing them drives the biggest score gains.</p>
                         </div>
                       </div>
@@ -9557,7 +9557,7 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-3 gap-3">
                         <div className="bg-slate-50 rounded-lg p-3 text-center">
                           <p className="text-xs text-slate-500 uppercase tracking-wide font-medium mb-1">Current</p>
-                          <p className="text-2xl font-bold text-slate-400">{wsiScoreHeader}</p>
+                          <p className="text-2xl font-bold text-slate-500">{wsiScoreHeader}</p>
                         </div>
                         <div className="bg-slate-800 rounded-lg p-3 text-center">
                           <p className="text-xs text-slate-300 uppercase tracking-wide font-medium mb-1">Projected</p>
@@ -9648,7 +9648,7 @@ export default function ExportReportPage() {
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0">
                                           {bench !== null && (
-                                            <span className="text-[10px] text-slate-400">{bench}%</span>
+                                            <span className="text-[10px] text-slate-500">{bench}%</span>
                                           )}
                                           <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
                                             item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'
@@ -9671,18 +9671,18 @@ export default function ExportReportPage() {
                                   {expanded.accel && accelerateItems.length > 3 && (
                                     <button 
                                       onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], accel: false } }))}
-                                      className="text-xs text-slate-400 hover:text-slate-600 mt-1"
+                                      className="text-xs text-slate-500 hover:text-slate-600 mt-1"
                                     >
                                       Show less
                                     </button>
                                   )}
                                   {/* Benchmark legend */}
                                   {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                    <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                   )}
                                 </div>
                               ) : (
-                                <p className="text-sm text-slate-400 italic">No in-flight elements</p>
+                                <p className="text-sm text-slate-500 italic">No in-flight elements</p>
                               )}
                             </div>
                             
@@ -9706,7 +9706,7 @@ export default function ExportReportPage() {
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0">
                                           {bench !== null && (
-                                            <span className="text-[10px] text-slate-400">{bench}%</span>
+                                            <span className="text-[10px] text-slate-500">{bench}%</span>
                                           )}
                                           <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${
                                             item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'
@@ -9729,18 +9729,18 @@ export default function ExportReportPage() {
                                   {expanded.build && buildItems.length > 3 && (
                                     <button 
                                       onClick={() => setExpandedPriorities(prev => ({ ...prev, [r.dimNum]: { ...prev[r.dimNum], build: false } }))}
-                                      className="text-xs text-slate-400 hover:text-slate-600 mt-1"
+                                      className="text-xs text-slate-500 hover:text-slate-600 mt-1"
                                     >
                                       Show less
                                     </button>
                                   )}
                                   {/* Benchmark legend */}
                                   {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                    <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                    <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                   )}
                                 </div>
                               ) : (
-                                <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
+                                <p className="text-sm text-slate-500 italic">Focus on accelerating</p>
                               )}
                             </div>
                             
@@ -9750,11 +9750,11 @@ export default function ExportReportPage() {
                               <div className="space-y-2">
                                 {/* Primary: Current → Projected */}
                                 <div className="flex items-center justify-center gap-3">
-                                  <span className="text-4xl font-bold text-slate-400">{r.currentScore}</span>
+                                  <span className="text-4xl font-bold text-slate-500">{r.currentScore}</span>
                                   <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                   <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
                                 </div>
-                                <p className="text-xs text-slate-400 text-center">Current → Projected</p>
+                                <p className="text-xs text-slate-500 text-center">Current → Projected</p>
                                 {/* Secondary: Gain (smaller, use Δ) */}
                                 <div className={`text-center pt-2 mt-2 border-t border-slate-100`}>
                                   <span className={`text-sm font-semibold text-slate-500`}>Δ +{r.dimPotentialGain12}</span>
@@ -9781,7 +9781,7 @@ export default function ExportReportPage() {
                   {showAllImpactDimensions && (
                     <button
                       onClick={() => setShowAllImpactDimensions(false)}
-                      className="w-full mt-4 py-2 px-4 text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center gap-1"
+                      className="w-full mt-4 py-2 px-4 text-xs font-medium text-slate-500 hover:text-slate-600 transition-colors flex items-center justify-center gap-1"
                     >
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
                       Collapse
@@ -9807,7 +9807,7 @@ export default function ExportReportPage() {
                   <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
                   <div className="mt-3">
                   </div>
-                  <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
+                  <p className="text-slate-500 mt-1">Your phased approach to strengthen workplace cancer support</p>
 </div>
                 <div className="flex items-center gap-4">
                   <button 
@@ -9855,7 +9855,7 @@ export default function ExportReportPage() {
                     <div className="p-5 flex-1">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded">ACCELERATE</span>
-                        <span className="text-xs text-slate-400">Items in progress</span>
+                        <span className="text-xs text-slate-500">Items in progress</span>
                       </div>
                       {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
                       {editMode ? (
@@ -9869,7 +9869,7 @@ export default function ExportReportPage() {
                               </span>
                               <div>
                                 <p className="text-sm text-slate-700">{item.name}</p>
-                                {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                {item.dimNum && <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
                               </div>
                             </li>
                           ))}
@@ -9902,7 +9902,7 @@ export default function ExportReportPage() {
                     <div className="p-5 flex-1">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">BUILD</span>
-                        <span className="text-xs text-slate-400">High-weight gaps</span>
+                        <span className="text-xs text-slate-500">High-weight gaps</span>
                       </div>
                       {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
                       {editMode ? (
@@ -9916,7 +9916,7 @@ export default function ExportReportPage() {
                               </span>
                               <div>
                                 <p className="text-sm text-slate-700">{item.name}</p>
-                                {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                {item.dimNum && <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
                               </div>
                             </li>
                           ))}
@@ -9949,7 +9949,7 @@ export default function ExportReportPage() {
                     <div className="p-5 flex-1">
                       <div className="flex items-center gap-2 mb-4">
                         <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded">OPTIMIZE</span>
-                        <span className="text-xs text-slate-400">Comprehensive coverage</span>
+                        <span className="text-xs text-slate-500">Comprehensive coverage</span>
                       </div>
                       {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
                       {editMode ? (
@@ -9964,13 +9964,13 @@ export default function ExportReportPage() {
                                 </span>
                                 <div>
                                   <p className="text-sm text-slate-700">{item.name}</p>
-                                  {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                  {item.dimNum && <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
                                 </div>
                               </li>
                             ))}
                           </ul>
                         ) : (
-                          <p className="text-sm text-slate-400">Continue expanding strengths and monitoring program effectiveness</p>
+                          <p className="text-sm text-slate-500">Continue expanding strengths and monitoring program effectiveness</p>
                         )
                       )}
                     </div>
@@ -9980,7 +9980,8 @@ export default function ExportReportPage() {
             </div>
           </div>
 
-          {/* ============ WORKING WITH CANCER PLEDGE ============ */}
+          {/* ============ WORKING WITH CANCER PLEDGE (hidden - will likely bring back) ============ */}
+          {false && (
           <div id="wwc-pledge-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             {/* Header - Clickable to expand/collapse */}
             <button
@@ -10036,7 +10037,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               {!showWwcPledgeDetails && (
-                <p className="text-center text-xs text-slate-400 mt-3 font-medium">Click to learn more about the Working with Cancer Pledge</p>
+                <p className="text-center text-xs text-slate-500 mt-3 font-medium">Click to learn more about the Working with Cancer Pledge</p>
               )}
             </button>
 
@@ -10104,7 +10105,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-bold text-sm">What Employees Say About the Pledge</p>
-                      <p className="text-slate-400 text-xs">Research by BEYOND Insights for Cancer and Careers</p>
+                      <p className="text-slate-500 text-xs">Research by BEYOND Insights for Cancer and Careers</p>
                     </div>
                   </div>
                   <div className="bg-white rounded-lg px-3 py-2 text-center shadow-md">
@@ -10173,14 +10174,15 @@ export default function ExportReportPage() {
                 <span className="mx-2 text-slate-500">•</span>
                 <span className="text-slate-300">Together, they demonstrate genuine commitment.</span>
               </p>
-              <p className="text-xs text-center mt-1.5 text-slate-400">
+              <p className="text-xs text-center mt-1.5 text-slate-500">
                 To learn more about the Working with Cancer Pledge, visit <a href="https://workingwithcancerpledge.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300 hover:text-white">workingwithcancerpledge.com</a>
               </p>
             </div>
             </>
             )}
           </div>
-          
+          )}
+
           {/* ============ YOUR REPORT AT A GLANCE ============ */}
           {(() => {
             // "Why It Matters" lookup keyed by dimension
@@ -10340,11 +10342,11 @@ export default function ExportReportPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-xl">Your Report at a Glance</h3>
-                      <p className="text-slate-400 mt-1">Strengths to protect and priorities to address</p>
+                      <p className="text-slate-500 mt-1">Strengths to protect and priorities to address</p>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-slate-400 text-xs uppercase tracking-wider">Workplace Support Composite Score</span>
+                        <span className="text-slate-500 text-xs uppercase tracking-wider">Workplace Support Composite Score</span>
                         <span className="text-3xl font-bold text-white">{wsiScoreHeader ?? '\u2014'}</span>
                       </div>
                       <span className="px-3 py-1 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
@@ -10363,7 +10365,7 @@ export default function ExportReportPage() {
                 <div className="px-10 pt-6 pb-3">
                   {editMode ? (
                     <div>
-                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Headline Insight</label>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">Headline Insight</label>
                       <textarea
                         value={customNextSteps.headlineInsight ?? defaultHeadline}
                         onChange={(e) => {
@@ -10387,7 +10389,7 @@ export default function ExportReportPage() {
                 <div className="mx-10 mb-4 px-5 py-3 bg-slate-50 rounded-lg border border-slate-100">
                   {editMode ? (
                     <div>
-                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Pattern Insights (one per line)</label>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">Pattern Insights (one per line)</label>
                       <textarea
                         value={(customNextSteps.patternBullets || defaultPatternBullets).join('\n')}
                         onChange={(e) => {
@@ -10402,7 +10404,7 @@ export default function ExportReportPage() {
                     </div>
                   ) : (
                     <div>
-                      <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2 block">What this pattern suggests</span>
+                      <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-2 block">What this pattern suggests</span>
                       <div className="flex flex-wrap gap-2 items-center">
                         {(customNextSteps.patternBullets || defaultPatternBullets).filter(b => b.trim()).slice(0, 3).map((bullet, i) => {
                           const lower = bullet.toLowerCase();
@@ -10448,7 +10450,7 @@ export default function ExportReportPage() {
                         return (
                           <div key={d.dim}>
                             <div className="flex items-center gap-2">
-                              <span className="text-slate-400 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
+                              <span className="text-slate-500 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
                               <span className="text-base font-semibold text-slate-800">{d.name}</span>
                               <span className="text-sm font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</span>
                               {bDiff !== null && (
@@ -10506,7 +10508,7 @@ export default function ExportReportPage() {
                         return (
                           <div key={d.dim}>
                             <div className="flex items-center gap-2">
-                              <span className="text-slate-400 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
+                              <span className="text-slate-500 text-xs font-semibold w-4 flex-shrink-0">{idx + 1}.</span>
                               <span className="text-base font-semibold text-slate-800">{d.name}</span>
                               <span className="px-1.5 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: pg.color + '15', color: pg.color }}>
                                 {pg.chip}
@@ -10516,14 +10518,14 @@ export default function ExportReportPage() {
                               {editMode ? (
                                 <div className="space-y-1">
                                   <div>
-                                    <label className="text-[9px] text-slate-400 uppercase tracking-wider">Play</label>
+                                    <label className="text-[9px] text-slate-500 uppercase tracking-wider">Play</label>
                                     <input type="text" value={playTitle} onChange={(e) => {
                                       setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
                                       setHasUnsavedChanges(true);
                                     }} className="w-full text-xs text-slate-500 bg-amber-50 border border-amber-200 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-amber-400/50" />
                                   </div>
                                   <div>
-                                    <label className="text-[9px] text-slate-400 uppercase tracking-wider">First Step</label>
+                                    <label className="text-[9px] text-slate-500 uppercase tracking-wider">First Step</label>
                                     <input type="text" value={firstStep} onChange={(e) => {
                                       setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], firstStep: e.target.value } } }));
                                       setHasUnsavedChanges(true);
@@ -10558,7 +10560,7 @@ export default function ExportReportPage() {
                 <div className="mx-10 mb-4">
                   {editMode ? (
                     <div className="border-t border-slate-200 pt-3">
-                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Balance Insight</label>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">Balance Insight</label>
                       <textarea
                         value={customNextSteps.balanceInsight ?? defaultBalanceInsight}
                         onChange={(e) => {
@@ -10582,7 +10584,7 @@ export default function ExportReportPage() {
                 <div className="px-10 py-4 border-t border-slate-100 bg-slate-50">
                   {editMode ? (
                     <div>
-                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">What&apos;s Next</label>
+                      <label className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1 block">What&apos;s Next</label>
                       <textarea
                         value={customNextSteps.closingMessage || defaultWhatsNext}
                         onChange={(e) => {
@@ -10596,7 +10598,7 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-base text-slate-400 text-center">
+                    <p className="text-base text-slate-500 text-center">
                       <span className="font-semibold text-slate-500">What&apos;s next:</span>{' '}
                       {customNextSteps.closingMessage || defaultWhatsNext}
                     </p>
@@ -10691,12 +10693,12 @@ export default function ExportReportPage() {
                 <div className="relative flex items-center justify-between">
                   <div>
                     <p className="font-bold text-white text-xl">Ready to take the next step?</p>
-                    <p className="text-slate-400 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                    <p className="text-slate-500 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <a href="https://cancerandcareers.org" target="_blank" rel="noopener noreferrer" className="font-bold text-[#F37021] text-lg hover:underline">cancerandcareers.org</a>
-                      <p className="text-slate-400 mt-1">cacbestcompanies@cew.org</p>
+                      <p className="text-slate-500 mt-1">cacbestcompanies@cew.org</p>
                     </div>
                     <div className="w-12 h-12 rounded-xl bg-[#F37021] flex items-center justify-center">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -10738,15 +10740,15 @@ export default function ExportReportPage() {
               <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-[#F37021]">{wsiScoreHeader}</p>
-                  <p className="text-slate-400 text-sm mt-2">Your Score</p>
+                  <p className="text-slate-500 text-sm mt-2">Your Score</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-emerald-400">{strengthDimensions?.length ?? '--'}</p>
-                  <p className="text-slate-400 text-sm mt-2">Strong Dimensions</p>
+                  <p className="text-slate-500 text-sm mt-2">Strong Dimensions</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
-                  <p className="text-slate-400 text-sm mt-2">Initiatives In Progress</p>
+                  <p className="text-slate-500 text-sm mt-2">Initiatives In Progress</p>
                 </div>
               </div>
               
@@ -10757,12 +10759,12 @@ export default function ExportReportPage() {
                 <div className="flex items-center justify-center gap-8">
                   <div className="text-center">
                     <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
-                    <p className="text-slate-400 text-sm">Email Us</p>
+                    <p className="text-slate-500 text-sm">Email Us</p>
                   </div>
                   <div className="w-px h-12 bg-white/20"></div>
                   <div className="text-center">
                     <p className="text-white font-bold text-lg">cancerandcareers.org</p>
-                    <p className="text-slate-400 text-sm">Visit Our Site</p>
+                    <p className="text-slate-500 text-sm">Visit Our Site</p>
                   </div>
                 </div>
               </div>
@@ -10784,13 +10786,13 @@ export default function ExportReportPage() {
                     <p className="text-3xl font-bold text-white">{wsiScoreHeader}</p>
                     <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-2">Composite</p>
                   </div>
-                  <span className="text-2xl text-slate-400 font-light">=</span>
+                  <span className="text-2xl text-slate-500 font-light">=</span>
                   <div className="text-center px-5 py-3 bg-white rounded-xl border-2 border-slate-200 min-w-[100px]">
                     <p className="text-2xl font-bold text-slate-700">{_wsiWeightedDim}</p>
                     <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
-                    <p className="text-xs text-slate-400">× 90%</p>
+                    <p className="text-xs text-slate-500">× 90%</p>
                   </div>
-                  <span className="text-xl text-slate-400 font-light">+</span>
+                  <span className="text-xl text-slate-500 font-light">+</span>
                   <div
                     onClick={() => setActiveScoreOverlay('maturity')}
                     className="text-center px-5 py-3 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all"
@@ -10799,7 +10801,7 @@ export default function ExportReportPage() {
                     <p className="text-xs text-amber-600 mt-1">Maturity</p>
                     <p className="text-xs text-amber-500">× 5%</p>
                   </div>
-                  <span className="text-xl text-slate-400 font-light">+</span>
+                  <span className="text-xl text-slate-500 font-light">+</span>
                   <div 
                     onClick={() => setActiveScoreOverlay('breadth')}
                     className="text-center px-5 py-3 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all"
@@ -10829,22 +10831,22 @@ export default function ExportReportPage() {
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
                       <span style={{ color: '#047857' }} className="font-semibold">Leading</span>
-                      <span className="text-slate-400">80+ points</span>
+                      <span className="text-slate-500">80+ points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
                       <span style={{ color: '#1D4ED8' }} className="font-semibold">Advancing</span>
-                      <span className="text-slate-400">64-79 points</span>
+                      <span className="text-slate-500">64-79 points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
                       <span style={{ color: '#B45309' }} className="font-semibold">Accelerating</span>
-                      <span className="text-slate-400">50-63 points</span>
+                      <span className="text-slate-500">50-63 points</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
                       <span style={{ color: '#B91C1C' }} className="font-semibold">Building</span>
-                      <span className="text-slate-400">&lt;50 points</span>
+                      <span className="text-slate-500">&lt;50 points</span>
                     </div>
                   </div>
                 </div>
@@ -10867,11 +10869,11 @@ export default function ExportReportPage() {
                 {/* Center - Confidential */}
                 <div className="text-center">
                   <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider">Confidential</p>
-                  <p className="text-xs text-slate-400 mt-0.5">Survey ID: {surveyId}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Survey ID: {surveyId}</p>
                 </div>
                 {/* Right - BEYOND Insights */}
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-slate-400">Powered by:</span>
+                  <span className="text-sm text-slate-500">Powered by:</span>
                   <Image 
                     src="/BI_LOGO_FINAL.png" 
                     alt="BEYOND Insights" 
@@ -10882,7 +10884,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm text-slate-400 text-center">2026 Best Companies for Working with Cancer Index™</p>
+                <p className="text-sm text-slate-500 text-center">2026 Best Companies for Working with Cancer Index™</p>
               </div>
             </div>
           </div>
@@ -10951,7 +10953,7 @@ export default function ExportReportPage() {
                           }}
                           className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
                         />
-                        <span className="text-xs font-medium text-slate-400 w-6">{i + 1}</span>
+                        <span className="text-xs font-medium text-slate-500 w-6">{i + 1}</span>
                         <span className="text-sm font-medium truncate">{names[i] || `Slide ${i + 1}`}</span>
                       </label>
                     ));
@@ -11071,7 +11073,7 @@ export default function ExportReportPage() {
                 <p className={`font-semibold text-sm ${toast.type === 'success' ? 'text-green-800' : 'text-red-800'}`}>{toast.type === 'success' ? 'Success' : 'Error'}</p>
                 <p className="text-sm text-slate-600">{toast.message}</p>
               </div>
-              <button onClick={() => setToast({ show: false, message: '', type: 'success' })} className="ml-2 text-slate-400 hover:text-slate-600">
+              <button onClick={() => setToast({ show: false, message: '', type: 'success' })} className="ml-2 text-slate-500 hover:text-slate-600">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -11161,15 +11163,15 @@ export default function ExportReportPage() {
                             <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
                           </div>
                           <div>
-                            <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
+                            <p className="text-slate-500 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
                             <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
                             <p className="text-slate-300 mt-2 text-xl">Index 2026</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
+                          <p className="text-slate-500 text-sm font-medium">Prepared Exclusively for</p>
                           <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                          <p className="text-slate-400 text-sm font-medium">Report Date</p>
+                          <p className="text-slate-500 text-sm font-medium">Report Date</p>
                           <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
@@ -11189,7 +11191,7 @@ export default function ExportReportPage() {
                               <p className="text-xs text-slate-500 mt-2 font-medium leading-tight">of diagnoses during<br/>working years (20-74)</p>
                             </div>
                           </div>
-                          <p className="text-[10px] text-slate-400 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
+                          <p className="text-[10px] text-slate-500 italic mt-2 leading-tight">*Source: NCI SEER Cancer Statistics, 2018–2022; ACS Cancer Facts & Figures, 2025</p>
                         </div>
                         <div className="pt-2">
                           <h3 className="text-xl font-bold text-slate-800 mb-3">When employees face a cancer diagnosis, an organization's response defines its culture.</h3>
@@ -11207,7 +11209,7 @@ export default function ExportReportPage() {
                   <div className="p-10">
                     {/* Header */}
                     <div className="mb-6">
-                      <p className="text-slate-400 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
                       <h2 className="text-2xl font-bold text-slate-900">How This Index Was Developed</h2>
                     </div>
                     
@@ -11240,7 +11242,7 @@ export default function ExportReportPage() {
                         <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                       </div>
                     </div>
-                    <p className="text-[10px] text-slate-400 italic mt-3 mb-6">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
+                    <p className="text-[10px] text-slate-500 italic mt-3 mb-6">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
 
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
@@ -11361,7 +11363,7 @@ export default function ExportReportPage() {
                                 );
                               })}
                             </div>
-                            <p className="text-xs text-slate-400 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                            <p className="text-xs text-slate-500 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
                             
                             {/* Company's Current Score */}
                             <div className="mt-4 pt-4 border-t border-slate-200 text-center">
@@ -11474,7 +11476,7 @@ export default function ExportReportPage() {
                                   <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: d.color }}>
                                     <span>{elementCount} support elements</span>
                                   </div>
-                                  <span className="text-xs font-bold text-slate-400">{weightPct}% weight</span>
+                                  <span className="text-xs font-bold text-slate-500">{weightPct}% weight</span>
                                 </div>
                               </div>
                             );
@@ -11615,17 +11617,17 @@ export default function ExportReportPage() {
                       
                       {/* Combined Key Findings Section */}
                       <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
+                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Key Findings</h3>
                         
                         {/* Top Row - Stats */}
                         <div className="grid grid-cols-4 gap-4 mb-6">
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
                             <p className="text-3xl font-bold text-white">{currentlyOffering}</p>
-                            <p className="text-sm text-slate-400 mt-1">of {totalElements} support elements offered</p>
+                            <p className="text-sm text-slate-500 mt-1">of {totalElements} support elements offered</p>
                           </div>
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
                             <p className="text-3xl font-bold text-white">{planningItems + assessingItems}</p>
-                            <p className="text-sm text-slate-400 mt-1">support elements in development</p>
+                            <p className="text-sm text-slate-500 mt-1">support elements in development</p>
                             <div className="mt-1 space-y-0.5">
                               <p className="text-xs text-sky-400">{planningItems} planned</p>
                               <p className="text-xs text-sky-400">{assessingItems} assessing</p>
@@ -11633,15 +11635,15 @@ export default function ExportReportPage() {
                           </div>
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
                             <p className="text-3xl font-bold text-white">{gapItems + unsureItems}</p>
-                            <p className="text-sm text-slate-400 mt-1">identified support element gaps</p>
+                            <p className="text-sm text-slate-500 mt-1">identified support element gaps</p>
                             <div className="mt-1 space-y-0.5">
                               <p className="text-xs text-amber-400">{notPlannedItems} not planned</p>
                               <p className="text-xs text-amber-400">{unsureItems} need confirmation</p>
                             </div>
                           </div>
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{tierCounts.leading + tierCounts.established}<span className="text-lg font-normal text-slate-400 ml-1">/13</span></p>
-                            <p className="text-sm text-slate-400 mt-1">dimensions at Advancing+</p>
+                            <p className="text-3xl font-bold text-white">{tierCounts.leading + tierCounts.established}<span className="text-lg font-normal text-slate-500 ml-1">/13</span></p>
+                            <p className="text-sm text-slate-500 mt-1">dimensions at Advancing+</p>
                             <div className="mt-1 space-y-0.5">
                               <p className="text-xs text-violet-400">{tierCounts.leading} Leading</p>
                               <p className="text-xs text-violet-400">{tierCounts.established} Advancing</p>
@@ -11822,7 +11824,7 @@ export default function ExportReportPage() {
                                     <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
                                   ))}
                                   {next90Defaults.length === 0 && !customNextSteps.execNext90 && (
-                                    <li className="text-sm text-slate-400">No momentum opportunities identified. Confirm unsure items to unlock recommendations.</li>
+                                    <li className="text-sm text-slate-500">No momentum opportunities identified. Confirm unsure items to unlock recommendations.</li>
                                   )}
                                 </ul>
                               )}
@@ -11850,12 +11852,12 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-2xl">Dimension Performance Based on What Matters Most</h3>
-                            <p className="text-slate-400 mt-1">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
+                            <p className="text-slate-500 mt-1">All 13 dimensions sorted by {companyName}{companyName.endsWith('s') ? "'" : "'s"} score</p>
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <span className="bg-white/10 backdrop-blur text-white/90 px-4 py-2 rounded-lg font-medium text-sm border border-white/20">Click any dimension for details</span>
-                          <span className="flex items-center gap-2 text-xs text-slate-400">
+                          <span className="flex items-center gap-2 text-xs text-slate-500">
                             <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
                             <span>= Benchmark Score</span>
                           </span>
@@ -11911,7 +11913,7 @@ export default function ExportReportPage() {
                             <div className="w-28 text-center">
                               {d.benchmark !== null ? (
                                 <div>
-                                  <span className="text-sm text-slate-400">{d.benchmark}</span>
+                                  <span className="text-sm text-slate-500">{d.benchmark}</span>
                                   <span className={`ml-1.5 text-xs font-semibold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
                                     ({diff !== null && diff >= 0 ? '+' : ''}{diff})
                                   </span>
@@ -11932,7 +11934,7 @@ export default function ExportReportPage() {
                         );
                       })}
                     </div>
-                    <p className="text-xs text-slate-400 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
+                    <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
                     </div>
                   </div>
                 )}
@@ -12478,7 +12480,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Cross-Dimensional Insights</h3>
-                            <p className="text-slate-400 text-sm">Connecting the dots across your report</p>
+                            <p className="text-slate-500 text-sm">Connecting the dots across your report</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
@@ -12610,7 +12612,7 @@ export default function ExportReportPage() {
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-bold text-slate-900 text-base">Accelerate <span className="text-slate-400 font-normal">({totalAccel})</span></h4>
+                              <h4 className="font-bold text-slate-900 text-base">Accelerate <span className="text-slate-500 font-normal">({totalAccel})</span></h4>
                               <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Within your priority dimensions, converts work already in motion.</span></p>
                             </div>
                           </div>
@@ -12631,7 +12633,7 @@ export default function ExportReportPage() {
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                             </div>
                             <div className="flex-1">
-                              <h4 className="font-bold text-slate-900 text-base">Build <span className="text-slate-400 font-normal">({totalBuild})</span></h4>
+                              <h4 className="font-bold text-slate-900 text-base">Build <span className="text-slate-500 font-normal">({totalBuild})</span></h4>
                               <p className="text-xs text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Within your priority dimensions, introduces net-new capabilities.</span></p>
                             </div>
                           </div>
@@ -12672,7 +12674,7 @@ export default function ExportReportPage() {
                           <div className="grid grid-cols-3 gap-2">
                             <div className="bg-slate-50 rounded p-2 text-center">
                               <p className="text-[9px] text-slate-500 uppercase font-medium mb-1">Current</p>
-                              <p className="text-xl font-bold text-slate-400">{wsiScoreHeader}</p>
+                              <p className="text-xl font-bold text-slate-500">{wsiScoreHeader}</p>
                             </div>
                             <div className="bg-slate-800 rounded p-2 text-center">
                               <p className="text-[9px] text-slate-300 uppercase font-medium mb-1">Projected</p>
@@ -12746,7 +12748,7 @@ export default function ExportReportPage() {
                                               <span className="text-sm text-slate-600">{item.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
-                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              {bench !== null && <span className="text-[10px] text-slate-500">{bench}%</span>}
                                               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
                                                 {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
                                               </span>
@@ -12758,11 +12760,11 @@ export default function ExportReportPage() {
                                         <p className="text-xs text-slate-500 font-medium mt-1">Show {accelerateItems.length - 3} more accelerated elements</p>
                                       )}
                                       {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                        <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                       )}
                                     </div>
                                   ) : (
-                                    <p className="text-sm text-slate-400 italic">No in-flight elements</p>
+                                    <p className="text-sm text-slate-500 italic">No in-flight elements</p>
                                   )}
                                 </div>
                                 
@@ -12785,7 +12787,7 @@ export default function ExportReportPage() {
                                               <span className="text-sm text-slate-600">{item.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
-                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              {bench !== null && <span className="text-[10px] text-slate-500">{bench}%</span>}
                                               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
                                                 {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
                                               </span>
@@ -12797,11 +12799,11 @@ export default function ExportReportPage() {
                                         <p className="text-xs text-slate-500 font-medium mt-1">Show {buildItems.length - 3} more build elements</p>
                                       )}
                                       {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                        <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                       )}
                                     </div>
                                   ) : (
-                                    <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
+                                    <p className="text-sm text-slate-500 italic">Focus on accelerating</p>
                                   )}
                                 </div>
                                 
@@ -12810,11 +12812,11 @@ export default function ExportReportPage() {
                                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-center gap-3">
-                                      <span className="text-4xl font-bold text-slate-400">{r.currentScore}</span>
+                                      <span className="text-4xl font-bold text-slate-500">{r.currentScore}</span>
                                       <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                       <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
                                     </div>
-                                    <p className="text-xs text-slate-400 text-center">Current → Projected</p>
+                                    <p className="text-xs text-slate-500 text-center">Current → Projected</p>
                                     <div className="text-center pt-2 mt-2 border-t border-slate-100">
                                       <span className="text-sm font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
                                     </div>
@@ -12826,7 +12828,7 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
-                      <p className="text-xs text-slate-400 mt-3 text-center">Continued on next slide...</p>
+                      <p className="text-xs text-slate-500 mt-3 text-center">Continued on next slide...</p>
                     </div>
                   </div>
                   );
@@ -12925,7 +12927,7 @@ export default function ExportReportPage() {
                                               <span className="text-sm text-slate-600">{item.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
-                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              {bench !== null && <span className="text-[10px] text-slate-500">{bench}%</span>}
                                               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-slate-600 text-white' : 'bg-amber-100 text-amber-700'}`}>
                                                 {item.to === 'In Place' ? 'Implement' : 'Active Planning'}
                                               </span>
@@ -12937,11 +12939,11 @@ export default function ExportReportPage() {
                                         <p className="text-xs text-slate-500 font-medium mt-1">Show {accelerateItems.length - 3} more accelerated elements</p>
                                       )}
                                       {accelerateItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                        <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                       )}
                                     </div>
                                   ) : (
-                                    <p className="text-sm text-slate-400 italic">No in-flight elements</p>
+                                    <p className="text-sm text-slate-500 italic">No in-flight elements</p>
                                   )}
                                 </div>
                                 
@@ -12964,7 +12966,7 @@ export default function ExportReportPage() {
                                               <span className="text-sm text-slate-600">{item.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
-                                              {bench !== null && <span className="text-[10px] text-slate-400">{bench}%</span>}
+                                              {bench !== null && <span className="text-[10px] text-slate-500">{bench}%</span>}
                                               <span className={`px-1.5 py-0.5 text-[10px] font-medium rounded ${item.to === 'In Place' ? 'bg-indigo-600 text-white' : 'bg-violet-100 text-violet-700'}`}>
                                                 {item.to === 'In Place' ? 'Stand Up' : 'Design + Scope'}
                                               </span>
@@ -12976,11 +12978,11 @@ export default function ExportReportPage() {
                                         <p className="text-xs text-slate-500 font-medium mt-1">Show {buildItems.length - 3} more build elements</p>
                                       )}
                                       {buildItems.some(item => getElementBenchmark(r.dimNum, item.name) !== null) && (
-                                        <p className="text-[9px] text-slate-400 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
+                                        <p className="text-[9px] text-slate-500 mt-3 pt-2 border-t border-slate-100">Benchmark % = percent of participating organizations offering this today</p>
                                       )}
                                     </div>
                                   ) : (
-                                    <p className="text-sm text-slate-400 italic">Focus on accelerating</p>
+                                    <p className="text-sm text-slate-500 italic">Focus on accelerating</p>
                                   )}
                                 </div>
                                 
@@ -12989,11 +12991,11 @@ export default function ExportReportPage() {
                                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide text-center mb-3">Dimension Score</p>
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-center gap-3">
-                                      <span className="text-4xl font-bold text-slate-400">{r.currentScore}</span>
+                                      <span className="text-4xl font-bold text-slate-500">{r.currentScore}</span>
                                       <svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                                       <span className="text-4xl font-bold text-slate-800">{r.projectedScore12}</span>
                                     </div>
-                                    <p className="text-xs text-slate-400 text-center">Current → Projected</p>
+                                    <p className="text-xs text-slate-500 text-center">Current → Projected</p>
                                     <div className="text-center pt-2 mt-2 border-t border-slate-100">
                                       <span className="text-sm font-semibold text-slate-500">Δ +{r.dimPotentialGain12}</span>
                                     </div>
@@ -13005,7 +13007,7 @@ export default function ExportReportPage() {
                           );
                         })}
                       </div>
-                      <p className="text-xs text-slate-400 mt-4 text-center">Projections assume sustained execution; actual results vary based on feasibility.</p>
+                      <p className="text-xs text-slate-500 mt-4 text-center">Projections assume sustained execution; actual results vary based on feasibility.</p>
                     </div>
                   </div>
                   );
@@ -13102,7 +13104,7 @@ export default function ExportReportPage() {
                                 ))}
                               </ul>
                             ) : (
-                              <p className="text-sm text-slate-400">Focus on completing planned initiatives</p>
+                              <p className="text-sm text-slate-500">Focus on completing planned initiatives</p>
                             )}
                           </div>
                         ))}
@@ -13183,7 +13185,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <h3 className="font-bold text-white text-2xl tracking-tight">Strategic Recommendations</h3>
-                              <p className="text-slate-400 text-sm mt-0.5">From diagnosis to action in four priority dimensions</p>
+                              <p className="text-slate-500 text-sm mt-0.5">From diagnosis to action in four priority dimensions</p>
                             </div>
                           </div>
                           
@@ -13294,7 +13296,7 @@ export default function ExportReportPage() {
                                       <div className="text-xs text-slate-500 font-medium">Weight</div>
                                       <div className="flex items-end gap-0.5">
                                         <span className="text-lg font-bold text-slate-700">{d.weight}</span>
-                                        <span className="text-xs text-slate-400 mb-0.5">%</span>
+                                        <span className="text-xs text-slate-500 mb-0.5">%</span>
                                       </div>
                                     </div>
                                   </div>
@@ -13337,7 +13339,7 @@ export default function ExportReportPage() {
                                       <div className="text-xs text-slate-500 font-medium">Score</div>
                                       <div className="flex items-end gap-0.5">
                                         <span className="text-lg font-bold text-slate-600">{d.score}</span>
-                                        <span className="text-xs text-slate-400 mb-0.5">/100</span>
+                                        <span className="text-xs text-slate-500 mb-0.5">/100</span>
                                       </div>
                                     </div>
                                     <div className="bg-slate-700 rounded-md p-2">
@@ -13431,7 +13433,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-2xl tracking-tight">From Insight to Action</h3>
-                            <p className="text-slate-400 text-sm">A practical framework to move from diagnosis to ownership</p>
+                            <p className="text-slate-500 text-sm">A practical framework to move from diagnosis to ownership</p>
                           </div>
                         </div>
                       </div>
@@ -13500,7 +13502,7 @@ export default function ExportReportPage() {
                               <path d="M12 8v8M8 12h8" strokeLinecap="round" />
                             </svg>
                           </div>
-                          <p className="text-slate-400 text-sm">
+                          <p className="text-slate-500 text-sm">
                             <span className="text-violet-300 font-medium">Need deeper analysis on another dimension?</span> Use the "Analyze Another Dimension" button at the bottom of this section to add any dimension to this strategic review.
                           </p>
                         </div>
@@ -13582,7 +13584,7 @@ export default function ExportReportPage() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400">No gaps identified</p>}
+                              ) : <p className="text-xs text-slate-500">No gaps identified</p>}
                             </div>
                           </div>
                           
@@ -13606,7 +13608,7 @@ export default function ExportReportPage() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400">No initiatives in planning</p>}
+                              ) : <p className="text-xs text-slate-500">No initiatives in planning</p>}
                             </div>
                           </div>
                           
@@ -13632,7 +13634,7 @@ export default function ExportReportPage() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400">Building toward strengths</p>}
+                              ) : <p className="text-xs text-slate-500">Building toward strengths</p>}
                             </div>
                           </div>
                         </div>
@@ -13801,7 +13803,7 @@ export default function ExportReportPage() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400">No gaps identified</p>}
+                              ) : <p className="text-xs text-slate-500">No gaps identified</p>}
                             </div>
                           </div>
                           <div className="border-2 border-violet-200 rounded-xl overflow-hidden bg-white">
@@ -13823,7 +13825,7 @@ export default function ExportReportPage() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400">No initiatives in development</p>}
+                              ) : <p className="text-xs text-slate-500">No initiatives in development</p>}
                             </div>
                           </div>
                           <div className="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
@@ -13847,7 +13849,7 @@ export default function ExportReportPage() {
                                     </li>
                                   ))}
                                 </ul>
-                              ) : <p className="text-xs text-slate-400">No strengths identified</p>}
+                              ) : <p className="text-xs text-slate-500">No strengths identified</p>}
                             </div>
                           </div>
                         </div>
@@ -13953,7 +13955,7 @@ export default function ExportReportPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
-                          <p className="text-slate-400 mt-1">Your phased approach to strengthen workplace cancer support</p>
+                          <p className="text-slate-500 mt-1">Your phased approach to strengthen workplace cancer support</p>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2 px-4 py-2 bg-violet-500 text-white text-sm font-medium rounded-lg">
@@ -13986,7 +13988,7 @@ export default function ExportReportPage() {
                           <div className="p-5">
                             <div className="flex items-center gap-2 mb-4">
                               <span className="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded">ACCELERATE</span>
-                              <span className="text-xs text-slate-400">Items in progress</span>
+                              <span className="text-xs text-slate-500">Items in progress</span>
                             </div>
                             <ul className="space-y-3">
                               {(customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.map((name: string) => ({ name, dimNum: null })) : quickWinItems).slice(0, 5).map((item: any, idx: number) => (
@@ -13996,7 +13998,7 @@ export default function ExportReportPage() {
                                   </span>
                                   <div>
                                     <p className="text-sm text-slate-700">{item.name}</p>
-                                    {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                    {item.dimNum && <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
                                   </div>
                                 </li>
                               ))}
@@ -14020,7 +14022,7 @@ export default function ExportReportPage() {
                           <div className="p-5">
                             <div className="flex items-center gap-2 mb-4">
                               <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">BUILD</span>
-                              <span className="text-xs text-slate-400">High-weight gaps</span>
+                              <span className="text-xs text-slate-500">High-weight gaps</span>
                             </div>
                             <ul className="space-y-3">
                               {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string) => ({ name, dimNum: null })) : foundationItems).slice(0, 5).map((item: any, idx: number) => (
@@ -14030,7 +14032,7 @@ export default function ExportReportPage() {
                                   </span>
                                   <div>
                                     <p className="text-sm text-slate-700">{item.name}</p>
-                                    {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                    {item.dimNum && <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
                                   </div>
                                 </li>
                               ))}
@@ -14054,7 +14056,7 @@ export default function ExportReportPage() {
                           <div className="p-5">
                             <div className="flex items-center gap-2 mb-4">
                               <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded">OPTIMIZE</span>
-                              <span className="text-xs text-slate-400">Comprehensive coverage</span>
+                              <span className="text-xs text-slate-500">Comprehensive coverage</span>
                             </div>
                             <ul className="space-y-3">
                               {(customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.map((name: string) => ({ name, dimNum: null })) : excellenceItems).slice(0, 5).map((item: any, idx: number) => (
@@ -14064,7 +14066,7 @@ export default function ExportReportPage() {
                                   </span>
                                   <div>
                                     <p className="text-sm text-slate-700">{item.name}</p>
-                                    {item.dimNum && <p className="text-xs text-slate-400 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
+                                    {item.dimNum && <p className="text-xs text-slate-500 mt-0.5">D{item.dimNum}: {DIMENSION_SHORT_NAMES[item.dimNum]}</p>}
                                   </div>
                                 </li>
                               ))}
@@ -14076,8 +14078,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 34: Working with Cancer Pledge */}
-                {currentSlide === 34 + additionalAnalyzedDims.length && (
+                {/* Slide 34: Working with Cancer Pledge - hidden, will likely bring back */}
+                {false && currentSlide === 34 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header - Clean white/cream with logo */}
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
@@ -14247,7 +14249,7 @@ export default function ExportReportPage() {
                     {/* Footer */}
                     <div className="px-12 py-4 text-center" style={{ backgroundColor: '#434345' }}>
                       <p className="text-sm"><strong className="text-white">The Pledge signals intent.</strong> <span className="mx-2 text-slate-500">•</span> <strong style={{ color: '#ff353c' }}>This Index measures execution.</strong> <span className="mx-2 text-slate-500">•</span> <span className="text-slate-300">Together, they demonstrate genuine commitment.</span></p>
-                      <p className="text-xs mt-1.5 text-slate-400">To learn more about the Working with Cancer Pledge, visit <a href="https://workingwithcancerpledge.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300 hover:text-white">workingwithcancerpledge.com</a></p>
+                      <p className="text-xs mt-1.5 text-slate-500">To learn more about the Working with Cancer Pledge, visit <a href="https://workingwithcancerpledge.com" target="_blank" rel="noopener noreferrer" className="underline text-slate-300 hover:text-white">workingwithcancerpledge.com</a></p>
                     </div>
                   </div>
                 )}
@@ -14325,12 +14327,12 @@ export default function ExportReportPage() {
                         <div className="relative flex items-center justify-between">
                           <div>
                             <p className="font-bold text-white text-xl">Ready to take the next step?</p>
-                            <p className="text-slate-400 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                            <p className="text-slate-500 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-right">
                               <p className="font-bold text-[#F37021] text-lg">cancerandcareers.org</p>
-                              <p className="text-slate-400 mt-1">cacbestcompanies@cew.org</p>
+                              <p className="text-slate-500 mt-1">cacbestcompanies@cew.org</p>
                             </div>
                             <div className="w-12 h-12 rounded-xl bg-[#F37021] flex items-center justify-center">
                               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
@@ -14357,19 +14359,19 @@ export default function ExportReportPage() {
                             <p className="text-2xl font-bold text-white">{wsiScoreHeader}</p>
                             <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-1">Composite</p>
                           </div>
-                          <span className="text-xl text-slate-400 font-light">=</span>
+                          <span className="text-xl text-slate-500 font-light">=</span>
                           <div className="text-center px-4 py-2.5 bg-white rounded-xl border-2 border-slate-200 min-w-[90px]">
                             <p className="text-xl font-bold text-slate-700">{_wsiWeightedDim}</p>
                             <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
-                            <p className="text-xs text-slate-400">× 90%</p>
+                            <p className="text-xs text-slate-500">× 90%</p>
                           </div>
-                          <span className="text-lg text-slate-400 font-light">+</span>
+                          <span className="text-lg text-slate-500 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[90px]">
                             <p className="text-xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
                             <p className="text-xs text-amber-600 mt-1">Maturity</p>
                             <p className="text-xs text-amber-500">× 5%</p>
                           </div>
-                          <span className="text-lg text-slate-400 font-light">+</span>
+                          <span className="text-lg text-slate-500 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[90px]">
                             <p className="text-xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
                             <p className="text-xs text-violet-600 mt-1">Breadth</p>
@@ -14396,22 +14398,22 @@ export default function ExportReportPage() {
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#047857' }}></span>
                               <span style={{ color: '#047857' }} className="font-medium">Leading</span>
-                              <span className="text-slate-400 text-xs">80+ points</span>
+                              <span className="text-slate-500 text-xs">80+ points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#1D4ED8' }}></span>
                               <span style={{ color: '#1D4ED8' }} className="font-medium">Advancing</span>
-                              <span className="text-slate-400 text-xs">64-79 points</span>
+                              <span className="text-slate-500 text-xs">64-79 points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B45309' }}></span>
                               <span style={{ color: '#B45309' }} className="font-medium">Accelerating</span>
-                              <span className="text-slate-400 text-xs">50-63 points</span>
+                              <span className="text-slate-500 text-xs">50-63 points</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full" style={{ backgroundColor: '#B91C1C' }}></span>
                               <span style={{ color: '#B91C1C' }} className="font-medium">Building</span>
-                              <span className="text-slate-400 text-xs">&lt;50 points</span>
+                              <span className="text-slate-500 text-xs">&lt;50 points</span>
                             </div>
                           </div>
                         </div>
@@ -14424,15 +14426,15 @@ export default function ExportReportPage() {
                         <Image src="/cancer-careers-logo.png" alt="Cancer and Careers" width={120} height={40} className="object-contain" />
                         <div className="text-center">
                           <p className="font-semibold text-slate-600 text-sm">CONFIDENTIAL</p>
-                          <p className="text-slate-400 text-xs">Survey ID: {surveyId}</p>
+                          <p className="text-slate-500 text-xs">Survey ID: {surveyId}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-slate-400 text-xs">Powered by:</span>
+                          <span className="text-slate-500 text-xs">Powered by:</span>
                           <Image src="/BI_LOGO_FINAL.png" alt="BEYOND Insights" width={100} height={30} className="object-contain" />
                         </div>
                       </div>
                       <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-slate-400 text-xs">2026 Best Companies for Working with Cancer Index™</p>
+                        <p className="text-slate-500 text-xs">2026 Best Companies for Working with Cancer Index™</p>
                       </div>
                     </div>
                   </div>
@@ -14471,15 +14473,15 @@ export default function ExportReportPage() {
                         <div className="grid grid-cols-3 gap-6 max-w-3xl w-full mb-8">
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                             <p className="text-3xl font-bold text-[#F37021]">{wsiScoreHeader}</p>
-                            <p className="text-slate-400 text-sm mt-1">Your Score</p>
+                            <p className="text-slate-500 text-sm mt-1">Your Score</p>
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                             <p className="text-3xl font-bold text-emerald-400">{strengthDimensions?.length ?? '--'}</p>
-                            <p className="text-slate-400 text-sm mt-1">Strong Dimensions</p>
+                            <p className="text-slate-500 text-sm mt-1">Strong Dimensions</p>
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                             <p className="text-3xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
-                            <p className="text-slate-400 text-sm mt-1">Initiatives In Progress</p>
+                            <p className="text-slate-500 text-sm mt-1">Initiatives In Progress</p>
                           </div>
                         </div>
                         
@@ -14490,12 +14492,12 @@ export default function ExportReportPage() {
                           <div className="flex items-center justify-center gap-6">
                             <div className="text-center">
                               <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
-                              <p className="text-slate-400 text-sm">Email Us</p>
+                              <p className="text-slate-500 text-sm">Email Us</p>
                             </div>
                             <div className="w-px h-12 bg-white/20"></div>
                             <div className="text-center">
                               <p className="text-white font-bold text-lg">cancerandcareers.org</p>
-                              <p className="text-slate-400 text-sm">Visit Our Site</p>
+                              <p className="text-slate-500 text-sm">Visit Our Site</p>
                             </div>
                           </div>
                         </div>
@@ -14522,7 +14524,7 @@ export default function ExportReportPage() {
                     return (
                       <>
                         <span className="font-bold">{posInEnabled > 0 ? posInEnabled : '?'}</span>
-                        <span className="text-slate-400"> / {enabledSlides.size}</span>
+                        <span className="text-slate-500"> / {enabledSlides.size}</span>
                       </>
                     );
                   })()}
@@ -14666,7 +14668,7 @@ export default function ExportReportPage() {
                 <div className="bg-white rounded-xl p-6 max-w-2xl w-full shadow-2xl max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-800">Keyboard Shortcuts</h3>
-                    <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-400 hover:text-slate-600">
+                    <button onClick={() => setShowKeyboardHelp(false)} className="text-slate-500 hover:text-slate-600">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
@@ -14681,7 +14683,7 @@ export default function ExportReportPage() {
                     <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 gap-y-1.5 items-center">
                       
                       {/* Navigation Section Header */}
-                      <div className="col-span-3 text-xs font-semibold text-slate-400 uppercase tracking-wider pt-1">Navigation</div>
+                      <div className="col-span-3 text-xs font-semibold text-slate-500 uppercase tracking-wider pt-1">Navigation</div>
                       
                       <span className="text-slate-600">Next slide</span>
                       <div className="flex gap-1 justify-center">
@@ -14713,7 +14715,7 @@ export default function ExportReportPage() {
                       </div>
                       <div className="flex gap-1 justify-center">
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn ←</kbd>
-                        <span className="text-slate-400 text-[10px]">or</span>
+                        <span className="text-slate-500 text-[10px]">or</span>
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">⌘ ↑</kbd>
                       </div>
                       
@@ -14723,7 +14725,7 @@ export default function ExportReportPage() {
                       </div>
                       <div className="flex gap-1 justify-center">
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">Fn →</kbd>
-                        <span className="text-slate-400 text-[10px]">or</span>
+                        <span className="text-slate-500 text-[10px]">or</span>
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">⌘ ↓</kbd>
                       </div>
                       
@@ -14739,7 +14741,7 @@ export default function ExportReportPage() {
                       <div className="col-span-3 border-t border-slate-100 my-1"></div>
                       
                       {/* View Controls Section Header */}
-                      <div className="col-span-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">View Controls</div>
+                      <div className="col-span-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">View Controls</div>
                       
                       <span className="text-slate-600">Zoom in / out</span>
                       <div className="flex gap-1 justify-center">
@@ -14794,7 +14796,7 @@ export default function ExportReportPage() {
                     
                     {/* Toolbar Guide */}
                     <div className="mt-5 pt-5 border-t border-slate-200">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Toolbar Controls</p>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Toolbar Controls</p>
                       <div className="bg-slate-800 rounded-xl p-4">
                         <div className="space-y-3">
                           {/* Slides */}
@@ -14803,17 +14805,17 @@ export default function ExportReportPage() {
                               <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
                               <span className="text-sm text-slate-300">Slides</span>
                             </div>
-                            <span className="text-sm text-slate-400">Opens slide navigator to jump to any slide</span>
+                            <span className="text-sm text-slate-500">Opens slide navigator to jump to any slide</span>
                           </div>
                           
                           {/* Zoom */}
                           <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1 bg-slate-700 rounded-lg px-3 py-1.5 w-28 justify-center">
-                              <span className="text-slate-400 text-sm">−</span>
+                              <span className="text-slate-500 text-sm">−</span>
                               <span className="text-sm text-slate-200 px-1">100%</span>
-                              <span className="text-slate-400 text-sm">+</span>
+                              <span className="text-slate-500 text-sm">+</span>
                             </div>
-                            <span className="text-sm text-slate-400">Adjust zoom level (use + / - keys)</span>
+                            <span className="text-sm text-slate-500">Adjust zoom level (use + / - keys)</span>
                           </div>
                           
                           {/* Laser */}
@@ -14823,7 +14825,7 @@ export default function ExportReportPage() {
                                 <span className="text-red-400 text-lg">✳</span>
                               </div>
                             </div>
-                            <span className="text-sm text-slate-400">Laser pointer for highlighting content (press L)</span>
+                            <span className="text-sm text-slate-500">Laser pointer for highlighting content (press L)</span>
                           </div>
                           
                           {/* Navigation */}
@@ -14832,7 +14834,7 @@ export default function ExportReportPage() {
                               <span className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">Previous</span>
                               <span className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">Next</span>
                             </div>
-                            <span className="text-sm text-slate-400">Navigate between slides (arrow keys or buttons)</span>
+                            <span className="text-sm text-slate-500">Navigate between slides (arrow keys or buttons)</span>
                           </div>
                           
                           {/* Presenter Notes */}
@@ -14844,7 +14846,7 @@ export default function ExportReportPage() {
                                 </svg>
                               </div>
                             </div>
-                            <span className="text-sm text-slate-400">Opens presenter notes in a separate window</span>
+                            <span className="text-sm text-slate-500">Opens presenter notes in a separate window</span>
                           </div>
                           
                           {/* Help */}
@@ -14854,7 +14856,7 @@ export default function ExportReportPage() {
                                 <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               </div>
                             </div>
-                            <span className="text-sm text-slate-400">Shows this keyboard shortcuts help (press ?)</span>
+                            <span className="text-sm text-slate-500">Shows this keyboard shortcuts help (press ?)</span>
                           </div>
                           
                           {/* Fullscreen */}
@@ -14864,7 +14866,7 @@ export default function ExportReportPage() {
                                 <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
                               </div>
                             </div>
-                            <span className="text-sm text-slate-400">Toggle fullscreen mode (press F)</span>
+                            <span className="text-sm text-slate-500">Toggle fullscreen mode (press F)</span>
                           </div>
                           
                           {/* Exit */}
@@ -14872,7 +14874,7 @@ export default function ExportReportPage() {
                             <div className="w-28 flex justify-center">
                               <span className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-semibold">Exit</span>
                             </div>
-                            <span className="text-sm text-slate-400">Exit presentation mode (press Esc)</span>
+                            <span className="text-sm text-slate-500">Exit presentation mode (press Esc)</span>
                           </div>
                         </div>
                       </div>
@@ -14892,7 +14894,7 @@ export default function ExportReportPage() {
                     </svg>
                     <span className="text-amber-400 text-sm font-bold uppercase tracking-wider">Presenter Notes</span>
                   </div>
-                  <button onClick={() => setShowPresenterNotes(false)} className="text-slate-400 hover:text-white">
+                  <button onClick={() => setShowPresenterNotes(false)} className="text-slate-500 hover:text-white">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
@@ -15101,6 +15103,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
+                  {/* Commented out - will likely bring back
                   {currentSlide === 34 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Working with Cancer Pledge:</strong></p>
@@ -15112,6 +15115,7 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
+                  */}
                   {currentSlide === 35 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>How CAC can help:</strong></p>
@@ -15153,7 +15157,7 @@ export default function ExportReportPage() {
                 <div className="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-slate-800">Go to Slide</h3>
-                    <button onClick={() => setShowSlideNav(false)} className="text-slate-400 hover:text-slate-600">
+                    <button onClick={() => setShowSlideNav(false)} className="text-slate-500 hover:text-slate-600">
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
@@ -15186,7 +15190,7 @@ export default function ExportReportPage() {
                            i === 32 ? 'Impact-Ranked Priorities (4-5)' :
                            i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
                            i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
-                           i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' :
+                           // i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' : // Commented out - will likely bring back
                            i === 35 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
                            i === 36 + additionalAnalyzedDims.length ? 'Thank You' :
                            i === 37 + additionalAnalyzedDims.length ? 'Methodology' :
