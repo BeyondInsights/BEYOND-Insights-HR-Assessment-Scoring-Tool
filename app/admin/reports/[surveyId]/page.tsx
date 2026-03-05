@@ -74,7 +74,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
             <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: pg.color }}>{d.dim}</span></div>
             <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
             <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
-            <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
+            <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#334155' }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
             <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
             <div className="w-28 flex justify-center"><span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`} style={{ color: pg.color }}>{pg.chip}</span></div>
@@ -6707,7 +6707,7 @@ export default function ExportReportPage() {
                         <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
                           <div
                             className="absolute left-0 top-0 h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }}
+                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#334155' }}
                           />
                           {d.benchmark !== null && (
                             <div
@@ -11751,7 +11751,7 @@ export default function ExportReportPage() {
                               <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
                                 <div
                                   className="absolute left-0 top-0 h-full rounded-full transition-all"
-                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }}
+                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#334155' }}
                                 />
                                 {d.benchmark !== null && (
                                   <div
