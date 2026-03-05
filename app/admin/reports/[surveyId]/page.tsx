@@ -8159,8 +8159,8 @@ export default function ExportReportPage() {
                     key: 'excellence' as const,
                     label: 'Areas of Excellence',
                     desc: 'dimensions at Leading or above',
-                    color: '#0891B2',
-                    lightBg: '#ecfeff',
+                    color: '#0369A1',
+                    lightBg: '#f0f9ff',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>,
                     count: strengthDimensions.length
                   },
@@ -8214,6 +8214,7 @@ export default function ExportReportPage() {
                   );
                 })}
               </div>
+              <p className="text-center text-sm text-slate-400 mb-2">Select a tab above to explore your results</p>
             </div>
 
             {/* Tab content */}
@@ -8221,6 +8222,7 @@ export default function ExportReportPage() {
               {/* ---- Excellence tab ---- */}
               {activeReportTab === 'excellence' && (
                 <div id="areas-of-excellence">
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">Areas of Excellence</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
                   {strengthDimensions.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
@@ -8263,6 +8265,7 @@ export default function ExportReportPage() {
               {/* ---- Initiatives tab ---- */}
               {activeReportTab === 'initiatives' && (
                 <div id="initiatives-in-progress">
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in planning or under consideration <span className="text-slate-400 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
@@ -8297,6 +8300,7 @@ export default function ExportReportPage() {
               {/* ---- Growth tab ---- */}
               {activeReportTab === 'growth' && (
                 <div id="growth-opportunities">
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">Areas for Growth</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-400 font-normal">· Click any dimension for full details</span></p>
                   <div className="grid grid-cols-2 gap-5">
                     {growthDimensions.slice(0, 6).map((d) => {
