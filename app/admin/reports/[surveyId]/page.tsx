@@ -686,7 +686,7 @@ function getTwoStepRoadmap(
   let quickWin = null;
   if (allItems.length > 0) {
     const item = allItems[0];
-    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity. Already in development' : `${item.pct}% of peers offer this`;
+    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity. Already in development' : `${item.pct}% of participating organizations offer this`;
     quickWin = { name: item.name, reason: `${label}; ${item.pct}% of participating organizations offer this` };
   }
 
@@ -725,7 +725,7 @@ function getDynamicInsight(
   const benchDiff = benchmark !== null ? score - benchmark : 0;
   const isAboveBenchmark = benchDiff > 0;
   const benchDescriptor = benchmark !== null
-    ? (benchDiff >= 8 ? 'a clear leader' : benchDiff >= 2 ? 'ahead of peers' : benchDiff >= -1 ? 'in line with peers' : 'behind peers')
+    ? (benchDiff >= 8 ? 'a clear leader' : benchDiff >= 2 ? 'ahead of participating organizations' : benchDiff >= -1 ? 'in line with participating organizations' : 'behind participating organizations')
     : null;
   const gapCount = gaps.length;
   const strengthCount = strengths.length;
@@ -940,14 +940,14 @@ function getDynamicInsight(
 
     // Signature Strength (peer adoption < 35%)
     if (evidence!.topStrength && evidence!.topStrength.benchPct < 35) {
-      clauses.push(`Your signature strength is ${evidence!.topStrength.name}. Only ${evidence!.topStrength.benchPct}% of peers offer this.`);
+      clauses.push(`Your signature strength is ${evidence!.topStrength.name}. Only ${evidence!.topStrength.benchPct}% of participating organizations offer this.`);
     } else if (strengthCount > 0) {
       clauses.push(`${strengthCount} element${strengthCount > 1 ? 's' : ''} fully in place.`);
     }
 
     // Table Stakes Gap (peer adoption > 60%)
     if (evidence!.biggestGap && evidence!.biggestGap.benchPct > 60) {
-      clauses.push(`${evidence!.biggestGap.name} is a table-stakes gap. ${evidence!.biggestGap.benchPct}% of peers already have this in place.`);
+      clauses.push(`${evidence!.biggestGap.name} is a table-stakes gap. ${evidence!.biggestGap.benchPct}% of participating organizations already have this in place.`);
     } else if (gapCount > 0) {
       clauses.push(`${gapCount} gap${gapCount > 1 ? 's' : ''} identified for improvement.`);
     }
@@ -990,7 +990,7 @@ function calculateElementLift(dimNum: number, elementName: string): number {
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  const descriptor = diff >= 8 ? 'a clear leader' : diff >= 2 ? 'ahead of peers' : diff >= -1 ? 'in line with peers' : 'behind peers';
+  const descriptor = diff >= 8 ? 'a clear leader' : diff >= 2 ? 'ahead of participating organizations' : diff >= -1 ? 'in line with participating organizations' : 'behind participating organizations';
   if (diff >= 8) return `At ${score}, ${descriptor} in ${dimName}. ${diff} points above the ${benchmark} average. A genuine differentiator.`;
   if (diff >= 2) return `At ${score}, ${descriptor} in ${dimName} (benchmark: ${benchmark}). Room to widen the lead.`;
   if (diff >= -1) return `At ${score}, ${descriptor} in ${dimName} (benchmark: ${benchmark}). An opportunity to differentiate.`;
@@ -4410,7 +4410,7 @@ export default function ExportReportPage() {
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
     { id: 'areas-of-excellence', label: 'Areas of Excellence', iconKey: 'excellence' },
-    { id: 'initiatives-in-progress', label: 'Initiatives in Progress', iconKey: 'progress' },
+    { id: 'initiatives-in-progress', label: 'Initiatives In Development or Under Review', iconKey: 'progress' },
     { id: 'growth-opportunities', label: 'Growth Opportunities', iconKey: 'growth' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
     { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', iconKey: 'impact' },
@@ -5409,7 +5409,7 @@ export default function ExportReportPage() {
                           { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
                           { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
                           { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Interactive Performance Matrix clarifies which gaps are most consequential.' },
-                          { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
+                          { id: 'inprogress', name: 'Initiatives In Development or Under Review', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
                           { id: 'whatif', name: 'What-If Scenario Builder', color: 'bg-teal-600', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'Projections of how advancing specific elements could shift future dimension and composite scores.', fits: 'Decision support. Compare investment paths, build internal alignment, and translate priorities into a realistic, staged roadmap.' },
                           { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-800', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Two to four integrated moves that synthesize the full story, anchored in your priority gaps, informed by cross-dimensional patterns, and sequenced with work already in motion.', fits: 'The sponsor-ready agenda. A coherent plan leadership can own, fund, and execute.' },
                           { id: 'roadmap', name: 'Implementation Roadmap', color: 'bg-purple-600', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2', measures: 'A phased timeline that sequences quick wins, foundational capabilities, and longer-term initiatives into an executable plan.', fits: 'Turns priorities into action. Assigns owners, sets milestones, and creates accountability for progress.' },
@@ -6771,10 +6771,10 @@ export default function ExportReportPage() {
                 *{EMPLOYEE_PRIORITY_FOOTNOTE}
               </p>
               <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100">
-                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Support Level:</span>
-                <div className="flex items-center gap-1.5"><CoreSupportIcon size={14} color="#047857" /><span className="text-xs text-slate-600 font-medium">Core</span></div>
-                <div className="flex items-center gap-1.5"><EnhancedSupportIcon size={14} color="#B45309" /><span className="text-xs text-slate-600 font-medium">Enhanced</span></div>
-                <div className="flex items-center gap-1.5"><AdvancedSupportIcon size={14} color="#7C3AED" /><span className="text-xs text-slate-600 font-medium">Advanced</span></div>
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Employee Priority:</span>
+                <div className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded" style={{ backgroundColor: '#7C3AED' }}></span><span className="text-xs text-slate-600 font-medium">Most Critical</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded" style={{ backgroundColor: '#D97706' }}></span><span className="text-xs text-slate-600 font-medium">Highly Important</span></div>
+                <div className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 rounded" style={{ backgroundColor: '#475569' }}></span><span className="text-xs text-slate-600 font-medium">Important</span></div>
               </div>
             </div>
           </div>
@@ -8175,7 +8175,7 @@ export default function ExportReportPage() {
                   },
                   {
                     key: 'initiatives' as const,
-                    label: 'Initiatives in Progress',
+                    label: 'Initiatives In Development or Under Review',
                     desc: 'in planning or under consideration',
                     color: '#7C3AED',
                     lightBg: '#f5f3ff',
@@ -8184,7 +8184,7 @@ export default function ExportReportPage() {
                   },
                   {
                     key: 'growth' as const,
-                    label: 'Areas of Growth',
+                    label: 'Areas for Growth',
                     desc: 'dimensions with growth potential',
                     color: '#DC2626',
                     lightBg: '#fef2f2',
@@ -8274,7 +8274,7 @@ export default function ExportReportPage() {
               {/* ---- Initiatives tab ---- */}
               {activeReportTab === 'initiatives' && (
                 <div id="initiatives-in-progress">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives In Development or Under Review</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in planning or under consideration <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
@@ -8300,7 +8300,7 @@ export default function ExportReportPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-slate-500">No initiatives currently in progress.</p>
+                      <p className="text-slate-500">No initiatives currently in development or under review.</p>
                     </div>
                   )}
                 </div>
@@ -8860,7 +8860,7 @@ export default function ExportReportPage() {
                                       <p className="text-base text-slate-700">
                                         <span className="font-semibold text-teal-700">{evidence.topStrength.name}</span>
                                         <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
-                                        <span className="text-slate-500 ml-1">({evidence.topStrength.benchPct}% of peers)</span>
+                                        <span className="text-slate-500 ml-1">({evidence.topStrength.benchPct}% of participating organizations)</span>
                                       </p>
                                     </div>
                                   );
@@ -8876,7 +8876,7 @@ export default function ExportReportPage() {
                                       <p className="text-base text-slate-700">
                                         <span className="font-semibold text-red-700">{evidence.biggestGap.name}</span>
                                         <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
-                                        <span className="text-slate-500 ml-1">({evidence.biggestGap.benchPct}% of peers)</span>
+                                        <span className="text-slate-500 ml-1">({evidence.biggestGap.benchPct}% of participating organizations)</span>
                                       </p>
                                     </div>
                                   );
@@ -8892,7 +8892,7 @@ export default function ExportReportPage() {
                                       <p className="text-base text-slate-700">
                                         <span className="font-semibold text-blue-700">{evidence.inFlight.name}</span>
                                         <span className="ml-2 inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{cls}</span>
-                                        <span className="text-slate-500 ml-1">({evidence.inFlight.benchPct}% of peers)</span>
+                                        <span className="text-slate-500 ml-1">({evidence.inFlight.benchPct}% of participating organizations)</span>
                                       </p>
                                     </div>
                                   );
@@ -10312,9 +10312,9 @@ export default function ExportReportPage() {
               const phrase = dimGapPhrase[d.dim] || d.name;
               if (d.benchmark != null) {
                 const diff = d.score - d.benchmark;
-                if (diff <= -10) return `${phrase} (${Math.abs(diff)} points behind peers)`;
-                if (diff <= -3) return `${phrase} (behind peers)`;
-                if (diff >= 3) return `${phrase} (ahead of peers but below potential)`;
+                if (diff <= -10) return `${phrase} (${Math.abs(diff)} points behind participating organizations)`;
+                if (diff <= -3) return `${phrase} (behind participating organizations)`;
+                if (diff >= 3) return `${phrase} (ahead of participating organizations but below potential)`;
               }
               return phrase;
             };
@@ -10926,7 +10926,7 @@ export default function ExportReportPage() {
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
-                  <p className="text-slate-500 text-sm mt-2">Initiatives In Progress</p>
+                  <p className="text-slate-500 text-sm mt-2">Initiatives In Development or Under Review</p>
                 </div>
               </div>
               
@@ -11727,7 +11727,7 @@ export default function ExportReportPage() {
                       {(() => {
                         const execBenchDiff = compositeScore && benchmarks?.compositeScore ? compositeScore - benchmarks.compositeScore : null;
                         const execDescriptor = execBenchDiff !== null
-                          ? (execBenchDiff >= 8 ? 'a clear leader' : execBenchDiff >= 2 ? 'ahead of peers' : execBenchDiff >= -1 ? 'in line with peers' : 'behind peers')
+                          ? (execBenchDiff >= 8 ? 'a clear leader' : execBenchDiff >= 2 ? 'ahead of participating organizations' : execBenchDiff >= -1 ? 'in line with participating organizations' : 'behind participating organizations')
                           : tier?.name?.toLowerCase();
                         const execDescColor = execBenchDiff !== null
                           ? (execBenchDiff >= 8 ? '#047857' : execBenchDiff >= 2 ? '#1D4ED8' : execBenchDiff >= -1 ? '#B45309' : '#B91C1C')
@@ -11885,7 +11885,7 @@ export default function ExportReportPage() {
                             return { name: s.name, pct, cls: classifyElement(s, pct) };
                           }).sort((a: any, b: any) => a.pct - b.pct)[0] || null;
                           const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
-                          const benchStr = benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} vs peers` : '';
+                          const benchStr = benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} vs participating orgs` : '';
                           const elemStr = namedElem ? `. ${namedElem.cls === 'Signature Strength' ? 'You differentiate on' : 'Strong on'} ${namedElem.name}` : '';
                           return `${d.name} (${d.score}${benchStr ? ', ' + benchStr : ''})${elemStr}`;
                         });
@@ -11915,7 +11915,7 @@ export default function ExportReportPage() {
                           .slice(0, 2);
                         const improveDefaults = improveDims.map(d => {
                           const pg = getEmployeePriorityGroup(d.weight);
-                          const tsgStr = d.topTSG ? `. ${d.topTSG.name} is a table-stakes gap (${d.topTSG.pct}% of peers have it)` : '';
+                          const tsgStr = d.topTSG ? `. ${d.topTSG.name} is a table-stakes gap (${d.topTSG.pct}% of participating organizations have it)` : '';
                           return `${d.name} (${d.score}, ${pg.chip})${tsgStr}`;
                         });
 
@@ -13304,7 +13304,7 @@ export default function ExportReportPage() {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="font-bold text-white text-xl">Initiatives In Progress</h3>
+                            <h3 className="font-bold text-white text-xl">Initiatives In Development or Under Review</h3>
                             <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
                           </div>
                         </div>
@@ -14659,7 +14659,7 @@ export default function ExportReportPage() {
                           </div>
                           <div className="text-center p-5 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                             <p className="text-3xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
-                            <p className="text-slate-500 text-sm mt-1">Initiatives In Progress</p>
+                            <p className="text-slate-500 text-sm mt-1">Initiatives In Development or Under Review</p>
                           </div>
                         </div>
                         
@@ -15175,7 +15175,7 @@ export default function ExportReportPage() {
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Compare company dots to benchmark triangles</li>
                         <li>Dimensions where they trail benchmark = priority opportunities</li>
-                        <li>Set realistic targets based on where peers typically perform</li>
+                        <li>Set realistic targets based on where participating organizations typically perform</li>
                       </ul>
                     </div>
                   )}
@@ -15360,7 +15360,7 @@ export default function ExportReportPage() {
                            i === 21 ? 'Cross-Dimensional Insights' :
                            i === 22 ? 'Areas of Excellence' :
                            i === 23 ? 'Areas for Growth' :
-                           i === 24 ? 'Initiatives In Progress' :
+                           i === 24 ? 'Initiatives In Development or Under Review' :
                            i === 25 ? 'Strategic Recommendations' :
                            i === 26 ? 'From Insight to Action' :
                            i >= 27 && i <= 30 ? `Recommendation ${i - 26}` :
