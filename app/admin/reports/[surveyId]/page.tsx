@@ -8979,222 +8979,285 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* ---- Prioritized Actions (restructured) ---- */}
+                    {/* ---- Narrative Card (diagnosis + action plan + impact) ---- */}
                     {(() => {
                       const dimBench = elementBenchmarks[d.dim] || {};
                       const geoMult = d.geoMultiplier ?? 1.0;
-                      const allElements = [
-                        ...(d.strengths || []).map((el: any) => ({ ...el, isStrength: true })),
-                        ...(d.gaps || []).map((el: any) => ({ ...el, isGap: true })),
-                        ...(d.planning || []).map((el: any) => ({ ...el, isPlanning: true })),
-                        ...(d.assessing || []).map((el: any) => ({ ...el, isAssessing: true })),
-                        ...(d.unsure || []).map((el: any) => ({ ...el, isUnsure: true })),
-                      ];
-                      const elementCount = allElements.length || 1;
+                      const elementCount = d.elements?.length || 1;
                       const maxPoints = elementCount * 5;
+                      const dimWeightPct = d.weightPct || Math.round((d.weight / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0)) * 100);
 
-                      const tier1: any[] = [];
-                      const tier2: any[] = [];
-                      const tier3: any[] = [];
-                      const tier4: any[] = [];
-                      const unsureItems: any[] = [];
-
-                      allElements.forEach((el: any) => {
+                      // Enrich elements with peer data
+                      const enriched = (d.elements || []).map((el: any) => {
                         const bench = dimBench[el.name];
                         const peerPct = bench ? Math.round((bench.currently / bench.total) * 100) : null;
-                        const enriched = { ...el, peerPct };
-
-                        if (el.isUnsure) { unsureItems.push(enriched); }
-                        else if (el.isStrength) { tier4.push(enriched); }
-                        else if (el.isPlanning || el.isAssessing) { tier1.push(enriched); }
-                        else if (peerPct !== null && peerPct > 50) { tier2.push(enriched); }
-                        else { tier3.push(enriched); }
+                        return { ...el, peerPct };
                       });
 
-                      const sortByPeers = (a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0);
-                      tier1.sort(sortByPeers);
-                      tier2.sort(sortByPeers);
-                      tier3.sort(sortByPeers);
+                      // Categorize
+                      const inMotion = enriched.filter((el: any) => el.isPlanning || el.isAssessing);
+                      const tableStakes = enriched.filter((el: any) => !el.isStrength && !el.isPlanning && !el.isAssessing && !el.isUnsure && (el.peerPct ?? 0) > 50);
+                      const differentiators = enriched.filter((el: any) => !el.isStrength && !el.isPlanning && !el.isAssessing && !el.isUnsure && (el.peerPct ?? 0) <= 50);
+                      const strengths = enriched.filter((el: any) => el.isStrength);
+                      const unsure = enriched.filter((el: any) => el.isUnsure);
+                      const allGaps = [...tableStakes, ...differentiators].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
 
-                      const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
-                      const dimWeightPct = Math.round((d.weight / totalDimWeight) * 100);
+                      // Per-element composite impact
                       const perElementDimGain = maxPoints > 0 ? Math.round((5 / maxPoints) * 100 * geoMult) : 0;
                       const perElementCompositeGain = Math.round(perElementDimGain * dimWeightPct / 100 * 0.9 * 10) / 10;
+                      const totalActionable = inMotion.length + allGaps.length;
+                      const totalCompositeGain = Math.round(totalActionable * perElementCompositeGain * 10) / 10;
 
-                      const renderTier = (
-                        items: any[],
-                        label: string,
-                        color: string,
-                        lightBg: string,
-                        icon: React.ReactNode,
-                        showImpact: boolean
-                      ) => {
-                        if (items.length === 0) return null;
-                        return (
-                          <div className="mb-4 last:mb-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
-                                {icon}
+                      // Projected dimension score and tier
+                      const projectedDimScore = Math.min(100, d.score + (totalActionable * perElementDimGain));
+                      const projectedTier = getWSITier(projectedDimScore);
+                      const currentTier = getWSITier(d.score);
+                      const tierShift = projectedTier.name !== currentTier.name;
+
+                      // Benchmark context
+                      const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
+
+                      // ============ BUILD THE DIAGNOSIS ============
+                      let diagnosisOpener = '';
+                      if (benchDiff !== null) {
+                        if (benchDiff >= 10) {
+                          diagnosisOpener = `${d.name} is one of your standout dimensions — ${benchDiff} points above the benchmark.`;
+                        } else if (benchDiff >= 0) {
+                          diagnosisOpener = `You’re ${benchDiff > 0 ? benchDiff + ' points above' : 'at'} the benchmark in ${d.name}, but there’s room to extend your lead.`;
+                        } else if (benchDiff >= -10) {
+                          diagnosisOpener = `${d.name} is ${Math.abs(benchDiff)} points below the benchmark — a gap that targeted action can close.`;
+                        } else {
+                          diagnosisOpener = `${d.name} is ${Math.abs(benchDiff)} points below the benchmark — one of your most significant gaps relative to peers.`;
+                        }
+                      } else {
+                        diagnosisOpener = `${d.name} has a score of ${d.score}, with ${allGaps.length} elements not yet in place.`;
+                      }
+
+                      const strengthContext = strengths.length > 0
+                        ? ` You have ${strengths.length} of ${elementCount} elements in place${strengths.length >= elementCount * 0.5 ? ' — a solid foundation to build on' : ''}.`
+                        : ' No elements are currently in place in this dimension.';
+
+                      let gapNarrative = '';
+                      if (tableStakes.length > 0 && inMotion.length > 0) {
+                        gapNarrative = ` The gap is in ${tableStakes.length} element${tableStakes.length > 1 ? 's' : ''} that most peers already offer, plus ${inMotion.length} initiative${inMotion.length > 1 ? 's' : ''} in development that ${inMotion.length > 1 ? 'need' : 'needs'} to be completed.`;
+                      } else if (tableStakes.length > 0) {
+                        gapNarrative = ` The gap is primarily in ${tableStakes.length} table-stakes element${tableStakes.length > 1 ? 's' : ''} that the majority of peers already offer.`;
+                      } else if (differentiators.length > 0 && inMotion.length > 0) {
+                        gapNarrative = ` ${inMotion.length} initiative${inMotion.length > 1 ? 's are' : ' is'} already underway, and ${differentiators.length} element${differentiators.length > 1 ? 's' : ''} represent opportunities to differentiate beyond what most peers offer.`;
+                      } else if (differentiators.length > 0) {
+                        gapNarrative = ' The remaining gaps are in areas where fewer than half of peers have invested — implementing these would position you as a differentiator.';
+                      } else if (inMotion.length > 0) {
+                        gapNarrative = ` ${inMotion.length} element${inMotion.length > 1 ? 's are' : ' is'} already in development. Completing ${inMotion.length > 1 ? 'these' : 'this'} is the priority.`;
+                      } else {
+                        gapNarrative = ' This is an area of strength with limited gaps remaining.';
+                      }
+
+                      const diagnosis = diagnosisOpener + strengthContext + gapNarrative;
+
+                      // ============ BUILD THE ACTION PLAN ============
+                      const actionSteps: { title: string; detail: string; tag: 'Accelerate' | 'Build'; element?: string; peerPct?: number }[] = [];
+
+                      if (inMotion.length > 0) {
+                        const topInMotion = inMotion[0];
+                        const othersText = inMotion.length > 1 ? ` (plus ${inMotion.length - 1} other${inMotion.length - 1 > 1 ? 's' : ''} in development)` : '';
+                        actionSteps.push({
+                          title: `Complete "${topInMotion.name}"${othersText}`,
+                          detail: `This is already ${topInMotion.isPlanning ? 'in development' : 'under review'}. ${topInMotion.peerPct != null ? `${topInMotion.peerPct}% of peers offer this. ` : ''}Finishing what’s started is the fastest path to score improvement.`,
+                          tag: 'Accelerate',
+                          element: topInMotion.name,
+                          peerPct: topInMotion.peerPct,
+                        });
+                      }
+
+                      const sortedGaps = allGaps.filter((g: any) => !inMotion.some((m: any) => m.name === g.name));
+                      if (sortedGaps.length > 0) {
+                        const topGap = sortedGaps[0];
+                        const isTableStakesGap = (topGap.peerPct ?? 0) > 50;
+                        actionSteps.push({
+                          title: `Implement "${topGap.name}"`,
+                          detail: isTableStakesGap
+                            ? `${topGap.peerPct}% of peers already offer this — it’s a standard practice your employees likely expect. Closing this gap addresses the most visible competitive deficit.`
+                            : `Only ${topGap.peerPct ?? 'few'}% of peers offer this, so adding it would set you apart.${sortedGaps.length > 1 ? ` There are ${sortedGaps.length - 1} additional opportunities in this category.` : ''}`,
+                          tag: 'Build',
+                          element: topGap.name,
+                          peerPct: topGap.peerPct,
+                        });
+                      }
+
+                      if (sortedGaps.length > 1) {
+                        const secondGap = sortedGaps[1];
+                        const isTableStakesGap2 = (secondGap.peerPct ?? 0) > 50;
+                        actionSteps.push({
+                          title: `Add "${secondGap.name}"`,
+                          detail: isTableStakesGap2
+                            ? `Another standard practice (${secondGap.peerPct}% peer adoption). Together with the step above, these two changes address your highest-adoption gaps.`
+                            : `At ${secondGap.peerPct ?? 'low'}% peer adoption, this is an opportunity to lead rather than catch up.`,
+                          tag: 'Build',
+                          element: secondGap.name,
+                          peerPct: secondGap.peerPct,
+                        });
+                      }
+
+                      if (actionSteps.length === 0) {
+                        actionSteps.push({
+                          title: 'Maintain and document existing practices',
+                          detail: 'Most elements are in place. Focus on strengthening consistency across teams and locations, and documenting practices for new managers.',
+                          tag: 'Accelerate',
+                        });
+                      }
+
+                      return (
+                        <div className="px-10 py-6">
+                          {/* === THE DIAGNOSIS === */}
+                          <div className="mb-6">
+                            {editMode ? (
+                              <div>
+                                <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Diagnosis</label>
+                                <textarea
+                                  value={customObservations[`diag_${d.dim}`] ?? diagnosis}
+                                  onChange={(e) => {
+                                    setCustomObservations(prev => ({ ...prev, [`diag_${d.dim}`]: e.target.value }));
+                        setHasUnsavedChanges(true);
+                                  }}
+                                  className="w-full text-base text-slate-700 bg-slate-50 border border-slate-300 rounded-lg px-4 py-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
+                                />
+                                {customObservations[`diag_${d.dim}`] && (
+                                  <button onClick={() => { setCustomObservations(prev => { const u = { ...prev }; delete u[`diag_${d.dim}`]; return u; }); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'↺'} Reset</button>
+                                )}
                               </div>
-                              <h5 className="text-sm font-bold uppercase tracking-wider" style={{ color }}>{label}</h5>
-                              <span className="text-sm text-slate-400">({items.length})</span>
-                            </div>
-                            <div className="rounded-lg border overflow-hidden" style={{ borderColor: color + '30' }}>
-                              {items.map((el: any, i: number) => (
-                                <div key={i} className={`flex items-center gap-4 px-4 py-2.5 ${i < items.length - 1 ? 'border-b' : ''}`} style={{ borderColor: color + '15', backgroundColor: i % 2 === 0 ? lightBg : 'white' }}>
-                                  <span className="flex-1 text-sm text-slate-700">{el.name}</span>
-                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                                    el.isPlanning ? 'bg-blue-100 text-blue-700' :
-                                    el.isAssessing ? 'bg-amber-100 text-amber-700' :
-                                    el.isStrength ? 'bg-emerald-100 text-emerald-700' :
-                                    'bg-slate-100 text-slate-600'
-                                  }`}>
-                                    {el.isPlanning ? 'In Dev' : el.isAssessing ? 'Review' : el.isStrength ? 'In Place' : 'Not in Place'}
-                                  </span>
-                                  {el.peerPct !== null && (
-                                    <span className="text-xs text-slate-400 w-28 text-right tabular-nums">
-                                      {el.peerPct}% of orgs
-                                    </span>
-                                  )}
-                                  {showImpact && (
-                                    <span className="text-xs font-semibold text-indigo-600 w-20 text-right tabular-nums">
-                                      +{perElementCompositeGain} WSI pts
-                                    </span>
-                                  )}
+                            ) : (
+                              <p className="text-lg text-slate-700 leading-relaxed">
+                                {customObservations[`diag_${d.dim}`] || diagnosis}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* === THE ACTION PLAN === */}
+                          <div className="mb-6">
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Actions</h4>
+                            <div className="space-y-4">
+                              {actionSteps.map((step, i) => (
+                                <div key={i} className="flex gap-4">
+                                  <div className="flex-shrink-0 mt-1">
+                                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                                      <span className="text-white text-sm font-bold">{i + 1}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 pb-4 border-b border-slate-100 last:border-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      {editMode ? (
+                                        <input
+                                          type="text"
+                                          value={customObservations[`action_${d.dim}_${i}_title`] ?? step.title}
+                                          onChange={(e) => {
+                                            setCustomObservations(prev => ({ ...prev, [`action_${d.dim}_${i}_title`]: e.target.value }));
+                            setHasUnsavedChanges(true);
+                                          }}
+                                          className="flex-1 text-base font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400/50"
+                                        />
+                                      ) : (
+                                        <h5 className="text-base font-semibold text-slate-800">{customObservations[`action_${d.dim}_${i}_title`] || step.title}</h5>
+                                      )}
+                                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg flex-shrink-0 ${
+                                        step.tag === 'Accelerate'
+                                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                          : 'bg-violet-50 text-violet-700 border border-violet-200'
+                                      }`}>
+                                        {step.tag}
+                                      </span>
+                                      {step.peerPct != null && (
+                                        <span className="text-xs text-slate-400 flex-shrink-0">{step.peerPct}% of peers</span>
+                                      )}
+                                    </div>
+                                    {editMode ? (
+                                      <textarea
+                                        value={customObservations[`action_${d.dim}_${i}_detail`] ?? step.detail}
+                                        onChange={(e) => {
+                                          setCustomObservations(prev => ({ ...prev, [`action_${d.dim}_${i}_detail`]: e.target.value }));
+                              setHasUnsavedChanges(true);
+                                        }}
+                                        className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1.5 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y mt-1"
+                                      />
+                                    ) : (
+                                      <p className="text-sm text-slate-500 leading-relaxed mt-0.5">
+                                        {customObservations[`action_${d.dim}_${i}_detail`] || step.detail}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
                           </div>
-                        );
-                      };
 
-                      const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
-                      const whereYouStand = benchDiff !== null
-                        ? benchDiff >= 10
-                          ? `${Math.abs(benchDiff)} points above the benchmark — a clear strength to protect and build on.`
-                          : benchDiff >= 0
-                          ? `${benchDiff} points above the benchmark. Solid, with room to extend your lead.`
-                          : benchDiff >= -10
-                          ? `${Math.abs(benchDiff)} points below the benchmark. A few targeted element changes can close this gap.`
-                          : `${Math.abs(benchDiff)} points below the benchmark — one of your largest gaps relative to participating organizations.`
-                        : 'Benchmark data not available for this dimension.';
-
-                      const topTableStakes = tier2[0];
-                      const topInMotion = tier1[0];
-
-                      const insightParts: string[] = [];
-                      if (tier1.length > 0 && topInMotion) {
-                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — starting with "${topInMotion.name}" (${topInMotion.peerPct ?? '?'}% peer adoption) is the fastest path to score improvement`);
-                      }
-                      if (tier2.length > 0 && topTableStakes) {
-                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes — most notably "${topTableStakes.name}" which ${topTableStakes.peerPct}% of participating organizations already offer`);
-                      }
-                      if (tier3.length > 0 && tier2.length === 0) {
-                        insightParts.push(`${tier3.length} gap${tier3.length > 1 ? 's represent' : ' represents'} differentiator opportunities where fewer than half of participating organizations have invested`);
-                      }
-                      if (tier1.length === 0 && tier2.length > 0) {
-                        insightParts.push('no elements are currently in development — starting with the table-stakes gaps would close the most visible gaps');
-                      }
-
-                      const totalGainIfAllFixed = (tier1.length + tier2.length + tier3.length) * perElementCompositeGain;
-                      const strategicInsight = insightParts.length > 0
-                        ? `${insightParts.join('. ')}. Addressing all ${tier1.length + tier2.length + tier3.length} actionable elements could contribute approximately +${Math.round(totalGainIfAllFixed * 10) / 10} points to your composite score.`
-                        : `${tier4.length} elements are in place. Focus on strengthening consistency and depth of existing practices.`;
-
-                      return (
-                        <div className="px-10 py-6">
-                          <p className="text-base text-slate-600 mb-6">{whereYouStand}</p>
-
-                          <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Prioritized Actions</h4>
-
-                            {/* Next 90 Days */}
-                            {(tier1.length > 0 || tier2.length > 0) && (
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-2">Next 90 Days</p>
-                            )}
-
-                            {renderTier(
-                              tier1, "Complete What's In Motion", '#2563EB', '#eff6ff',
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-                              true
-                            )}
-
-                            {renderTier(
-                              tier2, 'Close Table-Stakes Gaps', '#DC2626', '#fef2f2',
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
-                              true
-                            )}
-
-                            {/* 3 to 12 Months */}
-                            {tier3.length > 0 && (
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">3 to 12 Months</p>
-                            )}
-
-                            {renderTier(
-                              tier3, 'Build Differentiators', '#7C3AED', '#f5f3ff',
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
-                              true
-                            )}
-
-                            {/* Ongoing */}
-                            {tier4.length > 0 && (
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">Ongoing — Protect</p>
-                            )}
-
-                            {tier4.length > 0 && (
-                              <div className="mb-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-emerald-600">
-                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                  </div>
-                                  <h5 className="text-sm font-bold uppercase tracking-wider text-emerald-600">Strengths to Protect</h5>
-                                  <span className="text-sm text-slate-400">({tier4.length})</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {tier4.map((el: any, i: number) => (
-                                    <span key={i} className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
-                                      {el.name}
-                                      {el.peerPct !== null && <span className="text-emerald-400 ml-1.5 text-xs">({el.peerPct}%)</span>}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {unsureItems.length > 0 && (
-                              <div className="mt-4 px-4 py-3 bg-violet-50 rounded-lg border border-violet-200">
-                                <p className="text-sm text-violet-700">
-                                  <strong>{unsureItems.length} element{unsureItems.length > 1 ? 's' : ''} pending confirmation</strong> — confirming these could change the action plan above.{' '}
-                                  {unsureItems.slice(0, 2).map((u: any) => u.name).join(', ')}{unsureItems.length > 2 ? ` and ${unsureItems.length - 2} more` : ''}.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="px-5 py-4 bg-slate-50 rounded-xl border border-slate-200">
-                            <div className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                              </div>
-                              <div className="flex-1">
-                                <h5 className="font-semibold text-slate-800 text-sm mb-1">Strategic Insight</h5>
-                                {editMode ? (
-                                  <textarea
-                                    value={customObservations[`strat_insight_${d.dim}`] ?? strategicInsight}
-                                    onChange={(e) => {
-                                      setCustomObservations(prev => ({ ...prev, [`strat_insight_${d.dim}`]: e.target.value }));
-                                      setHasUnsavedChanges(true);
-                                    }}
-                                    className="w-full text-sm text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
-                                  />
-                                ) : (
-                                  <p className="text-sm text-slate-600 leading-relaxed">
-                                    {customObservations[`strat_insight_${d.dim}`] || strategicInsight}
-                                  </p>
-                                )}
-                              </div>
+                          {/* === THE IMPACT === */}
+                          <div className="flex items-center gap-6 px-6 py-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-slate-500">Projected dimension score:</span>
+                              <span className="text-sm font-semibold text-slate-700">{d.score}</span>
+                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                              <span className="text-sm font-bold text-emerald-600">{projectedDimScore}</span>
+                              {tierShift && (
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  {currentTier.name} → {projectedTier.name}
+                                </span>
+                              )}
+                            </div>
+                            <div className="w-px h-8 bg-slate-200" />
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-500">Composite impact:</span>
+                              <span className="text-sm font-bold text-indigo-600">+{totalCompositeGain} pts</span>
+                            </div>
+                            <div className="w-px h-8 bg-slate-200" />
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-500">Elements to advance:</span>
+                              <span className="text-sm font-semibold text-slate-700">{totalActionable}</span>
                             </div>
                           </div>
+
+                          {/* === PENDING CONFIRMATIONS === */}
+                          {unsure.length > 0 && (
+                            <div className="px-4 py-3 bg-violet-50 rounded-lg border border-violet-200 mb-6">
+                              <p className="text-sm text-violet-700">
+                                <strong>{unsure.length} element{unsure.length > 1 ? 's' : ''} pending confirmation</strong> — {unsure.slice(0, 2).map((u: any) => u.name).join(', ')}{unsure.length > 2 ? ` and ${unsure.length - 2} more` : ''}. Confirming these could change the action plan above.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* === VIEW ALL ELEMENTS (collapsible) === */}
+                          <details className="group">
+                            <summary className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none py-2">
+                              <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                              View all {elementCount} elements
+                            </summary>
+                            <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden">
+                              {enriched.sort((a: any, b: any) => {
+                                if (a.isStrength && !b.isStrength) return 1;
+                                if (!a.isStrength && b.isStrength) return -1;
+                                if ((a.isPlanning || a.isAssessing) && !(b.isPlanning || b.isAssessing)) return -1;
+                                if (!(a.isPlanning || a.isAssessing) && (b.isPlanning || b.isAssessing)) return 1;
+                                return (b.peerPct ?? 0) - (a.peerPct ?? 0);
+                              }).map((el: any, i: number) => (
+                                <div key={i} className={`flex items-center gap-3 px-4 py-2 text-sm ${i % 2 === 0 ? 'bg-slate-50' : 'bg-white'} ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    el.isStrength ? 'bg-emerald-500' : el.isPlanning ? 'bg-blue-500' : el.isAssessing ? 'bg-amber-500' : el.isUnsure ? 'bg-violet-500' : 'bg-slate-300'
+                                  }`} />
+                                  <span className="flex-1 text-slate-700">{el.name}</span>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                    el.isStrength ? 'bg-emerald-100 text-emerald-700' :
+                                    el.isPlanning ? 'bg-blue-100 text-blue-700' :
+                                    el.isAssessing ? 'bg-amber-100 text-amber-700' :
+                                    el.isUnsure ? 'bg-violet-100 text-violet-700' :
+                                    'bg-slate-100 text-slate-600'
+                                  }`}>
+                                    {el.isStrength ? 'In Place' : el.isPlanning ? 'In Dev' : el.isAssessing ? 'Review' : el.isUnsure ? 'Confirm' : 'Not in Place'}
+                                  </span>
+                                  {el.peerPct != null && (
+                                    <span className="text-xs text-slate-400 w-16 text-right tabular-nums">{el.peerPct}%</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </details>
                         </div>
                       );
                     })()}
@@ -9256,222 +9319,291 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                    {/* ---- Prioritized Actions (restructured) ---- */}
+                    {/* ---- Narrative Card (diagnosis + action plan + impact) ---- */}
                     {(() => {
                       const dimBench = elementBenchmarks[d.dim] || {};
                       const geoMult = d.geoMultiplier ?? 1.0;
-                      const allElements = [
-                        ...(d.strengths || []).map((el: any) => ({ ...el, isStrength: true })),
-                        ...(d.gaps || []).map((el: any) => ({ ...el, isGap: true })),
-                        ...(d.planning || []).map((el: any) => ({ ...el, isPlanning: true })),
-                        ...(d.assessing || []).map((el: any) => ({ ...el, isAssessing: true })),
-                        ...(d.unsure || []).map((el: any) => ({ ...el, isUnsure: true })),
-                      ];
-                      const elementCount = allElements.length || 1;
+                      const elementCount = d.elements?.length || 1;
                       const maxPoints = elementCount * 5;
+                      const dimWeightPct = d.weightPct || Math.round((d.weight / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0)) * 100);
 
-                      const tier1: any[] = [];
-                      const tier2: any[] = [];
-                      const tier3: any[] = [];
-                      const tier4: any[] = [];
-                      const unsureItems: any[] = [];
-
-                      allElements.forEach((el: any) => {
+                      // Enrich elements with peer data
+                      const enriched = (d.elements || []).map((el: any) => {
                         const bench = dimBench[el.name];
                         const peerPct = bench ? Math.round((bench.currently / bench.total) * 100) : null;
-                        const enriched = { ...el, peerPct };
-
-                        if (el.isUnsure) { unsureItems.push(enriched); }
-                        else if (el.isStrength) { tier4.push(enriched); }
-                        else if (el.isPlanning || el.isAssessing) { tier1.push(enriched); }
-                        else if (peerPct !== null && peerPct > 50) { tier2.push(enriched); }
-                        else { tier3.push(enriched); }
+                        return { ...el, peerPct };
                       });
 
-                      const sortByPeers = (a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0);
-                      tier1.sort(sortByPeers);
-                      tier2.sort(sortByPeers);
-                      tier3.sort(sortByPeers);
+                      // Categorize
+                      const inMotion = enriched.filter((el: any) => el.isPlanning || el.isAssessing);
+                      const tableStakes = enriched.filter((el: any) => !el.isStrength && !el.isPlanning && !el.isAssessing && !el.isUnsure && (el.peerPct ?? 0) > 50);
+                      const differentiators = enriched.filter((el: any) => !el.isStrength && !el.isPlanning && !el.isAssessing && !el.isUnsure && (el.peerPct ?? 0) <= 50);
+                      const strengths = enriched.filter((el: any) => el.isStrength);
+                      const unsure = enriched.filter((el: any) => el.isUnsure);
+                      const allGaps = [...tableStakes, ...differentiators].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
 
-                      const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
-                      const dimWeightPct = Math.round((d.weight / totalDimWeight) * 100);
+                      // Per-element composite impact
                       const perElementDimGain = maxPoints > 0 ? Math.round((5 / maxPoints) * 100 * geoMult) : 0;
                       const perElementCompositeGain = Math.round(perElementDimGain * dimWeightPct / 100 * 0.9 * 10) / 10;
+                      const totalActionable = inMotion.length + allGaps.length;
+                      const totalCompositeGain = Math.round(totalActionable * perElementCompositeGain * 10) / 10;
 
-                      const renderTier = (
-                        items: any[],
-                        label: string,
-                        color: string,
-                        lightBg: string,
-                        icon: React.ReactNode,
-                        showImpact: boolean
-                      ) => {
-                        if (items.length === 0) return null;
-                        return (
-                          <div className="mb-4 last:mb-0">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color }}>
-                                {icon}
+                      // Projected dimension score and tier
+                      const projectedDimScore = Math.min(100, d.score + (totalActionable * perElementDimGain));
+                      const projectedTier = getWSITier(projectedDimScore);
+                      const currentTier = getWSITier(d.score);
+                      const tierShift = projectedTier.name !== currentTier.name;
+
+                      // Benchmark context
+                      const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
+
+                      // ============ BUILD THE DIAGNOSIS ============
+                      let diagnosisOpener = '';
+                      if (benchDiff !== null) {
+                        if (benchDiff >= 10) {
+                          diagnosisOpener = `${d.name} is one of your standout dimensions — ${benchDiff} points above the benchmark.`;
+                        } else if (benchDiff >= 0) {
+                          diagnosisOpener = `You’re ${benchDiff > 0 ? benchDiff + ' points above' : 'at'} the benchmark in ${d.name}, but there’s room to extend your lead.`;
+                        } else if (benchDiff >= -10) {
+                          diagnosisOpener = `${d.name} is ${Math.abs(benchDiff)} points below the benchmark — a gap that targeted action can close.`;
+                        } else {
+                          diagnosisOpener = `${d.name} is ${Math.abs(benchDiff)} points below the benchmark — one of your most significant gaps relative to peers.`;
+                        }
+                      } else {
+                        diagnosisOpener = `${d.name} has a score of ${d.score}, with ${allGaps.length} elements not yet in place.`;
+                      }
+
+                      const strengthContext = strengths.length > 0
+                        ? ` You have ${strengths.length} of ${elementCount} elements in place${strengths.length >= elementCount * 0.5 ? ' — a solid foundation to build on' : ''}.`
+                        : ' No elements are currently in place in this dimension.';
+
+                      let gapNarrative = '';
+                      if (tableStakes.length > 0 && inMotion.length > 0) {
+                        gapNarrative = ` The gap is in ${tableStakes.length} element${tableStakes.length > 1 ? 's' : ''} that most peers already offer, plus ${inMotion.length} initiative${inMotion.length > 1 ? 's' : ''} in development that ${inMotion.length > 1 ? 'need' : 'needs'} to be completed.`;
+                      } else if (tableStakes.length > 0) {
+                        gapNarrative = ` The gap is primarily in ${tableStakes.length} table-stakes element${tableStakes.length > 1 ? 's' : ''} that the majority of peers already offer.`;
+                      } else if (differentiators.length > 0 && inMotion.length > 0) {
+                        gapNarrative = ` ${inMotion.length} initiative${inMotion.length > 1 ? 's are' : ' is'} already underway, and ${differentiators.length} element${differentiators.length > 1 ? 's' : ''} represent opportunities to differentiate beyond what most peers offer.`;
+                      } else if (differentiators.length > 0) {
+                        gapNarrative = ' The remaining gaps are in areas where fewer than half of peers have invested — implementing these would position you as a differentiator.';
+                      } else if (inMotion.length > 0) {
+                        gapNarrative = ` ${inMotion.length} element${inMotion.length > 1 ? 's are' : ' is'} already in development. Completing ${inMotion.length > 1 ? 'these' : 'this'} is the priority.`;
+                      } else {
+                        gapNarrative = ' This is an area of strength with limited gaps remaining.';
+                      }
+
+                      const diagnosis = diagnosisOpener + strengthContext + gapNarrative;
+
+                      // ============ BUILD THE ACTION PLAN ============
+                      const actionSteps: { title: string; detail: string; tag: 'Accelerate' | 'Build'; element?: string; peerPct?: number }[] = [];
+
+                      if (inMotion.length > 0) {
+                        const topInMotion = inMotion[0];
+                        const othersText = inMotion.length > 1 ? ` (plus ${inMotion.length - 1} other${inMotion.length - 1 > 1 ? 's' : ''} in development)` : '';
+                        actionSteps.push({
+                          title: `Complete "${topInMotion.name}"${othersText}`,
+                          detail: `This is already ${topInMotion.isPlanning ? 'in development' : 'under review'}. ${topInMotion.peerPct != null ? `${topInMotion.peerPct}% of peers offer this. ` : ''}Finishing what’s started is the fastest path to score improvement.`,
+                          tag: 'Accelerate',
+                          element: topInMotion.name,
+                          peerPct: topInMotion.peerPct,
+                        });
+                      }
+
+                      const sortedGaps = allGaps.filter((g: any) => !inMotion.some((m: any) => m.name === g.name));
+                      if (sortedGaps.length > 0) {
+                        const topGap = sortedGaps[0];
+                        const isTableStakesGap = (topGap.peerPct ?? 0) > 50;
+                        actionSteps.push({
+                          title: `Implement "${topGap.name}"`,
+                          detail: isTableStakesGap
+                            ? `${topGap.peerPct}% of peers already offer this — it’s a standard practice your employees likely expect. Closing this gap addresses the most visible competitive deficit.`
+                            : `Only ${topGap.peerPct ?? 'few'}% of peers offer this, so adding it would set you apart.${sortedGaps.length > 1 ? ` There are ${sortedGaps.length - 1} additional opportunities in this category.` : ''}`,
+                          tag: 'Build',
+                          element: topGap.name,
+                          peerPct: topGap.peerPct,
+                        });
+                      }
+
+                      if (sortedGaps.length > 1) {
+                        const secondGap = sortedGaps[1];
+                        const isTableStakesGap2 = (secondGap.peerPct ?? 0) > 50;
+                        actionSteps.push({
+                          title: `Add "${secondGap.name}"`,
+                          detail: isTableStakesGap2
+                            ? `Another standard practice (${secondGap.peerPct}% peer adoption). Together with the step above, these two changes address your highest-adoption gaps.`
+                            : `At ${secondGap.peerPct ?? 'low'}% peer adoption, this is an opportunity to lead rather than catch up.`,
+                          tag: 'Build',
+                          element: secondGap.name,
+                          peerPct: secondGap.peerPct,
+                        });
+                      }
+
+                      if (actionSteps.length === 0) {
+                        actionSteps.push({
+                          title: 'Maintain and document existing practices',
+                          detail: 'Most elements are in place. Focus on strengthening consistency across teams and locations, and documenting practices for new managers.',
+                          tag: 'Accelerate',
+                        });
+                      }
+
+                      return (
+                        <div className="px-10 py-6">
+                          {/* === THE DIAGNOSIS === */}
+                          <div className="mb-6">
+                            {editMode ? (
+                              <div>
+                                <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Diagnosis</label>
+                                <textarea
+                                  value={customAdditionalDimInsights[d.dim]?.diagnosis ?? diagnosis}
+                                  onChange={(e) => {
+                                    setCustomAdditionalDimInsights(prev => ({
+                          ...prev,
+                          [d.dim]: { ...prev[d.dim], diagnosis: e.target.value, insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
+                        }));
+                                  }}
+                                  className="w-full text-base text-slate-700 bg-slate-50 border border-slate-300 rounded-lg px-4 py-3 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
+                                />
+                                {customAdditionalDimInsights[d.dim]?.diagnosis && (
+                                  <button onClick={() => { setCustomAdditionalDimInsights(prev => { const u = { ...prev }; if (u[d.dim]) { const c = { ...u[d.dim] }; delete c.diagnosis; u[d.dim] = c; } return u; }); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'↺'} Reset</button>
+                                )}
                               </div>
-                              <h5 className="text-sm font-bold uppercase tracking-wider" style={{ color }}>{label}</h5>
-                              <span className="text-sm text-slate-400">({items.length})</span>
-                            </div>
-                            <div className="rounded-lg border overflow-hidden" style={{ borderColor: color + '30' }}>
-                              {items.map((el: any, i: number) => (
-                                <div key={i} className={`flex items-center gap-4 px-4 py-2.5 ${i < items.length - 1 ? 'border-b' : ''}`} style={{ borderColor: color + '15', backgroundColor: i % 2 === 0 ? lightBg : 'white' }}>
-                                  <span className="flex-1 text-sm text-slate-700">{el.name}</span>
-                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                                    el.isPlanning ? 'bg-blue-100 text-blue-700' :
-                                    el.isAssessing ? 'bg-amber-100 text-amber-700' :
-                                    el.isStrength ? 'bg-emerald-100 text-emerald-700' :
-                                    'bg-slate-100 text-slate-600'
-                                  }`}>
-                                    {el.isPlanning ? 'In Dev' : el.isAssessing ? 'Review' : el.isStrength ? 'In Place' : 'Not in Place'}
-                                  </span>
-                                  {el.peerPct !== null && (
-                                    <span className="text-xs text-slate-400 w-28 text-right tabular-nums">
-                                      {el.peerPct}% of orgs
-                                    </span>
-                                  )}
-                                  {showImpact && (
-                                    <span className="text-xs font-semibold text-indigo-600 w-20 text-right tabular-nums">
-                                      +{perElementCompositeGain} WSI pts
-                                    </span>
-                                  )}
+                            ) : (
+                              <p className="text-lg text-slate-700 leading-relaxed">
+                                {customAdditionalDimInsights[d.dim]?.diagnosis || diagnosis}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* === THE ACTION PLAN === */}
+                          <div className="mb-6">
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Actions</h4>
+                            <div className="space-y-4">
+                              {actionSteps.map((step, i) => (
+                                <div key={i} className="flex gap-4">
+                                  <div className="flex-shrink-0 mt-1">
+                                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center">
+                                      <span className="text-white text-sm font-bold">{i + 1}</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex-1 pb-4 border-b border-slate-100 last:border-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      {editMode ? (
+                                        <input
+                                          type="text"
+                                          value={customAdditionalDimInsights[d.dim]?.[`action_${i}_title`] ?? step.title}
+                                          onChange={(e) => {
+                                            setCustomAdditionalDimInsights(prev => ({
+                              ...prev,
+                              [d.dim]: { ...prev[d.dim], [`action_${i}_title`]: e.target.value, insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
+                            }));
+                                          }}
+                                          className="flex-1 text-base font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-slate-400/50"
+                                        />
+                                      ) : (
+                                        <h5 className="text-base font-semibold text-slate-800">{customAdditionalDimInsights[d.dim]?.[`action_${i}_title`] || step.title}</h5>
+                                      )}
+                                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg flex-shrink-0 ${
+                                        step.tag === 'Accelerate'
+                                          ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                          : 'bg-violet-50 text-violet-700 border border-violet-200'
+                                      }`}>
+                                        {step.tag}
+                                      </span>
+                                      {step.peerPct != null && (
+                                        <span className="text-xs text-slate-400 flex-shrink-0">{step.peerPct}% of peers</span>
+                                      )}
+                                    </div>
+                                    {editMode ? (
+                                      <textarea
+                                        value={customAdditionalDimInsights[d.dim]?.[`action_${i}_detail`] ?? step.detail}
+                                        onChange={(e) => {
+                                          setCustomAdditionalDimInsights(prev => ({
+                                ...prev,
+                                [d.dim]: { ...prev[d.dim], [`action_${i}_detail`]: e.target.value, insight: prev[d.dim]?.insight || '', roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
+                              }));
+                                        }}
+                                        className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1.5 min-h-[36px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y mt-1"
+                                      />
+                                    ) : (
+                                      <p className="text-sm text-slate-500 leading-relaxed mt-0.5">
+                                        {customAdditionalDimInsights[d.dim]?.[`action_${i}_detail`] || step.detail}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                               ))}
                             </div>
                           </div>
-                        );
-                      };
 
-                      const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
-                      const whereYouStand = benchDiff !== null
-                        ? benchDiff >= 10
-                          ? `${Math.abs(benchDiff)} points above the benchmark — a clear strength to protect and build on.`
-                          : benchDiff >= 0
-                          ? `${benchDiff} points above the benchmark. Solid, with room to extend your lead.`
-                          : benchDiff >= -10
-                          ? `${Math.abs(benchDiff)} points below the benchmark. A few targeted element changes can close this gap.`
-                          : `${Math.abs(benchDiff)} points below the benchmark — one of your largest gaps relative to participating organizations.`
-                        : 'Benchmark data not available for this dimension.';
-
-                      const topTableStakes = tier2[0];
-                      const topInMotion = tier1[0];
-
-                      const insightParts: string[] = [];
-                      if (tier1.length > 0 && topInMotion) {
-                        insightParts.push(`${tier1.length} element${tier1.length > 1 ? 's are' : ' is'} already in motion — starting with "${topInMotion.name}" (${topInMotion.peerPct ?? '?'}% peer adoption) is the fastest path to score improvement`);
-                      }
-                      if (tier2.length > 0 && topTableStakes) {
-                        insightParts.push(`${tier2.length} gap${tier2.length > 1 ? 's are' : ' is a'} table-stakes — most notably "${topTableStakes.name}" which ${topTableStakes.peerPct}% of participating organizations already offer`);
-                      }
-                      if (tier3.length > 0 && tier2.length === 0) {
-                        insightParts.push(`${tier3.length} gap${tier3.length > 1 ? 's represent' : ' represents'} differentiator opportunities where fewer than half of participating organizations have invested`);
-                      }
-                      if (tier1.length === 0 && tier2.length > 0) {
-                        insightParts.push('no elements are currently in development — starting with the table-stakes gaps would close the most visible gaps');
-                      }
-
-                      const totalGainIfAllFixed = (tier1.length + tier2.length + tier3.length) * perElementCompositeGain;
-                      const strategicInsight = insightParts.length > 0
-                        ? `${insightParts.join('. ')}. Addressing all ${tier1.length + tier2.length + tier3.length} actionable elements could contribute approximately +${Math.round(totalGainIfAllFixed * 10) / 10} points to your composite score.`
-                        : `${tier4.length} elements are in place. Focus on strengthening consistency and depth of existing practices.`;
-
-                      return (
-                        <div className="px-10 py-6">
-                          <p className="text-base text-slate-600 mb-6">{whereYouStand}</p>
-
-                          <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Prioritized Actions</h4>
-
-                            {/* Next 90 Days */}
-                            {(tier1.length > 0 || tier2.length > 0) && (
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-2">Next 90 Days</p>
-                            )}
-
-                            {renderTier(
-                              tier1, "Complete What's In Motion", '#2563EB', '#eff6ff',
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>,
-                              true
-                            )}
-
-                            {renderTier(
-                              tier2, 'Close Table-Stakes Gaps', '#DC2626', '#fef2f2',
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>,
-                              true
-                            )}
-
-                            {/* 3 to 12 Months */}
-                            {tier3.length > 0 && (
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">3 to 12 Months</p>
-                            )}
-
-                            {renderTier(
-                              tier3, 'Build Differentiators', '#7C3AED', '#f5f3ff',
-                              <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>,
-                              true
-                            )}
-
-                            {/* Ongoing */}
-                            {tier4.length > 0 && (
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 mt-6">Ongoing — Protect</p>
-                            )}
-
-                            {tier4.length > 0 && (
-                              <div className="mb-4">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0 bg-emerald-600">
-                                    <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                  </div>
-                                  <h5 className="text-sm font-bold uppercase tracking-wider text-emerald-600">Strengths to Protect</h5>
-                                  <span className="text-sm text-slate-400">({tier4.length})</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                  {tier4.map((el: any, i: number) => (
-                                    <span key={i} className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5">
-                                      {el.name}
-                                      {el.peerPct !== null && <span className="text-emerald-400 ml-1.5 text-xs">({el.peerPct}%)</span>}
-                                    </span>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {unsureItems.length > 0 && (
-                              <div className="mt-4 px-4 py-3 bg-violet-50 rounded-lg border border-violet-200">
-                                <p className="text-sm text-violet-700">
-                                  <strong>{unsureItems.length} element{unsureItems.length > 1 ? 's' : ''} pending confirmation</strong> — confirming these could change the action plan above.{' '}
-                                  {unsureItems.slice(0, 2).map((u: any) => u.name).join(', ')}{unsureItems.length > 2 ? ` and ${unsureItems.length - 2} more` : ''}.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="px-5 py-4 bg-slate-50 rounded-xl border border-slate-200">
-                            <div className="flex items-start gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                              </div>
-                              <div className="flex-1">
-                                <h5 className="font-semibold text-slate-800 text-sm mb-1">Strategic Insight</h5>
-                                {editMode ? (
-                                  <textarea
-                                    value={customAdditionalDimInsights[d.dim]?.insight ?? strategicInsight}
-                                    onChange={(e) => setCustomAdditionalDimInsights(prev => ({
-                                      ...prev,
-                                      [d.dim]: { ...prev[d.dim], insight: e.target.value, roadmapQuickWin: prev[d.dim]?.roadmapQuickWin || '', roadmapStrategic: prev[d.dim]?.roadmapStrategic || '', cacHelp: prev[d.dim]?.cacHelp || '' }
-                                    }))}
-                                    className="w-full text-sm text-slate-600 bg-white border border-slate-300 rounded px-3 py-2 min-h-[48px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y"
-                                  />
-                                ) : (
-                                  <p className="text-sm text-slate-600 leading-relaxed">
-                                    {customAdditionalDimInsights[d.dim]?.insight || strategicInsight}
-                                  </p>
-                                )}
-                              </div>
+                          {/* === THE IMPACT === */}
+                          <div className="flex items-center gap-6 px-6 py-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm text-slate-500">Projected dimension score:</span>
+                              <span className="text-sm font-semibold text-slate-700">{d.score}</span>
+                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                              <span className="text-sm font-bold text-emerald-600">{projectedDimScore}</span>
+                              {tierShift && (
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  {currentTier.name} → {projectedTier.name}
+                                </span>
+                              )}
+                            </div>
+                            <div className="w-px h-8 bg-slate-200" />
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-500">Composite impact:</span>
+                              <span className="text-sm font-bold text-indigo-600">+{totalCompositeGain} pts</span>
+                            </div>
+                            <div className="w-px h-8 bg-slate-200" />
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-slate-500">Elements to advance:</span>
+                              <span className="text-sm font-semibold text-slate-700">{totalActionable}</span>
                             </div>
                           </div>
+
+                          {/* === PENDING CONFIRMATIONS === */}
+                          {unsure.length > 0 && (
+                            <div className="px-4 py-3 bg-violet-50 rounded-lg border border-violet-200 mb-6">
+                              <p className="text-sm text-violet-700">
+                                <strong>{unsure.length} element{unsure.length > 1 ? 's' : ''} pending confirmation</strong> — {unsure.slice(0, 2).map((u: any) => u.name).join(', ')}{unsure.length > 2 ? ` and ${unsure.length - 2} more` : ''}. Confirming these could change the action plan above.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* === VIEW ALL ELEMENTS (collapsible) === */}
+                          <details className="group">
+                            <summary className="flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700 cursor-pointer select-none py-2">
+                              <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                              View all {elementCount} elements
+                            </summary>
+                            <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden">
+                              {enriched.sort((a: any, b: any) => {
+                                if (a.isStrength && !b.isStrength) return 1;
+                                if (!a.isStrength && b.isStrength) return -1;
+                                if ((a.isPlanning || a.isAssessing) && !(b.isPlanning || b.isAssessing)) return -1;
+                                if (!(a.isPlanning || a.isAssessing) && (b.isPlanning || b.isAssessing)) return 1;
+                                return (b.peerPct ?? 0) - (a.peerPct ?? 0);
+                              }).map((el: any, i: number) => (
+                                <div key={i} className={`flex items-center gap-3 px-4 py-2 text-sm ${i % 2 === 0 ? 'bg-slate-50' : 'bg-white'} ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                    el.isStrength ? 'bg-emerald-500' : el.isPlanning ? 'bg-blue-500' : el.isAssessing ? 'bg-amber-500' : el.isUnsure ? 'bg-violet-500' : 'bg-slate-300'
+                                  }`} />
+                                  <span className="flex-1 text-slate-700">{el.name}</span>
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                    el.isStrength ? 'bg-emerald-100 text-emerald-700' :
+                                    el.isPlanning ? 'bg-blue-100 text-blue-700' :
+                                    el.isAssessing ? 'bg-amber-100 text-amber-700' :
+                                    el.isUnsure ? 'bg-violet-100 text-violet-700' :
+                                    'bg-slate-100 text-slate-600'
+                                  }`}>
+                                    {el.isStrength ? 'In Place' : el.isPlanning ? 'In Dev' : el.isAssessing ? 'Review' : el.isUnsure ? 'Confirm' : 'Not in Place'}
+                                  </span>
+                                  {el.peerPct != null && (
+                                    <span className="text-xs text-slate-400 w-16 text-right tabular-nums">{el.peerPct}%</span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </details>
                         </div>
                       );
                     })()}
