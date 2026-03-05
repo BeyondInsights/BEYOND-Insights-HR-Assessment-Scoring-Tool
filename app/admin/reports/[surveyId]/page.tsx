@@ -6417,9 +6417,6 @@ export default function ExportReportPage() {
                               <span className="text-lg font-bold text-slate-800">How does {companyName} compare?</span>
                             </div>
                             <div className="flex items-center gap-3">
-                              {allWSIScoresState.length > 0 && (
-                                <span className="text-sm text-slate-400">{allWSIScoresState.length} companies</span>
-                              )}
                               <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-500" style={{ transform: showScoreComparison ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                               </div>
@@ -6431,9 +6428,9 @@ export default function ExportReportPage() {
                               {/* Explanation header */}
                               <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
                                 <p className="text-sm text-slate-600 leading-relaxed">
-                                  This table shows where {companyName} falls relative to all {allWSIScoresState.length} participating companies.
+                                  This table shows where {companyName} falls relative to all participating companies.
                                   <strong className="text-slate-700"> Your Score</strong> and <strong className="text-slate-700">Your Tier</strong> show your current standing,
-                                  while the percentage columns show how all companies are distributed across the four performance tiers.
+                                  while the percentage columns show how companies are distributed across the four performance tiers.
                                 </p>
                               </div>
 
@@ -6449,16 +6446,28 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
 
-                              {/* Table header */}
-                              <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 py-3 border-b border-slate-200 bg-slate-50">
-                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider"></div>
-                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Score</div>
-                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Your Tier</div>
-                                {tierDefs.map(td => (
-                                  <div key={td.key} className="text-xs font-semibold uppercase tracking-wider text-center" style={{ color: td.color }}>
-                                    {td.label}
+                              {/* Table header — two rows */}
+                              <div className="bg-slate-50 border-b border-slate-200">
+                                {/* Merged header row */}
+                                <div className="grid grid-cols-[200px_80px_100px_1fr] gap-0 px-6 pt-3 pb-1">
+                                  <div></div>
+                                  <div></div>
+                                  <div></div>
+                                  <div className="text-center">
+                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</span>
                                   </div>
-                                ))}
+                                </div>
+                                {/* Column headers */}
+                                <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 pb-3">
+                                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider"></div>
+                                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Score</div>
+                                  <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Your Tier</div>
+                                  {tierDefs.map(td => (
+                                    <div key={td.key} className="text-xs font-semibold uppercase tracking-wider text-center" style={{ color: td.color }}>
+                                      {td.label}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
 
                               {/* Data rows */}
@@ -6503,7 +6512,7 @@ export default function ExportReportPage() {
                               {/* Footer note */}
                               <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
                                 <p className="text-sm text-slate-400">
-                                  Percentages show the share of all {allWSIScoresState.length} participating companies that scored within each tier range.
+                                  Percentages show the share of participating companies that scored within each tier range.
                                   <strong className="text-slate-500"> Highlighted values</strong> indicate your tier.
                                 </p>
                               </div>
