@@ -2876,6 +2876,7 @@ export default function ExportReportPage() {
   const [expandedLevel, setExpandedLevel] = useState<string | null>(null);
   const [expandedWSICard, setExpandedWSICard] = useState<string | null>(null);
   const [expandedLearnMore, setExpandedLearnMore] = useState<string | null>(null);
+  const [showScoreComparison, setShowScoreComparison] = useState(false);
   
   // Accordion states - always start collapsed, no persistence
   const [showReportGuide, setShowReportGuide] = useState(false);
@@ -5821,8 +5822,8 @@ export default function ExportReportPage() {
                 </div>
               </div>
             </div>
-            {/* Divider below hero */}
-            <div className="h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent my-1"></div>
+            {/* Spacer below hero */}
+            <div className="h-0"></div>
 
             {/* ============ CONFIRMATORY CHECKLIST (removed) ============ */}
             {false && unsureItems > 0 && (
@@ -5969,31 +5970,16 @@ export default function ExportReportPage() {
             )}
             
             {/* Executive Summary */}
-            <div className="px-12 py-12 bg-white">
+            <div className="px-12 pt-6 pb-8 bg-white">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
 
               <div data-export="executive-summary-text">
-                  <p className="text-xl text-slate-700 leading-relaxed">
+                  <p className="text-lg text-slate-700 leading-relaxed">
                     {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
                     {wsiPercentile !== null && totalCompanies > 1 && (
                       <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
-                    )}. Support is anchored by strong foundational practices, with the most significant opportunity to deepen the overall ecosystem through advanced program elements.
+                    )}. The score is weighted across 13 dimensions of workplace cancer support, combining Core, Enhanced, and Advanced program elements based on their impact on employee wellbeing and organizational outcomes.
                   </p>
-
-                  {/* Support level stat row */}
-                  <div className="grid grid-cols-3 gap-6 mt-8">
-                    {[
-                      { label: 'Core Support', score: coreScoreCalc, color: '#047857', qualifier: coreScoreCalc >= 70 ? 'Strong' : coreScoreCalc >= 50 ? 'Moderate' : 'Developing' },
-                      { label: 'Enhanced Support', score: enhancedScoreCalc, color: '#B45309', qualifier: enhancedScoreCalc >= 60 ? 'Solid' : enhancedScoreCalc >= 40 ? 'Developing' : 'Early' },
-                      { label: 'Advanced Support', score: advancedScoreCalc, color: '#7C3AED', qualifier: 'Primary opportunity' },
-                    ].map(item => (
-                      <div key={item.label} className="text-center py-6 rounded-xl" style={{ backgroundColor: item.color + '08', borderLeft: `4px solid ${item.color}` }}>
-                        <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: item.color }}>{item.label}</p>
-                        <p className="text-5xl font-bold mt-2" style={{ color: item.color }}>{item.score}</p>
-                        <p className="text-sm text-slate-500 mt-1 capitalize">{item.qualifier}</p>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               
               {/* Provisional Classification Notice */}
@@ -6153,168 +6139,183 @@ export default function ExportReportPage() {
                 ];
                 
                 return (
-                  <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden shadow-sm" style={{ backgroundColor: '#f0f4ff', border: '1px solid #dbe4f0', borderLeft: '4px solid #1D4ED8' }}>
-                    {/* Header */}
-                    <div className="px-8 py-8 border-b border-blue-100/60">
-                      <div className="flex items-start justify-between gap-8">
-                        {/* Left: Title + description */}
-                        <div className="flex-1">
-                          <h3 className="text-2xl font-bold text-slate-900 mb-1">Workplace Support Composite Score</h3>
-                          <p className="text-base text-slate-500">Weighted across 13 dimensions and {coreData.total + enhData.total + advData.total} support elements</p>
-                        </div>
-                        {/* Right: Score + Rating */}
-                        <div className="flex items-center gap-8 flex-shrink-0">
-                          <div className="text-right">
-                            <p className="text-7xl font-bold text-slate-900 leading-none">{wsiScore}</p>
-                            <p className="text-sm text-slate-400 mt-2">Benchmark: 59</p>
+                  <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    {/* Unified Score Panel */}
+                    <div className="px-8 pt-8 pb-6">
+                      <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Your Scores</p>
+
+                      {/* 4-column score grid: Composite + 3 support levels */}
+                      <div className="grid grid-cols-4 gap-4">
+                        {/* Composite Score — primary, slightly emphasized */}
+                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
+                          <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Composite</p>
+                          <p className="text-6xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
+                          <p className="text-base font-bold mt-2" style={{ color: rating.color }}>{rating.label}</p>
+                          <div className="mt-3 pt-3 border-t border-slate-100">
+                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
                             {(() => {
                               const diff = wsiScore - 59;
                               if (diff === 0) return null;
                               return (
-                                <span className={`inline-flex items-center text-sm font-bold mt-1 px-2.5 py-1 rounded-lg ${diff > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+                                <p className={`text-sm font-bold mt-1 ${diff > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                   {diff > 0 ? '+' : ''}{diff} vs benchmark
-                                </span>
+                                </p>
                               );
                             })()}
                           </div>
-                          <div className="text-center pl-8" style={{ borderLeft: '1px solid #dbe4f0' }}>
-                            <p className="text-2xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
-                            <p className="text-sm text-slate-400 mt-1">Support Rating</p>
+                        </div>
+
+                        {/* Core Support */}
+                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Core Support</p>
+                          <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
+                          {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
+                          <div className="mt-3 pt-3 border-t border-slate-100">
+                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
+                            <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                              {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Enhanced Support */}
+                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Enhanced Support</p>
+                          <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
+                          {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
+                          <div className="mt-3 pt-3 border-t border-slate-100">
+                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
+                            <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                              {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Advanced Support */}
+                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Advanced Support</p>
+                          <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
+                          {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
+                          <div className="mt-3 pt-3 border-t border-slate-100">
+                            <p className="text-sm text-slate-400">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
+                            <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                              {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
+                            </p>
                           </div>
                         </div>
                       </div>
-                      {/* Rating description */}
-                      <div className="mt-6 px-5 py-4 rounded-xl bg-white" style={{ border: `1px solid ${rating.color}25` }}>
-                        <p className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-1">Overall Support Rating</p>
+
+                      {/* Composite weight footnote */}
+                      <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-200">
+                        <span className="text-sm text-slate-400">Composite = </span>
+                        <span className="text-sm font-semibold" style={{ color: '#047857' }}>35% Core</span>
+                        <span className="text-sm text-slate-300">+</span>
+                        <span className="text-sm font-semibold" style={{ color: '#B45309' }}>50% Enhanced</span>
+                        <span className="text-sm text-slate-300">+</span>
+                        <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>15% Advanced</span>
+                      </div>
+
+                      {/* Overall Support Rating bar */}
+                      <div className="mt-6 px-6 py-4 rounded-xl bg-white border border-slate-200">
+                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Overall Support Rating</p>
                         <p className="text-base text-slate-700 leading-relaxed">
                           <strong style={{ color: rating.color }}>{rating.label}</strong>
-                          <span className="mx-1.5 text-slate-300">—</span>
+                          <span className="mx-2 text-slate-300">&mdash;</span>
                           {rating.desc}
                         </p>
                       </div>
-
                     </div>
                     
-                    {/* Three Level Cards */}
-                    <div className="p-6">
-                      <p className="text-sm text-slate-400 uppercase tracking-wider font-semibold mb-4">Score Breakdown by Support Level</p>
+                    {/* Support Level Details */}
+                    <div className="px-8 py-6 border-t border-slate-200">
+                      <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">What Each Level Includes</p>
                       <div className="grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
                         const Icon = t.icon;
-                        const scoreColor = t.score >= 80 ? '#047857' : t.score >= 64 ? '#1D4ED8' : t.score >= 50 ? '#B45309' : '#B91C1C';
-                        const benchAvg = t.bench.avg;
 
                         return (
-                          <div key={t.key} className="rounded-xl overflow-hidden flex flex-col bg-white" style={{ border: `2px solid ${t.border}` }}>
-                            {/* Score header */}
-                            <div className="px-5 py-5" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
-                              <div className="flex items-center justify-between" style={{ minHeight: '48px' }}>
-                                <div className="flex items-center gap-3 min-w-0">
-                                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
-                                    <Icon size={20} color="white" />
-                                  </div>
-                                  <div className="min-w-0">
-                                    <h4 className="font-bold text-base leading-tight" style={{ color: t.color }}>{t.name}</h4>
-                                    <span className="text-sm text-slate-400 leading-tight">{t.total} elements</span>
-                                  </div>
-                                </div>
-                                <div className="text-right flex-shrink-0 pl-2">
-                                  <p className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{t.score}</p>
-                                </div>
+                          <div key={t.key} className="rounded-xl overflow-hidden bg-white" style={{ border: `1px solid ${t.border}` }}>
+                            {/* Card header */}
+                            <div className="px-5 py-4 flex items-center gap-3" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
+                                <Icon size={18} color="white" />
                               </div>
+                              <div>
+                                <h4 className="text-base font-bold" style={{ color: t.color }}>{t.name}</h4>
+                                <span className="text-sm text-slate-400">{t.total} elements</span>
+                              </div>
+                            </div>
 
-                              {/* Score bar with benchmark line */}
-                              <div className="relative mt-4">
-                                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            {/* Description */}
+                            <div className="px-5 py-3">
+                              <p className="text-sm text-slate-600 leading-relaxed">{t.shortDesc}</p>
+                            </div>
+
+                            {/* Score bar showing progress */}
+                            <div className="px-5 pb-3">
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-sm font-semibold text-slate-700">{t.score}/100</span>
+                                <span className="text-sm text-slate-400">{t.bench.pctl}th percentile</span>
+                              </div>
+                              <div className="relative">
+                                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
                                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                                 </div>
-                                {benchAvg > 0 && (
-                                  <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${Math.min(benchAvg, 100)}%` }}>
-                                    <div className="w-0.5 h-5 -mt-1 rounded-full bg-slate-500" />
+                                {t.bench.avg > 0 && (
+                                  <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${Math.min(t.bench.avg, 100)}%` }}>
+                                    <div className="w-0.5 h-4 -mt-0.5 rounded-full bg-slate-600" />
                                   </div>
                                 )}
                               </div>
-                              <div className="h-5 flex items-center justify-end">
-                                {benchAvg > 0 && (
-                                  <div className="flex items-center gap-1">
-                                    <div className="w-3 h-0.5 rounded-full bg-slate-500" />
-                                    <span className="text-sm text-slate-400">Benchmark: {Math.round(benchAvg)}</span>
-                                  </div>
-                                )}
-                              </div>
+                              {t.bench.avg > 0 && (
+                                <div className="flex items-center justify-end gap-1 mt-1">
+                                  <div className="w-3 h-0.5 bg-slate-600 rounded-full" />
+                                  <span className="text-xs text-slate-400">Benchmark: {t.bench.avg}</span>
+                                </div>
+                              )}
                             </div>
 
-                            {/* Horizontal inline stats */}
-                            <div className="flex items-center gap-6 px-5 pt-4 pb-3 border-t" style={{ borderColor: t.border }}>
-                              <div>
-                                <span className="text-2xl font-bold text-slate-700">{t.bench.pctl}</span>
-                                <span className="text-sm text-slate-400 ml-1">percentile</span>
-                              </div>
-                              <div className="w-px h-8 bg-slate-200" />
-                              <div>
-                                <span className={`text-2xl font-bold ${t.bench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                                  {t.bench.diff >= 0 ? '+' : ''}{Math.round(t.bench.diff)}
-                                </span>
-                                <span className="text-sm text-slate-400 ml-1">vs benchmark</span>
-                              </div>
-                              <div className="w-px h-8 bg-slate-200" />
-                              <div>
-                                <span className="text-2xl font-bold" style={{ color: t.color }}>
-                                  {t.key === 'core' ? M_CORE_PCT : t.key === 'enhanced' ? M_ENH_PCT : M_ADV_PCT}%
-                                </span>
-                                <span className="text-sm text-slate-400 ml-1">composite weight</span>
-                              </div>
-                            </div>
-
-                            {/* Short descriptor */}
-                            <p className="text-sm text-slate-500 px-5 pb-3 pt-1">{t.shortDesc}</p>
-
-                            {/* Learn More toggle — plain text link */}
-                            <div className="px-5 pb-4">
+                            {/* Learn More toggle */}
+                            <div className="px-5 py-3 border-t" style={{ borderColor: t.border }}>
                               <button
                                 onClick={() => setExpandedLearnMore(expandedLearnMore === t.key ? null : t.key)}
                                 className="flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
                                 style={{ color: t.color }}
                               >
-                                <span>{expandedLearnMore === t.key ? 'Hide Details' : 'Learn More'}</span>
+                                <span>{expandedLearnMore === t.key ? 'Hide Details' : 'View Details'}</span>
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedLearnMore === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                               </button>
                             </div>
 
-                            {/* Learn More expanded content */}
+                            {/* Expanded: Element Status + element list */}
                             {expandedLearnMore === t.key && (
                               <>
-                                {/* Description */}
-                                <div className="px-5 pb-3">
-                                  <p className="text-sm text-slate-600 leading-relaxed">{t.desc}</p>
-                                </div>
-
-                                {/* Element Status */}
-                                <div className="px-5 py-3" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                                  <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Element Status</p>
+                                <div className="px-5 py-4" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
+                                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Element Status</p>
                                   <div className="space-y-1.5">
                                     {[
-                                      { label: 'In Place', count: t.inPlace, color: '#10B981', textColor: 'text-emerald-700' },
-                                      { label: 'In Development', count: t.inDev, color: '#3B82F6', textColor: 'text-blue-700' },
-                                      { label: 'Under Review', count: t.review, color: '#F59E0B', textColor: 'text-amber-700' },
-                                      { label: 'Not Planned', count: t.gaps, color: '#F87171', textColor: 'text-red-600' },
-                                      { label: 'To Confirm', count: t.toConfirm, color: '#8B5CF6', textColor: 'text-violet-700' },
+                                      { label: 'In Place', count: t.inPlace, color: '#10B981' },
+                                      { label: 'In Development', count: t.inDev, color: '#3B82F6' },
+                                      { label: 'Under Review', count: t.review, color: '#F59E0B' },
+                                      { label: 'Not Planned', count: t.gaps, color: '#F87171' },
+                                      { label: 'To Confirm', count: t.toConfirm, color: '#8B5CF6' },
                                     ].map(s => (
                                       <div key={s.label} className="flex items-center gap-2">
                                         <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
-                                        <span className="text-sm text-slate-500 flex-1">{s.label}</span>
-                                        <span className={`text-sm font-bold tabular-nums ${s.count > 0 ? s.textColor : 'text-slate-300'}`}>{s.count}</span>
+                                        <span className="text-sm text-slate-600 flex-1">{s.label}</span>
+                                        <span className="text-sm font-bold tabular-nums" style={{ color: s.count > 0 ? s.color : '#CBD5E1' }}>{s.count}</span>
                                       </div>
                                     ))}
                                   </div>
-                                  {/* View Elements toggle — plain text link */}
+
+                                  {/* View elements link */}
                                   <button
                                     onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
-                                    className="mt-3 flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
+                                    className="mt-3 flex items-center gap-1.5 text-sm font-medium hover:underline"
                                     style={{ color: t.color }}
                                   >
-                                    <span>{expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements</span>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                    {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                   </button>
                                 </div>
                               </>
@@ -6367,55 +6368,150 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* How does [company] compare — always-visible comparison table */}
-                    <div className="px-8 pb-6 pt-2">
-                      <div className="border-t border-slate-200 pt-8">
-                        <div className="flex items-center justify-between mb-6">
-                          <h4 className="text-lg font-bold text-slate-800">How does {companyName} compare?</h4>
-                          {allWSIScoresState.length > 0 && (
-                            <span className="text-sm text-slate-400">{allWSIScoresState.length} companies compared</span>
+                    {/* How does Company compare? — Dropdown */}
+                    {(() => {
+                      const computeDist = (scores: number[]) => {
+                        if (scores.length === 0) return { leading: 0, advancing: 0, accelerating: 0, building: 0 };
+                        const n = scores.length;
+                        return {
+                          leading: Math.round((scores.filter(s => s >= 80).length / n) * 100),
+                          advancing: Math.round((scores.filter(s => s >= 64 && s < 80).length / n) * 100),
+                          accelerating: Math.round((scores.filter(s => s >= 50 && s < 64).length / n) * 100),
+                          building: Math.round((scores.filter(s => s < 50).length / n) * 100),
+                        };
+                      };
+
+                      const getTierInfo = (score: number) => {
+                        if (score >= 80) return { label: 'Leading', color: '#047857' };
+                        if (score >= 64) return { label: 'Advancing', color: '#1D4ED8' };
+                        if (score >= 50) return { label: 'Accelerating', color: '#B45309' };
+                        return { label: 'Building', color: '#B91C1C' };
+                      };
+
+                      const compRows = [
+                        { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, accentColor: '#334155' },
+                        { label: 'Core Support', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
+                        { label: 'Enhanced Support', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
+                        { label: 'Advanced Support', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
+                      ];
+
+                      const tierDefs = [
+                        { key: 'leading', label: 'Leading', range: '80-100', color: '#047857' },
+                        { key: 'advancing', label: 'Advancing', range: '64-79', color: '#1D4ED8' },
+                        { key: 'accelerating', label: 'Accelerating', range: '50-63', color: '#B45309' },
+                        { key: 'building', label: 'Building', range: '0-49', color: '#B91C1C' },
+                      ];
+
+                      return (
+                        <div className="px-8 pb-6">
+                          {/* Dropdown trigger */}
+                          <button
+                            onClick={() => setShowScoreComparison(!showScoreComparison)}
+                            className="w-full flex items-center justify-between px-6 py-5 bg-white rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+                            style={{ border: showScoreComparison ? '2px solid #334155' : '1px solid #e2e8f0' }}
+                          >
+                            <div className="flex items-center gap-3">
+                              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                              </svg>
+                              <span className="text-lg font-bold text-slate-800">How does {companyName} compare?</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {allWSIScoresState.length > 0 && (
+                                <span className="text-sm text-slate-400">{allWSIScoresState.length} companies</span>
+                              )}
+                              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-500" style={{ transform: showScoreComparison ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                              </div>
+                            </div>
+                          </button>
+
+                          {showScoreComparison && (
+                            <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                              {/* Explanation header */}
+                              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                                <p className="text-sm text-slate-600 leading-relaxed">
+                                  This table shows where {companyName} falls relative to all {allWSIScoresState.length} participating companies.
+                                  <strong className="text-slate-700"> Your Score</strong> and <strong className="text-slate-700">Your Tier</strong> show your current standing,
+                                  while the percentage columns show how all companies are distributed across the four performance tiers.
+                                </p>
+                              </div>
+
+                              {/* Tier scale legend */}
+                              <div className="px-6 py-3 border-b border-slate-100">
+                                <div className="flex items-center gap-1">
+                                  {tierDefs.map((td) => (
+                                    <div key={td.key} className="flex-1 text-center py-2 first:rounded-l-lg last:rounded-r-lg" style={{ backgroundColor: td.color + '12' }}>
+                                      <p className="text-xs font-bold" style={{ color: td.color }}>{td.label}</p>
+                                      <p className="text-xs text-slate-400">{td.range}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Table header */}
+                              <div className="grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 py-3 border-b border-slate-200 bg-slate-50">
+                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider"></div>
+                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Score</div>
+                                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Your Tier</div>
+                                {tierDefs.map(td => (
+                                  <div key={td.key} className="text-xs font-semibold uppercase tracking-wider text-center" style={{ color: td.color }}>
+                                    {td.label}
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Data rows */}
+                              {compRows.map((row, i) => {
+                                const dist = computeDist(row.scores);
+                                const tierInfo = getTierInfo(row.score);
+                                return (
+                                  <div key={row.label} className={`grid grid-cols-[200px_80px_100px_1fr_1fr_1fr_1fr] gap-0 px-6 py-4 items-center ${i < compRows.length - 1 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50/50' : ''}`}>
+                                    {/* Row label */}
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-1 h-8 rounded-full" style={{ backgroundColor: row.accentColor }} />
+                                      <span className="text-base font-semibold text-slate-800">{row.label}</span>
+                                    </div>
+
+                                    {/* Score */}
+                                    <div className="text-center">
+                                      <span className="text-2xl font-bold" style={{ color: row.accentColor }}>{row.score}</span>
+                                    </div>
+
+                                    {/* Tier badge */}
+                                    <div className="text-center">
+                                      <span className="inline-block text-sm font-bold px-3 py-1 rounded-lg" style={{ backgroundColor: tierInfo.color + '15', color: tierInfo.color }}>
+                                        {tierInfo.label}
+                                      </span>
+                                    </div>
+
+                                    {/* Tier distribution percentages */}
+                                    {[dist.leading, dist.advancing, dist.accelerating, dist.building].map((pct, j) => {
+                                      const isYourTier = tierDefs[j].label === tierInfo.label;
+                                      return (
+                                        <div key={j} className="text-center">
+                                          <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-400'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
+                                            {pct}%
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })}
+
+                              {/* Footer note */}
+                              <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
+                                <p className="text-sm text-slate-400">
+                                  Percentages show the share of all {allWSIScoresState.length} participating companies that scored within each tier range.
+                                  <strong className="text-slate-500"> Highlighted values</strong> indicate your tier.
+                                </p>
+                              </div>
+                            </div>
                           )}
                         </div>
-
-                        {/* Table header */}
-                        <div className="grid grid-cols-5 gap-4 px-4 pb-3 border-b border-slate-200">
-                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider"></div>
-                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Your Score</div>
-                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Benchmark</div>
-                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Difference</div>
-                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Percentile</div>
-                        </div>
-
-                        {/* Rows */}
-                        {[
-                          { label: 'Composite Score', score: wsiScore, benchAvg: 59, diff: wsiScore - 59, pctl: wsiPercentile, color: '#334155' },
-                          { label: 'Core Support', score: coreData.score, benchAvg: coreBench.avg, diff: coreBench.diff, pctl: coreBench.pctl, color: '#047857' },
-                          { label: 'Enhanced Support', score: enhData.score, benchAvg: enhBench.avg, diff: enhBench.diff, pctl: enhBench.pctl, color: '#B45309' },
-                          { label: 'Advanced Support', score: advData.score, benchAvg: advBench.avg, diff: advBench.diff, pctl: advBench.pctl, color: '#7C3AED' },
-                        ].map((row, i) => (
-                          <div key={row.label} className={`grid grid-cols-5 gap-4 px-4 py-4 items-center ${i < 3 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50 rounded-lg' : ''}`}>
-                            <div className="flex items-center gap-2">
-                              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: row.color }} />
-                              <span className="text-base font-semibold text-slate-800">{row.label}</span>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-2xl font-bold" style={{ color: row.color }}>{row.score}</span>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-2xl font-bold text-slate-400">{row.benchAvg}</span>
-                            </div>
-                            <div className="text-center">
-                              <span className={`text-2xl font-bold ${row.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                                {row.diff >= 0 ? '+' : ''}{row.diff}
-                              </span>
-                            </div>
-                            <div className="text-center">
-                              <span className="text-lg font-semibold text-slate-600">{row.pctl}<span className="text-sm align-super text-slate-400">th</span></span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+                      );
+                    })()}
 
                     {/* Methodology footnote */}
                     <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 rounded-b-2xl">
