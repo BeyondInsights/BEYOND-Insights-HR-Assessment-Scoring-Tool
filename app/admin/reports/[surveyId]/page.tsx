@@ -6167,7 +6167,14 @@ export default function ExportReportPage() {
                       })}
                       </div>
                     </div>
-                    
+
+                    {/* Methodology footnote */}
+                    <div className="px-8 py-3 mt-4">
+                      <p className="text-sm text-slate-400">
+                        <strong className="text-slate-500">How scores are calculated:</strong> Your organization was assessed across 152 support elements grouped into 13 dimensions. The Workplace Support Composite Score weights each dimension based on employee-identified priorities and each element based on its measured impact on employee wellbeing and organizational outcomes.
+                      </p>
+                    </div>
+
                     {/* How does Company compare? — Dropdown */}
                     {(() => {
                       const computeDist = (scores: number[]) => {
@@ -6314,12 +6321,6 @@ export default function ExportReportPage() {
                       );
                     })()}
 
-                    {/* Methodology footnote */}
-                    <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 rounded-b-2xl">
-                      <p className="text-sm text-slate-400">
-                        <strong className="text-slate-500">Methodology:</strong> Each of the 152 program elements is classified into one of three support levels based on clustering by maturity status (In Place, In Development, Under Review, Not Planned) across participating organizations. Level scores are unweighted flat percentages. The Workplace Support Composite Score uses dimension impact weights. Support Rating tiers are based on WSI score ranges.
-                      </p>
-                    </div>
                   </div>
                 );
               })()}
