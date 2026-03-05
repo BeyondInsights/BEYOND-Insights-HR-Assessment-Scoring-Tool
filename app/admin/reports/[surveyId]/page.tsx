@@ -5532,7 +5532,7 @@ export default function ExportReportPage() {
             </div>
 
             {/* Company info + score — Dark Hero Header */}
-            <div className="px-12 py-12 rounded-2xl mt-8" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
+            <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-slate-400 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
@@ -6900,11 +6900,11 @@ export default function ExportReportPage() {
                         {/* Secondary Strengths (bottom-right) — cool lavender */}
                         <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#e0e7ff" fillOpacity="0.5" />
 
-                        {/* Quadrant watermark labels — top pair at top, bottom pair at bottom */}
-                        <text x={PLOT_WIDTH * 0.25} y={20} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="22" fontWeight="800" fontFamily="system-ui" opacity="0.15">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={20} textAnchor="middle" dominantBaseline="middle" fill="#0d9488" fontSize="22" fontWeight="800" fontFamily="system-ui" opacity="0.15">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 16} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.10">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 16} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="18" fontWeight="800" fontFamily="system-ui" opacity="0.10">SECONDARY STRENGTHS</text>
+                        {/* Quadrant labels — top pair at top edge, bottom pair at bottom edge */}
+                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#0d9488" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="11" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
                         {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
