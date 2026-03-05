@@ -1006,6 +1006,256 @@ function getBenchmarkNarrative(score: number, benchmark: number | null, dimName:
 // Identify meaningful cross-dimension patterns (ranked by severity, tier-consistent)
 // Methodology: Evaluates cross-dimensional tension rules and surfaces the top 3
 // based on the size of the mismatch and the opportunity in the weaker dimension.
+
+// Dimension-specific insight templates — produces contextual diagnosis text
+// based on which elements are in place vs missing for each dimension
+function getDimensionInsight(
+  dimNum: number,
+  elements: any[],
+  score: number,
+  benchmark: number | null,
+  strengths: any[],
+  inMotion: any[],
+  gaps: any[],
+  companyName: string
+): { diagnosis: string; actions: { title: string; rationale: string; tag: 'Accelerate' | 'Build' }[]; theme: string } {
+
+  const benchDiff = benchmark != null ? score - benchmark : null;
+  const inPlace = strengths.map((s: any) => s.name.toLowerCase());
+  const notInPlace = gaps.map((g: any) => g.name.toLowerCase());
+  const developing = inMotion.map((m: any) => m.name.toLowerCase());
+
+  const has = (list: string[], ...keywords: string[]) => list.some(name => keywords.some(kw => name.includes(kw)));
+  const get = (list: any[], ...keywords: string[]) => list.find((el: any) => keywords.some(kw => el.name.toLowerCase().includes(kw)));
+
+  const benchPhrase = benchDiff !== null
+    ? benchDiff >= 10 ? `${benchDiff} points above the benchmark`
+    : benchDiff >= 0 ? 'in line with or slightly above the benchmark'
+    : benchDiff >= -10 ? `${Math.abs(benchDiff)} points below the benchmark`
+    : `${Math.abs(benchDiff)} points below the benchmark \u2014 a significant gap`
+    : null;
+
+  // D1: Medical Leave & Flexibility
+  if (dimNum === 1) {
+    const hasBasicLeave = has(inPlace, 'short-term', 'medical leave');
+    const hasFlexibility = has(inPlace, 'flexible', 'remote', 'schedule');
+    const lacksProtections = has(notInPlace, 'job protection', 'salary continuation', 'full salary');
+    const lacksFlexibility = has(notInPlace, 'flexible', 'remote', 'schedule');
+    let diagnosis = '';
+    if (hasBasicLeave && lacksFlexibility) {
+      diagnosis = `${companyName} provides core medical leave but lacks the flexibility provisions that help employees manage treatment alongside work. Leave policies exist; day-to-day flexibility does not.`;
+    } else if (hasFlexibility && lacksProtections) {
+      diagnosis = `${companyName} offers workplace flexibility but gaps remain in formal leave protections. Employees can flex their schedule but may lack confidence about job security and income continuity during extended treatment.`;
+    } else if (strengths.length >= elements.length * 0.6) {
+      diagnosis = 'Medical leave practices are largely in place. The opportunity is to strengthen consistency and close remaining gaps to provide a seamless leave experience.';
+    } else {
+      diagnosis = `Medical leave and flexibility is a foundational dimension where ${companyName} has significant room to build. ${benchPhrase ? `At ${score}, the organization is ${benchPhrase}.` : ''} Employees facing a cancer diagnosis need confidence that their job and income are protected.`;
+    }
+    return { diagnosis, actions: [], theme: 'leave-and-flexibility' };
+  }
+
+  // D2: Insurance & Financial Protection
+  if (dimNum === 2) {
+    const hasBasicInsurance = has(inPlace, 'cancer treatment', 'insurance', 'coverage');
+    const lacksNavigation = has(notInPlace, 'navigation', 'concierge', 'advocacy');
+    const lacksFinancial = has(notInPlace, 'financial', 'hardship', 'assistance');
+    let diagnosis = '';
+    if (hasBasicInsurance && lacksNavigation) {
+      diagnosis = `Insurance benefits are in place, but employees may struggle to navigate them. Without clear navigation support, comprehensive benefits go underutilized \u2014 the investment exists but the return is diminished.`;
+    } else if (lacksFinancial) {
+      diagnosis = 'Financial protection gaps mean employees may delay or forgo treatment due to cost concerns. This dimension directly affects whether cancer support policies translate into actual employee wellbeing.';
+    } else if (strengths.length >= elements.length * 0.6) {
+      diagnosis = `Financial protection infrastructure is solid. Focus on ensuring employees know what\u2019s available and can access it without friction.`;
+    } else {
+      diagnosis = `Insurance and financial protection is foundational to any cancer support program. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Gaps here create the most immediate anxiety for employees at diagnosis.`;
+    }
+    return { diagnosis, actions: [], theme: 'financial-protection' };
+  }
+
+  // D3: Manager Preparedness
+  if (dimNum === 3) {
+    const hasTraining = has(inPlace, 'training', 'empathy', 'communication skills');
+    const hasTools = has(inPlace, 'escalation', 'resource hub', 'playbook', 'protocol');
+    const lacksTraining = has(notInPlace, 'training', 'empathy', 'communication skills');
+    const lacksTools = has(notInPlace, 'escalation', 'resource hub', 'protocol', 'compliance');
+    const lacksEval = has(notInPlace, 'evaluation', 'manager evaluation');
+    let diagnosis = '';
+    if (hasTraining && lacksTools) {
+      diagnosis = `${companyName} invests in manager training, but managers lack the infrastructure to act on it \u2014 no escalation protocols, no dedicated resource hub, no compliance framework. Training builds awareness; tools enable consistent action. The gap is execution infrastructure, not intent.`;
+    } else if (hasTools && lacksTraining) {
+      diagnosis = `The tools and protocols exist, but managers haven\u2019t been trained to use them effectively. Escalation paths and resources only work when managers know how and when to activate them.`;
+    } else if (lacksTraining && lacksTools) {
+      diagnosis = `Manager preparedness is largely undeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Managers are the front line of cancer support \u2014 when they lack both training and tools, every other dimension suffers.`;
+    } else if (strengths.length >= elements.length * 0.6) {
+      diagnosis = `Strong manager preparedness foundation in place. ${lacksEval ? 'The gap is in accountability \u2014 adding manager evaluations on support quality would close the loop from training to verified behavior.' : 'Focus on consistency across teams and reinforcing practices through regular refreshers.'}`;
+    } else {
+      diagnosis = `Manager preparedness has partial coverage. ${benchPhrase ? `At ${score}, the score is ${benchPhrase}.` : ''} Identify whether the gap is in training (do managers know what to do?) or infrastructure (do they have the tools to do it?).`;
+    }
+    return { diagnosis, actions: [], theme: 'manager-capability' };
+  }
+
+  // D4: Specialized Resources
+  if (dimNum === 4) {
+    const hasNavigation = has(inPlace, 'navigation', 'resource hub', 'coordinator');
+    const lacksSpecialized = has(notInPlace, 'coach', 'counseling', 'peer', 'mentor');
+    let diagnosis = '';
+    if (hasNavigation && lacksSpecialized) {
+      diagnosis = 'Basic resource navigation exists, but specialized support services (coaching, counseling, peer mentorship) are absent. Employees can find general information but lack access to the personalized guidance that makes the difference during treatment and recovery.';
+    } else if (!hasNavigation) {
+      diagnosis = `Employees managing cancer need a clear starting point for accessing support. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without a navigation entry point, even existing benefits go underutilized.`;
+    } else {
+      diagnosis = `Specialized resources are ${strengths.length >= elements.length * 0.5 ? 'largely available' : 'partially developed'}. ${benchPhrase ? `The score of ${score} is ${benchPhrase}.` : ''} The quality and accessibility of these resources shapes whether employees feel genuinely supported or merely "covered."`;
+    }
+    return { diagnosis, actions: [], theme: 'resource-access' };
+  }
+
+  // D5: Workplace Accommodations
+  if (dimNum === 5) {
+    const hasFlexible = has(inPlace, 'flexible', 'workload', 'schedule');
+    const lacksProcess = has(notInPlace, 'process', 'protocol', 'request', 'formal');
+    let diagnosis = '';
+    if (hasFlexible && lacksProcess) {
+      diagnosis = `Accommodations happen informally \u2014 flexible arrangements exist, but there\u2019s no standardized process to request and track them. This means access depends on individual manager discretion rather than organizational commitment.`;
+    } else if (strengths.length >= elements.length * 0.6) {
+      diagnosis = `Workplace accommodations are a strength. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} The priority is ensuring consistency across all teams and locations, and documenting practices so they survive personnel changes.`;
+    } else {
+      diagnosis = `Accommodation gaps mean employees must negotiate support individually, creating inequitable experiences. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Fast, consistent accommodations are what employees cite as the most tangible proof that an organization cares.`;
+    }
+    return { diagnosis, actions: [], theme: 'accommodations' };
+  }
+
+  // D6: Culture & Psychological Safety
+  if (dimNum === 6) {
+    const hasStigma = has(inPlace, 'stigma', 'anti-stigma', 'disclosure');
+    const hasInclusive = has(inPlace, 'inclusive', 'communication guidelines');
+    const lacksConfidentiality = has(notInPlace, 'confidentiality', 'privacy');
+    let diagnosis = '';
+    if (hasStigma && lacksConfidentiality) {
+      diagnosis = `${companyName} addresses stigma through awareness, but privacy protections are incomplete. Employees may feel culturally safe to disclose but uncertain about what happens with that information. Close the confidentiality gap to complete the trust cycle.`;
+    } else if (strengths.length >= elements.length * 0.6) {
+      diagnosis = `Culture and psychological safety is a clear strength. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} This foundation enables all other dimensions \u2014 employees who feel safe disclosing are more likely to access accommodations, resources, and leave.`;
+    } else {
+      diagnosis = `Psychological safety is the foundation everything else rests on. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without a culture where disclosure feels safe, employees manage cancer in silence \u2014 and every other support program goes unused.`;
+    }
+    return { diagnosis, actions: [], theme: 'culture-safety' };
+  }
+
+  // D7: Career Continuity & Advancement
+  if (dimNum === 7) {
+    const hasProtections = has(inPlace, 'succession', 'performance', 'protection');
+    const lacksReintegration = has(notInPlace, 'reintegration', 'progress review', 'mentorship', 'coaching');
+    let diagnosis = '';
+    if (hasProtections && lacksReintegration) {
+      diagnosis = `Formal protections exist (performance review adjustments, succession planning), but post-treatment career reintegration support is missing. Employees\u2019 jobs are protected during treatment; their career trajectories after treatment are not.`;
+    } else if (strengths.length <= 2) {
+      diagnosis = `Career continuity is largely undeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without clear signals that cancer doesn\u2019t derail careers, employees may hide diagnoses or leave preemptively. This is one of the strongest predictors of whether an employee stays with the organization.`;
+    } else {
+      diagnosis = `Career continuity has partial coverage. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The question is whether employees believe \u2014 based on evidence, not policy \u2014 that their career trajectory survives a cancer diagnosis.`;
+    }
+    return { diagnosis, actions: [], theme: 'career-continuity' };
+  }
+
+  // D8: Work Continuation & Resumption
+  if (dimNum === 8) {
+    const hasPhased = has(inPlace, 'phased', 'return-to-work', 'flexible');
+    const lacksStructured = has(notInPlace, 'structured', 'progress review', 'long-term', 'success tracking');
+    let diagnosis = '';
+    if (hasPhased && lacksStructured) {
+      diagnosis = `Phased return-to-work plans and flexible arrangements are in place \u2014 the transition back starts well. But structured follow-through (progress reviews, long-term success tracking) is missing. Employees return successfully but lack sustained support, risking attrition 6\u201312 months post-return.`;
+    } else if (strengths.length >= elements.length * 0.5) {
+      diagnosis = `Return-to-work support is developing well. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} The opportunity is building the sustained support infrastructure that carries employees beyond the initial return.`;
+    } else {
+      diagnosis = `Work continuation and resumption is a critical gap. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without structured return-to-work protocols, the investment in leave and accommodations is lost when employees struggle with re-entry.`;
+    }
+    return { diagnosis, actions: [], theme: 'return-to-work' };
+  }
+
+  // D9: Executive Commitment & Resources
+  if (dimNum === 9) {
+    const hasBudget = has(inPlace, 'budget', 'dedicated', 'funding');
+    const hasSponsorship = has(inPlace, 'executive', 'sponsor', 'leadership');
+    const lacksVisibility = has(notInPlace, 'town hall', 'communication', 'visible');
+    let diagnosis = '';
+    if (hasBudget && lacksVisibility) {
+      diagnosis = `Resources are allocated but leadership engagement isn\u2019t visible to employees. Budget exists; executive signals don\u2019t. Without visible sponsorship, cancer support remains "an HR program" rather than an organizational priority.`;
+    } else if (!hasBudget && !hasSponsorship) {
+      diagnosis = `Executive commitment is largely absent. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without visible leadership engagement and dedicated resources, cancer support programs struggle to gain organizational traction. This dimension is the multiplier for everything else.`;
+    } else {
+      diagnosis = `Executive commitment has ${strengths.length >= elements.length * 0.5 ? 'a solid foundation' : 'early foundations'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The test is whether support for employees managing cancer has identifiable executive sponsors with measurable objectives.`;
+    }
+    return { diagnosis, actions: [], theme: 'executive-commitment' };
+  }
+
+  // D10: Caregiver & Family Support
+  if (dimNum === 10) {
+    const hasLeave = has(inPlace, 'leave', 'time off', 'caregiver leave');
+    const lacksResources = has(notInPlace, 'counseling', 'support group', 'resource', 'concierge');
+    let diagnosis = '';
+    if (hasLeave && lacksResources) {
+      diagnosis = `Caregiver leave provisions exist, but dedicated support resources (counseling, support groups, logistics assistance) are absent. Caregivers get time off but not the support to use it effectively. This is a hidden retention risk \u2014 caregivers are a significant segment of your workforce.`;
+    } else if (strengths.length <= 1) {
+      diagnosis = `Caregiver and family support is largely undeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Cancer affects families, not just individuals. Organizations that recognize this retain a broader pool of employees and build deeper organizational loyalty.`;
+    } else {
+      diagnosis = `Caregiver support has ${strengths.length >= elements.length * 0.5 ? 'meaningful coverage' : 'early foundations'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The question is whether caregivers know these supports exist and can access them without stigma.`;
+    }
+    return { diagnosis, actions: [], theme: 'caregiver-support' };
+  }
+
+  // D11: Prevention & Wellness
+  if (dimNum === 11) {
+    const hasScreening = has(inPlace, 'screening', 'vaccination', 'health education');
+    const lacksProactive = has(notInPlace, 'incentive', 'campaign', 'partnership');
+    let diagnosis = '';
+    if (hasScreening && lacksProactive) {
+      diagnosis = 'Basic prevention offerings (screenings, vaccinations, education) are available, but proactive outreach and engagement programs are not. Prevention is offered but not actively promoted \u2014 participation likely correlates with individual awareness rather than organizational effort.';
+    } else if (strengths.length >= elements.length * 0.6) {
+      diagnosis = `Prevention and wellness is a strength. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Strong prevention programs demonstrate that the organization\u2019s commitment to cancer support starts before diagnosis, not after.`;
+    } else {
+      diagnosis = `Prevention and wellness programming is limited. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Prevention is the most proactive expression of employer commitment \u2014 it signals that the organization invests in health, not just responds to illness.`;
+    }
+    return { diagnosis, actions: [], theme: 'prevention-wellness' };
+  }
+
+  // D12: Continuous Improvement
+  if (dimNum === 12) {
+    const hasFeedback = has(inPlace, 'feedback', 'survey', 'assessment');
+    const lacksSystematic = has(notInPlace, 'regular', 'enhancement', 'roi', 'review', 'program');
+    let diagnosis = '';
+    if (hasFeedback && lacksSystematic) {
+      diagnosis = `Feedback mechanisms exist but systematic improvement processes don\u2019t. Data is collected but not consistently acted upon. Without regular program reviews and enhancement cycles, support quality plateaus while employee needs evolve.`;
+    } else if (strengths.length <= 1) {
+      diagnosis = `Continuous improvement infrastructure is minimal. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without systematic review processes, the organization can\u2019t identify what\u2019s working, what\u2019s not, or where to invest next. This dimension is what separates one-time efforts from sustained programs.`;
+    } else {
+      diagnosis = `Continuous improvement systems are ${strengths.length >= elements.length * 0.5 ? 'well-established' : 'developing'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The maturity of these processes determines whether cancer support improves year over year or remains static.`;
+    }
+    return { diagnosis, actions: [], theme: 'continuous-improvement' };
+  }
+
+  // D13: Communication & Awareness
+  if (dimNum === 13) {
+    const hasBasic = has(inPlace, 'awareness', 'intranet', 'information');
+    const lacksTargeted = has(notInPlace, 'testimonial', 'family', 'manager toolkit', 'cascade');
+    const lacksMultiChannel = has(notInPlace, 'multi-channel', 'campaign', 'targeted');
+    let diagnosis = '';
+    if (hasBasic && lacksTargeted) {
+      diagnosis = `Basic awareness information exists, but targeted communication \u2014 employee testimonials, family-inclusive messaging, manager cascade toolkits \u2014 is absent. Employees can find information if they look; they don\u2019t receive it when they need it. The gap is between "available" and "effective."`;
+    } else if (strengths.length <= 2) {
+      diagnosis = `Communication and awareness is significantly underdeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Strong programs elsewhere in the report are undermined when employees don\u2019t know they exist. This dimension is the multiplier for every other investment.`;
+    } else {
+      diagnosis = `Communication coverage is ${strengths.length >= elements.length * 0.5 ? 'solid' : 'partial'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The test: can a newly diagnosed employee name three support resources within 24 hours of diagnosis without asking HR?`;
+    }
+    return { diagnosis, actions: [], theme: 'communication-awareness' };
+  }
+
+  // Fallback
+  return {
+    diagnosis: `${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase} in this dimension.` : `This dimension scored ${score}.`} ${strengths.length} of ${elements.length} elements are in place.`,
+    actions: [],
+    theme: 'general',
+  };
+}
+
+
 function getCrossDimensionPatterns(dimAnalysis: any[]): {
   tensions: { pattern: string; implication: string; recommendation: string }[];
   positiveInsights: { pattern: string; implication: string; recommendation: string }[];
@@ -9017,7 +9267,13 @@ export default function ExportReportPage() {
                       // Benchmark context
                       const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
 
-                      // ============ BUILD THE DIAGNOSIS ============
+                      // ============ DIMENSION-SPECIFIC DIAGNOSIS ============
+                      const dimInsight = getDimensionInsight(
+                        d.dim, enriched, d.score, d.benchmark,
+                        strengths, inMotion, allGaps, companyName
+                      );
+
+                      // Generic fallback diagnosis
                       let diagnosisOpener = '';
                       if (benchDiff !== null) {
                         if (benchDiff >= 10) {
@@ -9052,10 +9308,25 @@ export default function ExportReportPage() {
                         gapNarrative = ' This is an area of strength with limited gaps remaining.';
                       }
 
-                      const diagnosis = diagnosisOpener + strengthContext + gapNarrative;
+                      // Use dimension-specific diagnosis, fall back to generic
+                      const diagnosis = dimInsight.diagnosis || (diagnosisOpener + strengthContext + gapNarrative);
+
+                      // ============ ACTION RATIONALE HELPER ============
+                      const getActionRationale = (el: any, isInMotion: boolean): { label: string; color: string } => {
+                        if (isInMotion) {
+                          return { label: 'Fastest lift — already underway', color: 'text-blue-600' };
+                        }
+                        if ((el.peerPct ?? 0) >= 60) {
+                          return { label: 'Table-stakes gap — most peers offer this', color: 'text-red-600' };
+                        }
+                        if ((el.peerPct ?? 0) >= 40) {
+                          return { label: 'Competitive gap — many peers offer this', color: 'text-amber-600' };
+                        }
+                        return { label: 'Differentiator — opportunity to lead', color: 'text-violet-600' };
+                      };
 
                       // ============ BUILD THE ACTION PLAN ============
-                      const actionSteps: { title: string; detail: string; tag: 'Accelerate' | 'Build'; element?: string; peerPct?: number }[] = [];
+                      const actionSteps: { title: string; detail: string; tag: 'Accelerate' | 'Build'; rationale: { label: string; color: string }; element?: string; peerPct?: number }[] = [];
 
                       if (inMotion.length > 0) {
                         const topInMotion = inMotion[0];
@@ -9064,6 +9335,7 @@ export default function ExportReportPage() {
                           title: `Complete "${topInMotion.name}"${othersText}`,
                           detail: `This is already ${topInMotion.isPlanning ? 'in development' : 'under review'}. ${topInMotion.peerPct != null ? `${topInMotion.peerPct}% of peers offer this. ` : ''}Finishing what’s started is the fastest path to score improvement.`,
                           tag: 'Accelerate',
+                          rationale: getActionRationale(topInMotion, true),
                           element: topInMotion.name,
                           peerPct: topInMotion.peerPct,
                         });
@@ -9079,6 +9351,7 @@ export default function ExportReportPage() {
                             ? `${topGap.peerPct}% of peers already offer this — it’s a standard practice your employees likely expect. Closing this gap addresses the most visible competitive deficit.`
                             : `Only ${topGap.peerPct ?? 'few'}% of peers offer this, so adding it would set you apart.${sortedGaps.length > 1 ? ` There are ${sortedGaps.length - 1} additional opportunities in this category.` : ''}`,
                           tag: 'Build',
+                          rationale: getActionRationale(topGap, false),
                           element: topGap.name,
                           peerPct: topGap.peerPct,
                         });
@@ -9093,6 +9366,7 @@ export default function ExportReportPage() {
                             ? `Another standard practice (${secondGap.peerPct}% peer adoption). Together with the step above, these two changes address your highest-adoption gaps.`
                             : `At ${secondGap.peerPct ?? 'low'}% peer adoption, this is an opportunity to lead rather than catch up.`,
                           tag: 'Build',
+                          rationale: getActionRationale(secondGap, false),
                           element: secondGap.name,
                           peerPct: secondGap.peerPct,
                         });
@@ -9103,6 +9377,7 @@ export default function ExportReportPage() {
                           title: 'Maintain and document existing practices',
                           detail: 'Most elements are in place. Focus on strengthening consistency across teams and locations, and documenting practices for new managers.',
                           tag: 'Accelerate',
+                          rationale: { label: 'Protect existing strength', color: 'text-emerald-600' },
                         });
                       }
 
@@ -9131,6 +9406,33 @@ export default function ExportReportPage() {
                               </p>
                             )}
                           </div>
+
+                          {/* === GAP COMPOSITION — 3-bucket diagnostic === */}
+                          {(inMotion.length > 0 || tableStakes.length > 0 || differentiators.length > 0) && (
+                            <div className="flex items-center gap-6 mb-6 py-3 px-5 bg-white rounded-lg border border-slate-200">
+                              {inMotion.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                  <span className="text-sm text-slate-700"><strong className="text-slate-900">{inMotion.length}</strong> in motion</span>
+                                  <span className="text-xs text-slate-400">— fastest lift</span>
+                                </div>
+                              )}
+                              {tableStakes.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                                  <span className="text-sm text-slate-700"><strong className="text-slate-900">{tableStakes.length}</strong> table-stakes gap{tableStakes.length > 1 ? 's' : ''}</span>
+                                  <span className="text-xs text-slate-400">— most peers offer</span>
+                                </div>
+                              )}
+                              {differentiators.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-violet-500" />
+                                  <span className="text-sm text-slate-700"><strong className="text-slate-900">{differentiators.length}</strong> differentiator{differentiators.length > 1 ? 's' : ''}</span>
+                                  <span className="text-xs text-slate-400">— opportunity to lead</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
@@ -9169,6 +9471,9 @@ export default function ExportReportPage() {
                                         <span className="text-xs text-slate-400 flex-shrink-0">{step.peerPct}% of peers</span>
                                       )}
                                     </div>
+                                    <p className={`text-xs font-medium mb-1 ${step.rationale.color}`}>
+                                      {step.rationale.label}
+                                    </p>
                                     {editMode ? (
                                       <textarea
                                         value={customObservations[`action_${d.dim}_${i}_detail`] ?? step.detail}
@@ -9190,27 +9495,34 @@ export default function ExportReportPage() {
                           </div>
 
                           {/* === THE IMPACT === */}
-                          <div className="flex items-center gap-6 px-6 py-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm text-slate-500">Projected dimension score:</span>
-                              <span className="text-sm font-semibold text-slate-700">{d.score}</span>
-                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                              <span className="text-sm font-bold text-emerald-600">{projectedDimScore}</span>
-                              {tierShift && (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  {currentTier.name} → {projectedTier.name}
+                          <div className="px-6 py-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                            <div className="flex items-center gap-8">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500">Expected lift from these actions:</span>
+                                <span className="text-sm font-bold text-emerald-600">
+                                  +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} composite pts
                                 </span>
-                              )}
-                            </div>
-                            <div className="w-px h-8 bg-slate-200" />
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-500">Composite impact:</span>
-                              <span className="text-sm font-bold text-indigo-600">+{totalCompositeGain} pts</span>
-                            </div>
-                            <div className="w-px h-8 bg-slate-200" />
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-500">Elements to advance:</span>
-                              <span className="text-sm font-semibold text-slate-700">{totalActionable}</span>
+                                <span className="text-sm text-slate-400">
+                                  ({d.score} → ~{Math.min(100, d.score + actionSteps.length * perElementDimGain)} in this dimension)
+                                </span>
+                              </div>
+                              <div className="w-px h-8 bg-slate-200" />
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500">Ceiling if all gaps closed:</span>
+                                <span className="text-sm font-semibold text-slate-600">
+                                  {d.score} → {projectedDimScore}
+                                </span>
+                                {tierShift && (
+                                  <span className="text-xs ml-1.5 font-semibold px-2 py-0.5 rounded-lg bg-slate-200 text-slate-600">
+                                    {currentTier.name} → {projectedTier.name}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="w-px h-8 bg-slate-200" />
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500">Elements to advance:</span>
+                                <span className="text-sm font-semibold text-slate-700">{totalActionable}</span>
+                              </div>
                             </div>
                           </div>
 
@@ -9357,7 +9669,13 @@ export default function ExportReportPage() {
                       // Benchmark context
                       const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
 
-                      // ============ BUILD THE DIAGNOSIS ============
+                      // ============ DIMENSION-SPECIFIC DIAGNOSIS ============
+                      const dimInsight = getDimensionInsight(
+                        d.dim, enriched, d.score, d.benchmark,
+                        strengths, inMotion, allGaps, companyName
+                      );
+
+                      // Generic fallback diagnosis
                       let diagnosisOpener = '';
                       if (benchDiff !== null) {
                         if (benchDiff >= 10) {
@@ -9392,10 +9710,25 @@ export default function ExportReportPage() {
                         gapNarrative = ' This is an area of strength with limited gaps remaining.';
                       }
 
-                      const diagnosis = diagnosisOpener + strengthContext + gapNarrative;
+                      // Use dimension-specific diagnosis, fall back to generic
+                      const diagnosis = dimInsight.diagnosis || (diagnosisOpener + strengthContext + gapNarrative);
+
+                      // ============ ACTION RATIONALE HELPER ============
+                      const getActionRationale = (el: any, isInMotion: boolean): { label: string; color: string } => {
+                        if (isInMotion) {
+                          return { label: 'Fastest lift — already underway', color: 'text-blue-600' };
+                        }
+                        if ((el.peerPct ?? 0) >= 60) {
+                          return { label: 'Table-stakes gap — most peers offer this', color: 'text-red-600' };
+                        }
+                        if ((el.peerPct ?? 0) >= 40) {
+                          return { label: 'Competitive gap — many peers offer this', color: 'text-amber-600' };
+                        }
+                        return { label: 'Differentiator — opportunity to lead', color: 'text-violet-600' };
+                      };
 
                       // ============ BUILD THE ACTION PLAN ============
-                      const actionSteps: { title: string; detail: string; tag: 'Accelerate' | 'Build'; element?: string; peerPct?: number }[] = [];
+                      const actionSteps: { title: string; detail: string; tag: 'Accelerate' | 'Build'; rationale: { label: string; color: string }; element?: string; peerPct?: number }[] = [];
 
                       if (inMotion.length > 0) {
                         const topInMotion = inMotion[0];
@@ -9404,6 +9737,7 @@ export default function ExportReportPage() {
                           title: `Complete "${topInMotion.name}"${othersText}`,
                           detail: `This is already ${topInMotion.isPlanning ? 'in development' : 'under review'}. ${topInMotion.peerPct != null ? `${topInMotion.peerPct}% of peers offer this. ` : ''}Finishing what’s started is the fastest path to score improvement.`,
                           tag: 'Accelerate',
+                          rationale: getActionRationale(topInMotion, true),
                           element: topInMotion.name,
                           peerPct: topInMotion.peerPct,
                         });
@@ -9419,6 +9753,7 @@ export default function ExportReportPage() {
                             ? `${topGap.peerPct}% of peers already offer this — it’s a standard practice your employees likely expect. Closing this gap addresses the most visible competitive deficit.`
                             : `Only ${topGap.peerPct ?? 'few'}% of peers offer this, so adding it would set you apart.${sortedGaps.length > 1 ? ` There are ${sortedGaps.length - 1} additional opportunities in this category.` : ''}`,
                           tag: 'Build',
+                          rationale: getActionRationale(topGap, false),
                           element: topGap.name,
                           peerPct: topGap.peerPct,
                         });
@@ -9433,6 +9768,7 @@ export default function ExportReportPage() {
                             ? `Another standard practice (${secondGap.peerPct}% peer adoption). Together with the step above, these two changes address your highest-adoption gaps.`
                             : `At ${secondGap.peerPct ?? 'low'}% peer adoption, this is an opportunity to lead rather than catch up.`,
                           tag: 'Build',
+                          rationale: getActionRationale(secondGap, false),
                           element: secondGap.name,
                           peerPct: secondGap.peerPct,
                         });
@@ -9443,6 +9779,7 @@ export default function ExportReportPage() {
                           title: 'Maintain and document existing practices',
                           detail: 'Most elements are in place. Focus on strengthening consistency across teams and locations, and documenting practices for new managers.',
                           tag: 'Accelerate',
+                          rationale: { label: 'Protect existing strength', color: 'text-emerald-600' },
                         });
                       }
 
@@ -9473,6 +9810,33 @@ export default function ExportReportPage() {
                               </p>
                             )}
                           </div>
+
+                          {/* === GAP COMPOSITION — 3-bucket diagnostic === */}
+                          {(inMotion.length > 0 || tableStakes.length > 0 || differentiators.length > 0) && (
+                            <div className="flex items-center gap-6 mb-6 py-3 px-5 bg-white rounded-lg border border-slate-200">
+                              {inMotion.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                  <span className="text-sm text-slate-700"><strong className="text-slate-900">{inMotion.length}</strong> in motion</span>
+                                  <span className="text-xs text-slate-400">— fastest lift</span>
+                                </div>
+                              )}
+                              {tableStakes.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-red-500" />
+                                  <span className="text-sm text-slate-700"><strong className="text-slate-900">{tableStakes.length}</strong> table-stakes gap{tableStakes.length > 1 ? 's' : ''}</span>
+                                  <span className="text-xs text-slate-400">— most peers offer</span>
+                                </div>
+                              )}
+                              {differentiators.length > 0 && (
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-violet-500" />
+                                  <span className="text-sm text-slate-700"><strong className="text-slate-900">{differentiators.length}</strong> differentiator{differentiators.length > 1 ? 's' : ''}</span>
+                                  <span className="text-xs text-slate-400">— opportunity to lead</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
@@ -9513,6 +9877,9 @@ export default function ExportReportPage() {
                                         <span className="text-xs text-slate-400 flex-shrink-0">{step.peerPct}% of peers</span>
                                       )}
                                     </div>
+                                    <p className={`text-xs font-medium mb-1 ${step.rationale.color}`}>
+                                      {step.rationale.label}
+                                    </p>
                                     {editMode ? (
                                       <textarea
                                         value={customAdditionalDimInsights[d.dim]?.[`action_${i}_detail`] ?? step.detail}
@@ -9536,27 +9903,34 @@ export default function ExportReportPage() {
                           </div>
 
                           {/* === THE IMPACT === */}
-                          <div className="flex items-center gap-6 px-6 py-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm text-slate-500">Projected dimension score:</span>
-                              <span className="text-sm font-semibold text-slate-700">{d.score}</span>
-                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                              <span className="text-sm font-bold text-emerald-600">{projectedDimScore}</span>
-                              {tierShift && (
-                                <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                  {currentTier.name} → {projectedTier.name}
+                          <div className="px-6 py-4 bg-slate-50 rounded-xl border border-slate-200 mb-6">
+                            <div className="flex items-center gap-8">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500">Expected lift from these actions:</span>
+                                <span className="text-sm font-bold text-emerald-600">
+                                  +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} composite pts
                                 </span>
-                              )}
-                            </div>
-                            <div className="w-px h-8 bg-slate-200" />
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-500">Composite impact:</span>
-                              <span className="text-sm font-bold text-indigo-600">+{totalCompositeGain} pts</span>
-                            </div>
-                            <div className="w-px h-8 bg-slate-200" />
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-slate-500">Elements to advance:</span>
-                              <span className="text-sm font-semibold text-slate-700">{totalActionable}</span>
+                                <span className="text-sm text-slate-400">
+                                  ({d.score} → ~{Math.min(100, d.score + actionSteps.length * perElementDimGain)} in this dimension)
+                                </span>
+                              </div>
+                              <div className="w-px h-8 bg-slate-200" />
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500">Ceiling if all gaps closed:</span>
+                                <span className="text-sm font-semibold text-slate-600">
+                                  {d.score} → {projectedDimScore}
+                                </span>
+                                {tierShift && (
+                                  <span className="text-xs ml-1.5 font-semibold px-2 py-0.5 rounded-lg bg-slate-200 text-slate-600">
+                                    {currentTier.name} → {projectedTier.name}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="w-px h-8 bg-slate-200" />
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-slate-500">Elements to advance:</span>
+                                <span className="text-sm font-semibold text-slate-700">{totalActionable}</span>
+                              </div>
                             </div>
                           </div>
 
