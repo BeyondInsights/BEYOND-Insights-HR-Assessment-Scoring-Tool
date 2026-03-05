@@ -8204,21 +8204,23 @@ export default function ExportReportPage() {
           
           {/* ============ REPORT SUMMARY ============ */}
           <div id="report-summary" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            {/* Header */}
-            <div className="px-12 pt-10 pb-6">
-              <h2 className="text-2xl font-bold text-slate-900">Report Summary</h2>
-              <p className="text-base text-slate-500 mt-1">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
+            {/* Dark accent header */}
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
+              <h2 className="text-2xl font-bold text-white">Report Summary</h2>
+              <p className="text-slate-400 text-base mt-1">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
+            </div>
 
+            {/* Tab cards + content area */}
+            <div className="px-12 pt-6 pb-0">
               {/* Tab selector cards */}
-              <div className="mt-8 grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 mt-2 mb-6">
                 {([
                   {
                     key: 'excellence' as const,
                     label: 'Areas of Excellence',
                     desc: 'dimensions at Leading or above',
-                    color: '#0D9488',
-                    lightBg: '#f0fdfa',
-                    borderColor: '#99f6e4',
+                    color: '#0891B2',
+                    lightBg: '#ecfeff',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>,
                     count: strengthDimensions.length
                   },
@@ -8226,9 +8228,8 @@ export default function ExportReportPage() {
                     key: 'initiatives' as const,
                     label: 'Initiatives in Progress',
                     desc: 'in planning or under consideration',
-                    color: '#D97706',
-                    lightBg: '#fffbeb',
-                    borderColor: '#fde68a',
+                    color: '#7C3AED',
+                    lightBg: '#f5f3ff',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>,
                     count: quickWinOpportunities.length
                   },
@@ -8236,9 +8237,8 @@ export default function ExportReportPage() {
                     key: 'growth' as const,
                     label: 'Areas of Growth',
                     desc: 'dimensions with growth potential',
-                    color: '#475569',
-                    lightBg: '#f8fafc',
-                    borderColor: '#cbd5e1',
+                    color: '#DC2626',
+                    lightBg: '#fef2f2',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
                     count: Math.min(growthDimensions.length, 6)
                   },
@@ -8252,25 +8252,23 @@ export default function ExportReportPage() {
                       style={{
                         backgroundColor: isActive ? tab.lightBg : '#ffffff',
                         border: isActive ? `2px solid ${tab.color}` : '2px solid #e2e8f0',
-                        boxShadow: isActive ? `0 4px 12px ${tab.color}20` : 'none',
+                        boxShadow: isActive ? `0 4px 16px ${tab.color}15` : 'none',
                       }}
                     >
-                      {/* Active indicator bar at top */}
                       {isActive && (
                         <div className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full" style={{ backgroundColor: tab.color }} />
                       )}
-
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: isActive ? tab.color : '#e2e8f0', color: isActive ? 'white' : '#94a3b8' }}>
-                            {tab.icon}
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? tab.color : '#e2e8f0' }}>
+                            <span style={{ color: isActive ? 'white' : '#94a3b8' }}>{tab.icon}</span>
                           </div>
                           <div>
                             <p className="text-base font-bold" style={{ color: isActive ? tab.color : '#64748b' }}>{tab.label}</p>
                             <p className="text-sm mt-0.5" style={{ color: isActive ? '#64748b' : '#94a3b8' }}>{tab.desc}</p>
                           </div>
                         </div>
-                        <span className="text-3xl font-bold tabular-nums" style={{ color: isActive ? tab.color : '#cbd5e1' }}>{tab.count}</span>
+                        <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: isActive ? tab.color : '#cbd5e1' }}>{tab.count}</span>
                       </div>
                     </button>
                   );
@@ -8289,10 +8287,10 @@ export default function ExportReportPage() {
                       {strengthDimensions.slice(0, 6).map((d) => {
                         const pg = getEmployeePriorityGroup(d.weight);
                         return (
-                          <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-teal-300 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
+                          <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-cyan-400 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center gap-3 min-w-0">
-                                <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
+                                <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier?.color || '#64748B' }}>D{d.dim}</span>
                                 <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
                               </div>
                               <div className="flex items-center gap-3 flex-shrink-0">
@@ -8303,7 +8301,7 @@ export default function ExportReportPage() {
                             <ul className="space-y-2">
                               {d.strengths.slice(0, 3).map((e: any, i: number) => (
                                 <li key={i} className="text-base text-slate-600 flex items-start gap-2.5">
-                                  <svg className="w-5 h-5 text-teal-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-5 h-5 text-cyan-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                   </svg>
                                   <span>{e.name}</span>
@@ -8329,17 +8327,19 @@ export default function ExportReportPage() {
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
                       {quickWinOpportunities.map((item: any, idx: number) => {
-                        const pg = getEmployeePriorityGroup(dimensionAnalysis.find((d: any) => d.dim === item.dimNum)?.weight || 0);
+                        const dimObj = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
+                        const pg = getEmployeePriorityGroup(dimObj?.weight || 0);
+                        const dimTierColor = dimObj?.tier?.color || '#64748B';
                         return (
-                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-amber-300 hover:-translate-y-0.5 transition-all">
+                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-violet-400 hover:-translate-y-0.5 transition-all">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-2">
-                                <span className={`text-base font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                                <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">{pg.chip}</span>
+                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
+                                <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
                               </div>
                               <p className="text-lg text-slate-800 font-bold leading-snug">{item.name}</p>
-                              <div className="flex items-center gap-2 mt-1.5">
-                                <span className="w-7 h-7 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 bg-slate-500">D{item.dimNum}</span>
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: dimTierColor }}>D{item.dimNum}</span>
                                 <span className="text-base text-slate-500">{item.dimName}</span>
                               </div>
                             </div>
@@ -8363,15 +8363,15 @@ export default function ExportReportPage() {
                     {growthDimensions.slice(0, 6).map((d) => {
                       const pg = getEmployeePriorityGroup(d.weight);
                       return (
-                        <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-slate-400 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
+                        <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-red-300 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 bg-slate-500">D{d.dim}</span>
+                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: d.tier?.color || '#64748B' }}>D{d.dim}</span>
                               <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
                             </div>
                             <div className="flex items-center gap-3 flex-shrink-0">
                               <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                              <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">{pg.chip}</span>
+                              <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
                             </div>
                           </div>
                           {d.needsAttention.length > 0 ? (
