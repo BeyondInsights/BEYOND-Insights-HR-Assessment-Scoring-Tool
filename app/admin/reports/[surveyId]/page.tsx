@@ -74,7 +74,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
             <div className="w-6 flex justify-center"><span className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold" style={{ backgroundColor: pg.color }}>{d.dim}</span></div>
             <div className="flex-1"><span className="text-sm text-slate-700">{d.name}</span></div>
             <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
-            <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#334155' }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
+            <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
             <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
             <div className="w-28 flex justify-center"><span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`} style={{ color: pg.color }}>{pg.chip}</span></div>
@@ -6027,14 +6027,12 @@ export default function ExportReportPage() {
                     
                     {/* Support Level Details */}
                     <div className="px-8 py-6 border-t border-slate-200">
-                    {/* Methodology footnote */}
-                    <div className="px-8 py-4">
-                      <p className="text-sm text-slate-500 leading-relaxed">
-                        <strong className="text-slate-600">How scores are calculated:</strong> Your organization was assessed across 152 support elements grouped into 13 dimensions. Each element is classified into one of three support levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Workplace Support Composite Score weights each dimension based on employee-identified priorities and each element based on its measured impact on employee wellbeing and organizational outcomes.
-                      </p>
-                    </div>
-
-                      <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-5">What Each Support Level Includes</p>
+                      <div className="mb-5">
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">What Each Support Level Includes</p>
+                        <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                          Each of the 152 support elements is classified into one of three levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                        </p>
+                      </div>
                       <div className="grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
                         const Icon = t.icon;
@@ -6707,7 +6705,7 @@ export default function ExportReportPage() {
                         <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
                           <div
                             className="absolute left-0 top-0 h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#334155' }}
+                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }}
                           />
                           {d.benchmark !== null && (
                             <div
@@ -11751,7 +11749,7 @@ export default function ExportReportPage() {
                               <div className="relative h-2.5 bg-slate-100 rounded-full overflow-visible">
                                 <div
                                   className="absolute left-0 top-0 h-full rounded-full transition-all"
-                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#334155' }}
+                                  style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }}
                                 />
                                 {d.benchmark !== null && (
                                   <div
