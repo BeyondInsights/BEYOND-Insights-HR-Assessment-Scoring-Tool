@@ -5021,7 +5021,7 @@ export default function ExportReportPage() {
                           {'What This Score Represents'}
                         </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                              Your <span className="font-semibold text-violet-700">Workplace Support Composite Score</span> summarizes the share of support practices your organization has in place across <strong className="text-slate-800">13 dimensions</strong>. It combines results across three Levels of Workplace Support (Core, Enhanced, and Advanced) to provide a clear view of your overall support ecosystem for employees managing cancer.
+                              Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions encompassing 152 elements including benefits and programs.
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
                               <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
