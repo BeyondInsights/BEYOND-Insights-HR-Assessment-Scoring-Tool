@@ -2882,7 +2882,6 @@ export default function ExportReportPage() {
   const [showReportSections, setShowReportSections] = useState(false);
   const [expandedReportSection, setExpandedReportSection] = useState<string | null>(null);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
-  const [showScoreComparison, setShowScoreComparison] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
   const [activeReportTab, setActiveReportTab] = useState<'excellence' | 'initiatives' | 'growth'>('excellence');
   
@@ -5970,22 +5969,31 @@ export default function ExportReportPage() {
             )}
             
             {/* Executive Summary */}
-            <div className="px-12 py-10 bg-slate-50">
+            <div className="px-12 py-12 bg-white">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Summary</h3>
-              
-              <div data-export="executive-summary-text">
-                  {/* Index definition */}
-                  <p className="text-sm text-slate-500 mb-4">The Workplace Support Composite Score summarizes the share of support practices in place across 13 dimensions, weighted by their impact on employee wellbeing and organizational outcomes.</p>
 
-                  {/* Part A: What this score means */}
-                  <p className="text-slate-700 leading-relaxed text-lg mb-3">
-                    {companyName}&apos;s Workplace Support Composite Score is <strong>{wsiScoreHeader}</strong>
+              <div data-export="executive-summary-text">
+                  <p className="text-xl text-slate-700 leading-relaxed">
+                    {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
                     {wsiPercentile !== null && totalCompanies > 1 && (
                       <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
-                    )}. Support is anchored by {coreScoreCalc >= 70 ? 'strong' : coreScoreCalc >= 50 ? 'moderate' : 'developing'} <strong style={{ color: '#047857' }}>Core Support ({coreScoreCalc})</strong> and {enhancedScoreCalc >= 60 ? 'solid' : enhancedScoreCalc >= 40 ? 'developing' : 'early'} <strong style={{ color: '#B45309' }}>Enhanced Support ({enhancedScoreCalc})</strong>, while <strong style={{ color: '#7C3AED' }}>Advanced Support ({advancedScoreCalc})</strong> represents the primary opportunity to deepen the overall ecosystem.
+                    )}. Support is anchored by strong foundational practices, with the most significant opportunity to deepen the overall ecosystem through advanced program elements.
                   </p>
 
-
+                  {/* Support level stat row */}
+                  <div className="grid grid-cols-3 gap-6 mt-8">
+                    {[
+                      { label: 'Core Support', score: coreScoreCalc, color: '#047857', qualifier: coreScoreCalc >= 70 ? 'Strong' : coreScoreCalc >= 50 ? 'Moderate' : 'Developing' },
+                      { label: 'Enhanced Support', score: enhancedScoreCalc, color: '#B45309', qualifier: enhancedScoreCalc >= 60 ? 'Solid' : enhancedScoreCalc >= 40 ? 'Developing' : 'Early' },
+                      { label: 'Advanced Support', score: advancedScoreCalc, color: '#7C3AED', qualifier: 'Primary opportunity' },
+                    ].map(item => (
+                      <div key={item.label} className="text-center py-6 rounded-xl" style={{ backgroundColor: item.color + '08', borderLeft: `4px solid ${item.color}` }}>
+                        <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: item.color }}>{item.label}</p>
+                        <p className="text-5xl font-bold mt-2" style={{ color: item.color }}>{item.score}</p>
+                        <p className="text-sm text-slate-500 mt-1 capitalize">{item.qualifier}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               
               {/* Provisional Classification Notice */}
@@ -6151,85 +6159,73 @@ export default function ExportReportPage() {
                       <div className="flex items-start justify-between gap-8">
                         {/* Left: Title + description */}
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-slate-900 mb-1">Workplace Support Composite Score</h3>
-                          <p className="text-sm text-slate-500">Weighted across 13 dimensions and {coreData.total + enhData.total + advData.total} support elements</p>
+                          <h3 className="text-2xl font-bold text-slate-900 mb-1">Workplace Support Composite Score</h3>
+                          <p className="text-base text-slate-500">Weighted across 13 dimensions and {coreData.total + enhData.total + advData.total} support elements</p>
                         </div>
-                        {/* Right: Score cluster */}
-                        <div className="flex items-stretch gap-3">
-                          {/* Benchmark */}
-                          <div className="flex flex-col items-center justify-center px-6 py-4 rounded-xl bg-white border border-slate-200 min-w-[90px] shadow-sm">
-                            <p className="text-3xl font-bold text-slate-400">59</p>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mt-1">Benchmark</p>
-                          </div>
-                          {/* Your Score — taller center tile */}
-                          <div className="flex flex-col items-center justify-center px-8 py-5 rounded-xl bg-slate-900 min-w-[120px] shadow-lg -my-1">
-                            <p className="text-5xl font-bold text-white leading-none">{wsiScore}</p>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mt-2">Your Score</p>
+                        {/* Right: Score + Rating */}
+                        <div className="flex items-center gap-8 flex-shrink-0">
+                          <div className="text-right">
+                            <p className="text-7xl font-bold text-slate-900 leading-none">{wsiScore}</p>
+                            <p className="text-sm text-slate-400 mt-2">Benchmark: 59</p>
                             {(() => {
                               const diff = wsiScore - 59;
                               if (diff === 0) return null;
                               return (
-                                <span className={`inline-flex items-center gap-1 text-xs font-bold mt-1.5 px-2.5 py-0.5 rounded-full ${diff > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                                <span className={`inline-flex items-center text-sm font-bold mt-1 px-2.5 py-1 rounded-lg ${diff > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
                                   {diff > 0 ? '+' : ''}{diff} vs benchmark
                                 </span>
                               );
                             })()}
                           </div>
-                          {/* Rating */}
-                          <div className="flex flex-col items-center justify-center px-6 py-4 rounded-xl border-2 min-w-[110px] bg-white shadow-sm" style={{ borderColor: rating.color + '40' }}>
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-lg font-bold" style={{ color: rating.color, backgroundColor: rating.color + '12' }}>{rating.label}</span>
-                            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mt-1.5">Support Rating</p>
+                          <div className="text-center pl-8" style={{ borderLeft: '1px solid #dbe4f0' }}>
+                            <p className="text-2xl font-bold" style={{ color: rating.color }}>{rating.label}</p>
+                            <p className="text-sm text-slate-400 mt-1">Support Rating</p>
                           </div>
                         </div>
                       </div>
                       {/* Rating description */}
-                      <div className="mt-6 flex items-center gap-4 px-5 py-4 rounded-xl bg-white" style={{ border: `1px solid ${rating.color}25` }}>
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: rating.color }}>
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                        </div>
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-0.5">Overall Support Rating</p>
-                          <p className="text-sm text-slate-700 leading-relaxed">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold mr-1.5" style={{ color: rating.color, backgroundColor: rating.color + '12' }}>{rating.label}</span>
-                            {rating.desc}
-                          </p>
-                        </div>
+                      <div className="mt-6 px-5 py-4 rounded-xl bg-white" style={{ border: `1px solid ${rating.color}25` }}>
+                        <p className="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-1">Overall Support Rating</p>
+                        <p className="text-base text-slate-700 leading-relaxed">
+                          <strong style={{ color: rating.color }}>{rating.label}</strong>
+                          <span className="mx-1.5 text-slate-300">—</span>
+                          {rating.desc}
+                        </p>
                       </div>
 
                     </div>
                     
                     {/* Three Level Cards */}
                     <div className="p-6">
-                      <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-4">Score Breakdown by Support Level</p>
+                      <p className="text-sm text-slate-400 uppercase tracking-wider font-semibold mb-4">Score Breakdown by Support Level</p>
                       <div className="grid grid-cols-3 gap-5">
                       {tiers.map((t) => {
                         const Icon = t.icon;
                         const scoreColor = t.score >= 80 ? '#047857' : t.score >= 64 ? '#1D4ED8' : t.score >= 50 ? '#B45309' : '#B91C1C';
                         const benchAvg = t.bench.avg;
-                        
+
                         return (
-                          <div key={t.key} className="rounded-xl overflow-hidden flex flex-col" style={{ border: `2px solid ${t.border}` }}>
+                          <div key={t.key} className="rounded-xl overflow-hidden flex flex-col bg-white" style={{ border: `2px solid ${t.border}` }}>
                             {/* Score header */}
-                            <div className="px-5 py-4" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
+                            <div className="px-5 py-5" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
                               <div className="flex items-center justify-between" style={{ minHeight: '48px' }}>
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
                                     <Icon size={20} color="white" />
                                   </div>
                                   <div className="min-w-0">
-                                    <h4 className="font-bold text-sm leading-tight" style={{ color: t.color }}>{t.name}</h4>
-                                    <span className="text-xs text-slate-400 leading-tight">{t.total} elements</span>
+                                    <h4 className="font-bold text-base leading-tight" style={{ color: t.color }}>{t.name}</h4>
+                                    <span className="text-sm text-slate-400 leading-tight">{t.total} elements</span>
                                   </div>
                                 </div>
                                 <div className="text-right flex-shrink-0 pl-2">
-                                  <p className="text-4xl font-bold leading-none" style={{ color: scoreColor }}>{t.score}</p>
-                                  <p className="text-[10px] text-slate-400 mt-0.5">/ 100</p>
+                                  <p className="text-5xl font-bold leading-none" style={{ color: scoreColor }}>{t.score}</p>
                                 </div>
                               </div>
-                              
+
                               {/* Score bar with benchmark line */}
                               <div className="relative mt-4">
-                                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                                   <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                                 </div>
                                 {benchAvg > 0 && (
@@ -6242,44 +6238,46 @@ export default function ExportReportPage() {
                                 {benchAvg > 0 && (
                                   <div className="flex items-center gap-1">
                                     <div className="w-3 h-0.5 rounded-full bg-slate-500" />
-                                    <span className="text-[10px] text-slate-400">Benchmark: {Math.round(benchAvg)}</span>
+                                    <span className="text-sm text-slate-400">Benchmark: {Math.round(benchAvg)}</span>
                                   </div>
                                 )}
                               </div>
                             </div>
-                            
-                            {/* Metrics strip */}
-                            <div className="grid grid-cols-3 divide-x divide-slate-200 bg-slate-50" style={{ borderTop: `1px solid ${t.border}`, borderBottom: `1px solid ${t.border}` }}>
-                              <div className="text-center py-2.5">
-                                <p className="text-base font-bold text-slate-700">{t.bench.pctl}<sup className="text-[9px] text-slate-400">th</sup></p>
-                                <p className="text-[10px] text-slate-400">percentile</p>
+
+                            {/* Horizontal inline stats */}
+                            <div className="flex items-center gap-6 px-5 pt-4 pb-3 border-t" style={{ borderColor: t.border }}>
+                              <div>
+                                <span className="text-2xl font-bold text-slate-700">{t.bench.pctl}</span>
+                                <span className="text-sm text-slate-400 ml-1">percentile</span>
                               </div>
-                              <div className="text-center py-2.5">
-                                <p className={`text-base font-bold ${t.bench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                              <div className="w-px h-8 bg-slate-200" />
+                              <div>
+                                <span className={`text-2xl font-bold ${t.bench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
                                   {t.bench.diff >= 0 ? '+' : ''}{Math.round(t.bench.diff)}
-                                </p>
-                                <p className="text-[10px] text-slate-400">vs benchmark</p>
+                                </span>
+                                <span className="text-sm text-slate-400 ml-1">vs benchmark</span>
                               </div>
-                              <div className="text-center py-2.5">
-                                <p className="text-base font-bold" style={{ color: t.color }}>
+                              <div className="w-px h-8 bg-slate-200" />
+                              <div>
+                                <span className="text-2xl font-bold" style={{ color: t.color }}>
                                   {t.key === 'core' ? M_CORE_PCT : t.key === 'enhanced' ? M_ENH_PCT : M_ADV_PCT}%
-                                </p>
-                                <p className="text-[10px] text-slate-400">Composite Score weight</p>
+                                </span>
+                                <span className="text-sm text-slate-400 ml-1">composite weight</span>
                               </div>
                             </div>
-                            
-                            {/* Short descriptor */}
-                            <p className="text-xs text-slate-500 px-5 pb-2 pt-3">{t.shortDesc}</p>
 
-                            {/* Learn More toggle */}
-                            <div className="px-5 pb-3">
+                            {/* Short descriptor */}
+                            <p className="text-sm text-slate-500 px-5 pb-3 pt-1">{t.shortDesc}</p>
+
+                            {/* Learn More toggle — plain text link */}
+                            <div className="px-5 pb-4">
                               <button
                                 onClick={() => setExpandedLearnMore(expandedLearnMore === t.key ? null : t.key)}
-                                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-                                style={{ backgroundColor: t.light, color: t.color, border: `1px solid ${t.border}` }}
+                                className="flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
+                                style={{ color: t.color }}
                               >
-                                <span>Learn More</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedLearnMore === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                <span>{expandedLearnMore === t.key ? 'Hide Details' : 'Learn More'}</span>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedLearnMore === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                               </button>
                             </div>
 
@@ -6288,13 +6286,13 @@ export default function ExportReportPage() {
                               <>
                                 {/* Description */}
                                 <div className="px-5 pb-3">
-                                  <p className="text-xs text-slate-600 leading-relaxed">{t.desc}</p>
+                                  <p className="text-sm text-slate-600 leading-relaxed">{t.desc}</p>
                                 </div>
 
                                 {/* Element Status */}
                                 <div className="px-5 py-3" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Element Status</p>
-                                  <div className="space-y-1">
+                                  <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2">Element Status</p>
+                                  <div className="space-y-1.5">
                                     {[
                                       { label: 'In Place', count: t.inPlace, color: '#10B981', textColor: 'text-emerald-700' },
                                       { label: 'In Development', count: t.inDev, color: '#3B82F6', textColor: 'text-blue-700' },
@@ -6303,20 +6301,20 @@ export default function ExportReportPage() {
                                       { label: 'To Confirm', count: t.toConfirm, color: '#8B5CF6', textColor: 'text-violet-700' },
                                     ].map(s => (
                                       <div key={s.label} className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
-                                        <span className="text-xs text-slate-500 flex-1">{s.label}</span>
-                                        <span className={`text-xs font-bold tabular-nums ${s.count > 0 ? s.textColor : 'text-slate-300'}`}>{s.count}</span>
+                                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
+                                        <span className="text-sm text-slate-500 flex-1">{s.label}</span>
+                                        <span className={`text-sm font-bold tabular-nums ${s.count > 0 ? s.textColor : 'text-slate-300'}`}>{s.count}</span>
                                       </div>
                                     ))}
                                   </div>
-                                  {/* View Elements toggle */}
+                                  {/* View Elements toggle — plain text link */}
                                   <button
                                     onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
-                                    className="mt-3 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-white/60"
+                                    className="mt-3 flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
                                     style={{ color: t.color }}
                                   >
-                                    {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                    <span>{expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                   </button>
                                 </div>
                               </>
@@ -6369,91 +6367,59 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    {/* See How Your Score Compares — after support level cards */}
-                    {(() => {
-                      const computeDist = (scores: number[]) => {
-                        if (scores.length === 0) return { leading: 0, advancing: 0, accelerating: 0, building: 0 };
-                        const n = scores.length;
-                        return {
-                          leading: Math.round((scores.filter(s => s >= 80).length / n) * 100),
-                          advancing: Math.round((scores.filter(s => s >= 64 && s < 80).length / n) * 100),
-                          accelerating: Math.round((scores.filter(s => s >= 50 && s < 64).length / n) * 100),
-                          building: Math.round((scores.filter(s => s < 50).length / n) * 100),
-                        };
-                      };
-                      const comparisonCards = [
-                        { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, color: '#334155' },
-                        { label: 'Core Support', score: coreData.score, scores: tierBenchmarks.core, color: '#047857' },
-                        { label: 'Enhanced Support', score: enhData.score, scores: tierBenchmarks.enhanced, color: '#B45309' },
-                        { label: 'Advanced Support', score: advData.score, scores: tierBenchmarks.advanced, color: '#7C3AED' },
-                      ];
-                      const tierColors = { leading: '#047857', advancing: '#1D4ED8', accelerating: '#B45309', building: '#B91C1C' };
-                      return (
-                        <div className="px-6 pb-6">
-                          <button
-                            onClick={() => setShowScoreComparison(!showScoreComparison)}
-                            className="w-full flex items-center justify-between px-6 py-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm"
-                          >
-                            <span className="text-base font-semibold text-slate-800">How does {companyName} compare?</span>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 flex-shrink-0" style={{ transform: showScoreComparison ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                          </button>
-                          {showScoreComparison && (
-                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-5">
-                              {comparisonCards.map(card => {
-                                const dist = computeDist(card.scores);
-                                const cardTier = getTier(card.score);
-                                const total = dist.leading + dist.advancing + dist.accelerating + dist.building;
-                                const segments = [
-                                  { key: 'leading', pct: dist.leading, color: tierColors.leading, label: 'Leading' },
-                                  { key: 'advancing', pct: dist.advancing, color: tierColors.advancing, label: 'Advancing' },
-                                  { key: 'accelerating', pct: dist.accelerating, color: tierColors.accelerating, label: 'Accelerating' },
-                                  { key: 'building', pct: dist.building, color: tierColors.building, label: 'Building' },
-                                ];
-                                const markerPct = Math.min(Math.max(card.score, 0), 100);
-                                return (
-                                  <div key={card.label} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                                    <p className="text-[11px] font-semibold uppercase tracking-widest text-slate-400 mb-3">{card.label}</p>
-                                    <div className="flex items-center gap-3 mb-4">
-                                      <span className="text-5xl font-bold leading-none" style={{ color: cardTier.color }}>{card.score}</span>
-                                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: cardTier.color + '15', color: cardTier.color }}>{cardTier.name}</span>
-                                    </div>
-                                    {/* Distribution bar */}
-                                    <div className="relative mt-2 mb-2 pt-5">
-                                      <div className="flex h-4 rounded-full overflow-hidden shadow-inner">
-                                        {segments.map(seg => seg.pct > 0 ? (
-                                          <div key={seg.key} style={{ width: `${total > 0 ? (seg.pct / total) * 100 : 25}%`, backgroundColor: seg.color }} />
-                                        ) : null)}
-                                      </div>
-                                      {/* You marker */}
-                                      <div className="absolute flex flex-col items-center" style={{ left: `${markerPct}%`, top: '0px', transform: 'translateX(-50%)' }}>
-                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-800 text-white shadow-sm">You</span>
-                                        <svg width="10" height="7" viewBox="0 0 10 7" className="mt-0.5"><polygon points="5,7 0,0 10,0" fill="#1e293b" /></svg>
-                                      </div>
-                                    </div>
-                                    {/* Legend pills */}
-                                    <div className="flex flex-wrap gap-2 mt-4">
-                                      {segments.map(seg => (
-                                        <span key={seg.key} className="inline-flex items-center gap-1.5 text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">
-                                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: seg.color }} />
-                                          {seg.label} <span className="font-bold">{seg.pct}%</span>
-                                        </span>
-                                      ))}
-                                    </div>
-                                    {card.scores.length > 0 && (
-                                      <p className="text-[11px] text-slate-400 mt-3 text-right">{card.scores.length} companies compared</p>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
+                    {/* How does [company] compare — always-visible comparison table */}
+                    <div className="px-8 pb-6 pt-2">
+                      <div className="border-t border-slate-200 pt-8">
+                        <div className="flex items-center justify-between mb-6">
+                          <h4 className="text-lg font-bold text-slate-800">How does {companyName} compare?</h4>
+                          {allWSIScoresState.length > 0 && (
+                            <span className="text-sm text-slate-400">{allWSIScoresState.length} companies compared</span>
                           )}
                         </div>
-                      );
-                    })()}
+
+                        {/* Table header */}
+                        <div className="grid grid-cols-5 gap-4 px-4 pb-3 border-b border-slate-200">
+                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider"></div>
+                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Your Score</div>
+                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Benchmark</div>
+                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Difference</div>
+                          <div className="text-sm font-semibold text-slate-400 uppercase tracking-wider text-center">Percentile</div>
+                        </div>
+
+                        {/* Rows */}
+                        {[
+                          { label: 'Composite Score', score: wsiScore, benchAvg: 59, diff: wsiScore - 59, pctl: wsiPercentile, color: '#334155' },
+                          { label: 'Core Support', score: coreData.score, benchAvg: coreBench.avg, diff: coreBench.diff, pctl: coreBench.pctl, color: '#047857' },
+                          { label: 'Enhanced Support', score: enhData.score, benchAvg: enhBench.avg, diff: enhBench.diff, pctl: enhBench.pctl, color: '#B45309' },
+                          { label: 'Advanced Support', score: advData.score, benchAvg: advBench.avg, diff: advBench.diff, pctl: advBench.pctl, color: '#7C3AED' },
+                        ].map((row, i) => (
+                          <div key={row.label} className={`grid grid-cols-5 gap-4 px-4 py-4 items-center ${i < 3 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50 rounded-lg' : ''}`}>
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-8 rounded-full" style={{ backgroundColor: row.color }} />
+                              <span className="text-base font-semibold text-slate-800">{row.label}</span>
+                            </div>
+                            <div className="text-center">
+                              <span className="text-2xl font-bold" style={{ color: row.color }}>{row.score}</span>
+                            </div>
+                            <div className="text-center">
+                              <span className="text-2xl font-bold text-slate-400">{row.benchAvg}</span>
+                            </div>
+                            <div className="text-center">
+                              <span className={`text-2xl font-bold ${row.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                {row.diff >= 0 ? '+' : ''}{row.diff}
+                              </span>
+                            </div>
+                            <div className="text-center">
+                              <span className="text-lg font-semibold text-slate-600">{row.pctl}<span className="text-sm align-super text-slate-400">th</span></span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
                     {/* Methodology footnote */}
-                    <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 rounded-b-2xl">
-                      <p className="text-xs text-slate-400">
+                    <div className="px-8 py-4 bg-slate-50 border-t border-slate-200 rounded-b-2xl">
+                      <p className="text-sm text-slate-400">
                         <strong className="text-slate-500">Methodology:</strong> Each of the 152 program elements is classified into one of three support levels based on clustering by maturity status (In Place, In Development, Under Review, Not Planned) across participating organizations. Level scores are unweighted flat percentages. The Workplace Support Composite Score uses dimension impact weights. Support Rating tiers are based on WSI score ranges.
                       </p>
                     </div>
@@ -6462,41 +6428,41 @@ export default function ExportReportPage() {
               })()}
               
               {/* Combined Key Findings Section */}
-              <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
-                
+              <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-10">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-8">Key Findings</h3>
+
                 {/* Top Row - Stats */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                    <p className="text-4xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
-                    <p className="text-base text-slate-400 mt-2">of {totalElements} support elements in place</p>
+                <div className="grid grid-cols-4 gap-5 mb-6">
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #10B981' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
+                    <p className="text-lg text-slate-300 mt-3">of {totalElements} support elements in place</p>
                   </div>
-                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                    <p className="text-4xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
-                    <p className="text-base text-slate-400 mt-2">support elements in development</p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm text-sky-400">{planningItems} in development</p>
-                      <p className="text-sm text-sky-400">{assessingItems} under review</p>
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #3B82F6' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
+                    <p className="text-lg text-slate-300 mt-3">support elements in development</p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-base text-sky-400">{planningItems} in development</p>
+                      <p className="text-base text-sky-400">{assessingItems} under review</p>
                     </div>
                   </div>
-                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                    <p className="text-4xl font-bold text-white" data-export="metric-gaps">{gapItems + unsureItems}</p>
-                    <p className="text-base text-slate-400 mt-2">identified support element gaps</p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm text-amber-400">{notPlannedItems} not planned</p>
-                      <p className="text-sm text-amber-400">{unsureItems} to confirm</p>
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #F59E0B' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-gaps">{gapItems + unsureItems}</p>
+                    <p className="text-lg text-slate-300 mt-3">identified support element gaps</p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-base text-amber-400">{notPlannedItems} not planned</p>
+                      <p className="text-base text-amber-400">{unsureItems} to confirm</p>
                     </div>
                   </div>
-                  <div className="bg-white/10 rounded-xl p-5 backdrop-blur">
-                    <p className="text-4xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-xl font-normal text-slate-400 ml-1">/13</span></p>
-                    <p className="text-base text-slate-400 mt-2">dimensions at Advancing+</p>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm text-violet-400">{tierCounts.leading} Leading</p>
-                      <p className="text-sm text-violet-400">{tierCounts.established} Advancing</p>
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #8B5CF6' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-2xl font-normal text-slate-400 ml-1">/13</span></p>
+                    <p className="text-lg text-slate-300 mt-3">dimensions at Advancing+</p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-base text-violet-400">{tierCounts.leading} Leading</p>
+                      <p className="text-base text-violet-400">{tierCounts.established} Advancing</p>
                     </div>
                   </div>
                 </div>
-                
+
               </div>
             </div>
           </div>
