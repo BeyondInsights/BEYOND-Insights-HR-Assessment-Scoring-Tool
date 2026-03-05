@@ -8230,11 +8230,11 @@ export default function ExportReportPage() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-2">
                                 <span className={`text-base font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                                <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
+                                <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">{pg.chip}</span>
                               </div>
                               <p className="text-lg text-slate-800 font-bold leading-snug">{item.name}</p>
                               <div className="flex items-center gap-2 mt-1.5">
-                                <span className="w-7 h-7 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
+                                <span className="w-7 h-7 rounded flex items-center justify-center text-white text-xs font-bold flex-shrink-0 bg-slate-500">D{item.dimNum}</span>
                                 <span className="text-base text-slate-500">{item.dimName}</span>
                               </div>
                             </div>
@@ -8261,12 +8261,12 @@ export default function ExportReportPage() {
                         <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-slate-400 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
+                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0 bg-slate-500">D{d.dim}</span>
                               <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
                             </div>
                             <div className="flex items-center gap-3 flex-shrink-0">
                               <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                              <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
+                              <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600">{pg.chip}</span>
                             </div>
                           </div>
                           {d.needsAttention.length > 0 ? (
