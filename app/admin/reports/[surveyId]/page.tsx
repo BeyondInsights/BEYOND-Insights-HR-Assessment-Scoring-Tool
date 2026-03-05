@@ -10283,7 +10283,10 @@ export default function ExportReportPage() {
             const wsiBenchDiff = wsiScoreHeader != null && wsiBenchmarkScore != null ? wsiScoreHeader - wsiBenchmarkScore : null;
             const wsiTier = getWSITier(wsiScoreHeader ?? 0);
 
-            const topStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
+            const topStrengths = [...dimensionAnalysis]
+              .sort((a, b) => b.score - a.score)
+              .filter(d => d.score >= 64 || (d.benchmark != null && d.score >= d.benchmark))
+              .slice(0, 3);
 
             const priorityRankOrder = (w: number) => w >= 10 ? 0 : w >= 7 ? 1 : 2;
             const focusCandidates = [...dimensionAnalysis]
@@ -10305,11 +10308,20 @@ export default function ExportReportPage() {
               ? `${strengthPhrase1} and ${strengthPhrase2}`
               : strengthPhrase1;
 
-            const gapPhrase1 = dimGapPhrase[focusCandidates[0]?.dim] || 'operational consistency';
-            const gapPhrase2 = focusCandidates.length > 1 ? (dimGapPhrase[focusCandidates[1]?.dim] || '') : '';
-            const gapSummary = gapPhrase2
-              ? `${gapPhrase1} and ${gapPhrase2}`
-              : gapPhrase1;
+            const gapWithContext = (d: any): string => {
+              const phrase = dimGapPhrase[d.dim] || d.name;
+              if (d.benchmark != null) {
+                const diff = d.score - d.benchmark;
+                if (diff <= -10) return `${phrase} (${Math.abs(diff)} points behind peers)`;
+                if (diff <= -3) return `${phrase} (behind peers)`;
+                if (diff >= 3) return `${phrase} (ahead of peers but below potential)`;
+              }
+              return phrase;
+            };
+
+            const gapSummary1 = gapWithContext(focusCandidates[0]);
+            const gapSummary2 = focusCandidates.length > 1 ? gapWithContext(focusCandidates[1]) : '';
+            const gapSummary = gapSummary2 ? `${gapSummary1} and ${gapSummary2}` : gapSummary1;
 
             // Contradiction check: ensure no strength phrase word overlaps with a gap dimension name
             const strengthWords = strengthSummary.toLowerCase();
@@ -10369,6 +10381,67 @@ export default function ExportReportPage() {
 
             const defaultWhatsNext = '1. Choose 2\u20133 Most Critical priorities \u2192 2. Turn element gaps into an action plan with owners and milestones';
 
+            // Enhancement 1: Composite impact callout
+            const impactRankings = getImpactRankings(dimensionAnalysis, wsiScoreHeader ?? 0);
+            const topImpact = impactRankings[0];
+
+            const impactCallout = (() => {
+              if (!topImpact || topImpact.potentialGain12 < 1) return '';
+              const currentTier = getWSITier(wsiScoreHeader ?? 0);
+              const projectedComposite = Math.round((wsiScoreHeader ?? 0) + topImpact.potentialGain12);
+              const projectedTier = getWSITier(projectedComposite);
+              const tierShift = projectedTier.name !== currentTier.name
+                ? ` \u2014 potentially moving from ${currentTier.name} to ${projectedTier.name}`
+                : '';
+              return `Addressing ${topImpact.dimName} could improve your composite score by up to +${Math.round(topImpact.potentialGain12)} points${tierShift}.`;
+            })();
+
+            // Enhancement 3: Unsure-item upside
+            const unsureUpside = (() => {
+              const totalUnsure = dimensionAnalysis.reduce((sum: number, d: any) => sum + (d.unsure?.length || 0), 0);
+              if (totalUnsure < 5) return null;
+              const halfConfirmed = Math.floor(totalUnsure / 2);
+              const pointsGained = halfConfirmed * 5;
+              const totalElements = dimensionAnalysis.reduce((sum: number, d: any) => sum + (d.elements?.length || 0), 0);
+              const avgPointsPerElement = totalElements > 0 ? pointsGained / totalElements : 0;
+              const estimatedCompositeGain = Math.round(avgPointsPerElement * 20 * 0.9);
+              const projectedWithUnsure = Math.min(100, (wsiScoreHeader ?? 0) + estimatedCompositeGain);
+              const projectedTier = getWSITier(projectedWithUnsure);
+              if (estimatedCompositeGain < 2) return null;
+              return { totalUnsure, halfConfirmed, projectedScore: projectedWithUnsure, projectedTier: projectedTier.name, gain: estimatedCompositeGain };
+            })();
+
+            // Enhancement 4: Geographic impact callout
+            const geoImpact = (() => {
+              if (isSingleCountryCompany) return null;
+              const affectedDims = dimensionAnalysis.filter((d: any) => (d.geoMultiplier ?? 1.0) < 1.0);
+              if (affectedDims.length < 2) return null;
+              const avgGain = affectedDims.reduce((sum: number, d: any) => {
+                const gm = d.geoMultiplier ?? 1.0;
+                if (gm >= 1.0) return sum;
+                const rawScore = gm > 0 ? d.score / gm : d.score;
+                return sum + (rawScore - d.score);
+              }, 0) / affectedDims.length;
+              return { count: affectedDims.length, avgGain: Math.round(avgGain), dims: affectedDims.map((d: any) => d.name).slice(0, 3) };
+            })();
+
+            // Enhancement 6: Per-dimension percentile ranks
+            const getDimPercentile = (dimNum: number, score: number): number | null => {
+              const allAssessments = (window as any).__allAssessments || [];
+              if (allAssessments.length === 0) return null;
+              const allDimScores: number[] = [];
+              allAssessments.forEach((a: any) => {
+                try {
+                  const result = calculateCompanyScores(a);
+                  const ds = result.scores.dimensionScores[dimNum];
+                  if (ds != null) allDimScores.push(ds);
+                } catch {}
+              });
+              if (allDimScores.length === 0) return null;
+              const belowCount = allDimScores.filter((s: number) => s < score).length;
+              return Math.round((belowCount / allDimScores.length) * 100);
+            };
+
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
                 {/* Header bar */}
@@ -10417,7 +10490,33 @@ export default function ExportReportPage() {
                       {customNextSteps.headlineInsight || defaultHeadline}
                     </p>
                   )}
+                  {/* Enhancement 1: Impact callout */}
+                  {!editMode && !customNextSteps.headlineInsight && impactCallout && (
+                    <p className="text-base text-indigo-700 font-semibold mt-3">
+                      {impactCallout}
+                    </p>
+                  )}
                 </div>
+
+                {/* Enhancement 3: Unsure upside callout */}
+                {!editMode && unsureUpside && (
+                  <div className="mx-10 mb-4 px-5 py-3 bg-violet-50 rounded-lg border border-violet-200">
+                    <p className="text-sm text-violet-800">
+                      <strong>{unsureUpside.totalUnsure} elements are pending confirmation.</strong> If roughly half are already in place, your projected score could rise to approximately <strong>{unsureUpside.projectedScore}</strong> ({unsureUpside.projectedTier} tier).
+                      <span className="text-violet-600"> Confirming these items is the fastest path to an accurate score.</span>
+                    </p>
+                  </div>
+                )}
+
+                {/* Enhancement 4: Geographic impact callout */}
+                {!editMode && geoImpact && (
+                  <div className="mx-10 mb-4 px-5 py-3 bg-indigo-50 rounded-lg border border-indigo-200">
+                    <p className="text-sm text-indigo-800">
+                      <strong>Geographic consistency is reducing scores in {geoImpact.count} dimensions</strong> (including {geoImpact.dims.join(', ')}).
+                      Standardizing practices across all locations would improve these dimensions by an average of <strong>+{geoImpact.avgGain} points</strong> each.
+                    </p>
+                  </div>
+                )}
 
                 {/* "What This Pattern Suggests" — 3 short bullets */}
                 <div className="mx-10 mb-4 px-5 py-3 bg-slate-50 rounded-lg border border-slate-100">
@@ -10521,6 +10620,21 @@ export default function ExportReportPage() {
                               ) : (
                                 <p className="text-sm text-slate-500 leading-relaxed">{customSubline || defaultSubline}</p>
                               )}
+                              {/* Enhancement 5: At-risk flag */}
+                              {!editMode && (() => {
+                                const assessingCount = d.assessing?.length || 0;
+                                const unsureCount = d.unsure?.length || 0;
+                                const atRisk = assessingCount + unsureCount;
+                                if (atRisk === 0) return null;
+                                return (
+                                  <div className="mt-1">
+                                    <span className="inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1">
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                      {atRisk} element{atRisk > 1 ? 's' : ''} under review or pending — monitor to protect this strength
+                                    </span>
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         );
@@ -10547,6 +10661,17 @@ export default function ExportReportPage() {
                               <span className="px-1.5 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: pg.color + '15', color: pg.color }}>
                                 {pg.chip}
                               </span>
+                              {/* Enhancement 7: Effort tag */}
+                              {(() => {
+                                const impact = impactRankings.find((ir: any) => ir.dimNum === d.dim);
+                                if (!impact) return null;
+                                const isQuickWin = impact.effortTag === 'quick-win';
+                                return (
+                                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${isQuickWin ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                                    {isQuickWin ? '60-Day Win' : '6-Month Build'}
+                                  </span>
+                                );
+                              })()}
                             </div>
                             <div className="pl-7 mt-0.5 space-y-0.5">
                               {editMode ? (
@@ -10579,7 +10704,26 @@ export default function ExportReportPage() {
                               ) : (
                                 <>
                                   <p className="text-sm text-amber-700 font-medium">{playTitle}</p>
-                                  <p className="text-sm text-slate-500 leading-relaxed">Score: {Math.round(d.score)} · First step: {firstStep}</p>
+                                  {/* Enhancement 6: Percentile in score line */}
+                                  {(() => {
+                                    const pctl = getDimPercentile(d.dim, d.score);
+                                    const pctlLabel = pctl !== null ? ` (${pctl}${pctl === 1 ? 'st' : pctl === 2 ? 'nd' : pctl === 3 ? 'rd' : 'th'} percentile)` : '';
+                                    return (
+                                      <p className="text-sm text-slate-500 leading-relaxed">
+                                        Score: {Math.round(d.score)}<span className="text-slate-400">{pctlLabel}</span> · First step: {firstStep}
+                                      </p>
+                                    );
+                                  })()}
+                                  {/* Enhancement 7: Composite gain */}
+                                  {(() => {
+                                    const impact = impactRankings.find((ir: any) => ir.dimNum === d.dim);
+                                    if (!impact || impact.potentialGain12 < 0.5) return null;
+                                    return (
+                                      <p className="text-xs text-indigo-600 font-medium mt-1">
+                                        Year-1 projected gain: +{impact.dimPotentialGain12} dimension points → +{Math.round(impact.potentialGain12)} composite impact
+                                      </p>
+                                    );
+                                  })()}
                                 </>
                               )}
                             </div>
