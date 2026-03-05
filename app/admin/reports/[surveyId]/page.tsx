@@ -2981,6 +2981,7 @@ export default function ExportReportPage() {
   const [whatIfModal, setWhatIfModal] = useState<boolean>(false);
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
+  const [whatIfGeoOverride, setWhatIfGeoOverride] = useState<number | null>(null);
   
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
@@ -3702,8 +3703,9 @@ export default function ExportReportPage() {
           setBenchmarks(benchmarkScores);
           
           // Calculate element-level benchmarks for drill-down
-          const elemBenchmarks = calculateElementBenchmarks(allAssessments);
+          const { elementStats: elemBenchmarks, geoBenchmarks } = calculateElementBenchmarks(allAssessments);
           setElementBenchmarks(elemBenchmarks);
+          (window as any).__geoBenchmarks = geoBenchmarks;
           
           const completeAssessments = allAssessments.filter(a => {
             let completedDims = 0;
@@ -4095,39 +4097,55 @@ export default function ExportReportPage() {
       }
       return completedDims === 13;
     });
-    
-    if (complete.length === 0) return {};
-    
+
+    if (complete.length === 0) return { elementStats: {}, geoBenchmarks: {} };
+
     const elementStats: Record<number, Record<string, { currently: number; planning: number; assessing: number; notAble: number; total: number }>> = {};
-    
+    const geoBenchmarks: Record<number, { consistent: number; varies: number; select: number; total: number }> = {};
+
     for (let dim = 1; dim <= 13; dim++) {
       elementStats[dim] = {};
-      
+      geoBenchmarks[dim] = { consistent: 0, varies: 0, select: 0, total: 0 };
+
       complete.forEach(assessment => {
         const dimData = assessment[`dimension${dim}_data`];
         const mainGrid = dimData?.[`d${dim}a`];
-        
+
         if (mainGrid && typeof mainGrid === 'object') {
           Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
             if (isExcludedElement(dim, itemKey)) return;
-            
+
             if (!elementStats[dim][itemKey]) {
               elementStats[dim][itemKey] = { currently: 0, planning: 0, assessing: 0, notAble: 0, total: 0 };
             }
-            
+
             const result = statusToPoints(status);
             elementStats[dim][itemKey].total++;
-            
+
             if (result.category === 'currently_offer') elementStats[dim][itemKey].currently++;
             else if (result.category === 'planning') elementStats[dim][itemKey].planning++;
             else if (result.category === 'assessing') elementStats[dim][itemKey].assessing++;
             else elementStats[dim][itemKey].notAble++;
           });
         }
+
+        // Track geo responses for multi-country companies only
+        const firmographics = assessment.firmographics_data || {};
+        const s9a = firmographics.s9a || '';
+        const s9aLower = typeof s9a === 'string' ? s9a.toLowerCase() : '';
+        const isSingle = s9aLower.includes('no other countries') || s9aLower.includes('headquarters only') || s9aLower === '';
+        if (!isSingle) {
+          const geoResp = dimData?.[`d${dim}aa`] || dimData?.[`D${dim}aa`];
+          const gm = getGeoMultiplier(geoResp);
+          geoBenchmarks[dim].total++;
+          if (gm <= 0.75) geoBenchmarks[dim].select++;
+          else if (gm <= 0.90) geoBenchmarks[dim].varies++;
+          else geoBenchmarks[dim].consistent++;
+        }
       });
     }
-    
-    return elementStats;
+
+    return { elementStats, geoBenchmarks };
   }
 
   // ============================================
@@ -4324,6 +4342,13 @@ export default function ExportReportPage() {
         followUpRaw: followUpRawResponses?.[dimNum] ?? null,
         geoMultiplier: geoMultipliers?.[dimNum] ?? 1.0,
         geoResponse: geoResponses?.[dimNum] ?? null,
+        hasGeographicMultiplier: !isSingleCountryCompany,
+        geographicScope: (() => {
+          const gm = geoMultipliers?.[dimNum] ?? 1.0;
+          if (gm <= 0.75) return 'select';
+          if (gm <= 0.90) return 'varies';
+          return 'consistent';
+        })(),
         hasFollowUp: [1, 3, 12, 13].includes(dimNum),
         elements,
         strengths: elements.filter((e: any) => e.isStrength),
@@ -7290,24 +7315,82 @@ export default function ExportReportPage() {
                       );
                     })}
                     
-                    {/* Geographic Multiplier Section (if applicable) */}
-                    {d.hasGeographicMultiplier && (
-                      <div className="m-4 bg-indigo-50 rounded-lg border border-indigo-200 p-4">
-                        <h4 className="font-bold text-indigo-800 text-sm mb-3">Geographic Multiplier</h4>
-                        <div className="grid grid-cols-3 gap-3 text-sm">
-                          {[
-                            { label: 'Consistent across all', benchmark: '55%', multiplier: 'x1.00', selected: d.geographicScope === 'consistent' },
-                            { label: 'Varies by location', benchmark: '25%', multiplier: 'x0.90', selected: d.geographicScope === 'varies' },
-                            { label: 'Select locations only', benchmark: '20%', multiplier: 'x0.75', selected: d.geographicScope === 'select' },
-                          ].map((opt, i) => (
-                            <div key={i} className={`flex items-center justify-between px-3 py-2 rounded border ${opt.selected ? 'bg-indigo-100 border-indigo-400' : 'bg-white border-slate-200'}`}>
-                              <div className="flex items-center gap-2">
-                                {opt.selected && <span className="text-indigo-600">✓</span>}
-                                <span className={opt.selected ? 'font-semibold text-indigo-900 text-xs' : 'text-slate-600 text-xs'}>{opt.label}</span>
-                              </div>
-                              <span className={`font-bold text-sm ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.multiplier}</span>
-                            </div>
-                          ))}
+                    {/* Geographic Consistency */}
+                    {!isSingleCountryCompany && (
+                      <div className="mx-4 mb-4 bg-indigo-50 rounded-xl border border-indigo-200 overflow-hidden">
+                        <div className="px-5 py-3 bg-indigo-100 border-b border-indigo-200">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-indigo-800 text-sm">Geographic Consistency</h4>
+                            {d.geoMultiplier < 1.0 && (
+                              <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-200 text-indigo-800">
+                                Score adjusted by {d.geoMultiplier}x
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-indigo-600 mt-1">
+                            How consistently are these practices available across your operating locations?
+                          </p>
+                        </div>
+                        <div className="p-5">
+                          <div className="grid grid-cols-3 gap-3">
+                            {(() => {
+                              const geoBench = (window as any).__geoBenchmarks?.[d.dim] || { consistent: 0, varies: 0, select: 0, total: 0 };
+                              const total = geoBench.total || 1;
+                              const gm = d.geoMultiplier ?? 1.0;
+                              const scope = gm <= 0.75 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
+
+                              return [
+                                {
+                                  key: 'consistent',
+                                  label: 'Consistent across all locations',
+                                  multiplier: '1.00',
+                                  multiplierLabel: 'No adjustment',
+                                  selected: scope === 'consistent',
+                                  benchPct: Math.round((geoBench.consistent / total) * 100),
+                                },
+                                {
+                                  key: 'varies',
+                                  label: 'Varies by location',
+                                  multiplier: '0.90',
+                                  multiplierLabel: '10% reduction',
+                                  selected: scope === 'varies',
+                                  benchPct: Math.round((geoBench.varies / total) * 100),
+                                },
+                                {
+                                  key: 'select',
+                                  label: 'Select locations only',
+                                  multiplier: '0.75',
+                                  multiplierLabel: '25% reduction',
+                                  selected: scope === 'select',
+                                  benchPct: Math.round((geoBench.select / total) * 100),
+                                },
+                              ].map(opt => (
+                                <div key={opt.key} className={`rounded-xl p-4 border-2 transition-all ${opt.selected ? 'border-indigo-400 bg-white shadow-sm' : 'border-transparent bg-white/60'}`}>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    {opt.selected && (
+                                      <span className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                      </span>
+                                    )}
+                                    <span className={`text-sm font-semibold ${opt.selected ? 'text-indigo-900' : 'text-slate-500'}`}>{opt.label}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between mt-3">
+                                    <span className="text-xs text-slate-400">Multiplier</span>
+                                    <span className={`text-sm font-bold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>×{opt.multiplier}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between mt-1">
+                                    <span className="text-xs text-slate-400">Benchmark</span>
+                                    <span className={`text-sm font-semibold ${opt.selected ? 'text-indigo-700' : 'text-slate-400'}`}>{opt.benchPct}% of companies</span>
+                                  </div>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                          {d.geoMultiplier < 1.0 && (
+                            <p className="text-xs text-indigo-600 mt-4 leading-relaxed">
+                              Because practices in this dimension are not yet consistent across all locations, the raw element score is multiplied by <strong>{d.geoMultiplier}</strong> to produce the final dimension score. Expanding coverage to all locations would increase this dimension&apos;s score.
+                            </p>
+                          )}
                         </div>
                       </div>
                     )}
@@ -7442,7 +7525,7 @@ export default function ExportReportPage() {
           
           {/* ============ WHAT-IF SCENARIO MODAL ============ */}
           {whatIfModal && elementDetails && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}>
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header - Slate color to match composite */}
                 <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
@@ -7460,7 +7543,7 @@ export default function ExportReportPage() {
                         Or <span className="text-red-400 font-medium">stop offering</span> an existing one?
                       </p>
                     </div>
-                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
+                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
@@ -7477,7 +7560,7 @@ export default function ExportReportPage() {
                             <label className="text-sm font-semibold text-slate-700">Dimension:</label>
                             <select 
                               value=""
-                              onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }}
+                              onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); }}
                               className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
                             >
                               <option value="" disabled>Select a dimension...</option>
@@ -7502,7 +7585,7 @@ export default function ExportReportPage() {
                         {/* Footer */}
                         <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
                           <button 
-                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}
+                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}
                             className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
                           >
                             Close
@@ -7541,7 +7624,7 @@ export default function ExportReportPage() {
                   
                   // Derive current raw points from actual score (same as Impact-Ranked)
                   // This ensures consistency between What-If and Impact-Ranked projections
-                  const geoMult = dimInfo?.geoMultiplier ?? 1.0;
+                  const geoMult = whatIfGeoOverride !== null ? whatIfGeoOverride : (dimInfo?.geoMultiplier ?? 1.0);
                   const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
                   
                   let currentRawScore: number;
@@ -7597,7 +7680,8 @@ export default function ExportReportPage() {
                   const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
                   
                   const changesCount = Object.keys(whatIfChanges).length;
-                  const hasChanges = changesCount > 0;
+                  const hasGeoChange = whatIfGeoOverride !== null;
+                  const hasChanges = changesCount > 0 || hasGeoChange;
                   
                   const statusOptions = [
                     { value: 'currently', label: 'In Place', color: 'emerald' },
@@ -7627,7 +7711,7 @@ export default function ExportReportPage() {
                           <label className="text-sm font-semibold text-slate-700">Dimension:</label>
                           <select 
                             value={whatIfDimension || ''} 
-                            onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); }}
+                            onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); }}
                             className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
                           >
                             <option value="" disabled>Select a dimension...</option>
@@ -7638,7 +7722,7 @@ export default function ExportReportPage() {
                         </div>
                         {hasChanges && (
                           <button 
-                            onClick={() => setWhatIfChanges({})}
+                            onClick={() => { setWhatIfChanges({}); setWhatIfGeoOverride(null); }}
                             className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -7687,6 +7771,71 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
+                      {/* Geographic Consistency Override */}
+                      {!isSingleCountryCompany && whatIfDimension !== null && (
+                        <div className="px-8 py-4 bg-indigo-50 border-b border-indigo-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <div>
+                              <h4 className="text-sm font-bold text-indigo-800">Geographic Consistency</h4>
+                              <p className="text-xs text-indigo-600 mt-0.5">
+                                Current response: <strong>{
+                                  (dimInfo?.geoMultiplier ?? 1.0) <= 0.75 ? 'Select locations only' :
+                                  (dimInfo?.geoMultiplier ?? 1.0) <= 0.90 ? 'Varies by location' :
+                                  'Consistent across all'
+                                }</strong> (×{(dimInfo?.geoMultiplier ?? 1.0).toFixed(2)})
+                                {whatIfGeoOverride !== null && (
+                                  <span className="ml-2 text-violet-600">
+                                    → What if: <strong>{
+                                      whatIfGeoOverride <= 0.75 ? 'Select locations only' :
+                                      whatIfGeoOverride <= 0.90 ? 'Varies by location' :
+                                      'Consistent across all'
+                                    }</strong> (×{whatIfGeoOverride.toFixed(2)})
+                                  </span>
+                                )}
+                              </p>
+                            </div>
+                            {whatIfGeoOverride !== null && (
+                              <button
+                                onClick={() => setWhatIfGeoOverride(null)}
+                                className="text-xs text-indigo-600 hover:text-indigo-800 underline"
+                              >
+                                Reset to actual
+                              </button>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-3 gap-3">
+                            {[
+                              { label: 'Consistent across all', value: 1.0, desc: 'No adjustment' },
+                              { label: 'Varies by location', value: 0.90, desc: '10% reduction' },
+                              { label: 'Select locations only', value: 0.75, desc: '25% reduction' },
+                            ].map(opt => {
+                              const currentGeo = whatIfGeoOverride !== null ? whatIfGeoOverride : (dimInfo?.geoMultiplier ?? 1.0);
+                              const isSelected = currentGeo === opt.value;
+                              const isOriginal = (dimInfo?.geoMultiplier ?? 1.0) === opt.value;
+                              return (
+                                <button
+                                  key={opt.value}
+                                  onClick={() => setWhatIfGeoOverride(opt.value === (dimInfo?.geoMultiplier ?? 1.0) ? null : opt.value)}
+                                  className={`text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                    isSelected
+                                      ? 'border-violet-500 bg-violet-50 shadow-sm'
+                                      : 'border-slate-200 bg-white hover:border-violet-300'
+                                  }`}
+                                >
+                                  <p className={`text-sm font-semibold ${isSelected ? 'text-violet-800' : 'text-slate-600'}`}>
+                                    {opt.label}
+                                    {isOriginal && <span className="ml-1.5 text-xs font-normal text-slate-400">(current)</span>}
+                                  </p>
+                                  <p className={`text-xs mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-400'}`}>
+                                    ×{opt.value.toFixed(2)} — {opt.desc}
+                                  </p>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Column Headers */}
                       <div className="px-8 py-2 bg-slate-100 border-b border-slate-200 flex items-center">
                         <div className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</div>
@@ -7769,7 +7918,7 @@ export default function ExportReportPage() {
                           {hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
                         </p>
                         <button 
-                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfDimension(null); }}
+                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}
                           className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
                         >
                           Close
