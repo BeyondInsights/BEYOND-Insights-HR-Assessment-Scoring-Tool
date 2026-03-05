@@ -3805,8 +3805,8 @@ export default function ExportReportPage() {
           
           // Classic view: percentile + distribution from old composites
           if (allComposites.length > 0 && scores.compositeScore) {
-            const belowCount = allComposites.filter(s => s < scores.compositeScore).length;
-            setPercentileRank(Math.round((belowCount / allComposites.length) * 100));
+            const atOrBelowCount = allComposites.filter(s => s <= scores.compositeScore).length;
+            setPercentileRank(Math.round((atOrBelowCount / allComposites.length) * 100));
             const tierCounts = { leading: 0, established: 0, progressing: 0, building: 0 };
             allComposites.forEach(score => {
               if (score >= 80) tierCounts.leading++;
@@ -4564,7 +4564,7 @@ export default function ExportReportPage() {
   
   // Compute WSI-based percentile and tier distribution during render (wsiScoreHeader now available)
   const wsiPercentile = allWSIScoresState.length > 0
-    ? Math.round(allWSIScoresState.filter(s => s < wsiScoreHeader).length / allWSIScoresState.length * 100)
+    ? Math.round(allWSIScoresState.filter(s => s <= wsiScoreHeader).length / allWSIScoresState.length * 100)
     : percentileRank;
   // WSI-based tier distribution (for tier view)
   const _wsiTierDist = allWSIScoresState.length > 0 ? (() => {
@@ -5930,8 +5930,8 @@ export default function ExportReportPage() {
                   const scores = tierBenchmarks[level];
                   if (scores.length === 0) return { avg: 0, pctl: 0, index: 100, diff: 0 };
                   const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-                  const belowCount = scores.filter(s => s < myScore).length;
-                  const pctl = Math.round((belowCount / scores.length) * 100);
+                  const atOrBelowCount = scores.filter(s => s <= myScore).length;
+                  const pctl = Math.round((atOrBelowCount / scores.length) * 100);
                   const index = avg > 0 ? Math.round((myScore / avg) * 100) : 100;
                   const diff = Math.round(myScore - avg);
                   return { avg: Math.round(avg), pctl, index, diff };
