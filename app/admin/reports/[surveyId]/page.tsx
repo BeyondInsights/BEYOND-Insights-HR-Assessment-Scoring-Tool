@@ -9671,15 +9671,34 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
                                 <span className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</span>
                                 <span className="w-28 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
-                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">% of Peers Offering</span>
+                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peers</span>
+                                <span className="w-24 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Flag</span>
                               </div>
                               {enriched.sort((a: any, b: any) => {
-                                if (a.isStrength && !b.isStrength) return 1;
-                                if (!a.isStrength && b.isStrength) return -1;
-                                if ((a.isPlanning || a.isAssessing) && !(b.isPlanning || b.isAssessing)) return -1;
-                                if (!(a.isPlanning || a.isAssessing) && (b.isPlanning || b.isAssessing)) return 1;
+                                const rank = (x: any) => {
+                                  if (x.isPlanning || x.isAssessing) return 1;
+                                  if (x.isUnsure) return 2;
+                                  if (!x.isStrength && (x.peerPct ?? 0) >= 60) return 3;
+                                  if (!x.isStrength && (x.peerPct ?? 0) >= 40) return 4;
+                                  if (!x.isStrength && (x.peerPct ?? 0) >= 20) return 5;
+                                  if (!x.isStrength) return 6;
+                                  return 7;
+                                };
+                                const rankDiff = rank(a) - rank(b);
+                                if (rankDiff !== 0) return rankDiff;
                                 return (b.peerPct ?? 0) - (a.peerPct ?? 0);
-                              }).map((el: any, i: number) => (
+                              }).map((el: any, i: number) => {
+                                const flag = (() => {
+                                  if (el.isPlanning || el.isAssessing) return 'Accelerate';
+                                  if (el.isUnsure) return 'Confirm';
+                                  if (!el.isStrength && (el.peerPct ?? 0) >= 60) return 'Baseline';
+                                  if (!el.isStrength && (el.peerPct ?? 0) >= 40) return 'Emerging';
+                                  if (!el.isStrength && (el.peerPct ?? 0) >= 20) return 'Leverage';
+                                  if (!el.isStrength) return 'Leading-edge';
+                                  return '';
+                                })();
+                                const flagColors: Record<string, string> = { 'Accelerate': 'text-blue-600', 'Confirm': 'text-violet-600', 'Baseline': 'text-red-600', 'Emerging': 'text-amber-600', 'Leverage': 'text-slate-600', 'Leading-edge': 'text-slate-400' };
+                                return (
                                 <div key={i} className={`flex items-center gap-3 px-5 py-3 bg-white ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
                                   <span className="flex-1 text-base text-slate-700">{el.name}</span>
                                   <span className={`w-28 text-right text-sm font-medium ${
@@ -9694,8 +9713,10 @@ export default function ExportReportPage() {
                                   <span className="w-20 text-right text-sm text-slate-600 tabular-nums">
                                     {el.peerPct != null ? `${el.peerPct}%` : ''}
                                   </span>
+                                  {flag ? <span className={`w-24 text-right text-sm font-medium ${flagColors[flag] || 'text-slate-400'}`}>{flag}</span> : <span className="w-24" />}
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </details>
                         </div>
@@ -9964,15 +9985,34 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
                                 <span className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</span>
                                 <span className="w-28 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
-                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">% of Peers Offering</span>
+                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peers</span>
+                                <span className="w-24 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Flag</span>
                               </div>
                               {enriched.sort((a: any, b: any) => {
-                                if (a.isStrength && !b.isStrength) return 1;
-                                if (!a.isStrength && b.isStrength) return -1;
-                                if ((a.isPlanning || a.isAssessing) && !(b.isPlanning || b.isAssessing)) return -1;
-                                if (!(a.isPlanning || a.isAssessing) && (b.isPlanning || b.isAssessing)) return 1;
+                                const rank = (x: any) => {
+                                  if (x.isPlanning || x.isAssessing) return 1;
+                                  if (x.isUnsure) return 2;
+                                  if (!x.isStrength && (x.peerPct ?? 0) >= 60) return 3;
+                                  if (!x.isStrength && (x.peerPct ?? 0) >= 40) return 4;
+                                  if (!x.isStrength && (x.peerPct ?? 0) >= 20) return 5;
+                                  if (!x.isStrength) return 6;
+                                  return 7;
+                                };
+                                const rankDiff = rank(a) - rank(b);
+                                if (rankDiff !== 0) return rankDiff;
                                 return (b.peerPct ?? 0) - (a.peerPct ?? 0);
-                              }).map((el: any, i: number) => (
+                              }).map((el: any, i: number) => {
+                                const flag = (() => {
+                                  if (el.isPlanning || el.isAssessing) return 'Accelerate';
+                                  if (el.isUnsure) return 'Confirm';
+                                  if (!el.isStrength && (el.peerPct ?? 0) >= 60) return 'Baseline';
+                                  if (!el.isStrength && (el.peerPct ?? 0) >= 40) return 'Emerging';
+                                  if (!el.isStrength && (el.peerPct ?? 0) >= 20) return 'Leverage';
+                                  if (!el.isStrength) return 'Leading-edge';
+                                  return '';
+                                })();
+                                const flagColors: Record<string, string> = { 'Accelerate': 'text-blue-600', 'Confirm': 'text-violet-600', 'Baseline': 'text-red-600', 'Emerging': 'text-amber-600', 'Leverage': 'text-slate-600', 'Leading-edge': 'text-slate-400' };
+                                return (
                                 <div key={i} className={`flex items-center gap-3 px-5 py-3 bg-white ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
                                   <span className="flex-1 text-base text-slate-700">{el.name}</span>
                                   <span className={`w-28 text-right text-sm font-medium ${
@@ -9987,8 +10027,10 @@ export default function ExportReportPage() {
                                   <span className="w-20 text-right text-sm text-slate-600 tabular-nums">
                                     {el.peerPct != null ? `${el.peerPct}%` : ''}
                                   </span>
+                                  {flag ? <span className={`w-24 text-right text-sm font-medium ${flagColors[flag] || 'text-slate-400'}`}>{flag}</span> : <span className="w-24" />}
                                 </div>
-                              ))}
+                                );
+                              })}
                             </div>
                           </details>
                         </div>
@@ -10695,12 +10737,12 @@ export default function ExportReportPage() {
                         const allDims = dimensionAnalysis;
                         if (d.dim === 3) {
                           const culture = allDims.find((x: any) => x.dim === 6);
-                          if (culture && culture.score >= 70) return companyName + '\'s strong culture (' + culture.score + ') means employees feel safe disclosing, which makes manager readiness even more critical.';
+                          if (culture && culture.score >= 70) return companyName + '\'s strong ' + culture.name + ' score (' + culture.score + ') means employees feel safe disclosing, which makes manager readiness even more critical.';
                           return 'Managers are the front line of support. Their preparedness determines whether every other program is delivered consistently.';
                         }
                         if (d.dim === 8) {
                           const leave = allDims.find((x: any) => x.dim === 1);
-                          if (leave && leave.score >= 70) return 'Strong leave policies (' + leave.score + ') create an expectation of structured support. Without a return-to-work process, the transition back undermines that investment.';
+                          if (leave && leave.score >= 70) return 'A strong ' + leave.name + ' score (' + leave.score + ') creates an expectation of structured support. Without a return-to-work process, the transition back undermines that investment.';
                           return 'How employees experience the return to work often determines whether they stay with the organization long-term.';
                         }
                         if (d.dim === 13) {
