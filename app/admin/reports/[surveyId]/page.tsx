@@ -7445,20 +7445,20 @@ export default function ExportReportPage() {
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Priority Gaps (top-left) — warm rose */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#ffe4e6" fillOpacity="0.85" />
-                        {/* Priority Strengths (top-right) — fresh mint green */}
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#d1fae5" fillOpacity="0.7" />
-                        {/* Secondary Gaps (bottom-left) — warm sand/cream */}
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef3c7" fillOpacity="0.4" />
-                        {/* Secondary Strengths (bottom-right) — cool lavender */}
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#e0e7ff" fillOpacity="0.5" />
+                        {/* Priority Gaps (top-left) — faint amber */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
+                        {/* Priority Strengths (top-right) — faint blue */}
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
+                        {/* Secondary Gaps (bottom-left) — barely there warm */}
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
+                        {/* Secondary Strengths (bottom-right) — barely there cool */}
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
 
                         {/* Quadrant labels — top pair at top edge, bottom pair at bottom edge */}
-                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#be123c" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.7">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#065F46" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.85">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#64748b" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#4f46e5" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.7">SECONDARY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.18">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.18">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.08">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.08">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
                         {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
@@ -7466,10 +7466,10 @@ export default function ExportReportPage() {
                             x={1} y={1}
                             width={PLOT_WIDTH/2 - 2} height={PLOT_HEIGHT/2 - 2}
                             fill="none"
-                            stroke="#be123c"
+                            stroke="#B45309"
                             strokeWidth="2"
                             strokeDasharray="8 4"
-                            opacity="0.25"
+                            opacity="0.2"
                             rx="4"
                           >
                             <animate attributeName="stroke-dashoffset" values="0;24" dur="3s" repeatCount="indefinite" />
