@@ -1588,9 +1588,9 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   };
   const opp = (d: any) => headroom(d) * weightFactor(d?.weight || 0);
 
-  // High unsure modifier - notes when score is pending confirmation
+  // High unsure modifier
   const hasHighUnsure = (d: any) => (d?.unsure?.length || 0) >= 3;
-  const unsureNote = (d: any) => hasHighUnsure(d) ? ' (score pending confirmation of ' + d.unsure.length + ' items)' : '';
+  const unsureNote = (_d: any) => '';
 
   const add = (p: Omit<Cand, 'score'>, score: number) => {
     // Severity floor: only add if score > 10 to avoid marginal mismatches
