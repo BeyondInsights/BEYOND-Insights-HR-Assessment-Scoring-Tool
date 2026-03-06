@@ -10777,7 +10777,7 @@ export default function ExportReportPage() {
             // Paragraph 3: Cross-dimension insight
             let para3 = '';
             if (topTension) {
-              para3 = '**The key tension in this profile:** ' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '. ' + topTension.implication;
+              para3 = '**The key tension we identified:** ' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '. ' + topTension.implication;
               if (secondTension) {
                 para3 += ' Additionally, ' + cleanPatternText(secondTension.pattern).charAt(0).toLowerCase() + cleanPatternText(secondTension.pattern).slice(1) + '. ' + secondTension.implication;
               }
