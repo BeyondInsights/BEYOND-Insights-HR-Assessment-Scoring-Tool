@@ -9628,7 +9628,7 @@ export default function ExportReportPage() {
                                       </p>
                                     )}
                                     {step.element && (
-                                      <p className="text-sm text-slate-500 mt-1">
+                                      <p className="text-base text-slate-500 mt-1.5">
                                         <span className="font-medium text-slate-600">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
                                       </p>
                                     )}
@@ -9656,12 +9656,12 @@ export default function ExportReportPage() {
                               <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                               View all {elementCount} elements in this dimension
                             </summary>
-                            <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden text-sm">
+                            <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden">
                               {/* Header row */}
-                              <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                                <span className="flex-1">Element</span>
-                                <span className="w-24 text-right">Status</span>
-                                <span className="w-24 text-right">% of Peers Offering</span>
+                              <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
+                                <span className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</span>
+                                <span className="w-28 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
+                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">% of Peers Offering</span>
                               </div>
                               {enriched.sort((a: any, b: any) => {
                                 if (a.isStrength && !b.isStrength) return 1;
@@ -9669,26 +9669,23 @@ export default function ExportReportPage() {
                                 if ((a.isPlanning || a.isAssessing) && !(b.isPlanning || b.isAssessing)) return -1;
                                 if (!(a.isPlanning || a.isAssessing) && (b.isPlanning || b.isAssessing)) return 1;
                                 return (b.peerPct ?? 0) - (a.peerPct ?? 0);
-                              }).map((el: any, i: number) => {
-                                const isRecommended = actionSteps.some(a => a.element === el.name);
-                                return (
-                                <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${isRecommended ? 'border-l-4 border-slate-700 bg-slate-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                                  <span className="flex-1 text-slate-700">{el.name}</span>
-                                  <span className={`w-24 text-right text-sm font-medium ${
+                              }).map((el: any, i: number) => (
+                                <div key={i} className={`flex items-center gap-3 px-5 py-3 bg-white ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                                  <span className="flex-1 text-base text-slate-700">{el.name}</span>
+                                  <span className={`w-28 text-right text-sm font-medium ${
                                     el.isStrength ? 'text-emerald-600' :
                                     el.isPlanning ? 'text-blue-600' :
                                     el.isAssessing ? 'text-amber-600' :
                                     el.isUnsure ? 'text-violet-600' :
-                                    'text-slate-500'
+                                    'text-slate-400'
                                   }`}>
                                     {el.isStrength ? 'In Place' : el.isPlanning ? 'In Development' : el.isAssessing ? 'Under Review' : el.isUnsure ? 'To Confirm' : 'Not in Place'}
                                   </span>
-                                  <span className="w-24 text-right text-sm text-slate-600 tabular-nums">
+                                  <span className="w-20 text-right text-sm text-slate-600 tabular-nums">
                                     {el.peerPct != null ? `${el.peerPct}%` : ''}
                                   </span>
                                 </div>
-                                );
-                              })}
+                              ))}
                             </div>
                           </details>
                         </div>
@@ -9924,7 +9921,7 @@ export default function ExportReportPage() {
                                       </p>
                                     )}
                                     {step.element && (
-                                      <p className="text-sm text-slate-500 mt-1">
+                                      <p className="text-base text-slate-500 mt-1.5">
                                         <span className="font-medium text-slate-600">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
                                       </p>
                                     )}
@@ -9952,12 +9949,12 @@ export default function ExportReportPage() {
                               <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                               View all {elementCount} elements in this dimension
                             </summary>
-                            <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden text-sm">
+                            <div className="mt-3 rounded-lg border border-slate-200 overflow-hidden">
                               {/* Header row */}
-                              <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-100 border-b border-slate-200 text-sm font-semibold text-slate-600 uppercase tracking-wider">
-                                <span className="flex-1">Element</span>
-                                <span className="w-24 text-right">Status</span>
-                                <span className="w-24 text-right">% of Peers Offering</span>
+                              <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
+                                <span className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</span>
+                                <span className="w-28 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
+                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">% of Peers Offering</span>
                               </div>
                               {enriched.sort((a: any, b: any) => {
                                 if (a.isStrength && !b.isStrength) return 1;
@@ -9965,26 +9962,23 @@ export default function ExportReportPage() {
                                 if ((a.isPlanning || a.isAssessing) && !(b.isPlanning || b.isAssessing)) return -1;
                                 if (!(a.isPlanning || a.isAssessing) && (b.isPlanning || b.isAssessing)) return 1;
                                 return (b.peerPct ?? 0) - (a.peerPct ?? 0);
-                              }).map((el: any, i: number) => {
-                                const isRecommended = actionSteps.some(a => a.element === el.name);
-                                return (
-                                <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${isRecommended ? 'border-l-4 border-slate-700 bg-slate-50' : i % 2 === 0 ? 'bg-white' : 'bg-slate-50'} ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                                  <span className="flex-1 text-slate-700">{el.name}</span>
-                                  <span className={`w-24 text-right text-sm font-medium ${
+                              }).map((el: any, i: number) => (
+                                <div key={i} className={`flex items-center gap-3 px-5 py-3 bg-white ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                                  <span className="flex-1 text-base text-slate-700">{el.name}</span>
+                                  <span className={`w-28 text-right text-sm font-medium ${
                                     el.isStrength ? 'text-emerald-600' :
                                     el.isPlanning ? 'text-blue-600' :
                                     el.isAssessing ? 'text-amber-600' :
                                     el.isUnsure ? 'text-violet-600' :
-                                    'text-slate-500'
+                                    'text-slate-400'
                                   }`}>
                                     {el.isStrength ? 'In Place' : el.isPlanning ? 'In Development' : el.isAssessing ? 'Under Review' : el.isUnsure ? 'To Confirm' : 'Not in Place'}
                                   </span>
-                                  <span className="w-24 text-right text-sm text-slate-600 tabular-nums">
+                                  <span className="w-20 text-right text-sm text-slate-600 tabular-nums">
                                     {el.peerPct != null ? `${el.peerPct}%` : ''}
                                   </span>
                                 </div>
-                                );
-                              })}
+                              ))}
                             </div>
                           </details>
                         </div>
