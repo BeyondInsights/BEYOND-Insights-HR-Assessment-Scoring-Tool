@@ -10302,7 +10302,7 @@ export default function ExportReportPage() {
             const wsiBenchDiff = wsiScoreHeader != null && wsiBenchmarkScore != null ? wsiScoreHeader - wsiBenchmarkScore : null;
             const wsiTier = getWSITier(wsiScoreHeader ?? 0);
 
-            // ========== EXECUTIVE READOUT \u2014 3 sentences ==========
+            // ========== CONSULTATIVE NARRATIVE ==========
             const topStrengths = [...dimensionAnalysis]
               .sort((a, b) => b.score - a.score)
               .filter(d => d.score >= 64 || (d.benchmark != null && d.score >= d.benchmark))
@@ -10318,46 +10318,64 @@ export default function ExportReportPage() {
               })
               .slice(0, 3);
 
-            // Sentence 1: Strengths
-            const s1 = topStrengths.length >= 2
-              ? `${companyName} is ahead of peers in ${topStrengths[0].name} and ${topStrengths[1].name}, indicating ${
-                  topStrengths[0].score >= 80 && topStrengths[1].score >= 80
-                    ? 'mature support infrastructure in these areas'
-                    : 'solid foundations to build on'
-                }.`
-              : topStrengths.length === 1
-              ? `${companyName} leads in ${topStrengths[0].name} (${topStrengths[0].score}), providing a foundation to extend.`
-              : `${companyName} has room to build across all dimensions.`;
+            const patterns = getCrossDimensionPatterns(dimensionAnalysis);
+            const topTension = patterns.tensions[0];
+            const secondTension = patterns.tensions[1];
+            const topPositive = patterns.positiveInsights[0];
+            const cleanPatternText = (text: string) => text.replace(/\s*\(\d+\)/g, '').replace(/\s*\(score pending.*?\)/g, '');
 
-            // Sentence 2: Gaps
-            const topGap = focusCandidates[0];
-            const secondGap = focusCandidates[1];
-            const gapBenchDiff = topGap?.benchmark != null ? Math.abs(topGap.score - topGap.benchmark) : null;
-
-            const s2 = topGap && secondGap
-              ? `The main constraints on overall performance are ${topGap.name}${gapBenchDiff ? ` (${gapBenchDiff} points below peers)` : ''} and ${secondGap.name}, where gaps create inconsistent employee experience.`
-              : topGap
-              ? `The primary constraint is ${topGap.name}${gapBenchDiff ? ` (${gapBenchDiff} points below peers)` : ''}, which limits the consistency of support.`
-              : 'No major gaps identified relative to peers.';
-
-            // Sentence 3: First move
-            const topGapDimData = topGap ? dimensionAnalysis.find((da: any) => da.dim === topGap.dim) : null;
-            const topGapBench = topGap ? (elementBenchmarks[topGap.dim] || {}) : {};
-            const topTableStakesElement = (topGapDimData?.gaps || [])
-              .filter((el: any) => !el.isPlanning && !el.isAssessing && !el.isUnsure)
-              .map((el: any) => {
-                const bench = topGapBench[el.name];
-                return { name: el.name, peerPct: bench ? Math.round((bench.currently / bench.total) * 100) : 0 };
-              })
-              .sort((a: any, b: any) => b.peerPct - a.peerPct)[0];
-
-            const s3 = topTableStakesElement && topTableStakesElement.peerPct > 30
-              ? `Start with "\$\{topTableStakesElement.name}" in ${topGap?.name} \u2014 ${topTableStakesElement.peerPct}% of peers already offer this.`
-              : topGap
-              ? `Start by addressing the highest-impact gaps in ${topGap.name}.`
+            // Paragraph 1: Where you stand
+            const tierName = getWSITier(wsiScoreHeader ?? 0).name;
+            const benchDiffNarr = wsiBenchmarkScore != null ? (wsiScoreHeader ?? 0) - wsiBenchmarkScore : null;
+            const benchContext = benchDiffNarr !== null
+              ? benchDiffNarr >= 5 ? benchDiffNarr + ' points above the benchmark, reflecting a program that outperforms most peers'
+              : benchDiffNarr >= 0 ? 'in line with the benchmark across participating organizations'
+              : benchDiffNarr >= -10 ? Math.abs(benchDiffNarr) + ' points below the benchmark, indicating targeted opportunities to strengthen the employee experience'
+              : Math.abs(benchDiffNarr) + ' points below the benchmark, suggesting foundational gaps in how employees managing cancer experience workplace support'
               : '';
 
-            const defaultHeadline = [s1, s2, s3].filter(Boolean).join(' ');
+            const para1 = companyName + ' received a Composite Score of ' + (wsiScoreHeader ?? 0) + ' (' + tierName + '), ' + benchContext + '. Core Support is the strongest layer at ' + coreScoreCalc + ', reflecting solid baseline protections and access. Enhanced Support scored ' + enhancedScoreCalc + ', showing developing consistency in coordination and manager readiness. Advanced Support at ' + advancedScoreCalc + ' represents the greatest opportunity to deepen the overall support ecosystem.';
+
+            // Paragraph 2: What is working
+            const strengthNames = topStrengths.map(d => d.name);
+            let para2 = '';
+            if (topStrengths.length >= 2) {
+              const strengthContext = topStrengths.some(d => [1,2,5].includes(d.dim)) ? 'core protections and accommodations'
+                : topStrengths.some(d => [6,11].includes(d.dim)) ? 'a supportive culture and proactive wellness programs'
+                : topStrengths.some(d => [12,9].includes(d.dim)) ? 'sustained organizational commitment and improvement processes'
+                : 'meaningful support';
+              para2 = 'The strongest dimensions are ' + strengthNames[0] + ' (' + topStrengths[0].score + ') and ' + strengthNames[1] + ' (' + topStrengths[1].score + ')' + (topStrengths.length >= 3 ? ', followed by ' + strengthNames[2] + ' (' + topStrengths[2].score + ')' : '') + '. These scores indicate that employees managing cancer at ' + companyName + ' can access ' + strengthContext + '. These are strengths to protect and communicate, both to current employees and as part of your employer value proposition.';
+            } else if (topStrengths.length === 1) {
+              para2 = 'The strongest dimension is ' + strengthNames[0] + ' (' + topStrengths[0].score + '). This provides a foundation, but the organization has room to build across most other areas of cancer support.';
+            } else {
+              para2 = 'No dimension currently reaches the Advancing threshold (64+), indicating an opportunity to build foundational cancer support capabilities across the board. Starting with the highest-weight dimensions will deliver the most meaningful improvement in employee experience.';
+            }
+
+            // Paragraph 3: Cross-dimension insight
+            let para3 = '';
+            if (topTension) {
+              para3 = 'Looking across dimensions, a notable pattern emerges: ' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '. ' + topTension.implication;
+              if (secondTension) {
+                para3 += ' Additionally, ' + cleanPatternText(secondTension.pattern).charAt(0).toLowerCase() + cleanPatternText(secondTension.pattern).slice(1) + '. ' + secondTension.implication;
+              }
+            } else if (topPositive) {
+              para3 = cleanPatternText(topPositive.pattern) + '. ' + topPositive.implication;
+            } else {
+              para3 = 'The dimension profile does not show the common tension patterns seen across other participating organizations, suggesting a relatively balanced program. The focus should be on closing the remaining gaps in the highest-weight dimensions to move toward a consistently strong support experience.';
+            }
+
+            // Paragraph 4: Where to focus
+            const topFocus = focusCandidates[0];
+            const secondFocus = focusCandidates[1];
+            let para4 = '';
+            if (topFocus && secondFocus) {
+              const topBenchGap = topFocus.benchmark != null ? Math.abs(topFocus.score - topFocus.benchmark) : null;
+              para4 = 'The most impactful areas to strengthen are ' + topFocus.name + ' (' + topFocus.score + (topBenchGap ? ', ' + topBenchGap + ' points below peers' : '') + ') and ' + secondFocus.name + ' (' + secondFocus.score + '). Improving these dimensions would directly address the gaps most likely to affect an employee\'s experience during diagnosis, treatment, and return to work. ' + (topTension ? topTension.recommendation : 'Focus initial efforts on the elements within these dimensions where most peers have already invested, as these represent the baseline employees will expect.');
+            } else if (topFocus) {
+              para4 = 'The most impactful area to strengthen is ' + topFocus.name + ' (' + topFocus.score + '). Improving this dimension would have the most direct effect on how employees managing cancer experience workplace support.';
+            }
+
+            const defaultNarrative = [para1, para2, para3, para4].filter(Boolean).join('\n\n');
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
                 {/* Header bar */}
@@ -10365,12 +10383,11 @@ export default function ExportReportPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-xl">Your Report at a Glance</h3>
-                      <p className="text-slate-500 mt-1">Strengths to protect and priorities to address</p>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-3">
                         <span className="text-slate-500 text-xs uppercase tracking-wider">Workplace Support Composite Score</span>
-                        <span className="text-3xl font-bold text-white">{wsiScoreHeader ?? '\u2014'}</span>
+                        <span className="text-3xl font-bold text-white">{wsiScoreHeader ?? '--'}</span>
                       </div>
                       <span className="px-3 py-1 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
                         {wsiTier.name}
@@ -10384,118 +10401,117 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* === EXECUTIVE READOUT === */}
-                <div className="px-10 py-8">
+                {/* === SCORE CONTEXT BLOCK === */}
+                <div className="px-10 pt-8 pb-4">
+                  <div className="flex items-center gap-8">
+                    {[
+                      { label: 'Composite', score: wsiScoreHeader, benchmark: wsiBenchmarkScore, color: '#334155' },
+                      { label: 'Core Support', score: coreScoreCalc, benchmark: null, color: '#047857' },
+                      { label: 'Enhanced Support', score: enhancedScoreCalc, benchmark: null, color: '#B45309' },
+                      { label: 'Advanced Support', score: advancedScoreCalc, benchmark: null, color: '#7C3AED' },
+                    ].map(item => {
+                      const diff = item.benchmark != null && item.score != null ? item.score - item.benchmark : null;
+                      return (
+                        <div key={item.label} className="flex items-center gap-3">
+                          <div>
+                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</span>
+                            <div className="flex items-baseline gap-2 mt-0.5">
+                              <span className="text-2xl font-bold" style={{ color: item.color }}>{item.score ?? '--'}</span>
+                              {diff !== null && (
+                                <span className={`text-sm font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                  {diff >= 0 ? '+' : ''}{diff} vs benchmark
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {item.label !== 'Advanced Support' && <div className="w-px h-10 bg-slate-200 ml-4" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* === THE NARRATIVE === */}
+                <div className="px-10 py-6">
                   {editMode ? (
                     <div>
-                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Executive Readout</label>
+                      <label className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold mb-1 block">Executive Summary Narrative</label>
                       <textarea
-                        value={customNextSteps.headlineInsight ?? defaultHeadline}
+                        value={customNextSteps.headlineInsight ?? defaultNarrative}
                         onChange={(e) => {
                           setCustomNextSteps(prev => ({ ...prev, headlineInsight: e.target.value }));
                           setHasUnsavedChanges(true);
                         }}
-                        className="w-full text-lg text-slate-700 bg-slate-50 border border-slate-300 rounded-lg px-4 py-3 min-h-[100px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y leading-relaxed"
+                        className="w-full text-base text-slate-700 bg-slate-50 border border-slate-300 rounded-lg px-4 py-3 min-h-[200px] focus:outline-none focus:ring-2 focus:ring-slate-400/50 resize-y leading-relaxed"
                       />
                       {customNextSteps.headlineInsight && (
                         <button onClick={() => { setCustomNextSteps(prev => ({ ...prev, headlineInsight: undefined })); setHasUnsavedChanges(true); }} className="mt-1 text-[10px] text-slate-500 hover:text-slate-700">{'\u21BA'} Reset</button>
                       )}
                     </div>
                   ) : (
-                    <p className="text-xl text-slate-700 leading-relaxed">
-                      {customNextSteps.headlineInsight || defaultHeadline}
-                    </p>
+                    <div className="prose prose-slate max-w-none text-base text-slate-700 leading-relaxed space-y-4">
+                      {(customNextSteps.headlineInsight || defaultNarrative).split('\n\n').map((para: string, i: number) => (
+                        <p key={i}>{para}</p>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                {/* === TWO COLUMNS === */}
-                <div className="grid grid-cols-2 gap-10 px-10 pb-8">
+                {/* === PRIORITY DIMENSIONS === */}
+                <div className="px-10 pb-8">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-5 pb-2 border-b border-slate-200">Priority Dimensions</h4>
+                  <div className="space-y-5">
+                    {focusCandidates.slice(0, 3).map((d, idx) => {
+                      const lookup = playsLookup[d.dim] || { play: 'Strengthen ' + d.name, firstStep: 'Conduct a gap analysis and identify quick wins.' };
+                      const customPlay = customNextSteps.plays?.[d.dim];
+                      const playTitle = customPlay?.play ?? lookup.play;
+                      const firstStep = customPlay?.firstStep ?? lookup.firstStep;
 
-                  {/* LEFT: Protect & Scale */}
-                  <div>
-                    <h4 className="text-xs font-bold text-emerald-700 uppercase tracking-wider mb-5 pb-2 border-b-2 border-emerald-200">Protect &amp; Scale</h4>
-                    <div className="space-y-3">
-                      {topStrengths.map((d, idx) => {
-                        const bDiff = d.benchmark != null ? Math.round(d.score) - d.benchmark : null;
-                        return (
-                          <div key={d.dim} className="flex items-center justify-between py-2">
-                            <div className="flex items-center gap-3">
-                              <span className="text-slate-400 text-sm font-semibold w-5">{idx + 1}.</span>
-                              <span className="text-base font-semibold text-slate-800">{d.name}</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-lg font-bold" style={{ color: getScoreColor(d.score) }}>{Math.round(d.score)}</span>
-                              {bDiff !== null && (
-                                <span className={`text-sm font-semibold ${bDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
-                                  {bDiff >= 0 ? '+' : ''}{bDiff}
-                                </span>
+                      return (
+                        <div key={d.dim}>
+                          {editMode ? (
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold">{idx + 1}</span>
+                                <input type="text" value={playTitle} onChange={(e) => {
+                                  setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
+                                  setHasUnsavedChanges(true);
+                                }} className="flex-1 text-base font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none" />
+                              </div>
+                              <input type="text" value={firstStep} onChange={(e) => {
+                                setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], firstStep: e.target.value } } }));
+                                setHasUnsavedChanges(true);
+                              }} className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none ml-10" />
+                              {customPlay && (
+                                <button onClick={() => {
+                                  setCustomNextSteps(prev => { const u = { ...prev.plays }; delete u[d.dim]; return { ...prev, plays: u }; });
+                                  setHasUnsavedChanges(true);
+                                }} className="text-[10px] text-slate-500 hover:text-slate-700 ml-10">{'\u21BA'} Reset</button>
                               )}
                             </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* RIGHT: Next 90 Days */}
-                  <div>
-                    <h4 className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-5 pb-2 border-b-2 border-amber-200">Next 90 Days</h4>
-                    <p className="text-sm text-slate-500 mb-4">Pick 2 priorities. Assign owners. Start with the first step under each.</p>
-                    <div className="space-y-5">
-                      {focusCandidates.slice(0, 3).map((d, idx) => {
-                        const lookup = playsLookup[d.dim] || { play: `Strengthen ${d.name}`, firstStep: 'Conduct a gap analysis and identify quick wins.' };
-                        const customPlay = customNextSteps.plays?.[d.dim];
-                        const playTitle = customPlay?.play ?? lookup.play;
-                        const firstStep = customPlay?.firstStep ?? lookup.firstStep;
-
-                        return (
-                          <div key={d.dim}>
-                            {editMode ? (
-                              <div className="space-y-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-slate-400 text-sm font-semibold w-5">{idx + 1}.</span>
-                                  <input type="text" value={playTitle} onChange={(e) => {
-                                    setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
-                                    setHasUnsavedChanges(true);
-                                  }} className="flex-1 text-base font-semibold text-slate-800 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none" />
-                                </div>
-                                <input type="text" value={firstStep} onChange={(e) => {
-                                  setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], firstStep: e.target.value } } }));
-                                  setHasUnsavedChanges(true);
-                                }} className="w-full text-sm text-slate-600 bg-slate-50 border border-slate-300 rounded px-2 py-1 focus:outline-none ml-8" />
-                                {customPlay && (
-                                  <button onClick={() => {
-                                    setCustomNextSteps(prev => { const u = { ...prev.plays }; delete u[d.dim]; return { ...prev, plays: u }; });
-                                    setHasUnsavedChanges(true);
-                                  }} className="text-[10px] text-amber-600 hover:text-amber-700 ml-8">{'\u21BA'} Reset</button>
-                                )}
-                              </div>
-                            ) : (
+                          ) : (
+                            <div className="flex gap-4">
+                              <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold mt-0.5">{idx + 1}</span>
                               <div>
-                                <div className="flex items-baseline gap-2">
-                                  <span className="text-slate-400 text-sm font-semibold w-5 flex-shrink-0">{idx + 1}.</span>
-                                  <div>
-                                    <span className="text-base font-semibold text-slate-800">{d.name}</span>
-                                    <span className="text-sm text-slate-400 ml-2">Score: {Math.round(d.score)}</span>
-                                  </div>
+                                <div className="flex items-baseline gap-3">
+                                  <span className="text-lg font-bold text-slate-800">{d.name}</span>
+                                  <span className="text-sm text-slate-400">Score: {Math.round(d.score)}{d.benchmark != null ? ' (Benchmark: ' + d.benchmark + ')' : ''}</span>
                                 </div>
-                                <div className="ml-7 mt-1">
-                                  <p className="text-sm text-amber-700 font-medium">{playTitle}</p>
-                                  <p className="text-sm text-slate-500 mt-0.5">{firstStep}</p>
-                                </div>
+                                <p className="text-base text-amber-700 font-medium mt-1">{playTitle}</p>
+                                <p className="text-base text-slate-600 mt-0.5">{firstStep}</p>
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
                 {/* === FOOTER === */}
                 <div className="px-10 py-5 border-t border-slate-100 bg-slate-50">
                   <p className="text-base text-slate-500 text-center">
-                    <strong className="text-slate-700">Next step:</strong> Choose 2 priorities from the right column. Assign an owner to each. Complete the first step within 30 days.
+                    These recommendations serve as a starting point. Cancer and Careers can work with your team to develop a detailed implementation plan aligned with your organizational priorities and capacity.
                   </p>
                 </div>
               </div>
