@@ -7455,10 +7455,10 @@ export default function ExportReportPage() {
                         <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
 
                         {/* Quadrant labels — top pair at top edge, bottom pair at bottom edge */}
-                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.18">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.18">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.08">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.08">SECONDARY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
                         {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
