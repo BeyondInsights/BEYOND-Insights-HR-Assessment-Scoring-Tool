@@ -1546,13 +1546,33 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
   if (dimNum === 5) {
     if (name.includes('process') || name.includes('request')) return 'Standardized request form and approval workflow live, with SLA for response time.';
     if (name.includes('workload')) return 'Guidelines published for managers on how to adjust workloads during treatment, with HR support.';
-    return 'Process standardized, request turnaround time defined, and tracked for consistency across teams.';
+    if (name.includes('physical') || name.includes('workspace') || name.includes('modification')) return 'Assessment process defined, modifications available within 5 business days of request, and tracked for consistency.';
+    if (name.includes('cognitive') || name.includes('fatigue')) return 'Tools identified, available upon request, and communicated through HR and manager channels.';
+    if (name.includes('ergonomic') || name.includes('equipment')) return 'Funding approved, procurement process defined, and equipment delivered within 10 business days of request.';
+    if (name.includes('flexible') || name.includes('scheduling')) return 'Policy documented with manager approval guidelines, accessible to all eligible employees.';
+    if (name.includes('remote')) return 'Policy published with eligibility criteria, technology provided, and manager guidelines documented.';
+    if (name.includes('rest') || name.includes('quiet')) return 'Spaces designated, locations communicated to employees, and availability maintained.';
+    if (name.includes('parking') || name.includes('priority')) return 'Spaces designated, request process defined, and communicated to eligible employees.';
+    if (name.includes('role redesign') || name.includes('temporary role')) return 'Framework documented, manager guidelines published, and HR review required for each case.';
+    if (name.includes('assistive') || name.includes('technology') || name.includes('catalog')) return 'Catalog published, procurement process defined, and accessible through IT or HR.';
+    if (name.includes('transportation') || name.includes('reimbursement')) return 'Policy published with eligibility criteria and reimbursement process documented.';
+    if (name.includes('policy accommodation') || name.includes('dress code')) return 'Accommodations documented, communicated to managers, and applied consistently.';
+    return 'Accommodation available, request process defined, and turnaround time tracked.';
   }
   if (dimNum === 6) {
     if (name.includes('stigma')) return 'Campaign launched, employee awareness measured, and integrated into onboarding.';
-    if (name.includes('privacy') || name.includes('confidentiality')) return 'Policy documented, communicated to managers, and auditable.';
+    if (name.includes('privacy') || name.includes('confidential')) return 'Policy documented, communicated to managers, and auditable.';
     if (name.includes('resource group') || name.includes('erg')) return 'Group formed, meeting regularly, and with executive sponsorship.';
-    if (name.includes('guideline') || name.includes('communication')) return 'Guidelines published, incorporated into manager onboarding, and reviewed annually.';
+    if (name.includes('guideline') || name.includes('inclusive communication')) return 'Guidelines published, incorporated into manager onboarding, and reviewed annually.';
+    if (name.includes('anti-discrimination') || name.includes('discrimination')) return 'Policy published in employee handbook, communicated at onboarding, and enforced consistently.';
+    if (name.includes('anti-retaliation') || name.includes('retaliation')) return 'Policy documented, reporting mechanism defined, and communicated to all employees.';
+    if (name.includes('peer support') || name.includes('employee peer')) return 'Group launched with regular meeting cadence, participation tracked, and facilitator assigned.';
+    if (name.includes('professional-led') || name.includes('support group') || name.includes('facilitator')) return 'Provider contracted, sessions scheduled regularly, and participation tracked.';
+    if (name.includes('emotional') || name.includes('counseling')) return 'Service contracted, referral pathway documented, and promoted through EAP and HR channels.';
+    if (name.includes('dialogue') || name.includes('forum') || name.includes('open health')) return 'Forum established, participation voluntary, and held at least quarterly.';
+    if (name.includes('training') || name.includes('sensitive health')) return 'Required for all managers, completed annually, with completion tracked.';
+    if (name.includes('hr channel') || name.includes('benefits') || name.includes('insurance')) return 'Channel established, response time defined, and promoted to all employees.';
+    if (name.includes('anonymous') || name.includes('no login')) return 'Tool live, accessible without authentication, and promoted through multiple channels.';
     return 'Initiative active, participation or reach measured, and reviewed at least annually.';
   }
   if (dimNum === 7) {
@@ -1561,20 +1581,30 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('reintegration') || name.includes('progress')) return 'Check-in cadence defined (e.g., 30/60/90 days post-return) with documented outcomes.';
     if (name.includes('project') || name.includes('continuity')) return 'Coverage plan template in use, activated for any absence exceeding 2 weeks.';
     if (name.includes('stay-connected') || name.includes('optional')) return 'Program available, opt-in process clear, and participation voluntary with no pressure.';
+    if (name.includes('training') || name.includes('development') || name.includes('continued access')) return 'Access maintained during treatment and leave, with catch-up plan documented for return.';
+    if (name.includes('adjusted') || name.includes('performance') || name.includes('deliverable') || name.includes('goal')) return 'Adjustment framework documented for managers, with HR review for cases exceeding one quarter.';
     return 'Policy updated, communicated to affected employees, and integrated into performance review guidelines.';
   }
   if (dimNum === 8) {
     if (name.includes('phased') || name.includes('return')) return 'Template published with defined stages, used for at least one returning employee, and reviewed for improvement after each use.';
-    if (name.includes('progress') || name.includes('tracking')) return 'Tracking system in place with defined milestones and escalation triggers.';
-    if (name.includes('buddy') || name.includes('peer')) return 'Matching process defined, volunteers recruited, and initial cohort active.';
-    if (name.includes('occupational') || name.includes('vocational') || name.includes('professional')) return 'Service contracted, referral pathway active, and at least one employee served within first quarter.';
-    if (name.includes('flexibility') || name.includes('workload')) return 'Adjustment guidelines published for managers, with HR review for cases exceeding 90 days.';
+    if (name.includes('progress') || name.includes('tracking') || name.includes('long-term success')) return 'Tracking system in place with defined milestones and escalation triggers.';
+    if (name.includes('buddy') || name.includes('peer') || name.includes('forum')) return 'Matching process defined, volunteers recruited, and initial cohort active.';
+    if (name.includes('occupational') || name.includes('vocational') || name.includes('resumption professional')) return 'Service contracted, referral pathway active, and at least one employee served within first quarter.';
+    if (name.includes('flexibility') || name.includes('workload') || name.includes('setback')) return 'Adjustment guidelines published for managers, with HR review for cases exceeding 90 days.';
+    if (name.includes('contingency') || name.includes('treatment schedule')) return 'Planning template in use, activated for any scheduled treatment series, and reviewed with employee and manager.';
+    if (name.includes('manager training') || name.includes('training')) return 'Required for managers of returning employees, completed before employee returns, with completion tracked.';
     return 'Protocol in use for returning employees, with defined check-in points and manager responsibilities.';
   }
   if (dimNum === 9) {
-    if (name.includes('budget') || name.includes('dedicated')) return 'Line item in annual budget with named owner and quarterly reporting.';
-    if (name.includes('sponsor') || name.includes('executive')) return 'Named executive sponsor with defined role, visible to employees.';
-    if (name.includes('town hall') || name.includes('communication') || name.includes('visible')) return 'At least one leadership communication per year referencing cancer support, with employee awareness measured.';
+    if (name.includes('budget') || name.includes('dedicated') || name.includes('year-over-year')) return 'Line item in annual budget with named owner and quarterly reporting.';
+    if (name.includes('sponsor') || name.includes('champion') || name.includes('c-suite')) return 'Named executive sponsor with defined role, visible to employees.';
+    if (name.includes('communicate') || name.includes('town hall') || name.includes('visible')) return 'At least one leadership communication per year referencing cancer support, with employee awareness measured.';
+    if (name.includes('accountability') || name.includes('metric')) return 'Metrics defined, tracked quarterly, and included in executive performance reviews.';
+    if (name.includes('success story') || name.includes('celebration')) return 'At least 2 stories shared per year through internal channels, with employee consent.';
+    if (name.includes('compensation') || name.includes('tied to')) return 'Support outcomes integrated into executive compensation framework and reviewed annually.';
+    if (name.includes('esg') || name.includes('csr') || name.includes('sustainability') || name.includes('annual report')) return 'Support program data included in reporting cycle, with metrics updated annually.';
+    if (name.includes('investor') || name.includes('stakeholder')) return 'Support programs referenced in stakeholder communications at least annually.';
+    if (name.includes('steering committee') || name.includes('cross-functional')) return 'Committee formed, meeting at least quarterly, with documented action items and follow-through.';
     return 'Commitment formalized with measurable objectives and visible to the broader organization.';
   }
   if (dimNum === 10) {
@@ -1594,24 +1624,42 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     return 'Support available, eligibility clear, and promoted through the same channels as employee-facing programs.';
   }
   if (dimNum === 11) {
-    if (name.includes('screening')) return 'Program active with participation tracked and reported quarterly.';
+    if (name.includes('screening') || name.includes('checkup')) return 'Program active with participation tracked and reported quarterly.';
     if (name.includes('education')) return 'Sessions scheduled, attendance tracked, and materials available on-demand.';
     if (name.includes('incentive') || name.includes('partnership')) return 'Program launched, participation incentives defined, and enrollment tracked quarterly.';
+    if (name.includes('risk-reduction') || name.includes('targeted')) return 'Program defined with target population identified, participation tracked, and outcomes reported annually.';
+    if (name.includes('time off') || name.includes('preventive care') || name.includes('paid time')) return 'Policy published, communicated to all employees, and usage tracked.';
+    if (name.includes('legal protection') || name.includes('beyond requirements')) return 'Protections documented in employee handbook, communicated at onboarding, and enforced consistently.';
+    if (name.includes('safety') || name.includes('workplace safety')) return 'Assessments conducted annually, findings documented, and remediation tracked to completion.';
+    if (name.includes('health assessment') || name.includes('individual')) return 'Assessments available to all employees, participation tracked, and results confidential.';
+    if (name.includes('genetic') || name.includes('counseling')) return 'Service available, referral pathway defined, and communicated through benefits materials.';
+    if (name.includes('vaccination') || name.includes('on-site')) return 'Program scheduled annually, participation tracked, and communicated through multiple channels.';
+    if (name.includes('lifestyle') || name.includes('coaching')) return 'Program available, enrollment open to all employees, and participation tracked quarterly.';
+    if (name.includes('risk factor') || name.includes('tracking') || name.includes('reporting')) return 'Tracking system active, data reviewed quarterly, and findings shared with program owners.';
+    if (name.includes('immuno') || name.includes('mask') || name.includes('ventilation')) return 'Policies published, communicated to all employees, and compliance monitored.';
     return 'Program active, participation tracked, and results reported to leadership annually.';
   }
   if (dimNum === 12) {
-    if (name.includes('feedback') || name.includes('survey')) return 'Survey deployed at least annually with results reviewed by program owners.';
-    if (name.includes('enhancement') || name.includes('review')) return 'Quarterly review cadence established with documented action items and owners.';
-    if (name.includes('roi') || name.includes('assessment')) return 'Assessment framework defined, data collected at least annually, and findings shared with leadership.';
+    if (name.includes('feedback') || name.includes('survey') || name.includes('satisfaction')) return 'Survey deployed at least annually with results reviewed by program owners.';
+    if (name.includes('enhancement') || name.includes('program enhancement')) return 'Quarterly review cadence established with documented action items and owners.';
+    if (name.includes('roi') || name.includes('business impact')) return 'Assessment framework defined, data collected at least annually, and findings shared with leadership.';
     if (name.includes('pilot') || name.includes('innovation')) return 'At least one pilot launched per year, with defined success criteria and a decision timeline.';
+    if (name.includes('return-to-work') || name.includes('success metric')) return 'Metrics defined, tracked for each returning employee, and reported to leadership quarterly.';
+    if (name.includes('benchmarking') || name.includes('external')) return 'Benchmarking conducted at least annually against peer organizations, with findings documented.';
+    if (name.includes('confidence') || name.includes('employee confidence')) return 'Measured at least annually through survey, with results tracked over time and shared with leadership.';
+    if (name.includes('utilization') || name.includes('analytics')) return 'Dashboard or report active, reviewed quarterly, and used to inform program adjustments.';
     return 'Review cycle established, findings documented, and at least one improvement implemented per cycle.';
   }
   if (dimNum === 13) {
     if (name.includes('testimonial') || name.includes('story')) return 'At least 2 employee stories published with consent, promoted through at least 2 internal channels, and refreshed annually.';
     if (name.includes('manager toolkit') || name.includes('cascade')) return 'Toolkit distributed to all managers with usage tracked and refreshed quarterly.';
     if (name.includes('campaign') || name.includes('awareness')) return 'Campaign calendar published, delivered through at least 2 channels, reach measured.';
-    if (name.includes('onboarding') || name.includes('orientation')) return 'Cancer support resources included in onboarding materials and reviewed for accuracy annually.';
-    if (name.includes('targeted') || name.includes('multi-channel')) return 'Campaign delivered through at least 3 channels, with reach measured within 60 days.';
+    if (name.includes('onboarding') || name.includes('orientation') || name.includes('new hire')) return 'Cancer support resources included in onboarding materials and reviewed for accuracy annually.';
+    if (name.includes('multi-channel') || name.includes('strategy')) return 'Strategy documented with at least 3 channels defined, reach measured within 60 days.';
+    if (name.includes('diagnosis') || name.includes('proactive') || name.includes('disclosure')) return 'Communication protocol defined, triggered within 48 hours of disclosure, and delivered by trained HR staff.';
+    if (name.includes('website') || name.includes('portal') || name.includes('dedicated')) return 'Site live, content reviewed quarterly, and promoted through at least 2 internal channels.';
+    if (name.includes('family') || name.includes('caregiver')) return 'Materials accessible to family members, distributed through at least 2 channels, and updated annually.';
+    if (name.includes('anonymous') || name.includes('information access')) return 'Access point live, no authentication required, and promoted through multiple channels.';
     return 'Content published, delivered through at least 2 channels, and reach measured within 90 days.';
   }
   return 'Operational, with clear ownership and a defined review cycle.';
