@@ -10598,21 +10598,32 @@ export default function ExportReportPage() {
             return (
               <div id="next-steps-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-7xl mx-auto">
                 {/* Header bar */}
-                <div className="px-10 py-5 bg-slate-800">
-                  <div className="flex items-center justify-between">
+                <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-[0.04]">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                      <defs>
+                        <pattern id="glanceGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+                          <circle cx="5" cy="5" r="1" fill="white"/>
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#glanceGrid)" />
+                    </svg>
+                  </div>
+                  <div className="relative flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-white text-xl">Your Report at a Glance</h3>
+                      <h3 className="font-bold text-white text-2xl tracking-tight">Your Report at a Glance</h3>
+                      <p className="text-slate-400 mt-1 text-base">Strengths to protect and priorities to address</p>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-slate-500 text-xs uppercase tracking-wider">Workplace Support Composite Score</span>
-                        <span className="text-3xl font-bold text-white">{wsiScoreHeader ?? '--'}</span>
+                        <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Workplace Support Composite Score</span>
+                        <span className="text-4xl font-bold text-white">{wsiScoreHeader ?? '\u2014'}</span>
                       </div>
-                      <span className="px-3 py-1 rounded-lg text-xs font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
+                      <span className="px-4 py-1.5 rounded-lg text-sm font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
                         {wsiTier.name}
                       </span>
                       {wsiBenchDiff !== null && (
-                        <span className={`text-sm font-semibold ${wsiBenchDiff >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        <span className={`text-base font-semibold ${wsiBenchDiff >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
                           {wsiBenchDiff >= 0 ? '+' : ''}{wsiBenchDiff} vs benchmark
                         </span>
                       )}
@@ -10660,8 +10671,8 @@ export default function ExportReportPage() {
                   const enhancedTierBenchmarkAvg = computeTierBenchAvg('enhanced');
                   const advancedTierBenchmarkAvg = computeTierBenchAvg('advanced');
                   return (
-                <div className="px-10 pt-8 pb-4">
-                  <div className="flex items-center gap-8">
+                <div className="px-10 pt-8 pb-6">
+                  <div className="grid grid-cols-4 gap-4">
                     {[
                       { label: 'Composite', score: wsiScoreHeader, benchmark: wsiBenchmarkScore, color: '#334155' },
                       { label: 'Core Support', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
@@ -10670,19 +10681,26 @@ export default function ExportReportPage() {
                     ].map(item => {
                       const diff = item.benchmark != null && item.score != null ? item.score - item.benchmark : null;
                       return (
-                        <div key={item.label} className="flex items-center gap-3">
-                          <div>
-                            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</span>
-                            <div className="flex items-baseline gap-2 mt-0.5">
-                              <span className="text-2xl font-bold" style={{ color: item.color }}>{item.score ?? '--'}</span>
-                              {diff !== null && (
-                                <span className={`text-sm font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                                  {diff >= 0 ? '+' : ''}{diff} vs benchmark
-                                </span>
-                              )}
-                            </div>
+                        <div
+                          key={item.label}
+                          className="rounded-xl px-5 py-4"
+                          style={{
+                            backgroundColor: item.color + '08',
+                            borderLeft: '3px solid ' + item.color,
+                          }}
+                        >
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</p>
+                          <div className="flex items-baseline gap-2 mt-2">
+                            <span className="text-3xl font-bold" style={{ color: item.color }}>{item.score ?? '\u2014'}</span>
+                            {diff !== null && (
+                              <span className={`text-sm font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                {diff >= 0 ? '+' : ''}{diff}
+                              </span>
+                            )}
                           </div>
-                          {item.label !== 'Advanced Support' && <div className="w-px h-10 bg-slate-200 ml-4" />}
+                          {item.benchmark != null && (
+                            <p className="text-sm text-slate-400 mt-1">Benchmark: {item.benchmark}</p>
+                          )}
                         </div>
                       );
                     })}
