@@ -8905,8 +8905,8 @@ export default function ExportReportPage() {
                 <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
               <div className="text-left flex-1">
-                <span className="text-white font-semibold text-base block">Your Improvement Roadmap</span>
-                <span className="text-slate-300 group-hover:text-slate-200 text-sm">The 5 dimensions where focused investment will have the greatest impact on your overall score</span>
+                <span className="text-white font-semibold text-lg block">Your Improvement Priorities</span>
+                <span className="text-slate-300 group-hover:text-slate-200 text-base">The 5 dimensions where focused investment will have the greatest impact on your overall score</span>
               </div>
               <div className={`w-7 h-7 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-200 ${showImpactRanked ? 'rotate-180' : ''}`}>
                 <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -8949,7 +8949,7 @@ export default function ExportReportPage() {
                 <div className="px-8 py-5 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-white text-2xl tracking-tight">Your Improvement Roadmap</h3>
+                      <h3 className="font-bold text-white text-2xl tracking-tight">Your Improvement Priorities</h3>
                       <p className="text-slate-300 mt-1 text-sm">The dimensions with the highest potential to improve your score, ranked by impact. Each shows specific elements to advance and the projected score gain.</p>
                     </div>
                     <button 
