@@ -8931,10 +8931,10 @@ export default function ExportReportPage() {
           {showImpactRanked && (() => {
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
             const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-            const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
+            const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
             const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
             const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
-            
+
             // Calculate max contribution for bar scaling
             const maxContribution = Math.max(...rankings.slice(0, 5).map(r => r.potentialGain12));
             
@@ -12910,7 +12910,7 @@ export default function ExportReportPage() {
                 {currentSlide === 31 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-                  const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
+                  const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
                   const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
                   const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
                   const dimColors = [
@@ -13178,7 +13178,7 @@ export default function ExportReportPage() {
                 {currentSlide === 32 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
-                  const projectedCompositeY1 = Math.round(((compositeScore || 0) + totalGainY1) * 10) / 10;
+                  const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
                   const totalAccel = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
                   const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
                   const dimColors = [
