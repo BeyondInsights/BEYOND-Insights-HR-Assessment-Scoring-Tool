@@ -1113,7 +1113,7 @@ function getDimensionInsight(
         diagnosis += ' This is compounded by gaps in return-to-work support (' + returnToWork.score + '), meaning managers are also unprepared for the transition back.';
       }
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = 'Strong manager preparedness foundation in place. ' + (lacksEval ? 'The gap is in accountability. Adding manager evaluations on support quality would close the loop from training to verified behavior.' : 'Focus on consistency across teams and reinforcing practices through regular refreshers.');
+      diagnosis = 'Strong manager preparedness foundation in place. ' + (lacksEval ? 'The gap is in accountability. Adding manager evaluations on support quality would close the loop from training to verified behavior.' : 'Prioritize consistency across teams and reinforce practices through regular refreshers.');
     } else {
       diagnosis = 'Manager preparedness has partial coverage. ' + (benchPhrase ? 'At ' + score + ', the score is ' + benchPhrase + '. ' : '') + 'The question is whether the gap is in training (do managers know what to do?) or infrastructure (do they have the tools to do it?).';
     }
@@ -1433,6 +1433,35 @@ function buildActionTextForCard(elName: string, isInMotion: boolean, inMotionCou
   return elName + ' is not widely offered among participating organizations, making it an opportunity to demonstrate leadership in cancer support.' + outcomeSuffix;
 }
 
+// Validate auto-generated text for common contradictions
+function validateInsightText(text: string, context: {
+  peerPct?: number | null;
+  isInMotion?: boolean;
+  isInPlace?: boolean;
+  score?: number;
+  benchmark?: number | null;
+}): string {
+  let fixed = text;
+  if (context.peerPct != null && context.peerPct < 60) {
+    fixed = fixed.replace(/most peers/gi, context.peerPct + '% of peers');
+    fixed = fixed.replace(/a large majority of peers/gi, context.peerPct + '% of peers');
+  }
+  if (!context.isInMotion) {
+    fixed = fixed.replace(/already underway/gi, 'not yet in place');
+    fixed = fixed.replace(/already in development/gi, 'not yet in place');
+    fixed = fixed.replace(/already in progress/gi, 'not yet in place');
+  }
+  if (context.benchmark != null && context.score != null && context.score < context.benchmark) {
+    fixed = fixed.replace(/ahead of peers/gi, 'behind peers');
+    fixed = fixed.replace(/above the benchmark/gi, 'below the benchmark');
+  }
+  if (!context.isInPlace) {
+    fixed = fixed.replace(/is in place/gi, 'is not yet in place');
+    fixed = fixed.replace(/are in place/gi, 'are not yet in place');
+  }
+  return fixed;
+}
+
 function getCrossDimensionPatterns(dimAnalysis: any[]): {
   tensions: { pattern: string; implication: string; recommendation: string }[];
   positiveInsights: { pattern: string; implication: string; recommendation: string }[];
@@ -1601,7 +1630,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     add({
       pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average, ${lowestDim.score} floor)`,
       implication: 'Balanced performance across dimensions. A genuine differentiator for employer brand and talent attraction.',
-      recommendation: `Leverage this for thought leadership. Refine ${lowestDim.name} (${lowestDim.score}) to reach full excellence.`,
+      recommendation: `Use this as a foundation for thought leadership. Refine ${lowestDim.name} (${lowestDim.score}) to reach full excellence.`,
       family: 'positive'
     }, 30 + (avgScore - 72) * 2);
   }
@@ -9480,7 +9509,7 @@ export default function ExportReportPage() {
 
                       if (actionSteps.length === 0) {
                         actionSteps.push({
-                          text: 'Most elements are in place. Focus on strengthening consistency across teams and locations, and documenting practices for new managers.',
+                          text: 'Most elements are in place. Prioritize standardizing consistency across teams and locations, and documenting practices for new managers.',
                         });
                       }
 
@@ -9772,7 +9801,7 @@ export default function ExportReportPage() {
 
                       if (actionSteps.length === 0) {
                         actionSteps.push({
-                          text: 'Most elements are in place. Focus on strengthening consistency across teams and locations, and documenting practices for new managers.',
+                          text: 'Most elements are in place. Prioritize standardizing consistency across teams and locations, and documenting practices for new managers.',
                         });
                       }
 
@@ -10369,7 +10398,7 @@ export default function ExportReportPage() {
               8: { play: 'Structure the return-to-work experience', firstStep: 'Create a phased return checklist with clear manager and HR responsibilities.' },
               9: { play: 'Operationalize executive commitment', firstStep: 'Assign executive sponsors to cancer support initiatives with measurable goals.' },
               10: { play: 'Extend support to caregivers', firstStep: 'Audit caregiver-specific leave policies and resource access.' },
-              11: { play: 'Strengthen prevention and early detection', firstStep: 'Review screening program participation rates and remove access barriers.' },
+              11: { play: 'Expand prevention and early detection', firstStep: 'Review screening program participation rates and remove access barriers.' },
               12: { play: 'Build a feedback loop for continuous improvement', firstStep: 'Establish annual assessment cadence and track dimension-level trends.' },
               13: { play: 'Ensure employees know what\'s available', firstStep: 'Test communication reach. Survey whether employees can name 3 cancer support resources.' },
             };
@@ -10406,7 +10435,7 @@ export default function ExportReportPage() {
             const benchContext = benchDiffNarr !== null
               ? benchDiffNarr >= 5 ? benchDiffNarr + ' points above the benchmark, reflecting a program that outperforms most peers'
               : benchDiffNarr >= 0 ? 'in line with the benchmark across participating organizations'
-              : benchDiffNarr >= -10 ? Math.abs(benchDiffNarr) + ' points below the benchmark, indicating targeted opportunities to strengthen the employee experience'
+              : benchDiffNarr >= -10 ? Math.abs(benchDiffNarr) + ' points below the benchmark, indicating targeted opportunities to improve the employee experience'
               : Math.abs(benchDiffNarr) + ' points below the benchmark, suggesting foundational gaps in how employees managing cancer experience workplace support'
               : '';
 
@@ -10430,14 +10459,14 @@ export default function ExportReportPage() {
             // Paragraph 3: Cross-dimension insight
             let para3 = '';
             if (topTension) {
-              para3 = 'Looking across dimensions, a notable pattern emerges: **' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '**. ' + topTension.implication;
+              para3 = '**The key tension in this profile:** ' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '. ' + topTension.implication;
               if (secondTension) {
                 para3 += ' Additionally, ' + cleanPatternText(secondTension.pattern).charAt(0).toLowerCase() + cleanPatternText(secondTension.pattern).slice(1) + '. ' + secondTension.implication;
               }
             } else if (topPositive) {
               para3 = cleanPatternText(topPositive.pattern) + '. ' + topPositive.implication;
             } else {
-              para3 = 'The dimension profile does not show the common tension patterns seen across other participating organizations, suggesting a relatively balanced program. The focus should be on closing the remaining gaps in the highest-weight dimensions to move toward a consistently strong support experience.';
+              para3 = 'The dimension profile does not show the common tension patterns seen across other participating organizations, suggesting a relatively balanced program. Prioritize closing the remaining gaps in the highest-weight dimensions to move toward a consistently strong support experience.';
             }
 
             // Paragraph 4: Where to focus
@@ -10446,9 +10475,9 @@ export default function ExportReportPage() {
             let para4 = '';
             if (topFocus && secondFocus) {
               const topBenchGap = topFocus.benchmark != null ? Math.abs(topFocus.score - topFocus.benchmark) : null;
-              para4 = 'The most impactful areas to strengthen are **' + topFocus.name + '** (' + topFocus.score + (topBenchGap ? ', ' + topBenchGap + ' points below peers' : '') + ') and **' + secondFocus.name + '** (' + secondFocus.score + '). **Improving these dimensions would directly address the gaps most likely to affect an employee\'s experience** during diagnosis, treatment, and return to work. ' + (topTension ? topTension.recommendation : 'Focus initial efforts on the elements within these dimensions where most peers have already invested, as these represent the baseline employees will expect.');
+              para4 = 'The most impactful areas to address are **' + topFocus.name + '** (' + topFocus.score + (topBenchGap ? ', ' + topBenchGap + ' points below peers' : '') + ') and **' + secondFocus.name + '** (' + secondFocus.score + '). **Improving these dimensions would directly address the gaps most likely to affect an employee\'s experience** during diagnosis, treatment, and return to work. ' + (topTension ? topTension.recommendation : 'Start with the elements within these dimensions where most peers have already invested, as these represent the baseline employees will expect.');
             } else if (topFocus) {
-              para4 = 'The most impactful area to strengthen is ' + topFocus.name + ' (' + topFocus.score + '). Improving this dimension would have the most direct effect on how employees managing cancer experience workplace support.';
+              para4 = 'The most impactful area to address is ' + topFocus.name + ' (' + topFocus.score + '). Improving this dimension would have the most direct effect on how employees managing cancer experience workplace support.';
             }
 
             const defaultNarrative = [para1, para2, para3, para4].filter(Boolean).join('\n\n');
@@ -10586,7 +10615,7 @@ export default function ExportReportPage() {
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 pb-2 border-b border-slate-200">Priority Dimensions</h4>
                   <div className="space-y-5">
                     {focusCandidates.slice(0, 3).map((d, idx) => {
-                      const lookup = playsLookup[d.dim] || { play: 'Strengthen ' + d.name, firstStep: 'Conduct a gap analysis and identify quick wins.' };
+                      const lookup = playsLookup[d.dim] || { play: 'Build out ' + d.name, firstStep: 'Conduct a gap analysis and identify quick wins.' };
                       const customPlay = customNextSteps.plays?.[d.dim];
                       const playTitle = customPlay?.play ?? lookup.play;
                       const firstStep = customPlay?.firstStep ?? lookup.firstStep;
@@ -10621,7 +10650,7 @@ export default function ExportReportPage() {
                         if (d.dim === 12) return 'Without systematic improvement, support quality plateaus while employee needs evolve.';
                         const benchGap = d.benchmark != null ? d.score - d.benchmark : null;
                         if (benchGap != null && benchGap < -5) return 'At ' + Math.abs(benchGap) + ' points below the benchmark, this is one of the most visible gaps relative to peers.';
-                        return 'Strengthening this area would improve the overall consistency of support for employees managing cancer.';
+                        return 'Improving this area would increase the overall consistency of support for employees managing cancer.';
                       })();
 
                       // Employee impact
