@@ -1416,10 +1416,10 @@ function buildActionTextForCard(elName: string, isInMotion: boolean, inMotionCou
   const outcomeSuffix = outcome ? ' ' + outcome : '';
 
   if (isInMotion && inMotionCount > 1) {
-    return 'There are ' + inMotionCount + ' elements currently in development in this dimension, including ' + elName + '. These represent commitments already made and should be the first priority.' + outcomeSuffix;
+    return 'Finish what is already in motion (' + inMotionCount + ' items), starting with ' + elName + '. The organizational groundwork is in place; completing these is the most efficient path forward.' + outcomeSuffix;
   }
   if (isInMotion) {
-    return elName + ' is already in development. Completing this initiative should be the first priority since the organizational groundwork is already in place.' + outcomeSuffix;
+    return elName + ' is already in development. Complete this first since the planning work is done.' + outcomeSuffix;
   }
   if (peerPct != null && peerPct >= 60) {
     return elName + ' is offered by ' + peerPct + '% of participating organizations and is not yet in place here. Employees, particularly those who have worked at other large employers, will expect this.' + outcomeSuffix;
@@ -1459,6 +1459,16 @@ function validateInsightText(text: string, context: {
     fixed = fixed.replace(/is in place/gi, 'is not yet in place');
     fixed = fixed.replace(/are in place/gi, 'are not yet in place');
   }
+  // Don't say "emerging standard" if peerPct < 40
+  if (context.peerPct != null && context.peerPct < 40) {
+    fixed = fixed.replace(/emerging standard/gi, 'less common approach');
+    fixed = fixed.replace(/significant share/gi, context.peerPct + '% of peers');
+  }
+  // Don't say "demonstrate leadership" when peerPct >= 40 (it's not leading-edge)
+  if (context.peerPct != null && context.peerPct >= 40) {
+    fixed = fixed.replace(/opportunity to demonstrate leadership/gi, 'opportunity to strengthen support');
+    fixed = fixed.replace(/demonstrate leadership in/gi, 'strengthen');
+  }
   return fixed;
 }
 
@@ -1474,8 +1484,8 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('financial') || name.includes('hardship')) return 'Fund or program operational with clear eligibility criteria and a simple application process.';
   }
   if (dimNum === 3) {
-    if (name.includes('escalation') || name.includes('protocol')) return 'Protocol documented, distributed to all people managers, with a named point of contact for escalations.';
-    if (name.includes('resource hub')) return 'Live and accessible to all managers, with clear ownership and a quarterly content review cycle.';
+    if (name.includes('escalation') || name.includes('protocol')) return 'Escalation path documented, distributed to all managers, and tested via at least 2 scenario walkthroughs with HR.';
+    if (name.includes('resource hub')) return 'Single access point live, maintained by a named owner, referenced in manager training materials, and reviewed quarterly.';
     if (name.includes('training')) return 'Required for all people managers, completed annually, with completion tracking.';
     if (name.includes('compliance') || name.includes('legal')) return 'Required for managers, refreshed annually, with a clear escalation path for complex cases.';
     if (name.includes('evaluation')) return 'Integrated into existing manager performance review process with defined criteria.';
@@ -1499,7 +1509,7 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('reintegration') || name.includes('progress')) return 'Check-in cadence defined (e.g., 30/60/90 days post-return) with documented outcomes.';
   }
   if (dimNum === 8) {
-    if (name.includes('phased') || name.includes('return')) return 'Template published with defined stages, manager responsibilities, and HR checkpoints.';
+    if (name.includes('phased') || name.includes('return')) return 'Template published with defined stages, used for at least one returning employee, and reviewed for improvement after each use.';
     if (name.includes('progress') || name.includes('tracking')) return 'Tracking system in place with defined milestones and escalation triggers.';
     if (name.includes('buddy') || name.includes('peer')) return 'Matching process defined, volunteers recruited, and initial cohort active.';
   }
@@ -1521,7 +1531,7 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('enhancement') || name.includes('review')) return 'Quarterly review cadence established with documented action items and owners.';
   }
   if (dimNum === 13) {
-    if (name.includes('testimonial') || name.includes('story')) return 'At least 2 employee stories published with appropriate consent and visible on internal channels.';
+    if (name.includes('testimonial') || name.includes('story')) return 'At least 2 employee stories published with consent, promoted through at least 2 internal channels, and refreshed annually.';
     if (name.includes('manager toolkit') || name.includes('cascade')) return 'Toolkit distributed to all managers with usage tracked and refreshed quarterly.';
     if (name.includes('campaign') || name.includes('awareness')) return 'Campaign calendar published, delivered through at least 2 channels, reach measured.';
   }
