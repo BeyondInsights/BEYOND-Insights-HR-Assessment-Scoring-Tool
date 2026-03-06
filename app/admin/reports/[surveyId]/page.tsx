@@ -1017,7 +1017,8 @@ function getDimensionInsight(
   strengths: any[],
   inMotion: any[],
   gaps: any[],
-  companyName: string
+  companyName: string,
+  allDimensions: any[]
 ): { diagnosis: string; actions: { title: string; rationale: string; tag: 'Accelerate' | 'Build' }[]; theme: string } {
 
   const benchDiff = benchmark != null ? score - benchmark : null;
@@ -1028,52 +1029,69 @@ function getDimensionInsight(
   const has = (list: string[], ...keywords: string[]) => list.some(name => keywords.some(kw => name.includes(kw)));
   const get = (list: any[], ...keywords: string[]) => list.find((el: any) => keywords.some(kw => el.name.toLowerCase().includes(kw)));
 
+  const findDim = (num: number) => allDimensions.find((d: any) => d.dim === num);
+
   const benchPhrase = benchDiff !== null
-    ? benchDiff >= 10 ? `${benchDiff} points above the benchmark`
+    ? benchDiff >= 10 ? benchDiff + ' points above the benchmark'
     : benchDiff >= 0 ? 'in line with or slightly above the benchmark'
-    : benchDiff >= -10 ? `${Math.abs(benchDiff)} points below the benchmark`
-    : `${Math.abs(benchDiff)} points below the benchmark, a significant gap`
+    : benchDiff >= -10 ? Math.abs(benchDiff) + ' points below the benchmark'
+    : Math.abs(benchDiff) + ' points below the benchmark, a significant gap'
     : null;
 
   // D1: Medical Leave & Flexibility
   if (dimNum === 1) {
+    const returnToWork = findDim(8);
+    const accommodations = findDim(5);
     const hasBasicLeave = has(inPlace, 'short-term', 'medical leave');
     const hasFlexibility = has(inPlace, 'flexible', 'remote', 'schedule');
     const lacksProtections = has(notInPlace, 'job protection', 'salary continuation', 'full salary');
     const lacksFlexibility = has(notInPlace, 'flexible', 'remote', 'schedule');
     let diagnosis = '';
     if (hasBasicLeave && lacksFlexibility) {
-      diagnosis = `${companyName} provides core medical leave but has not built the day-to-day flexibility that helps employees manage treatment alongside work. Specifically, flexible scheduling, remote work options, or modified hours are not yet in place. Without these, employees must choose between treatment and presence rather than managing both.`;
+      diagnosis = companyName + ' provides core medical leave but has not built the day-to-day flexibility that helps employees manage treatment alongside work. Specifically, flexible scheduling, remote work options, or modified hours are not yet in place. Without these, employees must choose between treatment and presence rather than managing both.';
+      if (returnToWork && returnToWork.score < 50) {
+        diagnosis += ' This is compounded by gaps in return-to-work support (' + returnToWork.score + '), meaning the transition out and back are both underserved.';
+      }
     } else if (hasFlexibility && lacksProtections) {
-      diagnosis = `${companyName} offers workplace flexibility but formal leave protections have gaps. Job protection guarantees, salary continuation, or full-salary coverage during leave are missing. Employees can flex their schedule today, but may not trust that their job and income are secure during extended treatment.`;
+      diagnosis = companyName + ' offers workplace flexibility but formal leave protections have gaps. Job protection guarantees, salary continuation, or full-salary coverage during leave are missing. Employees can flex their schedule today, but may not trust that their job and income are secure during extended treatment.';
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = `Medical leave practices are largely in place, with ${strengths.length} of ${elements.length} elements active. The remaining gaps are in consistency and coverage completeness. Closing them would give employees a seamless, predictable leave experience from diagnosis through return.`;
+      diagnosis = 'Medical leave practices are largely in place, with ' + strengths.length + ' of ' + elements.length + ' elements active. The remaining gaps are in consistency and coverage completeness. Closing them would give employees a seamless, predictable leave experience from diagnosis through return.';
     } else {
-      diagnosis = `Medical leave and flexibility is a foundational dimension where ${companyName} has significant room to build. ${benchPhrase ? `At ${score}, the organization is ${benchPhrase}.` : ''} Employees facing a cancer diagnosis need confidence that their job and income are protected before they can focus on treatment.`;
+      diagnosis = 'Medical leave and flexibility is a foundational dimension where ' + companyName + ' has significant room to build. ' + (benchPhrase ? 'At ' + score + ', the organization is ' + benchPhrase + '. ' : '') + 'Employees facing a cancer diagnosis need confidence that their job and income are protected before they can focus on treatment. Without that confidence, employees delay disclosure, postpone treatment, or make decisions based on financial fear rather than medical need.';
+      if (accommodations && accommodations.score >= 70) {
+        diagnosis += ' Accommodations (' + accommodations.score + ') are stronger, but accommodations without leave protection is backwards: employees can adjust their schedule but cannot take the time they need.';
+      }
     }
     return { diagnosis, actions: [], theme: 'leave-and-flexibility' };
   }
 
   // D2: Insurance & Financial Protection
   if (dimNum === 2) {
+    const resources = findDim(4);
     const hasBasicInsurance = has(inPlace, 'cancer treatment', 'insurance', 'coverage');
     const lacksNavigation = has(notInPlace, 'navigation', 'concierge', 'advocacy');
     const lacksFinancial = has(notInPlace, 'financial', 'hardship', 'assistance');
     let diagnosis = '';
     if (hasBasicInsurance && lacksNavigation) {
-      diagnosis = `Insurance benefits are in place, but employees lack the navigation support to use them effectively. Concierge services, advocacy programs, or benefits navigation tools are not yet available. Comprehensive benefits go underutilized when employees cannot figure out how to access them.`;
+      diagnosis = 'Insurance benefits are in place, but employees lack the navigation support to use them effectively. Concierge services, advocacy programs, or benefits navigation tools are not yet available. Comprehensive benefits go underutilized when employees cannot figure out how to access them.';
+      if (resources && resources.score < 50) {
+        diagnosis += ' Specialized resources (' + resources.score + ') are also limited, meaning employees have neither insurance navigation nor general support navigation.';
+      }
     } else if (lacksFinancial) {
-      diagnosis = `Financial protection has critical gaps that may cause employees to delay or forgo treatment due to cost concerns. Hardship funds, financial assistance programs, or cost-mitigation resources are missing. This dimension directly affects whether cancer support policies translate into actual employee wellbeing.`;
+      diagnosis = 'Financial protection has critical gaps that may cause employees to delay or forgo treatment due to cost concerns. Hardship funds, financial assistance programs, or cost-mitigation resources are missing. This dimension directly affects whether cancer support policies translate into actual employee wellbeing.';
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = `Financial protection infrastructure is solid, with ${strengths.length} of ${elements.length} elements active. The remaining work is ensuring employees know what is available and can access it without friction. Awareness and ease of access determine whether strong benefits actually get used.`;
+      diagnosis = 'Financial protection infrastructure is solid, with ' + strengths.length + ' of ' + elements.length + ' elements active. The remaining work is ensuring employees know what is available and can access it without friction. Awareness and ease of access determine whether strong benefits actually get used.';
     } else {
-      diagnosis = `Insurance and financial protection is foundational to any cancer support program. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Gaps here create the most immediate anxiety for employees at the point of diagnosis.`;
+      diagnosis = 'Financial protection is a foundational concern for employees facing a cancer diagnosis. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Cancer treatment is expensive even with good insurance, and employees who are uncertain about coverage, out-of-pocket exposure, or income continuity during treatment may delay care or make medical decisions based on cost rather than clinical need. The gaps in this dimension have a direct, measurable impact on employee health outcomes.';
     }
     return { diagnosis, actions: [], theme: 'financial-protection' };
   }
 
   // D3: Manager Preparedness
   if (dimNum === 3) {
+    const culture = findDim(6);
+    const returnToWork = findDim(8);
+    const cultureStrong = culture && culture.score >= 70;
     const hasTraining = has(inPlace, 'training', 'empathy', 'communication skills');
     const hasTools = has(inPlace, 'escalation', 'resource hub', 'playbook', 'protocol');
     const lacksTraining = has(notInPlace, 'training', 'empathy', 'communication skills');
@@ -1081,203 +1099,338 @@ function getDimensionInsight(
     const lacksEval = has(notInPlace, 'evaluation', 'manager evaluation');
     let diagnosis = '';
     if (hasTraining && lacksTools) {
-      diagnosis = `${companyName} trains managers on empathy and communication, but has not built the systems managers need to act on that training. Specifically, escalation protocols, a centralized resource hub, and a compliance framework are not yet in place. Managers know they should help. They do not have the tools to help consistently.`;
+      diagnosis = companyName + ' trains managers on empathy and communication, but has not built the systems managers need to act on that training. Specifically, escalation protocols, a centralized resource hub, and a compliance framework are not yet in place.';
+      if (cultureStrong) {
+        diagnosis += ' This matters more here than at most organizations because ' + companyName + '\'s strong culture score (' + culture.score + ') means employees feel safe disclosing. When they do, they encounter managers who care but cannot act consistently.';
+      } else {
+        diagnosis += ' Managers know they should help. They do not have the tools to help consistently.';
+      }
     } else if (hasTools && lacksTraining) {
-      diagnosis = `The tools and protocols exist, but managers have not been trained to use them effectively. Escalation paths and resource hubs sit unused when managers do not know how or when to activate them. This creates inconsistent support that varies by manager rather than by policy.`;
+      diagnosis = 'The tools and protocols exist, but managers have not been trained to use them effectively. Escalation paths and resource hubs sit unused when managers do not know how or when to activate them. This creates inconsistent support that varies by manager rather than by policy.';
     } else if (lacksTraining && lacksTools) {
-      diagnosis = `Manager preparedness is largely undeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Managers lack both the training and the infrastructure to support employees through a cancer diagnosis, which means every other dimension suffers at the point of delivery.`;
+      diagnosis = 'Manager preparedness is largely undeveloped. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Managers are the first point of contact when an employee discloses a diagnosis or needs accommodation. Without training or tools, each manager improvises, creating wildly different experiences across teams.';
+      if (returnToWork && returnToWork.score < 50) {
+        diagnosis += ' This is compounded by gaps in return-to-work support (' + returnToWork.score + '), meaning managers are also unprepared for the transition back.';
+      }
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = `Strong manager preparedness foundation in place. ${lacksEval ? 'The gap is in accountability. Adding manager evaluations on support quality would close the loop from training to verified behavior.' : 'Focus on consistency across teams and reinforcing practices through regular refreshers.'}`;
+      diagnosis = 'Strong manager preparedness foundation in place. ' + (lacksEval ? 'The gap is in accountability. Adding manager evaluations on support quality would close the loop from training to verified behavior.' : 'Focus on consistency across teams and reinforcing practices through regular refreshers.');
     } else {
-      diagnosis = `Manager preparedness has partial coverage. ${benchPhrase ? `At ${score}, the score is ${benchPhrase}.` : ''} The question is whether the gap is in training (do managers know what to do?) or infrastructure (do they have the tools to do it?).`;
+      diagnosis = 'Manager preparedness has partial coverage. ' + (benchPhrase ? 'At ' + score + ', the score is ' + benchPhrase + '. ' : '') + 'The question is whether the gap is in training (do managers know what to do?) or infrastructure (do they have the tools to do it?).';
     }
     return { diagnosis, actions: [], theme: 'manager-capability' };
   }
 
   // D4: Specialized Resources
   if (dimNum === 4) {
+    const insurance = findDim(2);
+    const communication = findDim(13);
     const hasNavigation = has(inPlace, 'navigation', 'resource hub', 'coordinator');
     const lacksSpecialized = has(notInPlace, 'coach', 'counseling', 'peer', 'mentor');
     let diagnosis = '';
     if (hasNavigation && lacksSpecialized) {
-      diagnosis = `Basic resource navigation exists, but specialized support services are absent. Coaching, counseling, and peer mentorship programs are not yet available. Employees can find general information but lack access to the personalized guidance that makes the difference during treatment and recovery.`;
+      diagnosis = 'Basic resource navigation exists, but specialized support services are absent. Coaching, counseling, and peer mentorship programs are not yet available. Employees can find general information but lack access to the personalized guidance that makes the difference during treatment and recovery.';
+      if (communication && communication.score < 50) {
+        diagnosis += ' Communication gaps (' + communication.score + ') compound this: even the navigation resources that exist may not be reaching employees who need them.';
+      }
     } else if (!hasNavigation) {
-      diagnosis = `Employees managing cancer need a clear starting point for accessing support. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without a navigation entry point, even existing benefits go underutilized because employees do not know where to begin.`;
+      diagnosis = 'Employees managing cancer need a clear starting point for accessing support. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Without a navigation entry point, even existing benefits go underutilized because employees do not know where to begin.';
+      if (insurance && insurance.score >= 60) {
+        diagnosis += ' Insurance and financial protection (' + insurance.score + ') is stronger, but those benefits are undercut when employees lack a clear path to access them.';
+      }
     } else {
-      diagnosis = `Specialized resources are ${strengths.length >= elements.length * 0.5 ? 'largely available' : 'partially developed'}. ${benchPhrase ? `The score of ${score} is ${benchPhrase}.` : ''} The quality and accessibility of these resources determines whether employees feel genuinely supported or merely covered on paper.`;
+      diagnosis = 'Specialized resources are ' + (strengths.length >= elements.length * 0.5 ? 'largely available' : 'partially developed') + '. ' + (benchPhrase ? 'The score of ' + score + ' is ' + benchPhrase + '. ' : '') + 'The quality and accessibility of these resources determines whether employees feel genuinely supported or merely covered on paper.';
     }
     return { diagnosis, actions: [], theme: 'resource-access' };
   }
 
   // D5: Workplace Accommodations
   if (dimNum === 5) {
+    const manager = findDim(3);
     const hasFlexible = has(inPlace, 'flexible', 'workload', 'schedule');
     const lacksProcess = has(notInPlace, 'process', 'protocol', 'request', 'formal');
     let diagnosis = '';
     if (hasFlexible && lacksProcess) {
-      diagnosis = `Accommodations happen informally. Flexible arrangements exist, but there is no standardized process to request and track them. Access depends on individual manager discretion rather than organizational commitment, which creates inconsistent experiences across teams.`;
+      diagnosis = 'Accommodations happen informally. Flexible arrangements exist, but there is no standardized process to request and track them. Access depends on individual manager discretion rather than organizational commitment, which creates inconsistent experiences across teams.';
+      if (manager && manager.score < 50) {
+        diagnosis += ' Manager preparedness (' + manager.score + ') is also low, meaning the people making accommodation decisions lack training and tools to do so consistently.';
+      }
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = `Workplace accommodations are a strength, with ${strengths.length} of ${elements.length} elements in place. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} The priority is ensuring consistency across all teams and locations, and documenting practices so they survive personnel changes.`;
+      diagnosis = 'Workplace accommodations are a strength, with ' + strengths.length + ' of ' + elements.length + ' elements in place. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'The priority is ensuring consistency across all teams and locations, and documenting practices so they survive personnel changes.';
     } else {
-      diagnosis = `Accommodation gaps mean employees must negotiate support individually, creating inequitable experiences. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Fast, consistent accommodations are what employees cite as the most tangible proof that an organization cares.`;
+      diagnosis = 'Accommodation gaps mean employees must negotiate support individually, creating inequitable experiences. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Fast, consistent accommodations are what employees cite as the most tangible proof that an organization cares.';
     }
     return { diagnosis, actions: [], theme: 'accommodations' };
   }
 
   // D6: Culture & Psychological Safety
   if (dimNum === 6) {
+    const manager = findDim(3);
+    const communication = findDim(13);
     const hasStigma = has(inPlace, 'stigma', 'anti-stigma', 'disclosure');
     const hasInclusive = has(inPlace, 'inclusive', 'communication guidelines');
     const lacksConfidentiality = has(notInPlace, 'confidentiality', 'privacy');
     let diagnosis = '';
     if (hasStigma && lacksConfidentiality) {
-      diagnosis = `${companyName} addresses stigma through awareness, but privacy protections are incomplete. Confidentiality policies or privacy protocols for health disclosures are missing. Employees may feel culturally safe to disclose but uncertain about what happens with that information afterward.`;
+      diagnosis = companyName + ' addresses stigma through awareness, but privacy protections are incomplete. Confidentiality policies or privacy protocols for health disclosures are missing. Employees may feel culturally safe to disclose but uncertain about what happens with that information afterward.';
+      if (manager && manager.score < 50) {
+        diagnosis += ' Manager preparedness (' + manager.score + ') is also weak, meaning the people who receive disclosures lack training on how to handle them properly.';
+      }
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = `Culture and psychological safety is a clear strength, with ${strengths.length} of ${elements.length} elements in place. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} This foundation enables all other dimensions because employees who feel safe disclosing are more likely to access accommodations, resources, and leave.`;
+      diagnosis = 'Culture and psychological safety is a clear strength, with ' + strengths.length + ' of ' + elements.length + ' elements in place. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'This foundation enables all other dimensions because employees who feel safe disclosing are more likely to access accommodations, resources, and leave.';
+      if (communication && communication.score < 50) {
+        diagnosis += ' However, communication (' + communication.score + ') is underdeveloped, which means the safe culture exists but employees may not know what support is available to them.';
+      }
     } else {
-      diagnosis = `Psychological safety is the foundation everything else rests on. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without a culture where disclosure feels safe, employees manage cancer in silence and every other support program goes unused.`;
+      diagnosis = 'Psychological safety is the foundation everything else rests on. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Without a culture where disclosure feels safe, employees manage cancer in silence and every other support program goes unused.';
     }
     return { diagnosis, actions: [], theme: 'culture-safety' };
   }
 
   // D7: Career Continuity & Advancement
   if (dimNum === 7) {
+    const culture = findDim(6);
     const hasProtections = has(inPlace, 'succession', 'performance', 'protection');
     const lacksReintegration = has(notInPlace, 'reintegration', 'progress review', 'mentorship', 'coaching');
     let diagnosis = '';
     if (hasProtections && lacksReintegration) {
-      diagnosis = `Formal protections exist, including performance review adjustments and succession planning. However, post-treatment career reintegration support is missing, including mentorship, progress reviews, and coaching. Employees' jobs are protected during treatment, but their career trajectories after treatment are not.`;
+      diagnosis = 'Formal protections exist, including performance review adjustments and succession planning. However, post-treatment career reintegration support is missing, including mentorship, progress reviews, and coaching. Employees\' jobs are protected during treatment, but their career trajectories after treatment are not.';
     } else if (strengths.length <= 2) {
-      diagnosis = `Career continuity is largely undeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without clear signals that cancer does not derail careers, employees may hide diagnoses or leave preemptively. This is one of the strongest predictors of whether an employee stays with the organization.`;
+      diagnosis = 'Career continuity is one of ' + companyName + '\'s most significant gaps. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Employees managing cancer consistently cite career fear as a top concern: will I be passed over for promotion, will my diagnosis define how leadership sees me, is it safer to hide this? Without formal protections and visible proof that careers survive a diagnosis, employees make decisions based on fear rather than facts. This dimension is one of the strongest predictors of whether an employee stays with an organization after treatment.';
+      if (culture && culture.score >= 60) {
+        diagnosis += ' ' + companyName + '\'s culture score (' + culture.score + ') suggests employees feel safe enough to discuss cancer, but career continuity gaps mean that disclosure may still feel risky when promotions and assignments are on the line.';
+      }
     } else {
-      diagnosis = `Career continuity has partial coverage. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The question is whether employees believe, based on evidence rather than policy, that their career trajectory survives a cancer diagnosis.`;
+      diagnosis = 'Career continuity has partial coverage. ' + (benchPhrase ? 'The score is ' + benchPhrase + '. ' : '') + 'The question is whether employees believe, based on evidence rather than policy, that their career trajectory survives a cancer diagnosis.';
     }
     return { diagnosis, actions: [], theme: 'career-continuity' };
   }
 
   // D8: Work Continuation & Resumption
   if (dimNum === 8) {
+    const leave = findDim(1);
+    const manager = findDim(3);
     const hasPhased = has(inPlace, 'phased', 'return-to-work', 'flexible');
     const lacksStructured = has(notInPlace, 'structured', 'progress review', 'long-term', 'success tracking');
     let diagnosis = '';
     if (hasPhased && lacksStructured) {
-      diagnosis = `Phased return-to-work plans and flexible arrangements are in place, so the transition back starts well. However, structured follow-through like progress reviews and long-term success tracking is missing. Employees return successfully but lack sustained support, risking attrition 6 to 12 months post-return.`;
+      diagnosis = companyName + ' has phased return-to-work plans and flexible arrangements, so the initial transition back starts well. But there is no structured follow-through: no progress reviews, no long-term success tracking, no formal check-in cadence.';
+      if (leave && leave.score >= 70) {
+        diagnosis += ' The organization invests in leave (' + leave.score + '), but that investment is at risk if the return process is unstructured. Employees who struggle with re-entry after strong leave support feel the contrast acutely.';
+      }
+      if (manager && manager.score < 50) {
+        diagnosis += ' Manager preparedness (' + manager.score + ') compounds this: the people responsible for managing the return lack training and protocols.';
+      }
     } else if (strengths.length >= elements.length * 0.5) {
-      diagnosis = `Return-to-work support is developing well, with ${strengths.length} of ${elements.length} elements active. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} The remaining work is building the sustained support infrastructure that carries employees beyond the initial return.`;
+      diagnosis = 'Return-to-work support is developing well, with ' + strengths.length + ' of ' + elements.length + ' elements active. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'The remaining work is building the sustained support infrastructure that carries employees beyond the initial return.';
     } else {
-      diagnosis = `Work continuation and resumption is a critical gap. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without structured return-to-work protocols, the investment in leave and accommodations is lost when employees struggle with re-entry.`;
+      diagnosis = 'Work continuation and resumption is a critical gap. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Without structured return-to-work protocols, the investment in leave and accommodations is lost when employees struggle with re-entry.';
+      if (leave && leave.score >= 60) {
+        diagnosis += ' Leave support (' + leave.score + ') is meaningfully stronger, which creates a jarring contrast: employees get time for treatment but then face an unstructured return.';
+      }
     }
     return { diagnosis, actions: [], theme: 'return-to-work' };
   }
 
   // D9: Executive Commitment & Resources
   if (dimNum === 9) {
+    const continuousImprovement = findDim(12);
     const hasBudget = has(inPlace, 'budget', 'dedicated', 'funding');
     const hasSponsorship = has(inPlace, 'executive', 'sponsor', 'leadership');
     const lacksVisibility = has(notInPlace, 'town hall', 'communication', 'visible');
     let diagnosis = '';
     if (hasBudget && lacksVisibility) {
-      diagnosis = `Resources are allocated but leadership engagement is not visible to employees. Budget exists, but town halls, executive communications, and visible sponsorship do not. Without visible executive engagement, cancer support remains an HR program rather than an organizational priority.`;
+      diagnosis = 'Resources are allocated but leadership engagement is not visible to employees. Budget exists, but town halls, executive communications, and visible sponsorship do not. Without visible executive engagement, cancer support remains an HR program rather than an organizational priority.';
     } else if (!hasBudget && !hasSponsorship) {
-      diagnosis = `Executive commitment is largely absent. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without visible leadership engagement and dedicated resources, cancer support programs struggle to gain organizational traction. This dimension is the multiplier for everything else.`;
+      diagnosis = 'Executive commitment is largely absent. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Without visible leadership engagement and dedicated resources, cancer support programs struggle to gain organizational traction. This dimension is the multiplier for everything else.';
+      if (continuousImprovement && continuousImprovement.score < 40) {
+        diagnosis += ' Continuous improvement (' + continuousImprovement.score + ') is also low, which often follows from absent executive sponsorship: without leadership attention, programs do not get measured or refined.';
+      }
     } else {
-      diagnosis = `Executive commitment has ${strengths.length >= elements.length * 0.5 ? 'a solid foundation' : 'early foundations'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The test is whether support for employees managing cancer has identifiable executive sponsors with measurable objectives.`;
+      diagnosis = 'Executive commitment has ' + (strengths.length >= elements.length * 0.5 ? 'a solid foundation' : 'early foundations') + '. ' + (benchPhrase ? 'The score is ' + benchPhrase + '. ' : '') + 'The test is whether support for employees managing cancer has identifiable executive sponsors with measurable objectives.';
     }
     return { diagnosis, actions: [], theme: 'executive-commitment' };
   }
 
   // D10: Caregiver & Family Support
   if (dimNum === 10) {
+    const leave = findDim(1);
     const hasLeave = has(inPlace, 'leave', 'time off', 'caregiver leave');
     const lacksResources = has(notInPlace, 'counseling', 'support group', 'resource', 'concierge');
     let diagnosis = '';
     if (hasLeave && lacksResources) {
-      diagnosis = `Caregiver leave provisions exist, but dedicated support resources are absent. Counseling, support groups, and logistics assistance are not yet available. Caregivers get time off but not the support to use it effectively, which is a hidden retention risk given how many employees are also caregivers.`;
+      diagnosis = 'Caregiver leave provisions exist, but dedicated support resources are absent. Counseling, support groups, and logistics assistance are not yet available. Caregivers get time off but not the support to use it effectively, which is a hidden retention risk given how many employees are also caregivers.';
     } else if (strengths.length <= 1) {
-      diagnosis = `Caregiver and family support is largely undeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Cancer affects families, not just individuals. Organizations that recognize this retain a broader pool of employees and build deeper organizational loyalty.`;
+      diagnosis = 'Caregiver and family support at ' + companyName + ' is largely undeveloped. ' + (benchPhrase ? 'At ' + score + ', the score is ' + benchPhrase + '. ' : '') + 'Cancer does not only affect the person diagnosed. Caregivers, spouses, parents, and children all experience disruption, and employees in caregiving roles often reduce hours, decline promotions, or leave entirely without telling their employer why. The elements missing here represent the difference between a caregiver who can sustain their role and one who quietly burns out.';
+      if (leave && leave.score >= 60) {
+        diagnosis += ' Medical leave (' + leave.score + ') is stronger for the diagnosed employee, but caregiver leave and support have not received the same investment.';
+      }
     } else {
-      diagnosis = `Caregiver support has ${strengths.length >= elements.length * 0.5 ? 'meaningful coverage' : 'early foundations'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The question is whether caregivers know these supports exist and can access them without stigma.`;
+      diagnosis = 'Caregiver support has ' + (strengths.length >= elements.length * 0.5 ? 'meaningful coverage' : 'early foundations') + '. ' + (benchPhrase ? 'The score is ' + benchPhrase + '. ' : '') + 'The question is whether caregivers know these supports exist and can access them without stigma.';
     }
     return { diagnosis, actions: [], theme: 'caregiver-support' };
   }
 
   // D11: Prevention & Wellness
   if (dimNum === 11) {
+    const communication = findDim(13);
     const hasScreening = has(inPlace, 'screening', 'vaccination', 'health education');
     const lacksProactive = has(notInPlace, 'incentive', 'campaign', 'partnership');
     let diagnosis = '';
     if (hasScreening && lacksProactive) {
-      diagnosis = `Basic prevention offerings like screenings, vaccinations, and health education are available. However, proactive outreach, incentive programs, and wellness campaigns are not yet in place. Prevention is offered but not actively promoted, so participation depends on individual awareness rather than organizational effort.`;
+      diagnosis = 'Basic prevention offerings like screenings, vaccinations, and health education are available. However, proactive outreach, incentive programs, and wellness campaigns are not yet in place. Prevention is offered but not actively promoted, so participation depends on individual awareness rather than organizational effort.';
+      if (communication && communication.score < 50) {
+        diagnosis += ' Communication (' + communication.score + ') is also limited, which means even the prevention programs that exist may not reach employees who would benefit.';
+      }
     } else if (strengths.length >= elements.length * 0.6) {
-      diagnosis = `Prevention and wellness is a strength, with ${strengths.length} of ${elements.length} elements active. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Strong prevention programs demonstrate that the organization's commitment to cancer support starts before diagnosis, not after.`;
+      diagnosis = 'Prevention and wellness is a strength, with ' + strengths.length + ' of ' + elements.length + ' elements active. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Strong prevention programs demonstrate that the organization\'s commitment to cancer support starts before diagnosis, not after.';
     } else {
-      diagnosis = `Prevention and wellness programming is limited. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Prevention is the most proactive expression of employer commitment. It signals that the organization invests in health, not just responds to illness.`;
+      diagnosis = 'Prevention and wellness programming is limited. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Prevention is the most proactive expression of employer commitment. It signals that the organization invests in health, not just responds to illness.';
     }
     return { diagnosis, actions: [], theme: 'prevention-wellness' };
   }
 
   // D12: Continuous Improvement
   if (dimNum === 12) {
+    const executive = findDim(9);
     const hasFeedback = has(inPlace, 'feedback', 'survey', 'assessment');
     const lacksSystematic = has(notInPlace, 'regular', 'enhancement', 'roi', 'review', 'program');
     let diagnosis = '';
     if (hasFeedback && lacksSystematic) {
-      diagnosis = `Feedback mechanisms exist but systematic improvement processes do not. Data is collected but not consistently acted upon through regular program reviews or enhancement cycles. Without that follow-through, support quality plateaus while employee needs evolve.`;
+      diagnosis = 'Feedback mechanisms exist but systematic improvement processes do not. Data is collected but not consistently acted upon through regular program reviews or enhancement cycles. Without that follow-through, support quality plateaus while employee needs evolve.';
+      if (executive && executive.score >= 60) {
+        diagnosis += ' Executive commitment (' + executive.score + ') provides a foundation for this work, but that commitment needs to translate into structured review cycles and measurable improvement targets.';
+      }
     } else if (strengths.length <= 1) {
-      diagnosis = `Continuous improvement infrastructure is minimal. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Without systematic review processes, the organization cannot identify what is working, what is not, or where to invest next. This dimension is what separates one-time efforts from sustained programs.`;
+      diagnosis = 'Continuous improvement infrastructure is minimal. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Without systematic review processes, the organization cannot identify what is working, what is not, or where to invest next. This dimension is what separates one-time efforts from sustained programs.';
+      if (executive && executive.score < 40) {
+        diagnosis += ' Executive commitment (' + executive.score + ') is also low, which often explains why improvement processes do not exist: no one is asking for the data.';
+      }
     } else {
-      diagnosis = `Continuous improvement systems are ${strengths.length >= elements.length * 0.5 ? 'well-established' : 'developing'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The maturity of these processes determines whether cancer support improves year over year or remains static.`;
+      diagnosis = 'Continuous improvement systems are ' + (strengths.length >= elements.length * 0.5 ? 'well-established' : 'developing') + '. ' + (benchPhrase ? 'The score is ' + benchPhrase + '. ' : '') + 'The maturity of these processes determines whether cancer support improves year over year or remains static.';
     }
     return { diagnosis, actions: [], theme: 'continuous-improvement' };
   }
 
   // D13: Communication & Awareness
   if (dimNum === 13) {
+    const strongDims = allDimensions.filter((d: any) => d.dim !== 13 && d.score >= 70);
+    const strongNames = strongDims.slice(0, 2).map((d: any) => d.name);
     const hasBasic = has(inPlace, 'awareness', 'intranet', 'information');
     const lacksTargeted = has(notInPlace, 'testimonial', 'family', 'manager toolkit', 'cascade');
     const lacksMultiChannel = has(notInPlace, 'multi-channel', 'campaign', 'targeted');
     let diagnosis = '';
     if (hasBasic && lacksTargeted) {
-      diagnosis = `Basic awareness information exists, but targeted communication is absent. Employee testimonials, family-inclusive messaging, and manager cascade toolkits are not in place. Employees can find information if they look, but they do not receive it when they need it.`;
+      diagnosis = companyName + ' has basic awareness materials available, but lacks targeted communication that reaches employees when they need it. There are no employee testimonials, no family-inclusive messaging, and no manager cascade toolkit.';
+      if (strongDims.length >= 2) {
+        diagnosis += ' This is particularly costly because the organization has strong programs in ' + strongNames.join(' and ') + ' that employees may not know about. Investment in those dimensions is undermined when communication does not keep pace.';
+      } else {
+        diagnosis += ' Employees who do not know what is available cannot use what is available.';
+      }
     } else if (strengths.length <= 2) {
-      diagnosis = `Communication and awareness is significantly underdeveloped. ${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase}.` : ''} Strong programs elsewhere in the report are undermined when employees do not know they exist. This dimension is the multiplier for every other investment.`;
+      diagnosis = 'Communication and awareness is significantly underdeveloped. ' + (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + '. ' : '') + 'Strong programs elsewhere in the report are undermined when employees do not know they exist. This dimension is the multiplier for every other investment.';
     } else {
-      diagnosis = `Communication coverage is ${strengths.length >= elements.length * 0.5 ? 'solid' : 'partial'}. ${benchPhrase ? `The score is ${benchPhrase}.` : ''} The test is whether a newly diagnosed employee can name three support resources within 24 hours of diagnosis without asking HR.`;
+      diagnosis = 'Communication coverage is ' + (strengths.length >= elements.length * 0.5 ? 'solid' : 'partial') + '. ' + (benchPhrase ? 'The score is ' + benchPhrase + '. ' : '') + 'The test is whether a newly diagnosed employee can name three support resources within 24 hours of diagnosis without asking HR.';
     }
     return { diagnosis, actions: [], theme: 'communication-awareness' };
   }
 
   // Fallback
   return {
-    diagnosis: `${benchPhrase ? `At ${score}, ${companyName} is ${benchPhrase} in this dimension.` : `This dimension scored ${score}.`} ${strengths.length} of ${elements.length} elements are in place.`,
+    diagnosis: (benchPhrase ? 'At ' + score + ', ' + companyName + ' is ' + benchPhrase + ' in this dimension.' : 'This dimension scored ' + score + '.') + ' ' + strengths.length + ' of ' + elements.length + ' elements are in place.',
     actions: [],
     theme: 'general',
   };
 }
 
 
+// Employee outcome lookup for action text
+function getEmployeeOutcome(dimNum: number, elementName: string): string {
+  const name = elementName.toLowerCase();
+  if (dimNum === 1) {
+    if (name.includes('salary') || name.includes('pay')) return 'Employees can focus on treatment without worrying about income.';
+    if (name.includes('flexible') || name.includes('remote')) return 'Employees can attend appointments and manage side effects without using all their leave.';
+    if (name.includes('job protection')) return 'Employees can take medical leave knowing their role is secure.';
+  }
+  if (dimNum === 2) {
+    if (name.includes('navigation') || name.includes('concierge')) return 'Employees stop spending hours on the phone figuring out coverage.';
+    if (name.includes('financial') || name.includes('hardship')) return 'Employees do not delay treatment because of cost.';
+  }
+  if (dimNum === 3) {
+    if (name.includes('escalation') || name.includes('protocol')) return 'Every manager responds the same way. No employee gets a worse experience because of who their manager is.';
+    if (name.includes('resource hub')) return 'Managers have one place to find everything they need instead of guessing.';
+    if (name.includes('training')) return 'Managers can have the difficult first conversation with confidence.';
+    if (name.includes('compliance') || name.includes('legal')) return 'Managers handle disclosure and accommodation without creating legal exposure.';
+    if (name.includes('evaluation')) return 'Support quality becomes part of what the organization measures, not just what it hopes for.';
+  }
+  if (dimNum === 4) {
+    if (name.includes('navigation') || name.includes('coordinator')) return 'A newly diagnosed employee knows exactly where to start.';
+    if (name.includes('coach') || name.includes('counseling')) return 'Employees get personalized guidance, not just information.';
+    if (name.includes('peer') || name.includes('mentor')) return 'Employees hear from someone who has been through it.';
+  }
+  if (dimNum === 5) {
+    if (name.includes('process') || name.includes('request')) return 'Employees do not have to negotiate accommodations one manager at a time.';
+    if (name.includes('workload')) return 'Employees can manage treatment side effects without falling behind.';
+  }
+  if (dimNum === 6) {
+    if (name.includes('stigma')) return 'Employees disclose earlier, which means accommodations start sooner.';
+    if (name.includes('confidential') || name.includes('privacy')) return 'Employees control who knows and when.';
+  }
+  if (dimNum === 7) {
+    if (name.includes('succession') || name.includes('protection')) return 'Employees know their career trajectory survives a diagnosis.';
+    if (name.includes('mentor') || name.includes('coach')) return 'Employees see proof that others have come through treatment and advanced.';
+    if (name.includes('reintegration') || name.includes('progress')) return 'Employees returning from treatment have a clear path back to full contribution.';
+  }
+  if (dimNum === 8) {
+    if (name.includes('phased') || name.includes('return')) return 'Employees come back gradually instead of all-or-nothing.';
+    if (name.includes('progress') || name.includes('check-in')) return 'Problems surface early instead of leading to quiet attrition 6 months later.';
+    if (name.includes('peer') || name.includes('buddy')) return 'Employees have someone to talk to during the hardest transition.';
+  }
+  if (dimNum === 9) {
+    if (name.includes('budget') || name.includes('dedicated')) return 'Cancer support moves from good intention to funded initiative.';
+    if (name.includes('sponsor') || name.includes('executive')) return 'Employees see that leadership takes this seriously, not just HR.';
+  }
+  if (dimNum === 10) {
+    if (name.includes('leave') || name.includes('time off')) return 'Caregivers can be present for appointments and crises without burning all their PTO.';
+    if (name.includes('counseling') || name.includes('support group')) return 'Caregivers get support for their own wellbeing, not just the patient.';
+    if (name.includes('emergency')) return 'Caregivers can respond to emergencies without choosing between family and job.';
+  }
+  if (dimNum === 11) {
+    if (name.includes('screening')) return 'Earlier detection leads to better outcomes and less time away from work.';
+    if (name.includes('education') || name.includes('health')) return 'Employees make informed decisions about their health.';
+  }
+  if (dimNum === 12) {
+    if (name.includes('feedback') || name.includes('survey')) return 'The organization learns what is actually working from the people it serves.';
+    if (name.includes('enhancement') || name.includes('review')) return 'Support gets better each year instead of staying static.';
+  }
+  if (dimNum === 13) {
+    if (name.includes('testimonial') || name.includes('story')) return 'Employees see real examples and believe the support is genuine, not theoretical.';
+    if (name.includes('family') || name.includes('caregiver')) return 'Families know what is available, which reduces stress on the employee.';
+    if (name.includes('manager toolkit') || name.includes('cascade')) return 'Information reaches employees through their manager, not just a portal they may never visit.';
+  }
+  return '';
+}
+
 // Action text builder for strategic recommendation cards
-function buildActionTextForCard(elName: string, isInMotion: boolean, inMotionCount: number, peerPct: number | null): string {
-  const hasManyPeers = peerPct != null && peerPct > 40;
+function buildActionTextForCard(elName: string, isInMotion: boolean, inMotionCount: number, peerPct: number | null, dimNum: number, companyName: string): string {
+  const outcome = getEmployeeOutcome(dimNum, elName);
+  const outcomeSuffix = outcome ? ' ' + outcome : '';
+
   if (isInMotion && inMotionCount > 1) {
-    const peerNote = hasManyPeers
-      ? 'Nearly ' + peerPct + '% of peers already have this, making it a visible gap.'
-      : 'Completing work already underway is the most efficient use of existing investment.';
-    return 'Convert the ' + inMotionCount + ' items currently under review into active programs, starting with ' + elName + '. ' + peerNote;
+    return 'There are ' + inMotionCount + ' elements currently in development in this dimension, including ' + elName + '. These represent commitments already made and should be the first priority.' + outcomeSuffix;
   }
   if (isInMotion) {
-    const peerNote = hasManyPeers
-      ? peerPct + '% of peers already offer this.'
-      : 'This is already in progress and should be prioritized for completion.';
-    return 'Move ' + elName + ' from review to implementation. ' + peerNote;
+    return elName + ' is already in development. Completing this initiative should be the first priority since the organizational groundwork is already in place.' + outcomeSuffix;
   }
   if (peerPct != null && peerPct >= 60) {
-    return 'Add ' + elName + '. ' + peerPct + '% of peers offer this and your employees will expect it. This is a baseline requirement.';
+    return elName + ' is offered by ' + peerPct + '% of participating organizations and is not yet in place here. Employees, particularly those who have worked at other large employers, will expect this.' + outcomeSuffix;
   }
   if (peerPct != null && peerPct >= 40) {
-    return 'Implement ' + elName + '. ' + peerPct + '% of peers have invested here. Adding this would bring you in line with the majority of participants.';
+    return elName + ' is offered by a significant share of participating organizations (' + peerPct + '%). Implementing it would bring ' + companyName + ' in line with an emerging standard.' + outcomeSuffix;
   }
-  return 'Consider adding ' + elName + '. Fewer than ' + (peerPct || 'half') + '% of peers offer this, so implementing it would set your organization apart.';
+  if (peerPct != null && peerPct >= 20) {
+    return elName + ' is offered by ' + peerPct + '% of participating organizations. Adding it would signal a deeper commitment to supporting employees through treatment and recovery.' + outcomeSuffix;
+  }
+  return elName + ' is not widely offered among participating organizations, making it an opportunity to demonstrate leadership in cancer support.' + outcomeSuffix;
 }
 
 function getCrossDimensionPatterns(dimAnalysis: any[]): {
@@ -9241,7 +9394,7 @@ export default function ExportReportPage() {
                       // ============ DIMENSION-SPECIFIC DIAGNOSIS ============
                       const dimInsight = getDimensionInsight(
                         d.dim, enriched, d.score, d.benchmark,
-                        strengths, inMotion, allGaps, companyName
+                        strengths, inMotion, allGaps, companyName, dimensionAnalysis
                       );
 
                       // Generic fallback diagnosis
@@ -9288,7 +9441,7 @@ export default function ExportReportPage() {
                       if (inMotion.length > 0) {
                         const topInMotion = inMotion[0];
                         actionSteps.push({
-                          text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct),
+                          text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct, d.dim, companyName),
                           element: topInMotion.name,
                         });
                       }
@@ -9297,29 +9450,20 @@ export default function ExportReportPage() {
                       if (sortedGaps.length > 0) {
                         const topGap = sortedGaps[0];
                         actionSteps.push({
-                          text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct),
+                          text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
                           element: topGap.name,
                         });
                       }
 
-                      // Third action: present as a choice between two options
+                      // Third action: next most impactful gap
                       const remainingGaps = sortedGaps.filter((g: any) =>
                         !actionSteps.some(a => a.element === g.name)
                       );
-                      if (remainingGaps.length >= 2) {
-                        const choiceA = remainingGaps[0];
-                        const choiceB = remainingGaps[1];
-                        const aMoreCommon = (choiceA.peerPct ?? 0) > (choiceB.peerPct ?? 0);
-                        const choiceContext = aMoreCommon
-                          ? 'The first is more common among peers. The second would set you apart.'
-                          : 'Both represent areas where your organization can stand out.';
+                      if (remainingGaps.length > 0) {
+                        const thirdGap = remainingGaps[0];
                         actionSteps.push({
-                          text: 'Choose one: either ' + choiceA.name + ' (' + (choiceA.peerPct ?? 'few') + '% of peers offer this) or ' + choiceB.name + ' (' + (choiceB.peerPct ?? 'few') + '% of peers). ' + choiceContext + ' Pick based on what your team can realistically execute in the next quarter.',
-                        });
-                      } else if (remainingGaps.length === 1) {
-                        actionSteps.push({
-                          text: buildActionTextForCard(remainingGaps[0].name, false, 0, remainingGaps[0].peerPct),
-                          element: remainingGaps[0].name,
+                          text: buildActionTextForCard(thirdGap.name, false, 0, thirdGap.peerPct, d.dim, companyName),
+                          element: thirdGap.name,
                         });
                       }
 
@@ -9355,20 +9499,14 @@ export default function ExportReportPage() {
                             )}
                           </div>
 
-                          {/* === GAP COMPOSITION — plain text summary === */}
-                          {(inMotion.length > 0 || tableStakes.length > 0 || differentiators.length > 0) && (
-                            <p className="text-sm text-slate-500 mb-6">
-                              {[
-                                inMotion.length > 0 ? `${inMotion.length} already in development` : null,
-                                tableStakes.length > 0 ? `${tableStakes.length} offered by most peers but not yet in place` : null,
-                                differentiators.length > 0 ? `${differentiators.length} where fewer than half of peers have invested` : null,
-                              ].filter(Boolean).join(', ')}.
-                            </p>
-                          )}
-
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Actions</h4>
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">{
+                              inMotion.length > 0 && allGaps.length > 0 ? 'Finish What is Started, Then Build'
+                              : inMotion.length > 0 ? 'Complete Current Initiatives'
+                              : allGaps.length > 3 ? 'Where to Begin'
+                              : 'Recommended Next Steps'
+                            }</h4>
                             <div className="space-y-5">
                               {actionSteps.map((step, i) => (
                                 <div key={i} className="flex gap-4">
@@ -9396,16 +9534,14 @@ export default function ExportReportPage() {
 
                           {/* === THE IMPACT === */}
                           <p className="text-sm text-slate-500 mt-6 pt-4 border-t border-slate-100">
-                            These {actionSteps.length > 1 ? `${actionSteps.length} changes` : 'changes'} would move this dimension from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}, contributing roughly +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to your composite score.
+                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute roughly +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
                           </p>
 
                           {/* === PENDING CONFIRMATIONS === */}
                           {unsure.length > 0 && (
-                            <div className="px-4 py-3 bg-violet-50 rounded-lg border border-violet-200 mb-6">
-                              <p className="text-sm text-violet-700">
-                                <strong>{unsure.length} element{unsure.length > 1 ? 's' : ''} pending confirmation:</strong> {unsure.slice(0, 2).map((u: any) => u.name).join(', ')}{unsure.length > 2 ? ` and ${unsure.length - 2} more` : ''}. Confirming these could change the action plan above.
-                              </p>
-                            </div>
+                            <p className="text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">
+                              Note: {unsure.length} element{unsure.length > 1 ? 's' : ''} in this dimension ({unsure.slice(0, 2).map((u: any) => u.name).join(', ')}{unsure.length > 2 ? `, and ${unsure.length - 2} more` : ''}) {unsure.length > 1 ? 'are' : 'is'} pending confirmation. Once confirmed, the assessment and recommended actions above may change.
+                            </p>
                           )}
 
                           {/* === VIEW ALL ELEMENTS (collapsible) === */}
@@ -9550,7 +9686,7 @@ export default function ExportReportPage() {
                       // ============ DIMENSION-SPECIFIC DIAGNOSIS ============
                       const dimInsight = getDimensionInsight(
                         d.dim, enriched, d.score, d.benchmark,
-                        strengths, inMotion, allGaps, companyName
+                        strengths, inMotion, allGaps, companyName, dimensionAnalysis
                       );
 
                       // Generic fallback diagnosis
@@ -9597,7 +9733,7 @@ export default function ExportReportPage() {
                       if (inMotion.length > 0) {
                         const topInMotion = inMotion[0];
                         actionSteps.push({
-                          text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct),
+                          text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct, d.dim, companyName),
                           element: topInMotion.name,
                         });
                       }
@@ -9606,29 +9742,20 @@ export default function ExportReportPage() {
                       if (sortedGaps.length > 0) {
                         const topGap = sortedGaps[0];
                         actionSteps.push({
-                          text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct),
+                          text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
                           element: topGap.name,
                         });
                       }
 
-                      // Third action: present as a choice between two options
+                      // Third action: next most impactful gap
                       const remainingGaps = sortedGaps.filter((g: any) =>
                         !actionSteps.some(a => a.element === g.name)
                       );
-                      if (remainingGaps.length >= 2) {
-                        const choiceA = remainingGaps[0];
-                        const choiceB = remainingGaps[1];
-                        const aMoreCommon = (choiceA.peerPct ?? 0) > (choiceB.peerPct ?? 0);
-                        const choiceContext = aMoreCommon
-                          ? 'The first is more common among peers. The second would set you apart.'
-                          : 'Both represent areas where your organization can stand out.';
+                      if (remainingGaps.length > 0) {
+                        const thirdGap = remainingGaps[0];
                         actionSteps.push({
-                          text: 'Choose one: either ' + choiceA.name + ' (' + (choiceA.peerPct ?? 'few') + '% of peers offer this) or ' + choiceB.name + ' (' + (choiceB.peerPct ?? 'few') + '% of peers). ' + choiceContext + ' Pick based on what your team can realistically execute in the next quarter.',
-                        });
-                      } else if (remainingGaps.length === 1) {
-                        actionSteps.push({
-                          text: buildActionTextForCard(remainingGaps[0].name, false, 0, remainingGaps[0].peerPct),
-                          element: remainingGaps[0].name,
+                          text: buildActionTextForCard(thirdGap.name, false, 0, thirdGap.peerPct, d.dim, companyName),
+                          element: thirdGap.name,
                         });
                       }
 
@@ -9666,20 +9793,14 @@ export default function ExportReportPage() {
                             )}
                           </div>
 
-                          {/* === GAP COMPOSITION — plain text summary === */}
-                          {(inMotion.length > 0 || tableStakes.length > 0 || differentiators.length > 0) && (
-                            <p className="text-sm text-slate-500 mb-6">
-                              {[
-                                inMotion.length > 0 ? `${inMotion.length} already in development` : null,
-                                tableStakes.length > 0 ? `${tableStakes.length} offered by most peers but not yet in place` : null,
-                                differentiators.length > 0 ? `${differentiators.length} where fewer than half of peers have invested` : null,
-                              ].filter(Boolean).join(', ')}.
-                            </p>
-                          )}
-
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Actions</h4>
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">{
+                              inMotion.length > 0 && allGaps.length > 0 ? 'Finish What is Started, Then Build'
+                              : inMotion.length > 0 ? 'Complete Current Initiatives'
+                              : allGaps.length > 3 ? 'Where to Begin'
+                              : 'Recommended Next Steps'
+                            }</h4>
                             <div className="space-y-5">
                               {actionSteps.map((step, i) => (
                                 <div key={i} className="flex gap-4">
@@ -9709,16 +9830,14 @@ export default function ExportReportPage() {
 
                           {/* === THE IMPACT === */}
                           <p className="text-sm text-slate-500 mt-6 pt-4 border-t border-slate-100">
-                            These {actionSteps.length > 1 ? `${actionSteps.length} changes` : 'changes'} would move this dimension from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}, contributing roughly +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to your composite score.
+                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute roughly +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
                           </p>
 
                           {/* === PENDING CONFIRMATIONS === */}
                           {unsure.length > 0 && (
-                            <div className="px-4 py-3 bg-violet-50 rounded-lg border border-violet-200 mb-6">
-                              <p className="text-sm text-violet-700">
-                                <strong>{unsure.length} element{unsure.length > 1 ? 's' : ''} pending confirmation:</strong> {unsure.slice(0, 2).map((u: any) => u.name).join(', ')}{unsure.length > 2 ? ` and ${unsure.length - 2} more` : ''}. Confirming these could change the action plan above.
-                              </p>
-                            </div>
+                            <p className="text-sm text-slate-500 mt-4 pt-4 border-t border-slate-100">
+                              Note: {unsure.length} element{unsure.length > 1 ? 's' : ''} in this dimension ({unsure.slice(0, 2).map((u: any) => u.name).join(', ')}{unsure.length > 2 ? `, and ${unsure.length - 2} more` : ''}) {unsure.length > 1 ? 'are' : 'is'} pending confirmation. Once confirmed, the assessment and recommended actions above may change.
+                            </p>
                           )}
 
                           {/* === VIEW ALL ELEMENTS (collapsible) === */}
