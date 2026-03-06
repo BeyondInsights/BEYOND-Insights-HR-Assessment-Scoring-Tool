@@ -4016,7 +4016,7 @@ export default function ExportReportPage() {
     strategicRecos: {
       title: 'Strategic Recommendations',
       what: 'Element-level analysis for your priority dimensions. Each dimension includes an assessment of where you stand relative to peers, specific recommended actions grounded in benchmark data, and the projected impact on your score and employee experience.',
-      how: 'You can explore dimensions two ways. Full Roadmap shows the 5 dimensions with the greatest projected improvement potential, ranked by a combination of employee impact weight and implementation readiness. Curated Focus uses a balanced selection method: 2 dimensions chosen by highest weighted opportunity (impact importance multiplied by improvement headroom) and 2 chosen by greatest need (lowest scores). Dimensions scoring above 85 are excluded from the opportunity selection since they are already strong.',
+      how: 'You can explore dimensions two ways. Improvement Priorities shows the 5 dimensions with the greatest projected improvement potential, ranked by a combination of employee impact weight and implementation readiness. Curated Focus uses a balanced selection method: 2 dimensions chosen by highest weighted opportunity (impact importance multiplied by improvement headroom) and 2 chosen by greatest need (lowest scores). Dimensions scoring above 85 are excluded from the opportunity selection since they are already strong.',
       when: 'Use this section to align HR and leadership on the specific moves that will most improve the support experience for employees managing cancer. Each dimension card provides enough detail to build an action plan with owners and timelines.',
       questions: ['Which specific support elements should we implement or complete first?', 'How do our gaps compare to what peers already offer?', 'What is the projected effect of closing these gaps on our overall score?', 'Where should we focus if we can only address 2-3 dimensions this year?']
     }
@@ -9353,7 +9353,7 @@ export default function ExportReportPage() {
                 {([
                   {
                     key: 'roadmap' as const,
-                    title: 'Full Roadmap',
+                    title: 'Improvement Priorities',
                     subtitle: 'Top 5 dimensions ranked by improvement potential',
                     desc: 'The five dimensions from Your Improvement Priorities where focused effort will have the greatest effect on the overall support experience for employees managing cancer.',
                     dimNums: rankings.slice(0, 5).map((r: any) => r.dimNum as number),
@@ -12817,7 +12817,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 28: Improvement Roadmap (Dims 1-3) */}
+                {/* Slide 28: Improvement Priorities (Dims 1-3) */}
                 {currentSlide === 31 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
@@ -13085,7 +13085,7 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 29: Improvement Roadmap (Dims 4-5) */}
+                {/* Slide 29: Improvement Priorities (Dims 4-5) */}
                 {currentSlide === 32 && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
