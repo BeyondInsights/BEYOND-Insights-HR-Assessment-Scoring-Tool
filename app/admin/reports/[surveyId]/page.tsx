@@ -3569,7 +3569,7 @@ export default function ExportReportPage() {
   const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   const [showImpactRanked, setShowImpactRanked] = useState(false);
-  const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced'>('roadmap');
+  const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced' | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -9411,6 +9411,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
+          {recViewMode !== null && (<>
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {(() => {
@@ -9617,7 +9618,7 @@ export default function ExportReportPage() {
 
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Sequence</h4>
+                            <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Recommended Sequence</h4>
                             <div className="space-y-5">
                               {actionSteps.map((step, i) => (
                                 <div key={i} className="flex gap-4">
@@ -9638,8 +9639,8 @@ export default function ExportReportPage() {
                                       </p>
                                     )}
                                     {step.element && (
-                                      <p className="text-base text-slate-500 mt-1.5">
-                                        <span className="font-medium text-slate-600">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
+                                      <p className="text-base text-slate-600 mt-1.5">
+                                        <span className="font-bold text-slate-700">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
                                       </p>
                                     )}
                                   </div>
@@ -9649,7 +9650,7 @@ export default function ExportReportPage() {
                           </div>
 
                           {/* === THE IMPACT === */}
-                          <p className="text-base text-slate-600 mt-6 pt-4 border-t border-slate-100">
+                          <p className="text-base font-semibold text-slate-700 mt-6 pt-4 border-t border-slate-200">
                             If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute an estimated +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
                           </p>
 
@@ -9929,7 +9930,7 @@ export default function ExportReportPage() {
 
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Sequence</h4>
+                            <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4">Recommended Sequence</h4>
                             <div className="space-y-5">
                               {actionSteps.map((step, i) => (
                                 <div key={i} className="flex gap-4">
@@ -9952,8 +9953,8 @@ export default function ExportReportPage() {
                                       </p>
                                     )}
                                     {step.element && (
-                                      <p className="text-base text-slate-500 mt-1.5">
-                                        <span className="font-medium text-slate-600">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
+                                      <p className="text-base text-slate-600 mt-1.5">
+                                        <span className="font-bold text-slate-700">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
                                       </p>
                                     )}
                                   </div>
@@ -9963,7 +9964,7 @@ export default function ExportReportPage() {
                           </div>
 
                           {/* === THE IMPACT === */}
-                          <p className="text-base text-slate-600 mt-6 pt-4 border-t border-slate-100">
+                          <p className="text-base font-semibold text-slate-700 mt-6 pt-4 border-t border-slate-200">
                             If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute an estimated +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
                           </p>
 
@@ -10110,8 +10111,9 @@ export default function ExportReportPage() {
               )}
             </div>
           </div>
-          
-          
+          </>)}
+
+
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
           <div id="implementation-roadmap" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
