@@ -10399,7 +10399,7 @@ export default function ExportReportPage() {
               : Math.abs(benchDiffNarr) + ' points below the benchmark, suggesting foundational gaps in how employees managing cancer experience workplace support'
               : '';
 
-            const para1 = companyName + ' received a Composite Score of ' + (wsiScoreHeader ?? 0) + ' (' + tierName + '), ' + benchContext + '. Core Support is the strongest layer at ' + coreScoreCalc + ', reflecting solid baseline protections and access. Enhanced Support scored ' + enhancedScoreCalc + ', showing developing consistency in coordination and manager readiness. Advanced Support at ' + advancedScoreCalc + ' represents the greatest opportunity to deepen the overall support ecosystem.';
+            const para1 = companyName + ' received a Composite Score of **' + (wsiScoreHeader ?? 0) + ' (' + tierName + ')**, ' + benchContext + '. Core Support is the strongest layer at **' + coreScoreCalc + '**, reflecting solid baseline protections and access. Enhanced Support scored **' + enhancedScoreCalc + '**, showing developing consistency in coordination and manager readiness. Advanced Support at **' + advancedScoreCalc + '** represents the greatest opportunity to deepen the overall support ecosystem.';
 
             // Paragraph 2: What is working
             const strengthNames = topStrengths.map(d => d.name);
@@ -10409,7 +10409,7 @@ export default function ExportReportPage() {
                 : topStrengths.some(d => [6,11].includes(d.dim)) ? 'a supportive culture and proactive wellness programs'
                 : topStrengths.some(d => [12,9].includes(d.dim)) ? 'sustained organizational commitment and improvement processes'
                 : 'meaningful support';
-              para2 = 'The strongest dimensions are ' + strengthNames[0] + ' (' + topStrengths[0].score + ') and ' + strengthNames[1] + ' (' + topStrengths[1].score + ')' + (topStrengths.length >= 3 ? ', followed by ' + strengthNames[2] + ' (' + topStrengths[2].score + ')' : '') + '. These scores indicate that employees managing cancer at ' + companyName + ' can access ' + strengthContext + '. These are strengths to protect and communicate, both to current employees and as part of your employer value proposition.';
+              para2 = 'The strongest dimensions are **' + strengthNames[0] + '** (' + topStrengths[0].score + ') and **' + strengthNames[1] + '** (' + topStrengths[1].score + ')' + (topStrengths.length >= 3 ? ', followed by **' + strengthNames[2] + '** (' + topStrengths[2].score + ')' : '') + '. These scores indicate that employees managing cancer at ' + companyName + ' can access ' + strengthContext + '. **These are strengths to protect** and communicate, both to current employees and as part of your employer value proposition.';
             } else if (topStrengths.length === 1) {
               para2 = 'The strongest dimension is ' + strengthNames[0] + ' (' + topStrengths[0].score + '). This provides a foundation, but the organization has room to build across most other areas of cancer support.';
             } else {
@@ -10419,7 +10419,7 @@ export default function ExportReportPage() {
             // Paragraph 3: Cross-dimension insight
             let para3 = '';
             if (topTension) {
-              para3 = 'Looking across dimensions, a notable pattern emerges: ' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '. ' + topTension.implication;
+              para3 = 'Looking across dimensions, a notable pattern emerges: **' + cleanPatternText(topTension.pattern).charAt(0).toLowerCase() + cleanPatternText(topTension.pattern).slice(1) + '**. ' + topTension.implication;
               if (secondTension) {
                 para3 += ' Additionally, ' + cleanPatternText(secondTension.pattern).charAt(0).toLowerCase() + cleanPatternText(secondTension.pattern).slice(1) + '. ' + secondTension.implication;
               }
@@ -10435,7 +10435,7 @@ export default function ExportReportPage() {
             let para4 = '';
             if (topFocus && secondFocus) {
               const topBenchGap = topFocus.benchmark != null ? Math.abs(topFocus.score - topFocus.benchmark) : null;
-              para4 = 'The most impactful areas to strengthen are ' + topFocus.name + ' (' + topFocus.score + (topBenchGap ? ', ' + topBenchGap + ' points below peers' : '') + ') and ' + secondFocus.name + ' (' + secondFocus.score + '). Improving these dimensions would directly address the gaps most likely to affect an employee\'s experience during diagnosis, treatment, and return to work. ' + (topTension ? topTension.recommendation : 'Focus initial efforts on the elements within these dimensions where most peers have already invested, as these represent the baseline employees will expect.');
+              para4 = 'The most impactful areas to strengthen are **' + topFocus.name + '** (' + topFocus.score + (topBenchGap ? ', ' + topBenchGap + ' points below peers' : '') + ') and **' + secondFocus.name + '** (' + secondFocus.score + '). **Improving these dimensions would directly address the gaps most likely to affect an employee\'s experience** during diagnosis, treatment, and return to work. ' + (topTension ? topTension.recommendation : 'Focus initial efforts on the elements within these dimensions where most peers have already invested, as these represent the baseline employees will expect.');
             } else if (topFocus) {
               para4 = 'The most impactful area to strengthen is ' + topFocus.name + ' (' + topFocus.score + '). Improving this dimension would have the most direct effect on how employees managing cancer experience workplace support.';
             }
@@ -10467,13 +10467,52 @@ export default function ExportReportPage() {
                 </div>
 
                 {/* === SCORE CONTEXT BLOCK === */}
+                {(() => {
+                  // Compute tier-level benchmark averages
+                  const computeTierBenchAvg = (level: string) => {
+                    try {
+                      const allA = (window as any).__allAssessments || [];
+                      if (allA.length === 0) return null;
+                      const tierScores: number[] = [];
+                      const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                      allA.forEach((a: any) => {
+                        try {
+                          const result = calculateCompanyScores(a);
+                          if (!result?.elements) return;
+                          const elems = Object.entries(result.elements).flatMap(([dStr, els]: [string, any]) =>
+                            (els as any[]).map((e: any) => ({ ...e, dim: parseInt(dStr) }))
+                          );
+                          const levelElems = elems.filter((e: any) => getElementLevel(e.name) === level);
+                          if (levelElems.length === 0) return;
+                          let wNum = 0, wDen = 0;
+                          levelElems.forEach((e: any) => {
+                            const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                            const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / levelElems.length);
+                            let sn = 0;
+                            if (e.isStrength) sn = 1;
+                            else if (e.isPlanning) sn = 0.6;
+                            else if (e.isAssessing) sn = 0.4;
+                            wNum += w * sn;
+                            wDen += w;
+                          });
+                          if (wDen > 0) tierScores.push(Math.round((wNum / wDen) * 100));
+                        } catch {}
+                      });
+                      if (tierScores.length === 0) return null;
+                      return Math.round(tierScores.reduce((a, b) => a + b, 0) / tierScores.length);
+                    } catch { return null; }
+                  };
+                  const coreTierBenchmarkAvg = computeTierBenchAvg('core');
+                  const enhancedTierBenchmarkAvg = computeTierBenchAvg('enhanced');
+                  const advancedTierBenchmarkAvg = computeTierBenchAvg('advanced');
+                  return (
                 <div className="px-10 pt-8 pb-4">
                   <div className="flex items-center gap-8">
                     {[
                       { label: 'Composite', score: wsiScoreHeader, benchmark: wsiBenchmarkScore, color: '#334155' },
-                      { label: 'Core Support', score: coreScoreCalc, benchmark: null, color: '#047857' },
-                      { label: 'Enhanced Support', score: enhancedScoreCalc, benchmark: null, color: '#B45309' },
-                      { label: 'Advanced Support', score: advancedScoreCalc, benchmark: null, color: '#7C3AED' },
+                      { label: 'Core Support', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
+                      { label: 'Enhanced Support', score: enhancedScoreCalc, benchmark: enhancedTierBenchmarkAvg, color: '#B45309' },
+                      { label: 'Advanced Support', score: advancedScoreCalc, benchmark: advancedTierBenchmarkAvg, color: '#7C3AED' },
                     ].map(item => {
                       const diff = item.benchmark != null && item.score != null ? item.score - item.benchmark : null;
                       return (
@@ -10495,6 +10534,8 @@ export default function ExportReportPage() {
                     })}
                   </div>
                 </div>
+                  );
+                })()}
 
                 {/* === THE NARRATIVE === */}
                 <div className="px-10 py-6">
@@ -10514,17 +10555,24 @@ export default function ExportReportPage() {
                       )}
                     </div>
                   ) : (
-                    <div className="prose prose-slate max-w-none text-base text-slate-700 leading-relaxed space-y-4">
+                    <div className="prose prose-slate max-w-none text-base text-slate-700 leading-relaxed space-y-6">
                       {(customNextSteps.headlineInsight || defaultNarrative).split('\n\n').map((para: string, i: number) => (
-                        <p key={i}>{para}</p>
+                        <p key={i}>
+                          {para.split(/(\*\*.*?\*\*)/).map((segment: string, j: number) => {
+                            if (segment.startsWith('**') && segment.endsWith('**')) {
+                              return <strong key={j} className="text-slate-900">{segment.slice(2, -2)}</strong>;
+                            }
+                            return <span key={j}>{segment}</span>;
+                          })}
+                        </p>
                       ))}
                     </div>
                   )}
                 </div>
 
                 {/* === PRIORITY DIMENSIONS === */}
-                <div className="px-10 pb-8">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-5 pb-2 border-b border-slate-200">Priority Dimensions</h4>
+                <div className="px-10 pb-8 pt-2 border-t border-slate-100 mt-4">
+                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 pb-2 border-b border-slate-200">Priority Dimensions</h4>
                   <div className="space-y-5">
                     {focusCandidates.slice(0, 3).map((d, idx) => {
                       const lookup = playsLookup[d.dim] || { play: 'Strengthen ' + d.name, firstStep: 'Conduct a gap analysis and identify quick wins.' };
@@ -10532,12 +10580,63 @@ export default function ExportReportPage() {
                       const playTitle = customPlay?.play ?? lookup.play;
                       const firstStep = customPlay?.firstStep ?? lookup.firstStep;
 
+                      // Cross-dimension context
+                      const crossContext = (() => {
+                        const allDims = dimensionAnalysis;
+                        if (d.dim === 3) {
+                          const culture = allDims.find((x: any) => x.dim === 6);
+                          if (culture && culture.score >= 70) return companyName + '\'s strong culture (' + culture.score + ') means employees feel safe disclosing, which makes manager readiness even more critical.';
+                          return 'Managers are the front line of support. Their preparedness determines whether every other program is delivered consistently.';
+                        }
+                        if (d.dim === 8) {
+                          const leave = allDims.find((x: any) => x.dim === 1);
+                          if (leave && leave.score >= 70) return 'Strong leave policies (' + leave.score + ') create an expectation of structured support. Without a return-to-work process, the transition back undermines that investment.';
+                          return 'How employees experience the return to work often determines whether they stay with the organization long-term.';
+                        }
+                        if (d.dim === 13) {
+                          const strongDims = allDims.filter((x: any) => x.dim !== 13 && x.score >= 70);
+                          if (strongDims.length >= 2) return 'Strong programs in ' + strongDims.slice(0, 2).map((x: any) => x.name).join(' and ') + ' lose impact when employees do not know they exist.';
+                          return 'Communication is the multiplier for every other investment in cancer support.';
+                        }
+                        if (d.dim === 2) return 'Financial uncertainty is the most immediate source of stress at diagnosis. Addressing this removes a barrier to treatment.';
+                        if (d.dim === 7) return 'Career fear is one of the strongest predictors of whether an employee hides a diagnosis or leaves the organization.';
+                        if (d.dim === 1) return 'Medical leave is the first thing an employee needs at diagnosis. Gaps here are felt immediately.';
+                        if (d.dim === 9) return 'Without executive sponsorship, cancer support remains an HR initiative rather than an organizational commitment.';
+                        if (d.dim === 4) return 'When employees cannot find resources quickly, every other benefit the organization offers goes underutilized.';
+                        if (d.dim === 10) return 'Caregivers are a significant share of your workforce. Supporting them prevents the quiet attrition that most organizations never measure.';
+                        if (d.dim === 5) return 'Fast, consistent accommodations are what employees cite as the most tangible proof that an organization cares.';
+                        if (d.dim === 6) return 'Psychological safety is the foundation. Without it, employees manage cancer in silence and every other program goes unused.';
+                        if (d.dim === 11) return 'Prevention signals that the organization invests in health, not just responds to illness.';
+                        if (d.dim === 12) return 'Without systematic improvement, support quality plateaus while employee needs evolve.';
+                        const benchGap = d.benchmark != null ? d.score - d.benchmark : null;
+                        if (benchGap != null && benchGap < -5) return 'At ' + Math.abs(benchGap) + ' points below the benchmark, this is one of the most visible gaps relative to peers.';
+                        return 'Strengthening this area would improve the overall consistency of support for employees managing cancer.';
+                      })();
+
+                      // Employee impact
+                      const employeeImpactMap: Record<number, string> = {
+                        1: 'Employees can focus on treatment knowing their job and income are protected.',
+                        2: 'Employees do not delay care or make medical decisions based on cost.',
+                        3: 'Confident managers reduce escalations and create consistent employee experiences.',
+                        4: 'A newly diagnosed employee knows exactly where to start and what is available.',
+                        5: 'Employees receive accommodations quickly and consistently, regardless of manager.',
+                        6: 'Employees disclose earlier, which means support starts sooner.',
+                        7: 'Employees stay because they believe their career survives a diagnosis.',
+                        8: 'Employees return gradually and successfully instead of struggling in silence.',
+                        9: 'Employees see that leadership takes cancer support seriously, not just HR.',
+                        10: 'Caregivers can sustain their role instead of quietly burning out.',
+                        11: 'Earlier detection leads to better outcomes and less time away from work.',
+                        12: 'Support gets better each year based on what employees actually need.',
+                        13: 'Employees learn what is available when they need it, not after.',
+                      };
+                      const whyForEmployees = employeeImpactMap[d.dim] || 'Employees managing cancer would experience more consistent, reliable support.';
+
                       return (
                         <div key={d.dim}>
                           {editMode ? (
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
-                                <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold">{idx + 1}</span>
+                                <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold">{idx + 1}</span>
                                 <input type="text" value={playTitle} onChange={(e) => {
                                   setCustomNextSteps(prev => ({ ...prev, plays: { ...prev.plays, [d.dim]: { ...prev.plays?.[d.dim], play: e.target.value } } }));
                                   setHasUnsavedChanges(true);
@@ -10555,15 +10654,19 @@ export default function ExportReportPage() {
                               )}
                             </div>
                           ) : (
-                            <div className="flex gap-4">
-                              <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold mt-0.5">{idx + 1}</span>
+                            <div className="flex gap-4 mb-6">
+                              <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold mt-0.5">{idx + 1}</span>
                               <div>
                                 <div className="flex items-baseline gap-3">
                                   <span className="text-lg font-bold text-slate-800">{d.name}</span>
                                   <span className="text-sm text-slate-400">Score: {Math.round(d.score)}{d.benchmark != null ? ' (Benchmark: ' + d.benchmark + ')' : ''}</span>
                                 </div>
-                                <p className="text-base text-amber-700 font-medium mt-1">{playTitle}</p>
-                                <p className="text-base text-slate-600 mt-0.5">{firstStep}</p>
+                                <p className="text-base text-slate-600 mt-1.5">{crossContext}</p>
+                                <p className="text-base mt-2">
+                                  <strong className="text-amber-700">{playTitle}.</strong>
+                                  <span className="text-slate-600"> {firstStep}</span>
+                                </p>
+                                <p className="text-sm text-slate-500 mt-1 italic">{whyForEmployees}</p>
                               </div>
                             </div>
                           )}
