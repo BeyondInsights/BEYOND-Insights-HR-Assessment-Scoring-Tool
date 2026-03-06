@@ -9754,7 +9754,7 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
                                 <span className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</span>
                                 <span className="w-28 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
-                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peers</span>
+                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Benchmark</span>
                                 <span className="w-24 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Flag</span>
                               </div>
                               {enriched.sort((a: any, b: any) => {
@@ -10106,7 +10106,7 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-3 px-5 py-3 bg-slate-50 border-b border-slate-200">
                                 <span className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</span>
                                 <span className="w-28 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</span>
-                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Peers</span>
+                                <span className="w-20 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Benchmark</span>
                                 <span className="w-24 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Flag</span>
                               </div>
                               {enriched.sort((a: any, b: any) => {
