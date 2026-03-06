@@ -1038,6 +1038,19 @@ function getDimensionInsight(
     : Math.abs(benchDiff) + ' points below the benchmark, a significant gap'
     : null;
 
+  // Early check: if most elements are unsure, override diagnosis
+  const unsureElements = elements.filter((el: any) => el.isUnsure);
+  const unsurePctCheck = elements.length > 0 ? (unsureElements.length / elements.length) * 100 : 0;
+  if (unsurePctCheck >= 40) {
+    const confirmedStrengths = strengths.length;
+    const DIMENSION_NAMES: Record<number, string> = { 1: 'Medical Leave & Flexibility', 2: 'Insurance & Financial Support', 3: 'Manager Preparedness & Capability', 4: 'Cancer Support Navigation & Resources', 5: 'Workplace Accommodations', 6: 'Culture & Psychological Safety', 7: 'Career Continuity & Growth', 8: 'Return-to-Work Support', 9: 'Executive Commitment & Governance', 10: 'Caregiver Support', 11: 'Prevention & Early Detection', 12: 'Continuous Improvement', 13: 'Communication & Awareness' };
+    return {
+      diagnosis: unsureElements.length + ' of ' + elements.length + ' elements in ' + (DIMENSION_NAMES[dimNum] || 'this dimension') + ' are pending confirmation, which means the current score of ' + score + ' reflects significant uncertainty rather than confirmed gaps. ' + (confirmedStrengths > 0 ? confirmedStrengths + ' element' + (confirmedStrengths > 1 ? 's are' : ' is') + ' confirmed as in place.' : 'No elements are yet confirmed as in place.') + (benchPhrase ? ' The score is ' + benchPhrase + ', but this may change substantially once elements are confirmed.' : '') + ' The immediate priority is not implementation but verification.',
+      actions: [],
+      theme: 'unsure-dominant',
+    };
+  }
+
   // D1: Medical Leave & Flexibility
   if (dimNum === 1) {
     const returnToWork = findDim(8);
@@ -9556,39 +9569,77 @@ export default function ExportReportPage() {
                       // ============ BUILD THE ACTION PLAN ============
                       const actionSteps: { text: string; element?: string }[] = [];
 
-                      if (inMotion.length > 0) {
-                        const topInMotion = inMotion[0];
-                        actionSteps.push({
-                          text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct, d.dim, companyName),
-                          element: topInMotion.name,
-                        });
-                      }
+                      // Check if unsure items dominate this dimension
+                      const unsurePct = enriched.length > 0 ? (unsure.length / enriched.length) * 100 : 0;
 
-                      const sortedGaps = allGaps.filter((g: any) => !inMotion.some((m: any) => m.name === g.name));
-                      if (sortedGaps.length > 0) {
-                        const topGap = sortedGaps[0];
+                      if (unsurePct >= 40) {
+                        // Unsure-dominant dimension — actions should focus on confirmation first
+                        const topUnsureByPeers = [...unsure].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
                         actionSteps.push({
-                          text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
-                          element: topGap.name,
+                          text: unsure.length + ' of ' + enriched.length + ' elements in this dimension are pending confirmation. The score of ' + d.score + ' reflects this uncertainty. The first priority is to confirm the status of these elements, starting with ' + (topUnsureByPeers[0]?.name || 'the highest-adoption items') + (topUnsureByPeers[0]?.peerPct ? ' (' + topUnsureByPeers[0].peerPct + '% of peers offer this)' : '') + '. Until these are confirmed, any other recommendations would be premature.',
+                          element: topUnsureByPeers[0]?.name,
                         });
-                      }
+                        if (topUnsureByPeers.length > 1) {
+                          const confirmList = topUnsureByPeers.slice(0, 4).map((u: any) => u.name).join(', ');
+                          actionSteps.push({
+                            text: 'Confirm the following elements as a batch: ' + confirmList + '. For each, determine whether the practice exists (even informally), is in development, or is not currently offered. This will produce an accurate baseline and a meaningful action plan.',
+                            element: topUnsureByPeers[1]?.name,
+                          });
+                        }
+                        if (allGaps.length > 0) {
+                          const topGap = allGaps[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
+                            element: topGap.name,
+                          });
+                        }
+                      } else {
+                        // Normal action logic
+                        if (inMotion.length > 0) {
+                          const topInMotion = inMotion[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct, d.dim, companyName),
+                            element: topInMotion.name,
+                          });
+                        }
 
-                      // Third action: next most impactful gap
-                      const remainingGaps = sortedGaps.filter((g: any) =>
-                        !actionSteps.some(a => a.element === g.name)
-                      );
-                      if (remainingGaps.length > 0) {
-                        const thirdGap = remainingGaps[0];
-                        actionSteps.push({
-                          text: buildActionTextForCard(thirdGap.name, false, 0, thirdGap.peerPct, d.dim, companyName),
-                          element: thirdGap.name,
-                        });
+                        const sortedGaps = allGaps.filter((g: any) => !inMotion.some((m: any) => m.name === g.name));
+                        if (sortedGaps.length > 0) {
+                          const topGap = sortedGaps[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
+                            element: topGap.name,
+                          });
+                        }
+
+                        // Third action: next most impactful gap
+                        const remainingGaps = sortedGaps.filter((g: any) =>
+                          !actionSteps.some(a => a.element === g.name)
+                        );
+                        if (remainingGaps.length > 0) {
+                          const thirdGap = remainingGaps[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(thirdGap.name, false, 0, thirdGap.peerPct, d.dim, companyName),
+                            element: thirdGap.name,
+                          });
+                        }
                       }
 
                       if (actionSteps.length === 0) {
-                        actionSteps.push({
-                          text: 'Most elements are in place. Prioritize standardizing consistency across teams and locations, and documenting practices for new managers.',
-                        });
+                        if (strengths.length >= enriched.length * 0.6) {
+                          actionSteps.push({
+                            text: 'Most elements in this dimension are in place. The priority is standardizing practices across teams and locations, and documenting them so they survive personnel changes.',
+                          });
+                        } else if (unsure.length > 0) {
+                          actionSteps.push({
+                            text: unsure.length + ' element' + (unsure.length > 1 ? 's are' : ' is') + ' pending confirmation in this dimension. Confirm these before planning new implementations.',
+                            element: unsure[0]?.name,
+                          });
+                        } else {
+                          actionSteps.push({
+                            text: 'Review the current practices in this dimension for consistency and depth. Small improvements in execution quality can meaningfully improve the score.',
+                          });
+                        }
                       }
 
                       return (
@@ -9866,39 +9917,77 @@ export default function ExportReportPage() {
                       // ============ BUILD THE ACTION PLAN ============
                       const actionSteps: { text: string; element?: string }[] = [];
 
-                      if (inMotion.length > 0) {
-                        const topInMotion = inMotion[0];
-                        actionSteps.push({
-                          text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct, d.dim, companyName),
-                          element: topInMotion.name,
-                        });
-                      }
+                      // Check if unsure items dominate this dimension
+                      const unsurePct = enriched.length > 0 ? (unsure.length / enriched.length) * 100 : 0;
 
-                      const sortedGaps = allGaps.filter((g: any) => !inMotion.some((m: any) => m.name === g.name));
-                      if (sortedGaps.length > 0) {
-                        const topGap = sortedGaps[0];
+                      if (unsurePct >= 40) {
+                        // Unsure-dominant dimension — actions should focus on confirmation first
+                        const topUnsureByPeers = [...unsure].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
                         actionSteps.push({
-                          text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
-                          element: topGap.name,
+                          text: unsure.length + ' of ' + enriched.length + ' elements in this dimension are pending confirmation. The score of ' + d.score + ' reflects this uncertainty. The first priority is to confirm the status of these elements, starting with ' + (topUnsureByPeers[0]?.name || 'the highest-adoption items') + (topUnsureByPeers[0]?.peerPct ? ' (' + topUnsureByPeers[0].peerPct + '% of peers offer this)' : '') + '. Until these are confirmed, any other recommendations would be premature.',
+                          element: topUnsureByPeers[0]?.name,
                         });
-                      }
+                        if (topUnsureByPeers.length > 1) {
+                          const confirmList = topUnsureByPeers.slice(0, 4).map((u: any) => u.name).join(', ');
+                          actionSteps.push({
+                            text: 'Confirm the following elements as a batch: ' + confirmList + '. For each, determine whether the practice exists (even informally), is in development, or is not currently offered. This will produce an accurate baseline and a meaningful action plan.',
+                            element: topUnsureByPeers[1]?.name,
+                          });
+                        }
+                        if (allGaps.length > 0) {
+                          const topGap = allGaps[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
+                            element: topGap.name,
+                          });
+                        }
+                      } else {
+                        // Normal action logic
+                        if (inMotion.length > 0) {
+                          const topInMotion = inMotion[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(topInMotion.name, true, inMotion.length, topInMotion.peerPct, d.dim, companyName),
+                            element: topInMotion.name,
+                          });
+                        }
 
-                      // Third action: next most impactful gap
-                      const remainingGaps = sortedGaps.filter((g: any) =>
-                        !actionSteps.some(a => a.element === g.name)
-                      );
-                      if (remainingGaps.length > 0) {
-                        const thirdGap = remainingGaps[0];
-                        actionSteps.push({
-                          text: buildActionTextForCard(thirdGap.name, false, 0, thirdGap.peerPct, d.dim, companyName),
-                          element: thirdGap.name,
-                        });
+                        const sortedGaps = allGaps.filter((g: any) => !inMotion.some((m: any) => m.name === g.name));
+                        if (sortedGaps.length > 0) {
+                          const topGap = sortedGaps[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(topGap.name, false, 0, topGap.peerPct, d.dim, companyName),
+                            element: topGap.name,
+                          });
+                        }
+
+                        // Third action: next most impactful gap
+                        const remainingGaps = sortedGaps.filter((g: any) =>
+                          !actionSteps.some(a => a.element === g.name)
+                        );
+                        if (remainingGaps.length > 0) {
+                          const thirdGap = remainingGaps[0];
+                          actionSteps.push({
+                            text: buildActionTextForCard(thirdGap.name, false, 0, thirdGap.peerPct, d.dim, companyName),
+                            element: thirdGap.name,
+                          });
+                        }
                       }
 
                       if (actionSteps.length === 0) {
-                        actionSteps.push({
-                          text: 'Most elements are in place. Prioritize standardizing consistency across teams and locations, and documenting practices for new managers.',
-                        });
+                        if (strengths.length >= enriched.length * 0.6) {
+                          actionSteps.push({
+                            text: 'Most elements in this dimension are in place. The priority is standardizing practices across teams and locations, and documenting them so they survive personnel changes.',
+                          });
+                        } else if (unsure.length > 0) {
+                          actionSteps.push({
+                            text: unsure.length + ' element' + (unsure.length > 1 ? 's are' : ' is') + ' pending confirmation in this dimension. Confirm these before planning new implementations.',
+                            element: unsure[0]?.name,
+                          });
+                        } else {
+                          actionSteps.push({
+                            text: 'Review the current practices in this dimension for consistency and depth. Small improvements in execution quality can meaningfully improve the score.',
+                          });
+                        }
                       }
 
                       return (
