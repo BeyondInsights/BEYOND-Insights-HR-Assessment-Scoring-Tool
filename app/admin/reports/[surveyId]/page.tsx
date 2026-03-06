@@ -1489,8 +1489,11 @@ function validateInsightText(text: string, context: {
 function getDefinitionOfDone(dimNum: number, elementName: string): string {
   const name = elementName.toLowerCase();
   if (dimNum === 1) {
-    if (name.includes('leave') || name.includes('salary')) return 'Policy published, communicated to all employees, and reflected in the employee handbook.';
-    if (name.includes('flexible') || name.includes('remote')) return 'Formal request process documented with manager approval guidelines and HR oversight.';
+    if (name.includes('leave') || name.includes('salary') || name.includes('intermittent')) return 'Policy published, communicated to all employees, and reflected in the employee handbook.';
+    if (name.includes('flexible') || name.includes('remote') || name.includes('compressed')) return 'Formal request process documented with manager approval guidelines and HR oversight.';
+    if (name.includes('job protection') || name.includes('protection')) return 'Policy documented, communicated to employees, and enforced consistently across the organization.';
+    if (name.includes('donation') || name.includes('pto')) return 'Program operational with clear donation and request processes, communicated to all employees.';
+    if (name.includes('disability') || name.includes('top-up')) return 'Benefit active, eligibility criteria published, and employees informed through benefits orientation.';
     return 'Policy in effect, reflected in the employee handbook, and communicated during onboarding.';
   }
   if (dimNum === 2) {
@@ -1510,10 +1513,22 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     return 'Program launched, all people managers enrolled, and completion tracked quarterly.';
   }
   if (dimNum === 4) {
-    if (name.includes('navigation') || name.includes('hub')) return 'Published, findable within 2 clicks from the company intranet homepage, and promoted at onboarding.';
-    if (name.includes('coach') || name.includes('counseling')) return 'Contract in place, referral pathway documented, and communicated to HR and managers.';
-    if (name.includes('program') || name.includes('service')) return 'Service operational, referral process defined, and utilization tracked.';
-    return 'Resource accessible to employees within 48 hours of request, with a clear referral pathway.';
+    if (name.includes('navigation') || name.includes('hub') || name.includes('coordinator')) return 'Single access point published, findable within 2 clicks from the company intranet, and promoted at onboarding.';
+    if (name.includes('coach') || name.includes('counseling') || name.includes('emotional')) return 'Provider contracted, referral pathway documented, and communicated to HR business partners and managers.';
+    if (name.includes('peer') || name.includes('mentor')) return 'Matching process defined, initial cohort active, and participant feedback collected after 90 days.';
+    if (name.includes('advocacy') || name.includes('appeals')) return 'Service contracted or internal process defined, with a clear intake method and average resolution time tracked.';
+    if (name.includes('concierge') || name.includes('care coordination')) return 'Concierge service operational, referral pathway live, and utilization reported quarterly.';
+    if (name.includes('survivorship') || name.includes('planning assistance')) return 'Program available to post-treatment employees, with enrollment criteria defined and at least one participant served within the first quarter.';
+    if (name.includes('financial') || name.includes('assistance')) return 'Fund or service operational, eligibility criteria published, and application process accessible within 48 hours.';
+    if (name.includes('legal') || name.includes('workplace rights')) return 'Resource published, accessible to all employees, and referenced in relevant HR communications.';
+    if (name.includes('optimization') || name.includes('benefits')) return 'Service operational, referral process defined, and utilization tracked quarterly.';
+    if (name.includes('tool') || name.includes('portal') || name.includes('online') || name.includes('app')) return 'Tool or portal live, accessible to all employees, and usage tracked quarterly.';
+    if (name.includes('second opinion')) return 'Service contracted, referral process defined, and utilization tracked quarterly.';
+    if (name.includes('specialized') || name.includes('network') || name.includes('treatment center')) return 'Network defined, access pathway documented, and communicated to employees through benefits materials.';
+    if (name.includes('travel')) return 'Policy published with clear eligibility criteria, reimbursement process defined, and communicated through benefits orientation.';
+    if (name.includes('medication') || name.includes('affordability')) return 'Program operational, eligibility criteria published, and enrollment tracked quarterly.';
+    if (name.includes('program') || name.includes('service')) return 'Service operational, referral process defined, and utilization tracked quarterly.';
+    return 'Service operational, referral process defined, and utilization tracked quarterly.';
   }
   if (dimNum === 5) {
     if (name.includes('process') || name.includes('request')) return 'Standardized request form and approval workflow live, with SLA for response time.';
@@ -1550,11 +1565,19 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     return 'Commitment formalized with measurable objectives and visible to the broader organization.';
   }
   if (dimNum === 10) {
-    if (name.includes('leave') || name.includes('time off')) return 'Policy documented, communicated to all employees, and accessible through self-service HR tools.';
-    if (name.includes('emergency')) return 'Protocol defined with clear eligibility and a fast-track approval process.';
-    if (name.includes('counseling') || name.includes('support group')) return 'Service available, referral pathway documented, and promoted through existing EAP channels.';
-    if (name.includes('navigation') || name.includes('family')) return 'Service accessible to employees and family members, with a clear entry point and referral pathway.';
-    if (name.includes('practical') || name.includes('logistics')) return 'Support options documented, eligibility clear, and accessible through self-service or a single point of contact.';
+    if (name.includes('leave') || name.includes('time off') || name.includes('eligibility')) return 'Policy documented, communicated to all employees, and accessible through self-service HR tools.';
+    if (name.includes('emergency') || name.includes('dependent care')) return 'Protocol defined with clear eligibility and a fast-track approval process.';
+    if (name.includes('counseling') || name.includes('support group') || name.includes('peer')) return 'Service available, referral pathway documented, and promoted through existing EAP channels.';
+    if (name.includes('navigation') || name.includes('family') || name.includes('concierge') || name.includes('navigator')) return 'Service accessible to employees and family members, with a clear entry point and referral pathway.';
+    if (name.includes('practical') || name.includes('logistics') || name.includes('managing caregiving')) return 'Support options documented, eligibility clear, and accessible through self-service or a single point of contact.';
+    if (name.includes('flexible') || name.includes('arrangement') || name.includes('modified') || name.includes('job dut')) return 'Formal request process documented with manager guidelines and HR oversight.';
+    if (name.includes('subsid') || name.includes('account') || name.includes('matching') || name.includes('contribution')) return 'Benefit active, enrollment process documented, and employees informed through benefits orientation.';
+    if (name.includes('mental health')) return 'Service available, promoted to caregivers specifically, and utilization tracked quarterly.';
+    if (name.includes('manager training') || name.includes('training')) return 'Required for managers of caregiving employees, completed annually, with completion tracked.';
+    if (name.includes('respite')) return 'Benefit operational, eligibility criteria published, and reimbursement process accessible within 48 hours.';
+    if (name.includes('legal') || name.includes('financial') || name.includes('planning assistance')) return 'Service contracted, referral pathway active, and communicated through benefits orientation.';
+    if (name.includes('eldercare') || name.includes('consultation') || name.includes('referral')) return 'Service contracted, referral pathway documented, and promoted through existing EAP channels.';
+    if (name.includes('fund') || name.includes('reimbursement')) return 'Fund operational, eligibility criteria published, and application process accessible within 48 hours.';
     return 'Support available, eligibility clear, and promoted through the same channels as employee-facing programs.';
   }
   if (dimNum === 11) {
