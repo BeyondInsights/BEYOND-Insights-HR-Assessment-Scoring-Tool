@@ -1498,8 +1498,21 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
   }
   if (dimNum === 2) {
     if (name.includes('navigation') || name.includes('concierge')) return 'Single point of contact identified, published to employees, and accessible within 24 hours of request.';
-    if (name.includes('financial') || name.includes('hardship')) return 'Fund or program operational with clear eligibility criteria and a simple application process.';
-    return 'Benefit active, enrollment process documented, and employees informed through benefits orientation.';
+    if (name.includes('financial') || name.includes('hardship') || name.includes('grant')) return 'Fund or program operational with clear eligibility criteria and a simple application process.';
+    if (name.includes('clinical trial') || name.includes('experimental')) return 'Coverage terms published, employee notification process defined, and claims pathway documented.';
+    if (name.includes('advanced therap') || name.includes('car-t') || name.includes('immunotherapy') || name.includes('proton')) return 'Coverage terms documented, prior authorization pathway defined, and communicated through benefits materials.';
+    if (name.includes('out-of-pocket') || name.includes('maximum') || name.includes('copay') || name.includes('specialty drug')) return 'Limits published in benefits summary, communicated at enrollment, and reviewed annually.';
+    if (name.includes('travel') || name.includes('lodging') || name.includes('reimbursement')) return 'Policy published with eligibility criteria, reimbursement process defined, and communicated through benefits orientation.';
+    if (name.includes('supplemental') || name.includes('voluntary')) return 'Benefit available, enrollment integrated into open enrollment, and employer contribution communicated.';
+    if (name.includes('cost estimator') || name.includes('tool')) return 'Tool live, accessible to all employees, and promoted during benefits enrollment.';
+    if (name.includes('advocacy') || name.includes('pre-authorization') || name.includes('insurance')) return 'Service operational, intake process defined, and communicated to employees through benefits materials.';
+    if (name.includes('tax') || name.includes('estate') || name.includes('planning')) return 'Service contracted, referral pathway documented, and promoted through existing EAP or benefits channels.';
+    if (name.includes('disability') || name.includes('short-term') || name.includes('long-term')) return 'Coverage active, benefit levels published, and claims process documented for employees.';
+    if (name.includes('job protection') || name.includes('guaranteed')) return 'Policy documented, communicated to all employees, and enforced consistently across the organization.';
+    if (name.includes('life insurance') || name.includes('accelerated')) return 'Benefit available, payout criteria published, and employees informed through benefits orientation.';
+    if (name.includes('continuation') || name.includes('during leave')) return 'Policy documented, communicated to employees prior to leave, and administered consistently.';
+    if (name.includes('time off') || name.includes('paid time')) return 'Policy published, eligibility criteria clear, and communicated to all employees.';
+    return 'Benefit active, terms documented in benefits summary, and communicated at enrollment.';
   }
   if (dimNum === 3) {
     if (name.includes('escalation') || name.includes('protocol')) return 'Escalation path documented, distributed to all managers, and tested via at least 2 scenario walkthroughs with HR.';
