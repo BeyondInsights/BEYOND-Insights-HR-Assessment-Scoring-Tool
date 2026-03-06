@@ -4081,7 +4081,7 @@ export default function ExportReportPage() {
       how: 'We analyze dimension score profiles across participating organizations to identify recurring combinations where strength in one area is frequently paired with a gap in another. The ten most common patterns are organized into four themes: Enablement and Access, Program Design, Leadership and Infrastructure, and Positive Momentum. When your profile aligns with a known pattern, the system surfaces an explanation and a recommended starting action.',
       when: 'Use this section to align HR and leaders on root causes, prioritize two or three moves that unlock multiple areas, and clarify what needs confirmation before finalizing scores. Treat themes as a lens for prioritization rather than a rigid classification.',
       questions: ['Where are we investing, yet employees may still struggle to access support?', 'What is the weak link limiting utilization or confidence?', 'Which two or three actions would unlock the biggest system-wide improvement?', 'What should we confirm internally to finalize scoring with confidence?'],
-      note: 'Organizations may align with multiple patterns or none. As participation grows, patterns are refined, added, or retired based on what we observe.'
+      note: 'Organizations may align with multiple tensions or none. As participation grows, tensions are refined, added, or retired based on what we observe.'
     },
     patternLibrary: {
       title: 'Cross-Dimensional Tensions Library',
@@ -8127,7 +8127,7 @@ export default function ExportReportPage() {
                   {(infoContent[infoModal] as any).isPatternLibrary ? (
                     <>
                       <p className="text-slate-600 leading-relaxed">
-                        The ten most common cross-dimensional tensions observed across participating organizations, organized into four themes. As participation grows, patterns are refined, added, or retired based on what we observe.
+                        The ten most common cross-dimensional tensions observed across participating organizations, organized into four themes. As participation grows, tensions are refined, added, or retired based on what we observe.
                       </p>
                       <div className="space-y-4">
                         {(infoContent[infoModal] as any).themes.map((theme: any, idx: number) => (
@@ -8147,7 +8147,7 @@ export default function ExportReportPage() {
                         ))}
                       </div>
                       <p className="text-sm text-slate-500 italic">
-                        Organizations may align with multiple patterns or none. These are directional, not definitive.
+                        Organizations may align with multiple tensions or none. These are directional, not definitive.
                       </p>
                     </>
                   ) : (
