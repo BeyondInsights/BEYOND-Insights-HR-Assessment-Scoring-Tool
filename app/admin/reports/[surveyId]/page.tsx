@@ -1947,8 +1947,8 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       } else {
         projectedScore = projectedAdjustedScore;
       }
-      projectedScore = Math.min(100, projectedScore);
-      const dimPotentialGain = Math.max(0, projectedScore - d.score);
+      projectedScore = Math.min(100, Math.max(projectedScore, d.score));
+      const dimPotentialGain = projectedScore - d.score;
       
       // Year-1 projected
       const projectedRawPoints12 = currentRawPoints + totalPointsDelta12;
@@ -1961,8 +1961,8 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       } else {
         projectedScore12 = projectedAdjustedScore12;
       }
-      projectedScore12 = Math.min(100, projectedScore12);
-      const dimPotentialGain12 = Math.max(0, projectedScore12 - d.score);
+      projectedScore12 = Math.min(100, Math.max(projectedScore12, d.score));
+      const dimPotentialGain12 = projectedScore12 - d.score;
       
       // Composite impact
       const weightedImpact = (dimPotentialGain * d.weight) / 100 * 0.9;
