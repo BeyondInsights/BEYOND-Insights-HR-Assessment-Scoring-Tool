@@ -8723,7 +8723,7 @@ export default function ExportReportPage() {
                   {
                     key: 'initiatives' as const,
                     label: 'Initiatives In Development or Under Review',
-                    desc: 'in planning or under consideration',
+                    desc: 'in development or under review',
                     color: '#7C3AED',
                     lightBg: '#f5f3ff',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>,
@@ -8822,7 +8822,7 @@ export default function ExportReportPage() {
               {activeReportTab === 'initiatives' && (
                 <div id="initiatives-in-progress">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives In Development or Under Review</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in planning or under consideration <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in development or under review <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
                       {quickWinOpportunities.map((item: any, idx: number) => {
@@ -13377,7 +13377,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Initiatives In Development or Under Review</h3>
-                            <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in planning or under consideration</p>
+                            <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in development or under review</p>
                           </div>
                         </div>
                         <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
