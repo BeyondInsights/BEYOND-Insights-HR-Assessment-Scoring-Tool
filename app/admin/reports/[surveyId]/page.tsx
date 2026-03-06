@@ -3311,7 +3311,7 @@ export default function ExportReportPage() {
   const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   const [showImpactRanked, setShowImpactRanked] = useState(false);
-  const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced' | null>(null);
+  const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced'>('roadmap');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
@@ -9037,9 +9037,8 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   
-                  {/* Two-card layout for context with visual connector */}
+                  {/* Two-card layout for context */}
                   <div className="flex items-stretch gap-0 mt-6">
-                    {/* Card 1: Report insights */}
                     <div className="flex-1 bg-white/10 backdrop-blur rounded-l-xl p-5 border border-white/10 border-r-0">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -9048,18 +9047,12 @@ export default function ExportReportPage() {
                         <span className="text-white/70 text-xs font-medium uppercase tracking-wide">What this section provides</span>
                       </div>
                       <p className="text-slate-200 text-sm leading-relaxed">
-                        For each priority dimension, you'll see every support element categorized by action urgency: elements already in motion,
-                        <span className="text-white font-semibold"> table-stakes gaps</span> most participating organizations have already closed, and
-                        <span className="text-white font-semibold"> differentiator opportunities</span> to set you apart. Each includes benchmark data and projected score impact.
+                        For each priority dimension, you will see an assessment of where you stand, specific recommended actions with benchmark context, and the projected impact of those changes on your overall score.
                       </p>
                     </div>
-                    
-                    {/* Visual connector - subtle gradient bridge */}
                     <div className="w-8 flex items-center justify-center bg-gradient-to-r from-white/10 to-white/10 relative">
                       <div className="w-px h-16 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
                     </div>
-                    
-                    {/* Card 2: Context + CAC connection */}
                     <div className="flex-1 bg-white/10 backdrop-blur rounded-r-xl p-5 border border-white/10 border-l-0">
                       <div className="flex items-center gap-2 mb-3">
                         <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -9068,9 +9061,7 @@ export default function ExportReportPage() {
                         <span className="text-white/70 text-xs font-medium uppercase tracking-wide">How to use it</span>
                       </div>
                       <p className="text-slate-200 text-sm leading-relaxed">
-                        Start with <span className="text-white font-semibold">&quot;Complete What&apos;s In Motion&quot;</span> elements — these are your quickest wins.
-                        Then address <span className="text-white font-semibold">&quot;Table-Stakes Gaps&quot;</span> where participating organizations have already invested.
-                        <span className="text-white font-semibold underline"> Use these as a starting point</span> for conversations with Cancer and Careers about what&apos;s realistic for your organization.
+                        Review the assessment for each dimension. Focus first on completing initiatives already underway, then on closing gaps where most peers have already invested. Use these as a starting point for conversations with Cancer and Careers about what is realistic for your organization.
                       </p>
                     </div>
                   </div>
@@ -9087,114 +9078,70 @@ export default function ExportReportPage() {
 
             {/* Dimension selection — two compelling cards */}
             <div className="p-10 pt-6">
-              <p className="text-lg text-slate-700 font-medium mb-2">Choose which dimensions to explore in depth:</p>
-              <p className="text-base text-slate-500 mb-6">Each dimension includes element-level gap analysis, benchmark comparisons, prioritized actions, and projected score impact.</p>
+              <p className="text-base text-slate-600 mb-6">Select a view to explore priority dimensions in depth. Each includes an assessment, recommended actions, and projected impact.</p>
 
               <div className="grid grid-cols-2 gap-6">
-                {/* Option 1: Your Top 5 Priorities */}
-                <button
-                  onClick={() => setRecViewMode('roadmap')}
-                  className={`text-left rounded-2xl overflow-hidden transition-all ${
-                    recViewMode === 'roadmap'
-                      ? 'ring-3 ring-indigo-500 shadow-lg'
-                      : 'hover:shadow-md hover:-translate-y-0.5'
-                  }`}
-                  style={{ border: recViewMode === 'roadmap' ? '2px solid #4F46E5' : '2px solid #e2e8f0' }}
-                >
-                  <div className={`px-6 py-4 ${recViewMode === 'roadmap' ? 'bg-indigo-600' : 'bg-slate-700'}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                        </div>
+                {([
+                  {
+                    key: 'roadmap' as const,
+                    title: 'Full Roadmap',
+                    subtitle: 'Top 5 dimensions ranked by improvement potential',
+                    desc: 'The five dimensions from Your Improvement Roadmap where focused effort will have the greatest effect on the overall support experience for employees managing cancer.',
+                    dimLabels: rankings.slice(0, 5).map((r: any) => 'D' + r.dimNum),
+                    color: '#4F46E5',
+                  },
+                  {
+                    key: 'balanced' as const,
+                    title: 'Curated Focus',
+                    subtitle: '2 highest-opportunity + 2 greatest-need dimensions',
+                    desc: 'Four dimensions selected for maximum impact: two where the combination of importance and headroom creates the greatest opportunity, and two where employees are most likely to experience support gaps today.',
+                    dimLabels: strategicPriorityDims.map(d => 'D' + d.dim),
+                    color: '#334155',
+                  },
+                ]).map(opt => {
+                  const isActive = recViewMode === opt.key;
+                  return (
+                    <button
+                      key={opt.key}
+                      onClick={() => setRecViewMode(opt.key)}
+                      className="text-left rounded-xl p-6 transition-all"
+                      style={{
+                        border: isActive ? '2px solid ' + opt.color : '2px solid #e2e8f0',
+                        backgroundColor: isActive ? opt.color + '08' : '#ffffff',
+                        boxShadow: isActive ? '0 4px 12px ' + opt.color + '15' : 'none',
+                      }}
+                    >
+                      <div className="flex items-center justify-between mb-3">
                         <div>
-                          <h4 className="font-bold text-white text-lg">Your Top 5 Priorities</h4>
-                          <p className="text-white/70 text-sm">Ranked by projected score impact</p>
+                          <h4 className="text-lg font-bold" style={{ color: isActive ? opt.color : '#334155' }}>{opt.title}</h4>
+                          <p className="text-sm mt-0.5" style={{ color: isActive ? '#64748b' : '#94a3b8' }}>{opt.subtitle}</p>
                         </div>
-                      </div>
-                      <span className="px-3 py-1 rounded-lg bg-white/20 text-white text-sm font-bold">5 dimensions</span>
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 bg-white">
-                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      The 5 dimensions from Your Improvement Roadmap where focused investment will have the <strong className="text-slate-800">greatest measurable impact</strong> on your composite score. Prioritized by a combination of improvement opportunity and implementation readiness.
-                    </p>
-                    <div className="flex items-center gap-2">
-                      {rankings.slice(0, 5).map((r: any, i: number) => (
-                        <span key={i} className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          D{r.dimNum}
-                        </span>
-                      ))}
-                      <span className="text-xs text-slate-400 ml-1">
-                        +{Math.round(rankings.slice(0, 5).reduce((s: number, r: any) => s + r.potentialGain12, 0) * 10) / 10} projected WSI pts
-                      </span>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Option 2: Balanced 2+2 Method */}
-                <button
-                  onClick={() => setRecViewMode('balanced')}
-                  className={`text-left rounded-2xl overflow-hidden transition-all ${
-                    recViewMode === 'balanced'
-                      ? 'ring-3 ring-slate-500 shadow-lg'
-                      : 'hover:shadow-md hover:-translate-y-0.5'
-                  }`}
-                  style={{ border: recViewMode === 'balanced' ? '2px solid #334155' : '2px solid #e2e8f0' }}
-                >
-                  <div className={`px-6 py-4 ${recViewMode === 'balanced' ? 'bg-slate-800' : 'bg-slate-600'}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" /></svg>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white text-lg">Balanced 2+2 Method</h4>
-                          <p className="text-white/70 text-sm">Strategic opportunity + greatest need</p>
-                        </div>
-                      </div>
-                      <span className="px-3 py-1 rounded-lg bg-white/20 text-white text-sm font-bold">4 dimensions</span>
-                    </div>
-                  </div>
-                  <div className="px-6 py-4 bg-white">
-                    <p className="text-sm text-slate-600 leading-relaxed mb-3">
-                      A curated selection: <strong className="text-slate-800">2 Strategic Leverage</strong> dimensions (highest weighted opportunity) and <strong className="text-slate-800">2 Foundation Focus</strong> dimensions (largest support gaps). Balances quick impact with foundational improvement.
-                    </p>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-slate-700"></span>
-                        <span className="text-xs text-slate-500">
-                          Leverage: {strategicPriorityDims.filter(d => d.selectionReason === 'impact').map(d => `D${d.dim}`).join(', ')}
+                        <span className="text-sm font-semibold px-3 py-1 rounded-lg" style={{
+                          backgroundColor: isActive ? opt.color + '15' : '#f1f5f9',
+                          color: isActive ? opt.color : '#94a3b8'
+                        }}>
+                          {opt.key === 'roadmap' ? '5' : '4'} dimensions
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-                        <span className="text-xs text-slate-500">
-                          Foundation: {strategicPriorityDims.filter(d => d.selectionReason === 'risk').map(d => `D${d.dim}`).join(', ')}
-                        </span>
+                      <p className="text-sm text-slate-500 leading-relaxed">{opt.desc}</p>
+                      <div className="flex items-center gap-2 mt-3">
+                        {opt.dimLabels.map((label: string, i: number) => (
+                          <span key={i} className="text-xs font-semibold px-2 py-0.5 rounded-lg" style={{
+                            backgroundColor: isActive ? opt.color + '12' : '#f1f5f9',
+                            color: isActive ? opt.color : '#94a3b8'
+                          }}>
+                            {label}
+                          </span>
+                        ))}
                       </div>
-                    </div>
-                  </div>
-                </button>
+                    </button>
+                  );
+                })}
               </div>
-
-              {/* Empty state — show when nothing selected */}
-              {recViewMode === null && (
-                <div className="mt-8 py-12 flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-                    </svg>
-                  </div>
-                  <h4 className="text-lg font-semibold text-slate-600 mb-2">Select an approach above</h4>
-                  <p className="text-sm text-slate-400 max-w-md">Choose &quot;Your Top 5 Priorities&quot; for the broadest coverage, or &quot;Balanced 2+2 Method&quot; for a curated focus on the most strategic and foundational dimensions.</p>
-                </div>
-              )}
             </div>
           </div>
 
           {/* ============ STRATEGIC RECOMMENDATIONS - DIMENSION CARDS ============ */}
-          {recViewMode !== null && (
           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8 max-w-[1280px] mx-auto">
             <div className="divide-y-4 divide-slate-100">
               {(() => {
@@ -9248,7 +9195,7 @@ export default function ExportReportPage() {
                             ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
                             : 'bg-slate-600/30 text-slate-300 border border-slate-500/40'
                         }`}>
-                          {d.selectionReason === 'risk' ? 'Foundation Focus' : d.selectionReason === 'roadmap' ? 'Roadmap Priority' : 'Strategic Leverage'}
+                          {d.selectionReason === 'risk' ? 'Greatest Need' : d.selectionReason === 'roadmap' ? 'Roadmap Priority' : 'Highest Opportunity'}
                         </span>
                       </div>
                     </div>
@@ -9511,7 +9458,6 @@ export default function ExportReportPage() {
               })()}
             </div>
           </div>
-          )}
 
           {/* Additional Analyzed Dimensions */}
           {additionalAnalyzedDims.length > 0 && (
@@ -13151,8 +13097,8 @@ export default function ExportReportPage() {
                             </svg>
                           </div>
                           <div>
-                            <h4 className="font-bold text-slate-900 text-base">Balanced 2+2 Selection</h4>
-                            <p className="text-slate-500 text-xs">Two by greatest need, two by strategic opportunity</p>
+                            <h4 className="font-bold text-slate-900 text-base">Curated Focus</h4>
+                            <p className="text-slate-500 text-xs">2 highest-opportunity + 2 greatest-need dimensions</p>
                           </div>
                         </div>
                         <p className="text-slate-600 text-sm leading-relaxed">
