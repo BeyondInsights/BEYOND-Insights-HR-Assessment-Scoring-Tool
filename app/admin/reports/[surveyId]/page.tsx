@@ -1562,6 +1562,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
 
   // Tier-consistent helpers (aligned to actual tier boundaries)
   const isLeadingPlus = (d: any) => (d?.score ?? 0) >= 80;   // Leading tier
+  const isStrong = (d: any) => (d?.score ?? 0) >= 65;        // Advancing tier or above
   const isWeak = (d: any) => (d?.score ?? 0) < 50;           // Building tier
   const headroom = (d: any) => 100 - (d?.score ?? 0);
 
@@ -1587,7 +1588,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
 
   // ========== ENABLEMENT FAMILY ==========
   // 1) Strong culture but weak manager training
-  if (culture && manager && isLeadingPlus(culture) && isWeak(manager)) {
+  if (culture && manager && isStrong(culture) && isWeak(manager)) {
     add({
       pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})${unsureNote(manager)}`,
       implication: 'Employees feel safe disclosing. Managers lack tools to respond. Result: inconsistent support experiences.',
@@ -1597,7 +1598,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   }
 
   // 2) Good benefits but poor navigation
-  if (insurance && navigation && isLeadingPlus(insurance) && isWeak(navigation)) {
+  if (insurance && navigation && isStrong(insurance) && isWeak(navigation)) {
     add({
       pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})${unsureNote(navigation)}`,
       implication: 'Benefits are comprehensive. Employees struggle to find and access them. Utilization and ROI suffer.',
@@ -1618,10 +1619,10 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
 
   // 4) Low communication with strong programs (awareness tension)
   if (communication && isWeak(communication)) {
-    const strongDims = dimAnalysis.filter(d => d.dim !== 13 && isLeadingPlus(d));
+    const strongDims = dimAnalysis.filter(d => d.dim !== 13 && isStrong(d));
     if (strongDims.length >= 2) {
       add({
-        pattern: `${strongDims.length} dimensions at Leading+ level but Communication at only ${communication.score}${unsureNote(communication)}`,
+        pattern: `${strongDims.length} dimensions at Advancing+ level but Communication at only ${communication.score}${unsureNote(communication)}`,
         implication: `Strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness limits utilization. Employees may not know resources exist.`,
         recommendation: 'Launch targeted awareness campaigns for your strongest offerings. Programs exist; visibility does not.',
         family: 'enablement'
@@ -1631,7 +1632,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
 
   // ========== PROGRAM DESIGN FAMILY ==========
   // 5) Strong leave but weak return-to-work
-  if (leave && returnToWork && isLeadingPlus(leave) && isWeak(returnToWork)) {
+  if (leave && returnToWork && isStrong(leave) && isWeak(returnToWork)) {
     add({
       pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})${unsureNote(returnToWork)}`,
       implication: 'Employees get time for treatment but struggle with re-entry. Avoidable attrition and productivity loss follow.',
@@ -1641,7 +1642,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   }
 
   // 6) Accommodations strong but career continuity weak
-  if (accommodations && career && isLeadingPlus(accommodations) && isWeak(career)) {
+  if (accommodations && career && isStrong(accommodations) && isWeak(career)) {
     add({
       pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})${unsureNote(career)}`,
       implication: 'Day-to-day accommodations work. Long-term career fears persist. Hidden diagnoses and premature departures result.',
