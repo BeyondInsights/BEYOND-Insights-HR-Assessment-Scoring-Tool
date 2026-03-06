@@ -9075,7 +9075,7 @@ export default function ExportReportPage() {
                         <div className={`${colors.bg}`}>
                           <div className="px-5 py-3 flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                              <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
+                              <span className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: getEmployeePriorityGroup(dimensionAnalysis.find((dd: any) => dd.dim === r.dimNum)?.weight || 0).color }}>D{r.dimNum}</span>
                               <div>
                                 <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
                                 {/* Bundle summary line - feedback #5 */}
@@ -12955,7 +12955,7 @@ export default function ExportReportPage() {
                             <div className={`${colors.bg}`}>
                               <div className="px-5 py-3 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                  <span className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center text-lg font-bold text-white">{idx + 1}</span>
+                                  <span className="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white" style={{ backgroundColor: getEmployeePriorityGroup(dimensionAnalysis.find((dd: any) => dd.dim === r.dimNum)?.weight || 0).color }}>D{r.dimNum}</span>
                                   <div>
                                     <h4 className="font-semibold text-white text-lg">{r.dimName}</h4>
                                     <p className="text-white/70 text-xs mt-0.5">Year 1 plan: {accelCount} accelerated + {buildCount} built ({totalDimElements} total)</p>
