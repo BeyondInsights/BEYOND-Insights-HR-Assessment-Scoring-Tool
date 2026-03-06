@@ -8722,7 +8722,7 @@ export default function ExportReportPage() {
                   },
                   {
                     key: 'initiatives' as const,
-                    label: 'Initiatives In Development or Under Review',
+                    label: 'Initiatives in Progress',
                     desc: 'in development or under review',
                     color: '#7C3AED',
                     lightBg: '#f5f3ff',
@@ -8821,7 +8821,7 @@ export default function ExportReportPage() {
               {/* ---- Initiatives tab ---- */}
               {activeReportTab === 'initiatives' && (
                 <div id="initiatives-in-progress">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives In Development or Under Review</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in development or under review <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
                     <div className="grid grid-cols-2 gap-5">
