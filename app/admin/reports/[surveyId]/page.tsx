@@ -1462,6 +1462,72 @@ function validateInsightText(text: string, context: {
   return fixed;
 }
 
+// Definition of Done lookup by dimension and element keywords
+function getDefinitionOfDone(dimNum: number, elementName: string): string {
+  const name = elementName.toLowerCase();
+  if (dimNum === 1) {
+    if (name.includes('leave') || name.includes('salary')) return 'Policy published, communicated to all employees, and reflected in the employee handbook.';
+    if (name.includes('flexible') || name.includes('remote')) return 'Formal request process documented with manager approval guidelines and HR oversight.';
+  }
+  if (dimNum === 2) {
+    if (name.includes('navigation') || name.includes('concierge')) return 'Single point of contact identified, published to employees, and accessible within 24 hours of request.';
+    if (name.includes('financial') || name.includes('hardship')) return 'Fund or program operational with clear eligibility criteria and a simple application process.';
+  }
+  if (dimNum === 3) {
+    if (name.includes('escalation') || name.includes('protocol')) return 'Protocol documented, distributed to all people managers, with a named point of contact for escalations.';
+    if (name.includes('resource hub')) return 'Live and accessible to all managers, with clear ownership and a quarterly content review cycle.';
+    if (name.includes('training')) return 'Required for all people managers, completed annually, with completion tracking.';
+    if (name.includes('compliance') || name.includes('legal')) return 'Required for managers, refreshed annually, with a clear escalation path for complex cases.';
+    if (name.includes('evaluation')) return 'Integrated into existing manager performance review process with defined criteria.';
+    if (name.includes('community') || name.includes('peer support')) return 'Launched with participation targets, a regular meeting cadence, and a facilitator.';
+  }
+  if (dimNum === 4) {
+    if (name.includes('navigation') || name.includes('hub')) return 'Published, findable within 2 clicks from the company intranet homepage, and promoted at onboarding.';
+    if (name.includes('coach') || name.includes('counseling')) return 'Contract in place, referral pathway documented, and communicated to HR and managers.';
+  }
+  if (dimNum === 5) {
+    if (name.includes('process') || name.includes('request')) return 'Standardized request form and approval workflow live, with SLA for response time.';
+    if (name.includes('workload')) return 'Guidelines published for managers on how to adjust workloads during treatment, with HR support.';
+  }
+  if (dimNum === 6) {
+    if (name.includes('stigma')) return 'Campaign launched, employee awareness measured, and integrated into onboarding.';
+    if (name.includes('privacy') || name.includes('confidentiality')) return 'Policy documented, communicated to managers, and auditable.';
+  }
+  if (dimNum === 7) {
+    if (name.includes('succession') || name.includes('protection')) return 'Policy updated to explicitly address treatment-related absence, communicated to affected employees.';
+    if (name.includes('mentor') || name.includes('coach')) return 'Program operational with matched participants and regular check-ins.';
+    if (name.includes('reintegration') || name.includes('progress')) return 'Check-in cadence defined (e.g., 30/60/90 days post-return) with documented outcomes.';
+  }
+  if (dimNum === 8) {
+    if (name.includes('phased') || name.includes('return')) return 'Template published with defined stages, manager responsibilities, and HR checkpoints.';
+    if (name.includes('progress') || name.includes('tracking')) return 'Tracking system in place with defined milestones and escalation triggers.';
+    if (name.includes('buddy') || name.includes('peer')) return 'Matching process defined, volunteers recruited, and initial cohort active.';
+  }
+  if (dimNum === 9) {
+    if (name.includes('budget') || name.includes('dedicated')) return 'Line item in annual budget with named owner and quarterly reporting.';
+    if (name.includes('sponsor') || name.includes('executive')) return 'Named executive sponsor with defined role, visible to employees.';
+  }
+  if (dimNum === 10) {
+    if (name.includes('leave') || name.includes('time off')) return 'Policy documented, communicated to all employees, and accessible through self-service HR tools.';
+    if (name.includes('emergency')) return 'Protocol defined with clear eligibility and a fast-track approval process.';
+    if (name.includes('counseling') || name.includes('support group')) return 'Service available, referral pathway documented, and promoted through existing EAP channels.';
+  }
+  if (dimNum === 11) {
+    if (name.includes('screening')) return 'Program active with participation tracked and reported quarterly.';
+    if (name.includes('education')) return 'Sessions scheduled, attendance tracked, and materials available on-demand.';
+  }
+  if (dimNum === 12) {
+    if (name.includes('feedback') || name.includes('survey')) return 'Survey deployed at least annually with results reviewed by program owners.';
+    if (name.includes('enhancement') || name.includes('review')) return 'Quarterly review cadence established with documented action items and owners.';
+  }
+  if (dimNum === 13) {
+    if (name.includes('testimonial') || name.includes('story')) return 'At least 2 employee stories published with appropriate consent and visible on internal channels.';
+    if (name.includes('manager toolkit') || name.includes('cascade')) return 'Toolkit distributed to all managers with usage tracked and refreshed quarterly.';
+    if (name.includes('campaign') || name.includes('awareness')) return 'Campaign calendar published, delivered through at least 2 channels, reach measured.';
+  }
+  return 'Documented, communicated to stakeholders, and with a named owner accountable for execution.';
+}
+
 function getCrossDimensionPatterns(dimAnalysis: any[]): {
   tensions: { pattern: string; implication: string; recommendation: string }[];
   positiveInsights: { pattern: string; implication: string; recommendation: string }[];
@@ -9541,12 +9607,7 @@ export default function ExportReportPage() {
 
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">{
-                              inMotion.length > 0 && allGaps.length > 0 ? 'Finish What is Started, Then Build'
-                              : inMotion.length > 0 ? 'Complete Current Initiatives'
-                              : allGaps.length > 3 ? 'Where to Begin'
-                              : 'Recommended Next Steps'
-                            }</h4>
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Sequence</h4>
                             <div className="space-y-5">
                               {actionSteps.map((step, i) => (
                                 <div key={i} className="flex gap-4">
@@ -9566,6 +9627,11 @@ export default function ExportReportPage() {
                                         {customObservations[`action_${d.dim}_${i}`] || step.text}
                                       </p>
                                     )}
+                                    {step.element && (
+                                      <p className="text-sm text-slate-400 mt-1">
+                                        <span className="font-medium text-slate-500">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               ))}
@@ -9574,7 +9640,7 @@ export default function ExportReportPage() {
 
                           {/* === THE IMPACT === */}
                           <p className="text-sm text-slate-500 mt-6 pt-4 border-t border-slate-100">
-                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute roughly +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
+                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute an estimated +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
                           </p>
 
                           {/* === PENDING CONFIRMATIONS === */}
@@ -9835,12 +9901,7 @@ export default function ExportReportPage() {
 
                           {/* === THE ACTION PLAN === */}
                           <div className="mb-6">
-                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">{
-                              inMotion.length > 0 && allGaps.length > 0 ? 'Finish What is Started, Then Build'
-                              : inMotion.length > 0 ? 'Complete Current Initiatives'
-                              : allGaps.length > 3 ? 'Where to Begin'
-                              : 'Recommended Next Steps'
-                            }</h4>
+                            <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Recommended Sequence</h4>
                             <div className="space-y-5">
                               {actionSteps.map((step, i) => (
                                 <div key={i} className="flex gap-4">
@@ -9862,6 +9923,11 @@ export default function ExportReportPage() {
                                         {customAdditionalDimInsights[d.dim]?.[`action_${i}`] || step.text}
                                       </p>
                                     )}
+                                    {step.element && (
+                                      <p className="text-sm text-slate-400 mt-1">
+                                        <span className="font-medium text-slate-500">Done when:</span> {getDefinitionOfDone(d.dim, step.element)}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               ))}
@@ -9870,7 +9936,7 @@ export default function ExportReportPage() {
 
                           {/* === THE IMPACT === */}
                           <p className="text-sm text-slate-500 mt-6 pt-4 border-t border-slate-100">
-                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute roughly +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
+                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute an estimated +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
                           </p>
 
                           {/* === PENDING CONFIRMATIONS === */}
