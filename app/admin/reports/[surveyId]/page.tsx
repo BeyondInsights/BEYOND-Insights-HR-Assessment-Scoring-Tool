@@ -3909,10 +3909,10 @@ export default function ExportReportPage() {
     },
     strategicRecos: {
       title: 'Strategic Recommendations',
-      what: 'A focused, decision-ready roadmap: four priority dimensions translated into clear actions, owners, and a pragmatic sequence (quick wins first, foundations next).',
-      how: 'We use a balanced 2+2 method. Two dimensions are selected by lowest score ("Foundation Focus") to address areas where employees are most likely to experience support gaps. Two additional dimensions are selected by weighted opportunity ("Strategic Leverage"), combining dimension importance with remaining improvement headroom. To avoid spotlighting areas that are already strong, dimensions scoring above 85 are excluded from the Strategic Leverage selection.',
-      when: 'Use this section to align HR and leadership on the few moves that matter most, build a practical action plan, and map the initiatives that require longer-term program development.',
-      questions: ['Where are the most immediate vulnerabilities in our support system?', 'Which actions will drive the greatest system-wide improvement?', 'What should we prioritize for a roadmap (and what can wait)?', 'Who should own each initiative, and what CAC resources can accelerate progress?']
+      what: 'Element-level analysis for your priority dimensions. Each dimension includes an assessment of where you stand relative to peers, specific recommended actions grounded in benchmark data, and the projected impact on your score and employee experience.',
+      how: 'You can explore dimensions two ways. Full Roadmap shows the 5 dimensions with the greatest projected improvement potential, ranked by a combination of employee impact weight and implementation readiness. Curated Focus uses a balanced selection method: 2 dimensions chosen by highest weighted opportunity (impact importance multiplied by improvement headroom) and 2 chosen by greatest need (lowest scores). Dimensions scoring above 85 are excluded from the opportunity selection since they are already strong.',
+      when: 'Use this section to align HR and leadership on the specific moves that will most improve the support experience for employees managing cancer. Each dimension card provides enough detail to build an action plan with owners and timelines.',
+      questions: ['Which specific support elements should we implement or complete first?', 'How do our gaps compare to what peers already offer?', 'What is the projected effect of closing these gaps on our overall score?', 'Where should we focus if we can only address 2-3 dimensions this year?']
     }
   };
   
@@ -5169,6 +5169,16 @@ export default function ExportReportPage() {
  return (
     <div className="min-h-screen bg-slate-100">
       <style dangerouslySetInnerHTML={{ __html: GLOBAL_PRINT_STYLES }} />
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes buttonPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+          50% { box-shadow: 0 0 0 6px rgba(255,255,255,0.3); }
+        }
+        @keyframes buttonPulseLight {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(51,65,85,0); }
+          50% { box-shadow: 0 0 0 6px rgba(51,65,85,0.15); }
+        }
+      ` }} />
 
       {/* ============ ACTION BAR ============ */}
         <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
@@ -6018,7 +6028,7 @@ export default function ExportReportPage() {
                       )}
                       <button
                         onClick={() => setShowTierOverlay(true)}
-                        className="mt-3 px-4 py-1.5 text-xs font-semibold text-slate-300 bg-transparent border border-slate-500 rounded-lg hover:bg-white/10 hover:border-slate-400 transition-all"
+                        className="mt-3 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
                       >
                         Show All Tiers
                       </button>
@@ -8428,17 +8438,17 @@ export default function ExportReportPage() {
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => setInfoModal('crossDimensional')}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       Learn More
                     </button>
                     <button 
                       onClick={() => setInfoModal('patternLibrary')}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                      View Patterns
+                      View Tensions
                     </button>
                   </div>
                 </div>
@@ -8838,7 +8848,7 @@ export default function ExportReportPage() {
                     </div>
                     <button 
                       onClick={() => setInfoModal('impactRanked')}
-                      className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                       How It Works
@@ -9221,7 +9231,7 @@ export default function ExportReportPage() {
                 </div>
                 <button 
                   onClick={() => setInfoModal('strategicRecos')}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded-lg transition-colors backdrop-blur border border-white/10"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                   Learn More
@@ -9240,7 +9250,7 @@ export default function ExportReportPage() {
                     title: 'Full Roadmap',
                     subtitle: 'Top 5 dimensions ranked by improvement potential',
                     desc: 'The five dimensions from Your Improvement Roadmap where focused effort will have the greatest effect on the overall support experience for employees managing cancer.',
-                    dimLabels: rankings.slice(0, 5).map((r: any) => 'D' + r.dimNum),
+                    dimNums: rankings.slice(0, 5).map((r: any) => r.dimNum as number),
                     color: '#4F46E5',
                   },
                   {
@@ -9248,7 +9258,7 @@ export default function ExportReportPage() {
                     title: 'Curated Focus',
                     subtitle: '2 highest-opportunity + 2 greatest-need dimensions',
                     desc: 'Four dimensions selected for maximum impact: two where the combination of importance and headroom creates the greatest opportunity, and two where employees are most likely to experience support gaps today.',
-                    dimLabels: strategicPriorityDims.map(d => 'D' + d.dim),
+                    dimNums: strategicPriorityDims.map(d => d.dim as number),
                     color: '#334155',
                   },
                 ]).map(opt => {
@@ -9278,14 +9288,15 @@ export default function ExportReportPage() {
                       </div>
                       <p className="text-sm text-slate-500 leading-relaxed">{opt.desc}</p>
                       <div className="flex items-center gap-2 mt-3">
-                        {opt.dimLabels.map((label: string, i: number) => (
-                          <span key={i} className="text-xs font-semibold px-2 py-0.5 rounded-lg" style={{
-                            backgroundColor: isActive ? opt.color + '12' : '#f1f5f9',
-                            color: isActive ? opt.color : '#94a3b8'
-                          }}>
-                            {label}
-                          </span>
-                        ))}
+                        {opt.dimNums.map((dimNum: number, i: number) => {
+                          const dimData = dimensionAnalysis.find((dd: any) => dd.dim === dimNum);
+                          const pg = dimData ? getEmployeePriorityGroup(dimData.weight) : { color: '#64748B' };
+                          return (
+                            <span key={i} className="text-xs font-bold px-2 py-1 rounded-lg text-white" style={{ backgroundColor: pg.color }}>
+                              D{dimNum}
+                            </span>
+                          );
+                        })}
                       </div>
                     </button>
                   );
@@ -11611,7 +11622,7 @@ export default function ExportReportPage() {
                               </div>
                               <button
                                 onClick={() => setShowTierOverlay(true)}
-                                className="mt-3 text-xs text-slate-500 hover:text-slate-700 font-medium px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300 bg-white shadow-sm hover:shadow transition-all"
+                                className="mt-3 flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-slate-300 text-slate-700 hover:bg-slate-800 hover:text-white hover:border-slate-800 active:scale-95 animate-[buttonPulseLight_2s_ease-in-out_1]"
                               >
                                 Show All Tiers
                               </button>
