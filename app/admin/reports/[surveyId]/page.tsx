@@ -7556,7 +7556,8 @@ export default function ExportReportPage() {
                         </linearGradient>
                         <linearGradient id="xAxisArrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                           <stop offset="0%" stopColor="#CBD5E1" />
-                          <stop offset="50%" stopColor="#64748B" />
+                          <stop offset="40%" stopColor="#64748B" />
+                          <stop offset="75%" stopColor="#334155" />
                           <stop offset="100%" stopColor="#1E3A5F" />
                         </linearGradient>
                       </defs>
@@ -7605,8 +7606,8 @@ export default function ExportReportPage() {
 
                         {/* X-axis — gradient arrow bar */}
                         <g transform={`translate(0, ${PLOT_HEIGHT + 10})`}>
-                          <rect x={0} y={-3} width={PLOT_WIDTH - 12} height={6} rx="3" fill="url(#xAxisArrowGrad)" opacity="0.85" />
-                          <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#1E3A5F" opacity="0.85" />
+                          <rect x={0} y={-3} width={PLOT_WIDTH - 6} height={6} rx="3" fill="url(#xAxisArrowGrad)" opacity="0.9" />
+                          <polygon points={`${PLOT_WIDTH - 8},-8 ${PLOT_WIDTH + 4},0 ${PLOT_WIDTH - 8},8`} fill="#1E3A5F" opacity="0.9" />
                           <text x={4} y={18} fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
                           <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#1E3A5F" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                           <text x={PLOT_WIDTH/2} y={36} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
@@ -12615,7 +12616,8 @@ export default function ExportReportPage() {
                               </filter>
                               <linearGradient id="xAxisArrowGrad18" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="#CBD5E1" />
-                                <stop offset="50%" stopColor="#64748B" />
+                                <stop offset="40%" stopColor="#64748B" />
+                                <stop offset="75%" stopColor="#334155" />
                                 <stop offset="100%" stopColor="#1E3A5F" />
                               </linearGradient>
                             </defs>
@@ -12650,8 +12652,8 @@ export default function ExportReportPage() {
 
                               {/* X-axis: gradient arrow bar */}
                               <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
-                                <rect x={0} y={-3} width={PLOT_WIDTH - 12} height={6} rx="3" fill="url(#xAxisArrowGrad18)" opacity="0.85" />
-                                <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#1E3A5F" opacity="0.85" />
+                                <rect x={0} y={-3} width={PLOT_WIDTH - 6} height={6} rx="3" fill="url(#xAxisArrowGrad18)" opacity="0.9" />
+                                <polygon points={`${PLOT_WIDTH - 8},-8 ${PLOT_WIDTH + 4},0 ${PLOT_WIDTH - 8},8`} fill="#1E3A5F" opacity="0.9" />
                                 <text x={4} y={18} fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
                                 <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#1E3A5F" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                                 <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
@@ -12793,7 +12795,8 @@ export default function ExportReportPage() {
                               </filter>
                               <linearGradient id="xAxisArrowGrad19" x1="0%" y1="0%" x2="100%" y2="0%">
                                 <stop offset="0%" stopColor="#CBD5E1" />
-                                <stop offset="50%" stopColor="#64748B" />
+                                <stop offset="40%" stopColor="#64748B" />
+                                <stop offset="75%" stopColor="#334155" />
                                 <stop offset="100%" stopColor="#1E3A5F" />
                               </linearGradient>
                             </defs>
@@ -12828,8 +12831,8 @@ export default function ExportReportPage() {
 
                               {/* X-axis: gradient arrow bar */}
                               <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
-                                <rect x={0} y={-3} width={PLOT_WIDTH - 12} height={6} rx="3" fill="url(#xAxisArrowGrad19)" opacity="0.85" />
-                                <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#1E3A5F" opacity="0.85" />
+                                <rect x={0} y={-3} width={PLOT_WIDTH - 6} height={6} rx="3" fill="url(#xAxisArrowGrad19)" opacity="0.9" />
+                                <polygon points={`${PLOT_WIDTH - 8},-8 ${PLOT_WIDTH + 4},0 ${PLOT_WIDTH - 8},8`} fill="#1E3A5F" opacity="0.9" />
                                 <text x={4} y={18} fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
                                 <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#1E3A5F" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                                 <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
