@@ -7522,17 +7522,27 @@ export default function ExportReportPage() {
                 };
                 const presOverlapClusters = getOverlapClusters();
                 
-                const getBubblePosition = (d: any) => {
-                  const xPercent = (MARGIN.left + mapScoreToX(d.score)) / CHART_WIDTH * 100;
+                const getBubblePosition = (d: any, useScore?: number) => {
+                  const score = useScore !== undefined ? useScore : d.score;
+                  const xPercent = (MARGIN.left + mapScoreToX(score)) / CHART_WIDTH * 100;
                   const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
                   return { xPercent, yPercent };
                 };
-                
+
+                // For benchmark-only view, use benchmark score for position/tooltip
+                const getDisplayScore = (d: any) => {
+                  if (matrixView === 'benchmarks') {
+                    const bs = getBenchmarkScore(d.dim);
+                    return bs !== null ? bs : d.score;
+                  }
+                  return d.score;
+                };
+
                 const hoveredData = hoveredMatrixDim !== null ? dimensionAnalysis.find(d => d.dim === hoveredMatrixDim) : null;
                 
                 const getTooltipStyle = () => {
                   if (!hoveredData) return { top: '8px', right: '8px', opacity: 0, pointerEvents: 'none' as const };
-                  const { xPercent, yPercent } = getBubblePosition(hoveredData);
+                  const { xPercent, yPercent } = getBubblePosition(hoveredData, getDisplayScore(hoveredData));
                   const isRightEdge = xPercent > 65;
                   const isTopEdge = yPercent < 35;
                   const isBottomEdge = yPercent > 65;
@@ -7740,7 +7750,7 @@ export default function ExportReportPage() {
                     {/* HTML Overlay for hover detection */}
                     <div className="absolute inset-0" style={{ height: '510px' }}>
                       {dimensionAnalysis.map((d) => {
-                        const { xPercent, yPercent } = getBubblePosition(d);
+                        const { xPercent, yPercent } = getBubblePosition(d, getDisplayScore(d));
                         return (
                           <div
                             key={d.dim}
@@ -7755,22 +7765,40 @@ export default function ExportReportPage() {
                     </div>
                     
                     {/* Hover Tooltip */}
-                    {hoveredData && (
+                    {hoveredData && (() => {
+                      const displayScore = getDisplayScore(hoveredData);
+                      const scoreLabel = matrixView === 'benchmarks' ? 'Benchmark' : 'Score';
+                      return (
                       <div className="absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-64 z-30 transition-opacity duration-150" style={getTooltipStyle()}>
                         <div className="flex items-center gap-3 mb-3">
                           <span className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ backgroundColor: getEmployeePriorityGroup(hoveredData.weight).color }}>D{hoveredData.dim}</span>
                           <div className="flex-1"><p className="font-bold text-slate-800 text-sm leading-tight">{hoveredData.name}</p></div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
-                          <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
-                        </div>
-                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                          <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${hoveredData.tier.bgColor} border ${hoveredData.tier.borderColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
-                          <span className="text-xs text-cyan-600 font-medium">Click for details →</span>
-                        </div>
+                        {matrixView === 'both' ? (
+                          <div className="grid grid-cols-3 gap-2 text-sm">
+                            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
+                            <div className="bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100"><p className="text-indigo-500 text-xs font-medium">Benchmark</p><p className="font-bold text-xl text-indigo-700">{getBenchmarkScore(hoveredData.dim) ?? '—'}</p></div>
+                            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">{scoreLabel}</p><p className="font-bold text-xl" style={{ color: getScoreColor(displayScore) }}>{displayScore}</p></div>
+                            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
+                          </div>
+                        )}
+                        {matrixView === 'benchmarks' ? (
+                          <div className="mt-3 pt-3 border-t border-slate-100">
+                            <span className="text-xs text-indigo-600 font-medium">Cohort benchmark score</span>
+                          </div>
+                        ) : (
+                          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${hoveredData.tier.bgColor} border ${hoveredData.tier.borderColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
+                            <span className="text-xs text-cyan-600 font-medium">Click for details →</span>
+                          </div>
+                        )}
                       </div>
-                    )}
+                      );
+                    })()}
                     
                     {/* Legend - ALL 13 dimensions in 4 columns plus benchmark indicator */}
                     <div className="pt-4 border-t-2 border-slate-200 px-4" style={{ marginTop: '6px' }}>
