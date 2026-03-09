@@ -593,7 +593,7 @@ function scoreD13Communication(value: string | undefined): number {
   return 0;
 }
 
-function calculateFollowUpScoreForBlend(dimNum: number, assessment: any): number | null {
+export function calculateFollowUpScoreForBlend(dimNum: number, assessment: any): number | null {
   const dimData = assessment[`dimension${dimNum}_data`];
   if (!dimData) return null;
   

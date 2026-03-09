@@ -9,13 +9,12 @@
  * - BREADTH (5%): Coverage scope and conditions
  * 
  * TIER THRESHOLDS:
- * - Exemplary: 90+
- * - Leading: 75-89
- * - Progressing: 60-74
- * - Emerging: 40-59
- * - Developing: <40
- * 
- * Scoring Version: v1.0 (Year 1)
+ * - Leading: 80-100
+ * - Advancing: 64-79
+ * - Accelerating: 50-63
+ * - Building: 0-49
+ *
+ * Scoring Version: v6.1
  */
 
 'use client';
@@ -23,6 +22,7 @@
 import React, { useMemo, useState } from 'react';
 import {
   calculateEnhancedScore,
+  calculateFollowUpScoreForBlend,
   getScoreColor,
   DIMENSION_NAMES,
   DIMENSION_WEIGHTS,
@@ -52,10 +52,10 @@ const COMPOSITE_WEIGHTS = {
 // ============================================
 function getPerformanceTier(score: number, isProvisional: boolean): { name: string; color: string; bg: string; isProvisional: boolean } {
   let tier: { name: string; color: string; bg: string };
-  // WSI 4-tier model: Leading 80+, Established 64-79, Progressing 50-63, Building 0-49
+  // WSI 4-tier model: Leading 80+, Advancing 64-79, Accelerating 50-63, Building 0-49
   if (score >= 80) tier = { name: 'Leading', color: '#065F46', bg: '#D1FAE5' };
-  else if (score >= 64) tier = { name: 'Established', color: '#1E40AF', bg: '#DBEAFE' };
-  else if (score >= 50) tier = { name: 'Progressing', color: '#92400E', bg: '#FEF3C7' };
+  else if (score >= 64) tier = { name: 'Advancing', color: '#1E40AF', bg: '#DBEAFE' };
+  else if (score >= 50) tier = { name: 'Accelerating', color: '#92400E', bg: '#FEF3C7' };
   else tier = { name: 'Building', color: '#374151', bg: '#F3F4F6' };
   return { ...tier, isProvisional };
 }
@@ -247,22 +247,40 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
     );
   }
   
-  const { 
-    baseScore, maturityScore, breadthScore,
+  const {
+    maturityScore, breadthScore,
     maturityDetails, breadthDetails,
     dimensionScores, completedDimensions, insufficientDataCount, isProvisional
   } = enhancedScore;
-  
+
   // Safe score values
-  const safeBaseScore = safeNumber(baseScore, 0);
   const safeMaturityScore = safeNumber(maturityScore, 0);
   const safeBreadthScore = safeNumber(breadthScore, 0);
-  
+
+  // Compute WSI weighted dimension score from element-weighted dim scores
+  const totalDimWeight = Object.values(DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+  let wsiWeightedDim = 0;
+  for (let d = 1; d <= 13; d++) {
+    const dimScore = wsiDimScores[d]?.adjustedScore;
+    if (dimScore !== undefined) {
+      let finalDimScore = dimScore;
+      // Apply 85/15 follow-up blend for D1, D3, D12, D13
+      if ([1, 3, 12, 13].includes(d)) {
+        const followUpScore = calculateFollowUpScoreForBlend(d, assessment);
+        if (followUpScore !== null) {
+          finalDimScore = Math.round(dimScore * 0.85 + followUpScore * 0.15);
+        }
+      }
+      wsiWeightedDim += finalDimScore * ((DIMENSION_WEIGHTS[d] || 0) / totalDimWeight);
+    }
+  }
+  const safeBaseScore = Math.round(wsiWeightedDim);
+
   // Calculate contributions using 90/5/5 weights
   const dimContribution = safeBaseScore * COMPOSITE_WEIGHTS.weightedDim;
   const maturityContribution = safeMaturityScore * COMPOSITE_WEIGHTS.maturity;
   const breadthContribution = safeBreadthScore * COMPOSITE_WEIGHTS.breadth;
-  
+
   // Calculate composite with 90/5/5
   const compositeScore = Math.round(dimContribution + maturityContribution + breadthContribution);
   
@@ -491,7 +509,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       {/* Legend */}
       <div className="mt-4 p-3 bg-white/60 rounded-lg text-xs text-gray-600">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <span className="font-semibold">Scoring Model (v1.0):</span>
+          <span className="font-semibold">Scoring Model (v6.1):</span>
           <span><strong className="text-blue-700">Dimension (90%)</strong> = Weighted scores with depth blend on D1,D3,D12,D13</span>
           <span><strong className="text-indigo-600">Maturity (5%)</strong> = Support approach level</span>
           <span><strong className="text-indigo-600">Breadth (5%)</strong> = Coverage scope</span>
@@ -501,10 +519,10 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
           <span className="text-blue-600 font-bold">●</span> Planning (3pts)
           <span className="text-orange-500 font-bold">○</span> Assessing (2pts)
           <span className="text-red-500 font-bold">✗</span> Not Able (0pts)
-          <span className="text-gray-400 font-bold">?</span> Unsure (0pts)
+          <span className="text-gray-400 font-bold">?</span> Unsure (partial credit)
         </div>
         <div className="mt-2 text-gray-500">
-          <strong>Tiers:</strong> Exemplary (90+) | Leading (75-89) | Progressing (60-74) | Emerging (40-59) | Developing (&lt;40)
+          <strong>Tiers:</strong> Leading (80-100) | Advancing (64-79) | Accelerating (50-63) | Building (0-49)
         </div>
       </div>
     </section>
