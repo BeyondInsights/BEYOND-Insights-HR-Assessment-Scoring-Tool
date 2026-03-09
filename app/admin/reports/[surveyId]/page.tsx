@@ -7,7 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 import { exportHybridPptx } from '@/components/PptxExportHybrid';
-import { ELEMENT_DIM_WEIGHTS, TIER_MEANS, ELEMENT_MATURITY_LEVEL, getElementLevel } from '@/lib/wsi-scoring';
+import { ELEMENT_DIM_WEIGHTS, TIER_MEANS, ELEMENT_MATURITY_LEVEL, getElementLevel, calculateElementWeightedDimScore } from '@/lib/wsi-scoring';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -4616,33 +4616,33 @@ export default function ExportReportPage() {
       blendedScores[dim] = 0;
       
       if (!mainGrid || typeof mainGrid !== 'object') { dimensionScores[dim] = null; continue; }
-      
-      let earnedPoints = 0; let totalItems = 0; let answeredItems = 0;
-      
+
+      // Build element details for drill-down display
+      let totalItems = 0;
       Object.entries(mainGrid).forEach(([itemKey, status]: [string, any]) => {
         if (isExcludedElement(dim, itemKey)) return;
         totalItems++;
         const result = statusToPoints(status);
-        if (result.isUnsure) { answeredItems++; }
-        else if (result.points !== null) { answeredItems++; earnedPoints += result.points; }
-        
+
         // Track if this item is NOT currently offered (anything less than full points)
         const isNotOffered = result.category !== 'currently_offer';
-        
+
         elementsByDim[dim].push({
           name: itemKey, status: getStatusText(status), category: result.category,
           points: result.points ?? 0, maxPoints: 5, isStrength: result.points === 5,
           isPlanning: result.category === 'planning', isAssessing: result.category === 'assessing',
-          isGap: result.category === 'not_able' || result.category === 'unknown', 
+          isGap: result.category === 'not_able' || result.category === 'unknown',
           isUnsure: result.isUnsure,
           isNotOffered: isNotOffered
         });
       });
-      
+
       if (totalItems > 0) completedDimCount++;
-      
-      const maxPoints = answeredItems * 5;
-      const rawScore = maxPoints > 0 ? Math.round((earnedPoints / maxPoints) * 100) : 0;
+
+      // Use element-weighted scoring with unsure substitution (WSI methodology)
+      const excludedItems = APP_ONLY_EXCLUDED_ITEMS[dim] || [];
+      const wsiResult = calculateElementWeightedDimScore(dim, mainGrid, excludedItems);
+      const rawScore = wsiResult.score;
       
       // For single-country companies, always use 1.0 multiplier regardless of individual dimension responses
       let geoMultiplier = 1.0;
@@ -4722,12 +4722,18 @@ export default function ExportReportPage() {
       weightedDimScore = Math.round(weightedScore);
     }
     
-    // Use canonical enhanced-scoring library for composite score to ensure consistency
-    // across all pages (scoring page, profile page, report page)
+    // Maturity and breadth from enhanced-scoring (these don't involve element weights)
     const enhancedResult = calculateEnhancedScore(assessment);
-    const compositeScore = enhancedResult.isComplete ? enhancedResult.compositeScore : null;
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
+
+    // Composite uses element-weighted dimension scores (WSI methodology):
+    // 90% weighted dim + 5% maturity + 5% breadth
+    const compositeScore = isComplete && weightedDimScore !== null ? Math.round(
+      (weightedDimScore * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+      (maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+      (breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+    ) : null;
     
     return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier: compositeScore !== null ? getWSITier(compositeScore) : null }, elements: elementsByDim };
   }
