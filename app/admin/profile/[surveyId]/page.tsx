@@ -1989,14 +1989,36 @@ export default function ProfilePage() {
                 {/* Top row - Approach and Barriers side by side */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Current Approach */}
-                  {support.or1 && (
+                  {support.or1 ? (
                     <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
                       <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.primary }}>
                         Current Approach
+                        <span className="ml-2 text-xs font-normal text-indigo-500">(Maturity component)</span>
                       </p>
                       <p className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
                         {formatDisplayValue(support.or1, support, 'or1')}
                       </p>
+                      {(() => {
+                        const or1Lower = String(support.or1).toLowerCase();
+                        let matScore = 0;
+                        if (or1Lower.includes('leading') || or1Lower.includes('comprehensive')) matScore = 100;
+                        else if (or1Lower.includes('enhanced') || or1Lower.includes('strong')) matScore = 80;
+                        else if (or1Lower.includes('moderate')) matScore = 50;
+                        else if (or1Lower.includes('basic') || or1Lower.includes('developing')) matScore = 20;
+                        return (
+                          <p className="text-xs text-indigo-600 mt-2 font-medium">
+                            Maturity Score: {matScore}/100 &rarr; contributes {(matScore * 0.05).toFixed(1)} pts to composite
+                          </p>
+                        );
+                      })()}
+                    </div>
+                  ) : (
+                    <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                      <p className="text-xs font-bold uppercase tracking-wide mb-2" style={{ color: BRAND.primary }}>
+                        Current Approach
+                        <span className="ml-2 text-xs font-normal text-indigo-500">(Maturity component)</span>
+                      </p>
+                      <p className="text-sm text-amber-600">Not answered — Maturity scores as 0</p>
                     </div>
                   )}
                   
@@ -2009,6 +2031,17 @@ export default function ProfilePage() {
                       <p className="text-sm font-medium" style={{ color: BRAND.gray[800] }}>
                         {formatDisplayValue(support.cb3a, support, 'cb3a')}
                       </p>
+                      {(() => {
+                        const cb3aLower = String(support.cb3a).toLowerCase();
+                        let cb3aScore = 0;
+                        if (cb3aLower.includes('yes') && cb3aLower.includes('additional')) cb3aScore = 100;
+                        else if (cb3aLower.includes('developing')) cb3aScore = 50;
+                        return (
+                          <p className="text-xs text-green-600 mt-2 font-medium">
+                            CB3A Score: {cb3aScore}/100 {cb3aScore === 0 && <span className="text-amber-600">&mdash; &quot;Legal compliance only&quot; scores 0 for this component</span>}
+                          </p>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
@@ -2046,11 +2079,12 @@ export default function ProfilePage() {
                 )}
 
                 {/* Program Structure */}
-                {support.cb3b && Array.isArray(support.cb3b) && support.cb3b.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
-                      Program Structure
-                    </p>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                    Program Structure {support.cb3b && Array.isArray(support.cb3b) && support.cb3b.length > 0 ? `(${support.cb3b.length})` : ''}
+                    <span className="ml-2 text-xs font-normal text-indigo-500">(Breadth component)</span>
+                  </p>
+                  {support.cb3b && Array.isArray(support.cb3b) && support.cb3b.length > 0 ? (
                     <ul className="space-y-1">
                       {support.cb3b.map((item: string, i: number) => (
                         <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
@@ -2059,15 +2093,18 @@ export default function ProfilePage() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  ) : (
+                    <p className="text-sm text-amber-600 p-2 bg-amber-50 rounded">None selected</p>
+                  )}
+                </div>
 
                 {/* Health Conditions Covered */}
-                {support.cb3c && Array.isArray(support.cb3c) && support.cb3c.length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
-                      Health Conditions Covered ({support.cb3c.length})
-                    </p>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.gray[500] }}>
+                    Health Conditions Covered {support.cb3c && Array.isArray(support.cb3c) && support.cb3c.length > 0 ? `(${support.cb3c.length})` : ''}
+                    <span className="ml-2 text-xs font-normal text-indigo-500">(Breadth component)</span>
+                  </p>
+                  {support.cb3c && Array.isArray(support.cb3c) && support.cb3c.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                       {support.cb3c.map((condition: string, i: number) => (
                         <div key={i} className="flex items-center text-sm p-2 bg-gray-50 rounded" style={{ color: BRAND.gray[800] }}>
@@ -2076,8 +2113,13 @@ export default function ProfilePage() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
+                  ) : (
+                    <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <p className="text-sm text-amber-700 font-medium">None selected — this contributes to a Breadth score of 0</p>
+                      <p className="text-xs text-amber-600 mt-1">If the company covers cancer or other serious conditions, updating this response would improve their Breadth score.</p>
+                    </div>
+                  )}
+                </div>
 
                 {/* Program Development Method */}
                 {support.cb3d && Array.isArray(support.cb3d) && support.cb3d.length > 0 && (
