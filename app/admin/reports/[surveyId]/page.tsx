@@ -7776,7 +7776,7 @@ export default function ExportReportPage() {
                         </div>
                         {matrixView === 'both' ? (
                           <div className="grid grid-cols-3 gap-2 text-sm">
-                            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
+                            <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Your Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
                             <div className="bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100"><p className="text-indigo-500 text-xs font-medium">Benchmark</p><p className="font-bold text-xl text-indigo-700">{getBenchmarkScore(hoveredData.dim) ?? '—'}</p></div>
                             <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
                           </div>
