@@ -1966,114 +1966,92 @@ function getImpactRankings(dimAnalysis: any[], compositeScore: number): {
       const assessingCount = d.assessing?.length || 0;
       const notPlannedCount = d.gaps?.length || 0;
       const unsureCount = d.unsure?.length || 0;
-      const maxPoints = elementCount * 5;
-      
-      // Calculate CURRENT raw points by reversing from the actual score
-      // This ensures our projections are consistent with what's displayed
-      // For dimensions with geo multiplier: score = rawScore * geoMult
-      // For dimensions with follow-ups: score = adjustedScore * 0.85 + followUp * 0.15
+
       const geoMult = d.geoMultiplier ?? 1.0;
       const hasFollowUps = [1, 3, 12, 13].includes(d.dim);
-      
-      let currentRawScore: number;
-      if (hasFollowUps && d.followUpScore !== null && d.followUpScore !== undefined) {
-        // Reverse the blending: score = adjusted * 0.85 + followUp * 0.15
-        // adjusted = (score - followUp * 0.15) / 0.85
-        const adjustedScore = (d.score - d.followUpScore * 0.15) / 0.85;
-        currentRawScore = geoMult > 0 ? adjustedScore / geoMult : adjustedScore;
-      } else {
-        // Simple: score = rawScore * geoMult
-        currentRawScore = geoMult > 0 ? d.score / geoMult : d.score;
-      }
-      
-      // Convert to points
-      const currentRawPoints = Math.round((currentRawScore / 100) * maxPoints);
-      
+
       // Momentum indicator: does this dimension have work in flight?
       const momentum = planningCount + assessingCount;
       const hasMomentum = momentum >= 2;
-      
+
+      // Helper: compute element-weighted dim score delta for a set of transitions
+      const computeWeightedDelta = (transitions: { name: string; pointDelta: number }[]) => {
+        let delta = 0;
+        transitions.forEach(t => {
+          const ew = ELEMENT_DIM_WEIGHTS[t.name];
+          const elemWeight = ew ? ew[1] : (1 / elementCount);
+          delta += (t.pointDelta / 5) * elemWeight * 100;
+        });
+        return delta * geoMult;
+      };
+
+      // Get actual element arrays for tracking which elements transition
+      const planningElements = d.planning || [];
+      const assessingElements = d.assessing || [];
+      const gapElements = d.gaps || [];
+
       // ========================================
       // 90-DAY (QUICK WINS)
       // ========================================
       // Track 1: Accelerate
       const accel_planningToOffering = planningCount;      // All Planning → Offering (+2 pts each)
       const accel_assessingToPlanning = assessingCount;    // All Assessing → Planning (+1 pt each)
-      
+
       // Track 2: Build (conservative - just start assessing)
       const build_newToAssessing = Math.min(notPlannedCount, 2);  // Cap at 2 new starts
-      
-      const acceleratePoints = (accel_planningToOffering * 2) + (accel_assessingToPlanning * 1);
-      const buildPoints = build_newToAssessing * 2;  // 0 → Assessing = 2 pts
-      
-      const totalPointsDelta = acceleratePoints + buildPoints;
+
+      // Build element-weighted transitions for 90-day
+      const transitions90: { name: string; pointDelta: number }[] = [];
+      planningElements.forEach((el: any) => transitions90.push({ name: el.name, pointDelta: 2 }));  // Planning → Offering
+      assessingElements.forEach((el: any) => transitions90.push({ name: el.name, pointDelta: 1 }));  // Assessing → Planning
+      gapElements.slice(0, 2).forEach((el: any) => transitions90.push({ name: el.name, pointDelta: 2 }));  // Gap → Assessing
+
       const elementsProgressed = accel_planningToOffering + accel_assessingToPlanning + build_newToAssessing;
-      
+
       // ========================================
       // YEAR-1 (SUSTAINED EXECUTION)
       // ========================================
-      // Track 1: Accelerate
-      // Planning items → Offering (shown as "Implement" in UI)
       const accel12_planningToOffering = planningCount;    // All Planning → Offering (+2 pts each)
-      
-      // Assessing items → Planning (shown as "Active Planning" in UI)
-      // UI shows ALL assessing items go to Planning, not Offering
-      const assessingToOffering12 = 0;  // None go directly to Offering
-      const assessingToPlanning12 = assessingCount;  // All go to Planning
-      
-      // Track 2: Build (gaps → Planning, shown as "Design + Scope" in UI)
-      // UI shows ALL gaps go to Planning - use actual gap count, not a calculated cap
-      const build12_toOffering = 0;  // None go directly to Offering
-      const build12_toPlanning = notPlannedCount;  // All gaps go to Planning
+      const assessingToOffering12 = 0;
+      const assessingToPlanning12 = assessingCount;        // All Assessing → Planning (+1 pt each)
+      const build12_toOffering = 0;
+      const build12_toPlanning = notPlannedCount;          // All gaps → Planning (+3 pts each)
       const build12_toAssessing = 0;
-      
-      const acceleratePoints12 = 
-        (accel12_planningToOffering * 2) +           // Planning → Offering (+2 pts)
-        (assessingToOffering12 * 3) +                 // Assessing → Offering (+3 pts) - will be 0
-        (assessingToPlanning12 * 1);                  // Assessing → Planning (+1 pt)
-      
-      const buildPoints12 = 
-        (build12_toOffering * 5) +                    // 0 → Offering (5 pts) - will be 0
-        (build12_toPlanning * 3) +                    // 0 → Planning (3 pts)
-        (build12_toAssessing * 2);                    // 0 → Assessing (2 pts) - will be 0
-      
-      const totalPointsDelta12 = acceleratePoints12 + buildPoints12;
-      const elementsProgressed12 = 
-        accel12_planningToOffering + 
-        assessingToOffering12 + assessingToPlanning12 + 
+
+      // Build element-weighted transitions for Year-1
+      const transitions12: { name: string; pointDelta: number }[] = [];
+      planningElements.forEach((el: any) => transitions12.push({ name: el.name, pointDelta: 2 }));  // Planning → Offering
+      assessingElements.forEach((el: any) => transitions12.push({ name: el.name, pointDelta: 1 }));  // Assessing → Planning
+      gapElements.forEach((el: any) => transitions12.push({ name: el.name, pointDelta: 3 }));  // Gap → Planning
+
+      const elementsProgressed12 =
+        accel12_planningToOffering +
+        assessingToOffering12 + assessingToPlanning12 +
         build12_toOffering + build12_toPlanning + build12_toAssessing;
-      
+
       // ========================================
-      // SCORE CALCULATIONS (with geo multiplier & follow-ups)
+      // SCORE CALCULATIONS (element-weighted with geo & follow-ups)
       // ========================================
-      // geoMult and hasFollowUps already defined above when calculating currentRawPoints
-      
+
       // 90-day projected
-      const projectedRawPoints = currentRawPoints + totalPointsDelta;
-      const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
-      const projectedAdjustedScore = Math.round(projectedRawScore * geoMult);
-      
-      // For follow-up dimensions, blend with existing follow-up score (which doesn't change)
-      // Follow-up weighting: 85% grid score + 15% follow-up score
+      const dimDelta90 = computeWeightedDelta(transitions90);
       let projectedScore: number;
       if (hasFollowUps && d.followUpScore !== null && d.followUpScore !== undefined) {
-        projectedScore = Math.round(projectedAdjustedScore * 0.85 + d.followUpScore * 0.15);
+        // Delta only affects the grid portion (85% of blended score)
+        projectedScore = Math.round(d.score + dimDelta90 * 0.85);
       } else {
-        projectedScore = projectedAdjustedScore;
+        projectedScore = Math.round(d.score + dimDelta90);
       }
       projectedScore = Math.min(100, Math.max(projectedScore, d.score));
       const dimPotentialGain = projectedScore - d.score;
-      
+
       // Year-1 projected
-      const projectedRawPoints12 = currentRawPoints + totalPointsDelta12;
-      const projectedRawScore12 = maxPoints > 0 ? Math.round((projectedRawPoints12 / maxPoints) * 100) : 0;
-      const projectedAdjustedScore12 = Math.round(projectedRawScore12 * geoMult);
-      
+      const dimDelta12 = computeWeightedDelta(transitions12);
       let projectedScore12: number;
       if (hasFollowUps && d.followUpScore !== null && d.followUpScore !== undefined) {
-        projectedScore12 = Math.round(projectedAdjustedScore12 * 0.85 + d.followUpScore * 0.15);
+        projectedScore12 = Math.round(d.score + dimDelta12 * 0.85);
       } else {
-        projectedScore12 = projectedAdjustedScore12;
+        projectedScore12 = Math.round(d.score + dimDelta12);
       }
       projectedScore12 = Math.min(100, Math.max(projectedScore12, d.score));
       const dimPotentialGain12 = projectedScore12 - d.score;
@@ -8303,57 +8281,59 @@ export default function ExportReportPage() {
                     return 'not_able';
                   };
                   
-                  const maxPoints = dimElements.length * 5;
-                  
-                  // Derive current raw points from actual score (same as Impact-Ranked)
-                  // This ensures consistency between What-If and Impact-Ranked projections
                   const originalGeoMult = dimInfo?.geoMultiplier ?? 1.0;
                   const projectedGeoMult = whatIfGeoOverride !== null ? whatIfGeoOverride : originalGeoMult;
                   const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
 
-                  let currentRawScore: number;
-                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                    const adjustedScore = (actualDimScore - dimInfo.followUpScore * 0.15) / 0.85;
-                    currentRawScore = originalGeoMult > 0 ? adjustedScore / originalGeoMult : adjustedScore;
-                  } else {
-                    currentRawScore = originalGeoMult > 0 ? actualDimScore / originalGeoMult : actualDimScore;
-                  }
-                  const currentRawPoints = Math.round((currentRawScore / 100) * maxPoints);
-                  
-                  // Calculate the DELTA in points from user's changes
-                  const getPointDelta = (el: any) => {
-                    const newStatus = whatIfChanges[el.name];
-                    if (!newStatus) return 0; // No change
-                    const currentStatus = getStatusFromElement(el);
-                    const currentPts = STATUS_POINTS[currentStatus] ?? 0;
-                    const newPts = STATUS_POINTS[newStatus] ?? 0;
-                    return newPts - currentPts;
-                  };
-                  
-                  const totalPointsDelta = dimElements.reduce((sum: number, el: any) => sum + getPointDelta(el), 0);
-                  const projectedRawPoints = currentRawPoints + totalPointsDelta;
-                  
                   // Calculate projected points with changes (for display purposes)
                   const getNewPoints = (el: any) => {
                     const newStatus = whatIfChanges[el.name];
                     if (newStatus) return STATUS_POINTS[newStatus];
-                    // If no selection made, use current status (no change)
                     const currentStatus = getStatusFromElement(el);
                     return STATUS_POINTS[currentStatus] ?? 0;
                   };
-                  
-                  // Calculate projected dimension score with geo multiplier and follow-up blending
-                  // projectedRawPoints already calculated above using delta approach
-                  const projectedRawScore = maxPoints > 0 ? Math.round((projectedRawPoints / maxPoints) * 100) : 0;
-                  const projectedAdjustedScore = Math.round(projectedRawScore * projectedGeoMult);
-                  
-                  // For follow-up dimensions, blend with existing follow-up score
-                  // Follow-up weighting: 85% grid score + 15% follow-up score
+
+                  // Compute projected score delta using element weights
+                  let projectedDimDelta = 0;
+                  dimElements.forEach((el: any) => {
+                    const newStatus = whatIfChanges[el.name];
+                    if (!newStatus) return;
+                    const currentStatus = getStatusFromElement(el);
+                    const currentPts = STATUS_POINTS[currentStatus] ?? 0;
+                    const newPts = STATUS_POINTS[newStatus] ?? 0;
+                    const pointDelta = newPts - currentPts;
+                    if (pointDelta === 0) return;
+
+                    const ew = ELEMENT_DIM_WEIGHTS[el.name];
+                    const elemWeight = ew ? ew[1] : (1 / dimElements.length);
+                    projectedDimDelta += (pointDelta / 5) * elemWeight * 100;
+                  });
+
+                  // Apply geo multiplier and follow-up blending
                   let projectedDimScore: number;
-                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                    projectedDimScore = Math.round(projectedAdjustedScore * 0.85 + dimInfo.followUpScore * 0.15);
+                  if (whatIfGeoOverride !== null && whatIfGeoOverride !== originalGeoMult) {
+                    // Geo changed — reverse out old geo from base, apply new geo to (base + delta)
+                    let rawPreGeo: number;
+                    if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                      rawPreGeo = (actualDimScore - dimInfo.followUpScore * 0.15) / 0.85 / originalGeoMult;
+                    } else {
+                      rawPreGeo = originalGeoMult > 0 ? actualDimScore / originalGeoMult : actualDimScore;
+                    }
+                    const newRaw = rawPreGeo + projectedDimDelta;
+                    const newAdjusted = Math.round(newRaw * projectedGeoMult);
+                    if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                      projectedDimScore = Math.round(newAdjusted * 0.85 + dimInfo.followUpScore * 0.15);
+                    } else {
+                      projectedDimScore = newAdjusted;
+                    }
                   } else {
-                    projectedDimScore = projectedAdjustedScore;
+                    // Geo unchanged — simple delta addition
+                    const adjustedDelta = projectedDimDelta * projectedGeoMult;
+                    if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                      projectedDimScore = Math.round(actualDimScore + adjustedDelta * 0.85);
+                    } else {
+                      projectedDimScore = Math.round(actualDimScore + adjustedDelta);
+                    }
                   }
                   projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
                   
@@ -9602,7 +9582,6 @@ export default function ExportReportPage() {
                       const dimBench = elementBenchmarks[d.dim] || {};
                       const geoMult = d.geoMultiplier ?? 1.0;
                       const elementCount = d.elements?.length || 1;
-                      const maxPoints = elementCount * 5;
                       const dimWeightPct = d.weightPct || Math.round((d.weight / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0)) * 100);
 
                       // Enrich elements with peer data
@@ -9620,14 +9599,24 @@ export default function ExportReportPage() {
                       const unsure = enriched.filter((el: any) => el.isUnsure);
                       const allGaps = [...tableStakes, ...differentiators].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
 
-                      // Per-element composite impact
-                      const perElementDimGain = maxPoints > 0 ? Math.round((5 / maxPoints) * 100 * geoMult) : 0;
-                      const perElementCompositeGain = Math.round(perElementDimGain * dimWeightPct / 100 * 0.9 * 10) / 10;
-                      const totalActionable = inMotion.length + allGaps.length;
-                      const totalCompositeGain = Math.round(totalActionable * perElementCompositeGain * 10) / 10;
+                      // Per-element impact using element weights (not equal weighting)
+                      const actionableElements = [...inMotion, ...allGaps];
+                      let totalDimGainWeighted = 0;
+                      actionableElements.forEach((el: any) => {
+                        const ew = ELEMENT_DIM_WEIGHTS[el.name];
+                        const currentPts = el.isPlanning ? 3 : el.isAssessing ? 2 : 0;
+                        const pointGain = 5 - currentPts;
+                        const elemWeight = ew ? ew[1] : (1 / enriched.length);
+                        totalDimGainWeighted += (pointGain / 5) * elemWeight * 100 * geoMult;
+                      });
+                      totalDimGainWeighted = Math.round(totalDimGainWeighted);
+
+                      const totalActionable = actionableElements.length;
+                      const perElementCompositeGain = totalActionable > 0 ? Math.round((totalDimGainWeighted / totalActionable) * dimWeightPct / 100 * 0.9 * 10) / 10 : 0;
+                      const totalCompositeGain = Math.round(totalDimGainWeighted * dimWeightPct / 100 * 0.9 * 10) / 10;
 
                       // Projected dimension score and tier
-                      const projectedDimScore = Math.min(100, d.score + (totalActionable * perElementDimGain));
+                      const projectedDimScore = Math.min(100, d.score + totalDimGainWeighted);
                       const projectedTier = getWSITier(projectedDimScore);
                       const currentTier = getWSITier(d.score);
                       const tierShift = projectedTier.name !== currentTier.name;
@@ -9816,7 +9805,21 @@ export default function ExportReportPage() {
 
                           {/* === THE IMPACT === */}
                           <p className="text-base font-semibold text-slate-700 mt-6 pt-4 border-t border-slate-200">
-                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute an estimated +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
+                            {(() => {
+                              let actionStepGain = 0;
+                              actionSteps.forEach((step: any) => {
+                                if (!step.element) return;
+                                const ew = ELEMENT_DIM_WEIGHTS[step.element];
+                                const elemWeight = ew ? ew[1] : (1 / enriched.length);
+                                const el = enriched.find((e: any) => e.name === step.element);
+                                const currentPts = el?.isPlanning ? 3 : el?.isAssessing ? 2 : el?.isStrength ? 5 : 0;
+                                const pointGain = 5 - currentPts;
+                                actionStepGain += (pointGain / 5) * elemWeight * 100 * geoMult;
+                              });
+                              const projScore = Math.min(100, Math.round(d.score + actionStepGain));
+                              const compGain = Math.round(actionStepGain * dimWeightPct / 100 * 0.9 * 10) / 10;
+                              return 'If ' + companyName + ' implements these ' + actionSteps.length + ' changes, the projected effect on this dimension is an increase from ' + d.score + ' to approximately ' + projScore + '. This would also contribute an estimated +' + compGain + ' points to the overall Composite Score.';
+                            })()}
                           </p>
 
                           {/* === PENDING CONFIRMATIONS === */}
@@ -9950,7 +9953,6 @@ export default function ExportReportPage() {
                       const dimBench = elementBenchmarks[d.dim] || {};
                       const geoMult = d.geoMultiplier ?? 1.0;
                       const elementCount = d.elements?.length || 1;
-                      const maxPoints = elementCount * 5;
                       const dimWeightPct = d.weightPct || Math.round((d.weight / Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0)) * 100);
 
                       // Enrich elements with peer data
@@ -9968,14 +9970,24 @@ export default function ExportReportPage() {
                       const unsure = enriched.filter((el: any) => el.isUnsure);
                       const allGaps = [...tableStakes, ...differentiators].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
 
-                      // Per-element composite impact
-                      const perElementDimGain = maxPoints > 0 ? Math.round((5 / maxPoints) * 100 * geoMult) : 0;
-                      const perElementCompositeGain = Math.round(perElementDimGain * dimWeightPct / 100 * 0.9 * 10) / 10;
-                      const totalActionable = inMotion.length + allGaps.length;
-                      const totalCompositeGain = Math.round(totalActionable * perElementCompositeGain * 10) / 10;
+                      // Per-element impact using element weights (not equal weighting)
+                      const actionableElements = [...inMotion, ...allGaps];
+                      let totalDimGainWeighted = 0;
+                      actionableElements.forEach((el: any) => {
+                        const ew = ELEMENT_DIM_WEIGHTS[el.name];
+                        const currentPts = el.isPlanning ? 3 : el.isAssessing ? 2 : 0;
+                        const pointGain = 5 - currentPts;
+                        const elemWeight = ew ? ew[1] : (1 / enriched.length);
+                        totalDimGainWeighted += (pointGain / 5) * elemWeight * 100 * geoMult;
+                      });
+                      totalDimGainWeighted = Math.round(totalDimGainWeighted);
+
+                      const totalActionable = actionableElements.length;
+                      const perElementCompositeGain = totalActionable > 0 ? Math.round((totalDimGainWeighted / totalActionable) * dimWeightPct / 100 * 0.9 * 10) / 10 : 0;
+                      const totalCompositeGain = Math.round(totalDimGainWeighted * dimWeightPct / 100 * 0.9 * 10) / 10;
 
                       // Projected dimension score and tier
-                      const projectedDimScore = Math.min(100, d.score + (totalActionable * perElementDimGain));
+                      const projectedDimScore = Math.min(100, d.score + totalDimGainWeighted);
                       const projectedTier = getWSITier(projectedDimScore);
                       const currentTier = getWSITier(d.score);
                       const tierShift = projectedTier.name !== currentTier.name;
@@ -10168,7 +10180,21 @@ export default function ExportReportPage() {
 
                           {/* === THE IMPACT === */}
                           <p className="text-base font-semibold text-slate-700 mt-6 pt-4 border-t border-slate-200">
-                            If {companyName} implements these {actionSteps.length} changes, the projected effect on this dimension is an increase from {d.score} to approximately {Math.min(100, d.score + actionSteps.length * perElementDimGain)}. This would also contribute an estimated +{Math.round(actionSteps.length * perElementCompositeGain * 10) / 10} points to the overall Composite Score.
+                            {(() => {
+                              let actionStepGain = 0;
+                              actionSteps.forEach((step: any) => {
+                                if (!step.element) return;
+                                const ew = ELEMENT_DIM_WEIGHTS[step.element];
+                                const elemWeight = ew ? ew[1] : (1 / enriched.length);
+                                const el = enriched.find((e: any) => e.name === step.element);
+                                const currentPts = el?.isPlanning ? 3 : el?.isAssessing ? 2 : el?.isStrength ? 5 : 0;
+                                const pointGain = 5 - currentPts;
+                                actionStepGain += (pointGain / 5) * elemWeight * 100 * geoMult;
+                              });
+                              const projScore = Math.min(100, Math.round(d.score + actionStepGain));
+                              const compGain = Math.round(actionStepGain * dimWeightPct / 100 * 0.9 * 10) / 10;
+                              return 'If ' + companyName + ' implements these ' + actionSteps.length + ' changes, the projected effect on this dimension is an increase from ' + d.score + ' to approximately ' + projScore + '. This would also contribute an estimated +' + compGain + ' points to the overall Composite Score.';
+                            })()}
                           </p>
 
                           {/* === PENDING CONFIRMATIONS === */}
