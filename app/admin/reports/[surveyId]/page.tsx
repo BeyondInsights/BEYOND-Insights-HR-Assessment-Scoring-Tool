@@ -7483,19 +7483,22 @@ export default function ExportReportPage() {
                   return benchmarks.dimensionScores[`d${dimNum}`] || benchmarks.dimensionScores[dimNum] || null;
                 };
 
-                // Dynamic x-axis midpoint: benchmark mean (so dims split relative to cohort average)
+                // Dynamic x-axis: center benchmark mean in the plot for equal quadrants
                 const benchScoresForMid = dimensionAnalysis.map((d: any) => d.benchmark).filter((b: any): b is number => b !== null && b !== undefined);
-                const xAxisMidpoint = benchScoresForMid.length > 0
+                const benchMean = benchScoresForMid.length > 0
                   ? Math.round(benchScoresForMid.reduce((a: number, b: number) => a + b, 0) / benchScoresForMid.length)
-                  : 50;
-                const xDividerFrac = xAxisMidpoint / 100;
+                  : 60;
+                const xMax = 100;
+                const xAxisMin = Math.floor(Math.max(0, benchMean - (xMax - benchMean)) / 5) * 5;
+                const xRange = xMax - xAxisMin;
+                const mapScoreToX = (score: number) => ((score - xAxisMin) / xRange) * PLOT_WIDTH;
 
                 // Detect overlap clusters (no nudging - dots stay at true positions)
                 const getOverlapClusters = () => {
                   const OVERLAP_DIST = 18;
                   const positions = dimensionAnalysis.map((d) => ({
                     dim: d.dim,
-                    x: (d.score / 100) * PLOT_WIDTH,
+                    x: mapScoreToX(d.score),
                     y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                   }));
                   const visited = new Set<number>();
@@ -7520,7 +7523,7 @@ export default function ExportReportPage() {
                 const presOverlapClusters = getOverlapClusters();
                 
                 const getBubblePosition = (d: any) => {
-                  const xPercent = (MARGIN.left + (d.score / 100) * PLOT_WIDTH) / CHART_WIDTH * 100;
+                  const xPercent = (MARGIN.left + mapScoreToX(d.score)) / CHART_WIDTH * 100;
                   const yPercent = (MARGIN.top + (PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT))) / CHART_HEIGHT * 100;
                   return { xPercent, yPercent };
                 };
@@ -7552,10 +7555,9 @@ export default function ExportReportPage() {
                           <stop offset="100%" stopColor="#f5f5f5" />
                         </linearGradient>
                         <linearGradient id="xAxisArrowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#EF4444" />
-                          <stop offset="35%" stopColor="#F59E0B" />
-                          <stop offset="65%" stopColor="#3B82F6" />
-                          <stop offset="100%" stopColor="#10B981" />
+                          <stop offset="0%" stopColor="#CBD5E1" />
+                          <stop offset="50%" stopColor="#64748B" />
+                          <stop offset="100%" stopColor="#1E3A5F" />
                         </linearGradient>
                       </defs>
                       
@@ -7564,25 +7566,25 @@ export default function ExportReportPage() {
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
                         {/* Priority Gaps (top-left) — faint amber */}
-                        <rect x={0} y={0} width={PLOT_WIDTH * xDividerFrac} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
                         {/* Priority Strengths (top-right) — faint blue */}
-                        <rect x={PLOT_WIDTH * xDividerFrac} y={0} width={PLOT_WIDTH * (1 - xDividerFrac)} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
                         {/* Secondary Gaps (bottom-left) — barely there warm */}
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH * xDividerFrac} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
                         {/* Secondary Strengths (bottom-right) — barely there cool */}
-                        <rect x={PLOT_WIDTH * xDividerFrac} y={PLOT_HEIGHT/2} width={PLOT_WIDTH * (1 - xDividerFrac)} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
 
                         {/* Quadrant labels — centered in each quadrant */}
-                        <text x={PLOT_WIDTH * xDividerFrac / 2} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * xDividerFrac + PLOT_WIDTH * (1 - xDividerFrac) / 2} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * xDividerFrac / 2} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * xDividerFrac + PLOT_WIDTH * (1 - xDividerFrac) / 2} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY STRENGTHS</text>
+                        <text x={PLOT_WIDTH/4} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * 3/4} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
-                        {dimensionAnalysis.some(d => d.score < xAxisMidpoint && d.weight >= (MAX_WEIGHT / 2)) && (
+                        {dimensionAnalysis.some(d => d.score < benchMean && d.weight >= (MAX_WEIGHT / 2)) && (
                           <rect
                             x={1} y={1}
-                            width={PLOT_WIDTH * xDividerFrac - 2} height={PLOT_HEIGHT/2 - 2}
+                            width={PLOT_WIDTH/2 - 2} height={PLOT_HEIGHT/2 - 2}
                             fill="none"
                             stroke="#B45309"
                             strokeWidth="2"
@@ -7596,7 +7598,7 @@ export default function ExportReportPage() {
 
                         {/* Grid lines - SOLID */}
                         <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1.5" />
-                        <line x1={PLOT_WIDTH * xDividerFrac} y1={0} x2={PLOT_WIDTH * xDividerFrac} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" />
+                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" />
 
                         {/* Border */}
                         <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#64748B" strokeWidth="2" rx="4" />
@@ -7604,9 +7606,9 @@ export default function ExportReportPage() {
                         {/* X-axis — gradient arrow bar */}
                         <g transform={`translate(0, ${PLOT_HEIGHT + 10})`}>
                           <rect x={0} y={-3} width={PLOT_WIDTH - 12} height={6} rx="3" fill="url(#xAxisArrowGrad)" opacity="0.85" />
-                          <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#10B981" opacity="0.85" />
-                          <text x={4} y={18} fill="#EF4444" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
-                          <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#10B981" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
+                          <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#1E3A5F" opacity="0.85" />
+                          <text x={4} y={18} fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
+                          <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#1E3A5F" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                           <text x={PLOT_WIDTH/2} y={36} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
                         </g>
 
@@ -7631,7 +7633,7 @@ export default function ExportReportPage() {
                             const bs = getBenchmarkScore(d.dim)!;
                             return {
                               dim: d.dim,
-                              x: (bs / 100) * PLOT_WIDTH,
+                              x: mapScoreToX(bs),
                               y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                             };
                           });
@@ -7683,7 +7685,7 @@ export default function ExportReportPage() {
                         
                         {/* Data points - Company scores at true positions with Employee Priority ring */}
                         {(matrixView === 'company' || matrixView === 'both') && [...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d) => {
-                          const xPos = (d.score / 100) * PLOT_WIDTH;
+                          const xPos = mapScoreToX(d.score);
                           const yPos = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                           const isHovered = hoveredMatrixDim === d.dim;
                           const epRing = getEmployeePriorityGroup(d.weight);
@@ -12594,14 +12596,15 @@ export default function ExportReportPage() {
                       const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                       const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
 
-                      // Dynamic x-axis midpoint: benchmark mean
+                      // Dynamic x-axis: center benchmark mean for equal quadrants
                       const benchScoresForMid18 = dimensionAnalysis.map((d: any) => d.benchmark).filter((b: any): b is number => b !== null && b !== undefined);
-                      const xAxisMidpoint18 = benchScoresForMid18.length > 0
+                      const benchMean18 = benchScoresForMid18.length > 0
                         ? Math.round(benchScoresForMid18.reduce((a: number, b: number) => a + b, 0) / benchScoresForMid18.length)
-                        : 50;
-                      const xDividerFrac18 = xAxisMidpoint18 / 100;
-                      const LEFT_W18 = PLOT_WIDTH * xDividerFrac18;
-                      const RIGHT_W18 = PLOT_WIDTH * (1 - xDividerFrac18);
+                        : 60;
+                      const xMax18 = 100;
+                      const xAxisMin18 = Math.floor(Math.max(0, benchMean18 - (xMax18 - benchMean18)) / 5) * 5;
+                      const xRange18 = xMax18 - xAxisMin18;
+                      const mapX18 = (score: number) => ((score - xAxisMin18) / xRange18) * PLOT_WIDTH;
 
                       return (
                         <div className="flex flex-col items-center">
@@ -12611,47 +12614,46 @@ export default function ExportReportPage() {
                                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
                               </filter>
                               <linearGradient id="xAxisArrowGrad18" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#EF4444" />
-                                <stop offset="35%" stopColor="#F59E0B" />
-                                <stop offset="65%" stopColor="#3B82F6" />
-                                <stop offset="100%" stopColor="#10B981" />
+                                <stop offset="0%" stopColor="#CBD5E1" />
+                                <stop offset="50%" stopColor="#64748B" />
+                                <stop offset="100%" stopColor="#1E3A5F" />
                               </linearGradient>
                             </defs>
 
                             <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                               {/* Top labels */}
-                              <rect x={0} y={-28} width={LEFT_W18 - 2} height={24} rx="4" fill="#EF4444" />
-                              <text x={LEFT_W18 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
+                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
+                              <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
 
-                              <rect x={LEFT_W18 + 2} y={-28} width={RIGHT_W18 - 2} height={24} rx="4" fill="#10B981" />
-                              <text x={LEFT_W18 + RIGHT_W18 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
+                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
+                              <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
 
                               {/* Quadrant backgrounds - subtle professional tones */}
-                              <rect x={0} y={0} width={LEFT_W18} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
-                              <rect x={LEFT_W18} y={0} width={RIGHT_W18} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={LEFT_W18} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
-                              <rect x={LEFT_W18} y={PLOT_HEIGHT/2} width={RIGHT_W18} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
+                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
+                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
+                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
 
                               {/* Grid lines - solid */}
                               <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
-                              <line x1={LEFT_W18} y1={0} x2={LEFT_W18} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
+                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
 
                               {/* Border */}
                               <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
 
                               {/* Bottom labels */}
-                              <rect x={0} y={PLOT_HEIGHT + 4} width={LEFT_W18 - 2} height={24} rx="4" fill="#6B7280" />
-                              <text x={LEFT_W18 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
+                              <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#6B7280" />
+                              <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
 
-                              <rect x={LEFT_W18 + 2} y={PLOT_HEIGHT + 4} width={RIGHT_W18 - 2} height={24} rx="4" fill="#3B82F6" />
-                              <text x={LEFT_W18 + RIGHT_W18 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
+                              <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#3B82F6" />
+                              <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
 
                               {/* X-axis: gradient arrow bar */}
                               <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
                                 <rect x={0} y={-3} width={PLOT_WIDTH - 12} height={6} rx="3" fill="url(#xAxisArrowGrad18)" opacity="0.85" />
-                                <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#10B981" opacity="0.85" />
-                                <text x={4} y={18} fill="#EF4444" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
-                                <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#10B981" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
+                                <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#1E3A5F" opacity="0.85" />
+                                <text x={4} y={18} fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
+                                <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#1E3A5F" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                                 <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
                               </g>
 
@@ -12669,7 +12671,7 @@ export default function ExportReportPage() {
                                 const OVERLAP_DIST = 18;
                                 const positions = dimensionAnalysis.map((d: any) => ({
                                   dim: d.dim,
-                                  x: (d.score / 100) * PLOT_WIDTH,
+                                  x: mapX18(d.score),
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                                 }));
                                 // Detect clusters
@@ -12690,7 +12692,7 @@ export default function ExportReportPage() {
                                 return (
                                   <>
                                     {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => {
-                                      const x = (d.score / 100) * PLOT_WIDTH;
+                                      const x = mapX18(d.score);
                                       const y = PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT);
                                       const epRing = getEmployeePriorityGroup(d.weight);
                                       return (
@@ -12772,14 +12774,15 @@ export default function ExportReportPage() {
                       const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                       const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
 
-                      // Dynamic x-axis midpoint: benchmark mean
+                      // Dynamic x-axis: center benchmark mean for equal quadrants
                       const benchScoresForMid19 = dimensionAnalysis.map((d: any) => d.benchmark).filter((b: any): b is number => b !== null && b !== undefined);
-                      const xAxisMidpoint19 = benchScoresForMid19.length > 0
+                      const benchMean19 = benchScoresForMid19.length > 0
                         ? Math.round(benchScoresForMid19.reduce((a: number, b: number) => a + b, 0) / benchScoresForMid19.length)
-                        : 50;
-                      const xDividerFrac19 = xAxisMidpoint19 / 100;
-                      const LEFT_W19 = PLOT_WIDTH * xDividerFrac19;
-                      const RIGHT_W19 = PLOT_WIDTH * (1 - xDividerFrac19);
+                        : 60;
+                      const xMax19 = 100;
+                      const xAxisMin19 = Math.floor(Math.max(0, benchMean19 - (xMax19 - benchMean19)) / 5) * 5;
+                      const xRange19 = xMax19 - xAxisMin19;
+                      const mapX19 = (score: number) => ((score - xAxisMin19) / xRange19) * PLOT_WIDTH;
 
                       return (
                         <div className="flex flex-col items-center">
@@ -12789,47 +12792,46 @@ export default function ExportReportPage() {
                                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
                               </filter>
                               <linearGradient id="xAxisArrowGrad19" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#EF4444" />
-                                <stop offset="35%" stopColor="#F59E0B" />
-                                <stop offset="65%" stopColor="#3B82F6" />
-                                <stop offset="100%" stopColor="#10B981" />
+                                <stop offset="0%" stopColor="#CBD5E1" />
+                                <stop offset="50%" stopColor="#64748B" />
+                                <stop offset="100%" stopColor="#1E3A5F" />
                               </linearGradient>
                             </defs>
 
                             <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                               {/* Top labels */}
-                              <rect x={0} y={-28} width={LEFT_W19 - 2} height={24} rx="4" fill="#EF4444" />
-                              <text x={LEFT_W19 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
+                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
+                              <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
 
-                              <rect x={LEFT_W19 + 2} y={-28} width={RIGHT_W19 - 2} height={24} rx="4" fill="#10B981" />
-                              <text x={LEFT_W19 + RIGHT_W19 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
+                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
+                              <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
 
                               {/* Quadrant backgrounds - subtle professional tones */}
-                              <rect x={0} y={0} width={LEFT_W19} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
-                              <rect x={LEFT_W19} y={0} width={RIGHT_W19} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={LEFT_W19} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
-                              <rect x={LEFT_W19} y={PLOT_HEIGHT/2} width={RIGHT_W19} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
+                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
+                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
+                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
 
                               {/* Grid lines - solid */}
                               <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
-                              <line x1={LEFT_W19} y1={0} x2={LEFT_W19} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
+                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
 
                               {/* Border */}
                               <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
 
                               {/* Bottom labels */}
-                              <rect x={0} y={PLOT_HEIGHT + 4} width={LEFT_W19 - 2} height={24} rx="4" fill="#6B7280" />
-                              <text x={LEFT_W19 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
+                              <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#6B7280" />
+                              <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
 
-                              <rect x={LEFT_W19 + 2} y={PLOT_HEIGHT + 4} width={RIGHT_W19 - 2} height={24} rx="4" fill="#3B82F6" />
-                              <text x={LEFT_W19 + RIGHT_W19 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
+                              <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#3B82F6" />
+                              <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
 
                               {/* X-axis: gradient arrow bar */}
                               <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
                                 <rect x={0} y={-3} width={PLOT_WIDTH - 12} height={6} rx="3" fill="url(#xAxisArrowGrad19)" opacity="0.85" />
-                                <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#10B981" opacity="0.85" />
-                                <text x={4} y={18} fill="#EF4444" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
-                                <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#10B981" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
+                                <polygon points={`${PLOT_WIDTH - 14},-7 ${PLOT_WIDTH + 2},0 ${PLOT_WIDTH - 14},7`} fill="#1E3A5F" opacity="0.85" />
+                                <text x={4} y={18} fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
+                                <text x={PLOT_WIDTH - 4} y={18} textAnchor="end" fill="#1E3A5F" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                                 <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
                               </g>
 
@@ -12841,13 +12843,13 @@ export default function ExportReportPage() {
                                 );
                               })}
                               <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-45" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION IMPACT WEIGHT ↑</text>
-                              
+
                               {/* Benchmark circles (dashed) at true positions + overlap indicators */}
                               {(() => {
                                 const benchDims = dimensionAnalysis.filter((d: any) => d.benchmark !== null && d.benchmark !== undefined);
                                 const benchPositions = benchDims.map((d: any) => ({
                                   dim: d.dim,
-                                  x: (d.benchmark / 100) * PLOT_WIDTH,
+                                  x: mapX19(d.benchmark),
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                                 }));
                                 const bVisited = new Set<number>();
@@ -12896,7 +12898,7 @@ export default function ExportReportPage() {
                                 const OVERLAP_DIST = 18;
                                 const positions = dimensionAnalysis.map((d: any) => ({
                                   dim: d.dim,
-                                  x: (d.score / 100) * PLOT_WIDTH,
+                                  x: mapX19(d.score),
                                   y: PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT),
                                 }));
                                 const visited = new Set<number>();
@@ -12918,7 +12920,7 @@ export default function ExportReportPage() {
                                     {[...dimensionAnalysis].sort((a, b) => a.dim - b.dim).map((d: any) => {
                                       const epRing = getEmployeePriorityGroup(d.weight);
                                       return (
-                                      <g key={d.dim} transform={`translate(${(d.score / 100) * PLOT_WIDTH}, ${PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT)})`}>
+                                      <g key={d.dim} transform={`translate(${mapX19(d.score)}, ${PLOT_HEIGHT - ((Math.min(d.weight, MAX_WEIGHT) / MAX_WEIGHT) * PLOT_HEIGHT)})`}>
                                         <circle r={21} fill="none" stroke={epRing.ringColor} strokeWidth="3" />
                                         <circle r={18} fill="white" filter="url(#dropShadow19)" />
                                         <circle r={15} fill={getScoreColor(d.score)} />
