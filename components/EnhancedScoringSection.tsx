@@ -27,6 +27,16 @@ import {
   DIMENSION_NAMES,
   DIMENSION_WEIGHTS,
 } from '@/lib/enhanced-scoring';
+import { calculateElementWeightedDimScore } from '@/lib/wsi-scoring';
+
+// Elements added in the app but not in the original survey — exclude from scoring
+const APP_ONLY_EXCLUDED_ITEMS: Record<number, string[]> = {
+  1: ['Full salary (100%) continuation during cancer-related short-term disability leave'],
+  9: ['Executive-led town halls focused on health benefits and employee support'],
+  10: ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'],
+  12: ['Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)'],
+  13: ['Cancer awareness month campaigns with resources'],
+};
 
 // ============================================
 // CANONICAL WEIGHTS - 90/5/5 MODEL (matches scoring page)
@@ -212,7 +222,23 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
   const enhancedScore = useMemo(() => {
     return calculateEnhancedScore(assessment);
   }, [assessment]);
-  
+
+  // Compute element-weighted (WSI) dimension scores for the detail table
+  const wsiDimScores = useMemo(() => {
+    const scores: Record<number, { rawScore: number; adjustedScore: number }> = {};
+    for (let dim = 1; dim <= 13; dim++) {
+      const mainGrid = assessment?.[`dimension${dim}_data`]?.[`d${dim}a`];
+      if (!mainGrid || typeof mainGrid !== 'object') continue;
+      const excludedItems = APP_ONLY_EXCLUDED_ITEMS[dim] || [];
+      const wsiResult = calculateElementWeightedDimScore(dim, mainGrid, excludedItems);
+      const rawScore = wsiResult.score;
+      // Apply geo multiplier from enhanced-scoring result
+      const geoMult = enhancedScore.dimensionScores?.[dim]?.geoMultiplier ?? 1.0;
+      scores[dim] = { rawScore, adjustedScore: Math.round(rawScore * geoMult) };
+    }
+    return scores;
+  }, [assessment, enhancedScore]);
+
   if (enhancedScore.completedDimensions === 0) {
     return (
       <div className="bg-gray-50 rounded-xl p-6 text-center">
@@ -414,7 +440,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
                       </td>
                       <td className="px-2 py-2 text-center text-gray-500 text-xs">{weight}%</td>
                       <td className="px-2 py-2 text-center">
-                        {hasData ? <span className="text-gray-600">{safeNumber(score.rawScore)}</span> : <span className="text-gray-400">—</span>}
+                        {hasData ? <span className="text-gray-600">{wsiDimScores[dim]?.rawScore ?? safeNumber(score.rawScore)}</span> : <span className="text-gray-400">—</span>}
                       </td>
                       <td className="px-2 py-2 text-center text-xs">
                         {hasData && score.geoMultiplier < 1 ? (
@@ -425,8 +451,8 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
                       </td>
                       <td className="px-2 py-2 text-center">
                         {hasData ? (
-                          <span className="font-bold" style={{ color: getScoreColor(safeNumber(score.adjustedScore)) }}>
-                            {safeNumber(score.adjustedScore)}
+                          <span className="font-bold" style={{ color: getScoreColor(wsiDimScores[dim]?.adjustedScore ?? safeNumber(score.adjustedScore)) }}>
+                            {wsiDimScores[dim]?.adjustedScore ?? safeNumber(score.adjustedScore)}
                           </span>
                         ) : <span className="text-gray-400">—</span>}
                       </td>
