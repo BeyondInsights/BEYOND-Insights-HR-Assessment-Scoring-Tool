@@ -7769,7 +7769,7 @@ export default function ExportReportPage() {
                       const displayScore = getDisplayScore(hoveredData);
                       const scoreLabel = matrixView === 'benchmarks' ? 'Benchmark' : 'Score';
                       return (
-                      <div className="absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 w-64 z-30 transition-opacity duration-150" style={getTooltipStyle()}>
+                      <div className={`absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-30 transition-opacity duration-150 ${matrixView === 'both' ? 'w-80' : 'w-64'}`} style={getTooltipStyle()}>
                         <div className="flex items-center gap-3 mb-3">
                           <span className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ backgroundColor: getEmployeePriorityGroup(hoveredData.weight).color }}>D{hoveredData.dim}</span>
                           <div className="flex-1"><p className="font-bold text-slate-800 text-sm leading-tight">{hoveredData.name}</p></div>
