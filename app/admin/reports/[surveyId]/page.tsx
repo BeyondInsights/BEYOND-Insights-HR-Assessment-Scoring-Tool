@@ -4722,18 +4722,11 @@ export default function ExportReportPage() {
       weightedDimScore = Math.round(weightedScore);
     }
     
-    // Maturity and breadth from enhanced-scoring (these don't involve element weights)
+    // Composite score from canonical enhanced-scoring (already uses element-weighted WSI methodology)
     const enhancedResult = calculateEnhancedScore(assessment);
+    const compositeScore = enhancedResult.isComplete ? enhancedResult.compositeScore : null;
     const maturityScore = enhancedResult.maturityScore;
     const breadthScore = enhancedResult.breadthScore;
-
-    // Composite uses element-weighted dimension scores (WSI methodology):
-    // 90% weighted dim + 5% maturity + 5% breadth
-    const compositeScore = isComplete && weightedDimScore !== null ? Math.round(
-      (weightedDimScore * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
-      (maturityScore * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
-      (breadthScore * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
-    ) : null;
     
     return { scores: { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier: compositeScore !== null ? getWSITier(compositeScore) : null }, elements: elementsByDim };
   }
