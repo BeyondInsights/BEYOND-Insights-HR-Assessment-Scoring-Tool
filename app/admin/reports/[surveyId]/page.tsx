@@ -7482,7 +7482,14 @@ export default function ExportReportPage() {
                   if (!benchmarks?.dimensionScores) return null;
                   return benchmarks.dimensionScores[`d${dimNum}`] || benchmarks.dimensionScores[dimNum] || null;
                 };
-                
+
+                // Dynamic x-axis midpoint: benchmark mean (so dims split relative to cohort average)
+                const benchScoresForMid = dimensionAnalysis.map((d: any) => d.benchmark).filter((b: any): b is number => b !== null && b !== undefined);
+                const xAxisMidpoint = benchScoresForMid.length > 0
+                  ? Math.round(benchScoresForMid.reduce((a: number, b: number) => a + b, 0) / benchScoresForMid.length)
+                  : 50;
+                const xDividerFrac = xAxisMidpoint / 100;
+
                 // Detect overlap clusters (no nudging - dots stay at true positions)
                 const getOverlapClusters = () => {
                   const OVERLAP_DIST = 18;
@@ -7551,25 +7558,25 @@ export default function ExportReportPage() {
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
                         {/* Priority Gaps (top-left) — faint amber */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
+                        <rect x={0} y={0} width={PLOT_WIDTH * xDividerFrac} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
                         {/* Priority Strengths (top-right) — faint blue */}
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
+                        <rect x={PLOT_WIDTH * xDividerFrac} y={0} width={PLOT_WIDTH * (1 - xDividerFrac)} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
                         {/* Secondary Gaps (bottom-left) — barely there warm */}
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH * xDividerFrac} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
                         {/* Secondary Strengths (bottom-right) — barely there cool */}
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
+                        <rect x={PLOT_WIDTH * xDividerFrac} y={PLOT_HEIGHT/2} width={PLOT_WIDTH * (1 - xDividerFrac)} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
 
-                        {/* Quadrant labels — top pair at top edge, bottom pair at bottom edge */}
-                        <text x={PLOT_WIDTH * 0.25} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY STRENGTHS</text>
-                        <text x={PLOT_WIDTH * 0.25} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY GAPS</text>
-                        <text x={PLOT_WIDTH * 0.75} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY STRENGTHS</text>
+                        {/* Quadrant labels — centered in each quadrant */}
+                        <text x={PLOT_WIDTH * xDividerFrac / 2} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
+                        <text x={PLOT_WIDTH * xDividerFrac + PLOT_WIDTH * (1 - xDividerFrac) / 2} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY STRENGTHS</text>
+                        <text x={PLOT_WIDTH * xDividerFrac / 2} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY GAPS</text>
+                        <text x={PLOT_WIDTH * xDividerFrac + PLOT_WIDTH * (1 - xDividerFrac) / 2} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#1E40AF" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY STRENGTHS</text>
 
                         {/* Priority Gaps emphasis glow - only if dimensions exist there */}
-                        {dimensionAnalysis.some(d => d.score < 50 && d.weight >= (MAX_WEIGHT / 2)) && (
+                        {dimensionAnalysis.some(d => d.score < xAxisMidpoint && d.weight >= (MAX_WEIGHT / 2)) && (
                           <rect
                             x={1} y={1}
-                            width={PLOT_WIDTH/2 - 2} height={PLOT_HEIGHT/2 - 2}
+                            width={PLOT_WIDTH * xDividerFrac - 2} height={PLOT_HEIGHT/2 - 2}
                             fill="none"
                             stroke="#B45309"
                             strokeWidth="2"
@@ -7583,20 +7590,18 @@ export default function ExportReportPage() {
 
                         {/* Grid lines - SOLID */}
                         <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#94A3B8" strokeWidth="1.5" />
-                        <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" />
+                        <line x1={PLOT_WIDTH * xDividerFrac} y1={0} x2={PLOT_WIDTH * xDividerFrac} y2={PLOT_HEIGHT} stroke="#94A3B8" strokeWidth="1.5" />
 
                         {/* Border */}
                         <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#64748B" strokeWidth="2" rx="4" />
 
-                        {/* X-axis */}
+                        {/* X-axis — clean arrow with Lower/Higher, no numeric ticks */}
                         <g transform={`translate(0, ${PLOT_HEIGHT + 8})`}>
-                          {[0, 25, 50, 75, 100].map((val) => (
-                            <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
-                              <line y1="0" y2="6" stroke="#64748B" strokeWidth="1.5" />
-                              <text y="20" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}</text>
-                            </g>
-                          ))}
-                          <text x={PLOT_WIDTH/2} y="40" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION SUPPORT SCORE →</text>
+                          <line x1={0} y1={0} x2={PLOT_WIDTH} y2={0} stroke="#94A3B8" strokeWidth="1.5" />
+                          <path d={`M${PLOT_WIDTH - 8},-4 L${PLOT_WIDTH + 2},0 L${PLOT_WIDTH - 8},4`} fill="#94A3B8" />
+                          <text x={10} y={18} fill="#94A3B8" fontSize="11" fontWeight="500" fontFamily="system-ui">Lower</text>
+                          <text x={PLOT_WIDTH - 10} y={18} textAnchor="end" fill="#94A3B8" fontSize="11" fontWeight="500" fontFamily="system-ui">Higher</text>
+                          <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION SUPPORT SCORE</text>
                         </g>
 
                         {/* Y-axis */}
@@ -12582,7 +12587,16 @@ export default function ExportReportPage() {
                       const MARGIN = { top: 34, right: 20, bottom: 90, left: 60 };
                       const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                       const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
-                      
+
+                      // Dynamic x-axis midpoint: benchmark mean
+                      const benchScoresForMid18 = dimensionAnalysis.map((d: any) => d.benchmark).filter((b: any): b is number => b !== null && b !== undefined);
+                      const xAxisMidpoint18 = benchScoresForMid18.length > 0
+                        ? Math.round(benchScoresForMid18.reduce((a: number, b: number) => a + b, 0) / benchScoresForMid18.length)
+                        : 50;
+                      const xDividerFrac18 = xAxisMidpoint18 / 100;
+                      const LEFT_W18 = PLOT_WIDTH * xDividerFrac18;
+                      const RIGHT_W18 = PLOT_WIDTH * (1 - xDividerFrac18);
+
                       return (
                         <div className="flex flex-col items-center">
                           <svg className="w-full max-w-5xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
@@ -12591,43 +12605,42 @@ export default function ExportReportPage() {
                                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
                               </filter>
                             </defs>
-                            
+
                             <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                               {/* Top labels */}
-                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
-                              <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
-                              
-                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
-                              <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
-                              
+                              <rect x={0} y={-28} width={LEFT_W18 - 2} height={24} rx="4" fill="#EF4444" />
+                              <text x={LEFT_W18 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
+
+                              <rect x={LEFT_W18 + 2} y={-28} width={RIGHT_W18 - 2} height={24} rx="4" fill="#10B981" />
+                              <text x={LEFT_W18 + RIGHT_W18 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
+
                               {/* Quadrant backgrounds - subtle professional tones */}
-                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
-                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
-                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
-                              
+                              <rect x={0} y={0} width={LEFT_W18} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
+                              <rect x={LEFT_W18} y={0} width={RIGHT_W18} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={LEFT_W18} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
+                              <rect x={LEFT_W18} y={PLOT_HEIGHT/2} width={RIGHT_W18} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
+
                               {/* Grid lines - solid */}
                               <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
-                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
-                              
+                              <line x1={LEFT_W18} y1={0} x2={LEFT_W18} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
+
                               {/* Border */}
                               <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
-                              
+
                               {/* Bottom labels */}
-                              <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#6B7280" />
-                              <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
-                              
-                              <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#3B82F6" />
-                              <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
-                              
-                              {/* X-axis */}
+                              <rect x={0} y={PLOT_HEIGHT + 4} width={LEFT_W18 - 2} height={24} rx="4" fill="#6B7280" />
+                              <text x={LEFT_W18 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
+
+                              <rect x={LEFT_W18 + 2} y={PLOT_HEIGHT + 4} width={RIGHT_W18 - 2} height={24} rx="4" fill="#3B82F6" />
+                              <text x={LEFT_W18 + RIGHT_W18 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
+
+                              {/* X-axis: clean arrow, no numbers */}
                               <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
-                                {[0, 25, 50, 75, 100].map((val) => (
-                                  <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
-                                    <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
-                                  </g>
-                                ))}
-                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION SUPPORT SCORE →</text>
+                                <line x1={0} y1={0} x2={PLOT_WIDTH} y2={0} stroke="#94A3B8" strokeWidth="1.5" />
+                                <path d={`M${PLOT_WIDTH - 8},-4 L${PLOT_WIDTH + 2},0 L${PLOT_WIDTH - 8},4`} fill="#94A3B8" />
+                                <text x={10} y={18} fill="#94A3B8" fontSize="11" fontWeight="500" fontFamily="system-ui">Lower</text>
+                                <text x={PLOT_WIDTH - 10} y={18} textAnchor="end" fill="#94A3B8" fontSize="11" fontWeight="500" fontFamily="system-ui">Higher</text>
+                                <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION SUPPORT SCORE</text>
                               </g>
 
                               {/* Y-axis */}
@@ -12746,7 +12759,16 @@ export default function ExportReportPage() {
                       const MARGIN = { top: 34, right: 20, bottom: 90, left: 60 };
                       const PLOT_WIDTH = CHART_WIDTH - MARGIN.left - MARGIN.right;
                       const PLOT_HEIGHT = CHART_HEIGHT - MARGIN.top - MARGIN.bottom;
-                      
+
+                      // Dynamic x-axis midpoint: benchmark mean
+                      const benchScoresForMid19 = dimensionAnalysis.map((d: any) => d.benchmark).filter((b: any): b is number => b !== null && b !== undefined);
+                      const xAxisMidpoint19 = benchScoresForMid19.length > 0
+                        ? Math.round(benchScoresForMid19.reduce((a: number, b: number) => a + b, 0) / benchScoresForMid19.length)
+                        : 50;
+                      const xDividerFrac19 = xAxisMidpoint19 / 100;
+                      const LEFT_W19 = PLOT_WIDTH * xDividerFrac19;
+                      const RIGHT_W19 = PLOT_WIDTH * (1 - xDividerFrac19);
+
                       return (
                         <div className="flex flex-col items-center">
                           <svg className="w-full max-w-5xl" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
@@ -12755,43 +12777,42 @@ export default function ExportReportPage() {
                                 <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15"/>
                               </filter>
                             </defs>
-                            
+
                             <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                               {/* Top labels */}
-                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
-                              <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
-                              
-                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
-                              <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
-                              
+                              <rect x={0} y={-28} width={LEFT_W19 - 2} height={24} rx="4" fill="#EF4444" />
+                              <text x={LEFT_W19 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
+
+                              <rect x={LEFT_W19 + 2} y={-28} width={RIGHT_W19 - 2} height={24} rx="4" fill="#10B981" />
+                              <text x={LEFT_W19 + RIGHT_W19 / 2} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
+
                               {/* Quadrant backgrounds - subtle professional tones */}
-                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
-                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
-                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
-                              
+                              <rect x={0} y={0} width={LEFT_W19} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
+                              <rect x={LEFT_W19} y={0} width={RIGHT_W19} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
+                              <rect x={0} y={PLOT_HEIGHT/2} width={LEFT_W19} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
+                              <rect x={LEFT_W19} y={PLOT_HEIGHT/2} width={RIGHT_W19} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
+
                               {/* Grid lines - solid */}
                               <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
-                              <line x1={PLOT_WIDTH/2} y1={0} x2={PLOT_WIDTH/2} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
-                              
+                              <line x1={LEFT_W19} y1={0} x2={LEFT_W19} y2={PLOT_HEIGHT} stroke="#CBD5E1" strokeWidth="1.5" />
+
                               {/* Border */}
                               <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#E2E8F0" strokeWidth="1" />
-                              
+
                               {/* Bottom labels */}
-                              <rect x={0} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#6B7280" />
-                              <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
-                              
-                              <rect x={PLOT_WIDTH/2 + 2} y={PLOT_HEIGHT + 4} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#3B82F6" />
-                              <text x={PLOT_WIDTH * 3/4} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
-                              
-                              {/* X-axis */}
+                              <rect x={0} y={PLOT_HEIGHT + 4} width={LEFT_W19 - 2} height={24} rx="4" fill="#6B7280" />
+                              <text x={LEFT_W19 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">MONITOR</text>
+
+                              <rect x={LEFT_W19 + 2} y={PLOT_HEIGHT + 4} width={RIGHT_W19 - 2} height={24} rx="4" fill="#3B82F6" />
+                              <text x={LEFT_W19 + RIGHT_W19 / 2} y={PLOT_HEIGHT + 16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">LEVERAGE</text>
+
+                              {/* X-axis: clean arrow, no numbers */}
                               <g transform={`translate(0, ${PLOT_HEIGHT + 38})`}>
-                                {[0, 25, 50, 75, 100].map((val) => (
-                                  <g key={val} transform={`translate(${(val / 100) * PLOT_WIDTH}, 0)`}>
-                                    <text y="4" textAnchor="middle" fill="#6B7280" fontSize="10">{val}</text>
-                                  </g>
-                                ))}
-                                <text x={PLOT_WIDTH/2} y="24" textAnchor="middle" fill="#374151" fontSize="11" fontWeight="600">DIMENSION SUPPORT SCORE →</text>
+                                <line x1={0} y1={0} x2={PLOT_WIDTH} y2={0} stroke="#94A3B8" strokeWidth="1.5" />
+                                <path d={`M${PLOT_WIDTH - 8},-4 L${PLOT_WIDTH + 2},0 L${PLOT_WIDTH - 8},4`} fill="#94A3B8" />
+                                <text x={10} y={18} fill="#94A3B8" fontSize="11" fontWeight="500" fontFamily="system-ui">Lower</text>
+                                <text x={PLOT_WIDTH - 10} y={18} textAnchor="end" fill="#94A3B8" fontSize="11" fontWeight="500" fontFamily="system-ui">Higher</text>
+                                <text x={PLOT_WIDTH/2} y={38} textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">DIMENSION SUPPORT SCORE</text>
                               </g>
 
                               {/* Y-axis */}
