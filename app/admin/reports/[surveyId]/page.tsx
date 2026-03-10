@@ -8957,31 +8957,47 @@ export default function ExportReportPage() {
                 <div id="initiatives-in-progress">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in development or under review <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
-                  {quickWinOpportunities.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-5">
-                      {quickWinOpportunities.map((item: any, idx: number) => {
-                        const dimObj = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
-                        const pg = getEmployeePriorityGroup(dimObj?.weight || 0);
-                        return (
-                          <div key={idx} className="p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-violet-400 hover:-translate-y-0.5 transition-all">
-                            <div className="flex items-center gap-2 mb-3">
-                              <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
-                              <span className="text-sm font-medium text-slate-500 flex-1">{item.dimName}</span>
-                              <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg flex-shrink-0" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
+                  {quickWinOpportunities.length > 0 ? (() => {
+                    const inProgressByDim = new Map<number, { dimNum: number; dimName: string; weight: number; items: any[] }>();
+                    quickWinOpportunities.forEach((item: any) => {
+                      if (!inProgressByDim.has(item.dimNum)) {
+                        const dimInfo = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
+                        inProgressByDim.set(item.dimNum, { dimNum: item.dimNum, dimName: item.dimName, weight: dimInfo?.weight || 0, items: [] });
+                      }
+                      inProgressByDim.get(item.dimNum)!.items.push(item);
+                    });
+                    const grouped = [...inProgressByDim.values()]
+                      .sort((a, b) => b.weight - a.weight)
+                      .map(g => ({ ...g, items: g.items.sort((a: any, b: any) => a.type === 'In Development' && b.type !== 'In Development' ? -1 : a.type !== 'In Development' && b.type === 'In Development' ? 1 : 0) }));
+                    const [showAllInit, setShowAllInit] = [grouped.length <= 6, null]; // show all if 6 or fewer
+                    const visibleGroups = grouped;
+                    return (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        {visibleGroups.map((group) => {
+                          const pg = getEmployeePriorityGroup(group.weight);
+                          return (
+                            <div key={group.dimNum} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
+                              <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{group.dimNum}</span>
+                                <span className="text-sm font-semibold text-slate-800">{group.dimName}</span>
+                              </div>
+                              <div className="px-5 pb-4 space-y-3">
+                                {group.items.map((item: any, idx: number) => (
+                                  <div key={idx} className="pt-2 border-t border-slate-100 first:border-t-0 first:pt-0">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <p className="text-sm text-slate-800">{item.name}</p>
+                                      <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''}{item.peerPct !== null ? ' · ' : ''}{(() => { const lvl = getElementLevel(item.name); return lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; })()}</p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <div className="flex items-center justify-between gap-2 mb-1">
-                              <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
-                              {(() => { const lvl = getElementLevel(item.name); return <span className={`text-xs font-semibold flex-shrink-0 ${lvl === 'core' ? 'text-emerald-600' : lvl === 'advanced' ? 'text-indigo-600' : 'text-sky-600'}`}>{lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'}</span>; })()}
-                            </div>
-                            <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{item.type}</span>
-                            {item.peerPct !== null && (
-                              <p className="text-xs text-slate-400 mt-2 italic">{item.peerPct}% of participating organizations have this in place</p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
+                          );
+                        })}
+                      </div>
+                    );
+                  })() : (
                     <div className="text-center py-8">
                       <p className="text-slate-500">No initiatives currently in development or under review.</p>
                     </div>
@@ -13663,30 +13679,46 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="px-12 py-8 space-y-6">
-                      <div className="grid grid-cols-2 gap-5">
-                        {quickWinOpportunities.map((item: any, idx: number) => {
-                          const dimObj = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
-                          const pg = getEmployeePriorityGroup(dimObj?.weight || 0);
-                          return (
-                            <div key={idx} className="p-5 bg-white rounded-xl border border-slate-200">
-                              <div className="flex items-center gap-2 mb-3">
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
-                                <span className="text-sm font-medium text-slate-500 flex-1">{item.dimName}</span>
-                                <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg flex-shrink-0" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2 mb-1">
-                                <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
-                                {(() => { const lvl = getElementLevel(item.name); return <span className={`text-xs font-semibold flex-shrink-0 ${lvl === 'core' ? 'text-emerald-600' : lvl === 'advanced' ? 'text-indigo-600' : 'text-sky-600'}`}>{lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'}</span>; })()}
-                              </div>
-                              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{item.type}</span>
-                              {item.peerPct !== null && (
-                                <p className="text-xs text-slate-400 mt-2 italic">{item.peerPct}% of participating organizations have this in place</p>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                    <div className="px-12 py-8">
+                      {(() => {
+                        const inProgressByDimSlide = new Map<number, { dimNum: number; dimName: string; weight: number; items: any[] }>();
+                        quickWinOpportunities.forEach((item: any) => {
+                          if (!inProgressByDimSlide.has(item.dimNum)) {
+                            const dimInfo = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
+                            inProgressByDimSlide.set(item.dimNum, { dimNum: item.dimNum, dimName: item.dimName, weight: dimInfo?.weight || 0, items: [] });
+                          }
+                          inProgressByDimSlide.get(item.dimNum)!.items.push(item);
+                        });
+                        const groupedSlide = [...inProgressByDimSlide.values()]
+                          .sort((a, b) => b.weight - a.weight)
+                          .map(g => ({ ...g, items: g.items.sort((a: any, b: any) => a.type === 'In Development' && b.type !== 'In Development' ? -1 : a.type !== 'In Development' && b.type === 'In Development' ? 1 : 0) }));
+                        return (
+                          <div className="grid grid-cols-2 gap-4">
+                            {groupedSlide.map((group) => {
+                              const pg = getEmployeePriorityGroup(group.weight);
+                              return (
+                                <div key={group.dimNum} className="bg-white rounded-xl border border-slate-200 overflow-hidden" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
+                                  <div className="flex items-center gap-2 px-5 pt-4 pb-2">
+                                    <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{group.dimNum}</span>
+                                    <span className="text-sm font-semibold text-slate-800">{group.dimName}</span>
+                                  </div>
+                                  <div className="px-5 pb-4 space-y-3">
+                                    {group.items.map((item: any, idx: number) => (
+                                      <div key={idx} className="pt-2 border-t border-slate-100 first:border-t-0 first:pt-0">
+                                        <div className="flex items-center justify-between gap-2">
+                                          <p className="text-sm text-slate-800">{item.name}</p>
+                                          <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''}{item.peerPct !== null ? ' · ' : ''}{(() => { const lvl = getElementLevel(item.name); return lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; })()}</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
