@@ -5285,7 +5285,7 @@ export default function ExportReportPage() {
       ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Under Review', sortOrder: 2 }))
     ])
     .sort((a, b) => a.sortOrder - b.sortOrder);
-  const quickWinOpportunities = allInProgressItems.slice(0, 8);
+  const quickWinOpportunities = allInProgressItems;
   
   // Roadmap items
   const quickWinItems = dimensionAnalysis
