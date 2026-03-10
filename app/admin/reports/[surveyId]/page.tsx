@@ -582,24 +582,19 @@ function getEmployeePriorityGroup(weight: number): { label: string; chip: string
 
 const EMPLOYEE_PRIORITY_FOOTNOTE = "These groupings reflect what employees managing cancer consistently described as most critical to their workplace experience. All dimensions matter\u2014this simply indicates where employee need is most acute.";
 
-// Follow-up questions for What-If modal (D1, D3, D12, D13 have 85/15 blending)
-const FOLLOW_UP_QUESTIONS: Record<number, Array<{ key: string; question: string; options: Array<{ label: string; score: number }> }>> = {
+// Follow-up questions for What-If modal and deep dive cards (D1, D3, D12, D13 have 85/15 blending)
+// D1 has USA and non-USA variants; non-USA only shown when company has non-USA offices
+const FOLLOW_UP_QUESTIONS: Record<number, Array<{ key: string; question: string; options: Array<{ label: string; score: number }>; nonUsaOnly?: boolean }>> = {
   1: [
     { key: 'd1_1_usa', question: 'Weeks of 100% paid medical leave (USA)?', options: [
       { label: '13 or more weeks', score: 100 }, { label: '9 to less than 13 weeks', score: 70 },
       { label: '5 to less than 9 weeks', score: 40 }, { label: '3 to less than 5 weeks', score: 20 },
       { label: '1 to less than 3 weeks', score: 10 }, { label: 'Does not apply / None', score: 0 },
     ]},
-    { key: 'd1_1_non_usa', question: 'Weeks of 100% paid medical leave (Outside USA)?', options: [
+    { key: 'd1_1_non_usa', question: 'Weeks of 100% paid medical leave (Outside USA)?', nonUsaOnly: true, options: [
       { label: '13 or more weeks', score: 100 }, { label: '9 to less than 13 weeks', score: 70 },
       { label: '5 to less than 9 weeks', score: 40 }, { label: '3 to less than 5 weeks', score: 20 },
       { label: '1 to less than 3 weeks', score: 10 }, { label: 'Does not apply / None', score: 0 },
-    ]},
-    { key: 'd1_4b', question: 'Part-time/reduced schedule duration?', options: [
-      { label: 'As long as medically necessary', score: 100 }, { label: '26 weeks or more', score: 80 },
-      { label: '12 to less than 26 weeks', score: 50 }, { label: 'Case-by-case basis', score: 40 },
-      { label: '5 to less than 12 weeks', score: 30 }, { label: 'Up to 4 weeks', score: 10 },
-      { label: 'No additional remote/reduced schedule', score: 0 },
     ]},
   ],
   3: [
@@ -8412,16 +8407,13 @@ export default function ExportReportPage() {
                     if (whatIfDimension === 1) {
                       const scores: number[] = [];
                       const usaScore = whatIfFollowUps['d1_1_usa'] ?? dimInfo?.followUpRaw?.d1_1_usa_score;
-                      const nonUsaScore = whatIfFollowUps['d1_1_non_usa'] ?? dimInfo?.followUpRaw?.d1_1_non_usa_score;
-                      const d14bScore = whatIfFollowUps['d1_4b'];
+                      const nonUsaScore = !isSingleCountryCompany ? (whatIfFollowUps['d1_1_non_usa'] ?? dimInfo?.followUpRaw?.d1_1_non_usa_score) : null;
                       if (usaScore !== null && usaScore !== undefined) scores.push(usaScore);
                       if (nonUsaScore !== null && nonUsaScore !== undefined) scores.push(nonUsaScore);
-                      if (d14bScore !== undefined) scores.push(d14bScore);
-                      else if (dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined && scores.length === 0) {
-                        projectedFollowUpScore = dimInfo.followUpScore;
-                      }
-                      if (scores.length > 0 && projectedFollowUpScore === null) {
+                      if (scores.length > 0) {
                         projectedFollowUpScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                      } else if (dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                        projectedFollowUpScore = dimInfo.followUpScore;
                       }
                     } else if (whatIfDimension === 3) {
                       projectedFollowUpScore = whatIfFollowUps['d3_1'] ?? dimInfo?.followUpRaw?.d3_1_score ?? dimInfo?.followUpScore ?? null;
@@ -8689,10 +8681,10 @@ export default function ExportReportPage() {
                       {hasFollowUps && FOLLOW_UP_QUESTIONS[whatIfDimension] && (
                         <div className="px-8 py-4 bg-blue-50 border-t border-blue-200">
                           <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">
-                            Follow-Up Questions (15% of dimension score)
+                            Follow-Up Questions
                           </h4>
                           <div className="space-y-3">
-                            {FOLLOW_UP_QUESTIONS[whatIfDimension].map(fq => {
+                            {FOLLOW_UP_QUESTIONS[whatIfDimension].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
                               const currentScore = (() => {
                                 if (whatIfDimension === 1) {
                                   if (fq.key === 'd1_1_usa') return dimInfo?.followUpRaw?.d1_1_usa_score ?? null;
@@ -9987,10 +9979,9 @@ export default function ExportReportPage() {
                             <div className="mt-6 pt-4 border-t border-slate-200">
                               <h4 className="text-sm font-semibold text-slate-700 mb-3">
                                 Follow-Up Questions
-                                <span className="text-xs font-normal text-slate-400 ml-2">(15% of dimension score)</span>
                               </h4>
                               <div className="space-y-4">
-                                {FOLLOW_UP_QUESTIONS[d.dim].map(fq => {
+                                {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
                                   const currentScore = (() => {
                                     if (d.dim === 1) {
                                       if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
@@ -10025,7 +10016,6 @@ export default function ExportReportPage() {
                                     </div>
                                   );
                                 })}
-                                {d.dim === 1 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of answered questions. Blended: 85% grid + 15% follow-up.</p>}
                                 {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
                               </div>
                             </div>
@@ -10411,10 +10401,9 @@ export default function ExportReportPage() {
                             <div className="mt-6 pt-4 border-t border-slate-200">
                               <h4 className="text-sm font-semibold text-slate-700 mb-3">
                                 Follow-Up Questions
-                                <span className="text-xs font-normal text-slate-400 ml-2">(15% of dimension score)</span>
                               </h4>
                               <div className="space-y-4">
-                                {FOLLOW_UP_QUESTIONS[d.dim].map(fq => {
+                                {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
                                   const currentScore = (() => {
                                     if (d.dim === 1) {
                                       if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
@@ -10449,7 +10438,6 @@ export default function ExportReportPage() {
                                     </div>
                                   );
                                 })}
-                                {d.dim === 1 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of answered questions. Blended: 85% grid + 15% follow-up.</p>}
                                 {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
                               </div>
                             </div>
