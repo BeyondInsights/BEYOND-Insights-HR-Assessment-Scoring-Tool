@@ -8229,7 +8229,7 @@ export default function ExportReportPage() {
           {/* ============ WHAT-IF SCENARIO MODAL ============ */}
           {whatIfModal && elementDetails && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}>
-              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden" onClick={e => e.stopPropagation()}>
+              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header - Slate color to match composite */}
                 <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
@@ -8551,7 +8551,7 @@ export default function ExportReportPage() {
                       </div>
                       
                       {/* Elements List - Compact */}
-                      <div className="px-8 overflow-y-auto max-h-[calc(92vh-400px)]">
+                      <div className="px-8 flex-1 min-h-0 overflow-y-auto">
                         <div className="divide-y divide-slate-100">
                           {dimElements.map((el: any, idx: number) => {
                             const currentStatus = getStatusFromElement(el);
