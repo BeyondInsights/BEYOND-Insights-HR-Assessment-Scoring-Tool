@@ -582,6 +582,55 @@ function getEmployeePriorityGroup(weight: number): { label: string; chip: string
 
 const EMPLOYEE_PRIORITY_FOOTNOTE = "These groupings reflect what employees managing cancer consistently described as most critical to their workplace experience. All dimensions matter\u2014this simply indicates where employee need is most acute.";
 
+// Follow-up questions for What-If modal (D1, D3, D12, D13 have 85/15 blending)
+const FOLLOW_UP_QUESTIONS: Record<number, Array<{ key: string; question: string; options: Array<{ label: string; score: number }> }>> = {
+  1: [
+    { key: 'd1_1_usa', question: 'Weeks of 100% paid medical leave (USA)?', options: [
+      { label: '13 or more weeks', score: 100 }, { label: '9 to less than 13 weeks', score: 70 },
+      { label: '5 to less than 9 weeks', score: 40 }, { label: '3 to less than 5 weeks', score: 20 },
+      { label: '1 to less than 3 weeks', score: 10 }, { label: 'Does not apply / None', score: 0 },
+    ]},
+    { key: 'd1_1_non_usa', question: 'Weeks of 100% paid medical leave (Outside USA)?', options: [
+      { label: '13 or more weeks', score: 100 }, { label: '9 to less than 13 weeks', score: 70 },
+      { label: '5 to less than 9 weeks', score: 40 }, { label: '3 to less than 5 weeks', score: 20 },
+      { label: '1 to less than 3 weeks', score: 10 }, { label: 'Does not apply / None', score: 0 },
+    ]},
+    { key: 'd1_4b', question: 'Part-time/reduced schedule duration?', options: [
+      { label: 'As long as medically necessary', score: 100 }, { label: '26 weeks or more', score: 80 },
+      { label: '12 to less than 26 weeks', score: 50 }, { label: 'Case-by-case basis', score: 40 },
+      { label: '5 to less than 12 weeks', score: 30 }, { label: 'Up to 4 weeks', score: 10 },
+      { label: 'No additional remote/reduced schedule', score: 0 },
+    ]},
+  ],
+  3: [
+    { key: 'd3_1', question: 'What % of managers have received training on supporting employees with serious health conditions?', options: [
+      { label: '100% of managers', score: 100 }, { label: '75% to less than 100%', score: 80 },
+      { label: '50% to less than 75%', score: 50 }, { label: '25% to less than 50%', score: 30 },
+      { label: '10% to less than 25%', score: 10 }, { label: 'Less than 10%', score: 0 },
+      { label: 'Not able to provide this information', score: 0 },
+    ]},
+  ],
+  12: [
+    { key: 'd12_1', question: 'Do you review individual employee experiences to assess accommodation effectiveness?', options: [
+      { label: 'Yes, using a systematic case review process', score: 100 },
+      { label: 'Yes, using ad hoc case reviews', score: 50 },
+      { label: 'No, we only review aggregate metrics', score: 0 },
+    ]},
+    { key: 'd12_2', question: 'Have individual employee experiences led to specific program changes in the past 2 years?', options: [
+      { label: 'Yes, several changes implemented', score: 100 },
+      { label: 'Yes, a few changes implemented', score: 60 },
+      { label: 'No', score: 0 },
+    ]},
+  ],
+  13: [
+    { key: 'd13_1', question: 'How frequently do you communicate about health support programs?', options: [
+      { label: 'Monthly', score: 100 }, { label: 'Quarterly', score: 70 },
+      { label: 'Twice per year', score: 40 }, { label: 'Annually / World Cancer Day', score: 20 },
+      { label: 'Only when asked', score: 0 }, { label: 'Do not actively communicate', score: 0 },
+    ]},
+  ],
+};
+
 // ============================================
 // DYNAMIC TAILORED ANALYSIS FUNCTIONS
 // ============================================
@@ -3624,7 +3673,8 @@ export default function ExportReportPage() {
   const [whatIfDimension, setWhatIfDimension] = useState<number | null>(null);
   const [whatIfChanges, setWhatIfChanges] = useState<Record<string, string>>({});
   const [whatIfGeoOverride, setWhatIfGeoOverride] = useState<number | null>(null);
-  
+  const [whatIfFollowUps, setWhatIfFollowUps] = useState<Record<string, number>>({});
+
   // Presentation mode state
   const [presentationMode, setPresentationMode] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -8232,7 +8282,7 @@ export default function ExportReportPage() {
           
           {/* ============ WHAT-IF SCENARIO MODAL ============ */}
           {whatIfModal && elementDetails && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}>
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }}>
               <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
                 {/* Header - Slate color to match composite */}
                 <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
@@ -8250,7 +8300,7 @@ export default function ExportReportPage() {
                         Or <span className="text-red-400 font-medium">stop offering</span> an existing one?
                       </p>
                     </div>
-                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
+                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
@@ -8267,7 +8317,7 @@ export default function ExportReportPage() {
                             <label className="text-sm font-semibold text-slate-700">Dimension:</label>
                             <select 
                               value=""
-                              onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); }}
+                              onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
                               className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
                             >
                               <option value="" disabled>Select a dimension...</option>
@@ -8292,7 +8342,7 @@ export default function ExportReportPage() {
                         {/* Footer */}
                         <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
                           <button 
-                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}
+                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }}
                             className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
                           >
                             Close
@@ -8357,8 +8407,39 @@ export default function ExportReportPage() {
                   // Apply geo multiplier and follow-up blending
                   const projectedAdjusted = projectedRawScore * projectedGeoMult;
                   let projectedDimScore: number;
-                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                    projectedDimScore = Math.round(projectedAdjusted * 0.85 + dimInfo.followUpScore * 0.15);
+                  if (hasFollowUps) {
+                    let projectedFollowUpScore: number | null = null;
+                    if (whatIfDimension === 1) {
+                      const scores: number[] = [];
+                      const usaScore = whatIfFollowUps['d1_1_usa'] ?? dimInfo?.followUpRaw?.d1_1_usa_score;
+                      const nonUsaScore = whatIfFollowUps['d1_1_non_usa'] ?? dimInfo?.followUpRaw?.d1_1_non_usa_score;
+                      const d14bScore = whatIfFollowUps['d1_4b'];
+                      if (usaScore !== null && usaScore !== undefined) scores.push(usaScore);
+                      if (nonUsaScore !== null && nonUsaScore !== undefined) scores.push(nonUsaScore);
+                      if (d14bScore !== undefined) scores.push(d14bScore);
+                      else if (dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined && scores.length === 0) {
+                        projectedFollowUpScore = dimInfo.followUpScore;
+                      }
+                      if (scores.length > 0 && projectedFollowUpScore === null) {
+                        projectedFollowUpScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                      }
+                    } else if (whatIfDimension === 3) {
+                      projectedFollowUpScore = whatIfFollowUps['d3_1'] ?? dimInfo?.followUpRaw?.d3_1_score ?? dimInfo?.followUpScore ?? null;
+                    } else if (whatIfDimension === 12) {
+                      const scores: number[] = [];
+                      const d121 = whatIfFollowUps['d12_1'] ?? dimInfo?.followUpRaw?.d12_1_score;
+                      const d122 = whatIfFollowUps['d12_2'] ?? dimInfo?.followUpRaw?.d12_2_score;
+                      if (d121 !== null && d121 !== undefined) scores.push(d121);
+                      if (d122 !== null && d122 !== undefined) scores.push(d122);
+                      projectedFollowUpScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : dimInfo?.followUpScore ?? null;
+                    } else if (whatIfDimension === 13) {
+                      projectedFollowUpScore = whatIfFollowUps['d13_1'] ?? dimInfo?.followUpRaw?.d13_1_score ?? dimInfo?.followUpScore ?? null;
+                    }
+                    if (projectedFollowUpScore !== null && projectedFollowUpScore !== undefined) {
+                      projectedDimScore = Math.round(projectedAdjusted * 0.85 + projectedFollowUpScore * 0.15);
+                    } else {
+                      projectedDimScore = Math.round(projectedAdjusted);
+                    }
                   } else {
                     projectedDimScore = Math.round(projectedAdjusted);
                   }
@@ -8371,8 +8452,9 @@ export default function ExportReportPage() {
                   const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
                   
                   const changesCount = Object.keys(whatIfChanges).length;
+                  const followUpChangesCount = Object.keys(whatIfFollowUps).length;
                   const hasGeoChange = whatIfGeoOverride !== null;
-                  const hasChanges = changesCount > 0 || hasGeoChange;
+                  const hasChanges = changesCount > 0 || hasGeoChange || followUpChangesCount > 0;
                   
                   const statusOptions = [
                     { value: 'currently', label: 'In Place', color: 'emerald' },
@@ -8402,7 +8484,7 @@ export default function ExportReportPage() {
                           <label className="text-sm font-semibold text-slate-700">Dimension:</label>
                           <select 
                             value={whatIfDimension || ''} 
-                            onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); }}
+                            onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
                             className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
                           >
                             <option value="" disabled>Select a dimension...</option>
@@ -8413,7 +8495,7 @@ export default function ExportReportPage() {
                         </div>
                         {hasChanges && (
                           <button 
-                            onClick={() => { setWhatIfChanges({}); setWhatIfGeoOverride(null); }}
+                            onClick={() => { setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
                             className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg transition-colors"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
@@ -8603,13 +8685,65 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
+                      {/* Follow-Up Questions (15% of score for D1, D3, D12, D13) */}
+                      {hasFollowUps && FOLLOW_UP_QUESTIONS[whatIfDimension] && (
+                        <div className="px-8 py-4 bg-blue-50 border-t border-blue-200">
+                          <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">
+                            Follow-Up Questions (15% of dimension score)
+                          </h4>
+                          <div className="space-y-3">
+                            {FOLLOW_UP_QUESTIONS[whatIfDimension].map(fq => {
+                              const currentScore = (() => {
+                                if (whatIfDimension === 1) {
+                                  if (fq.key === 'd1_1_usa') return dimInfo?.followUpRaw?.d1_1_usa_score ?? null;
+                                  if (fq.key === 'd1_1_non_usa') return dimInfo?.followUpRaw?.d1_1_non_usa_score ?? null;
+                                  return null;
+                                }
+                                if (whatIfDimension === 3) return dimInfo?.followUpRaw?.d3_1_score ?? null;
+                                if (whatIfDimension === 12) {
+                                  if (fq.key === 'd12_1') return dimInfo?.followUpRaw?.d12_1_score ?? null;
+                                  if (fq.key === 'd12_2') return dimInfo?.followUpRaw?.d12_2_score ?? null;
+                                }
+                                if (whatIfDimension === 13) return dimInfo?.followUpRaw?.d13_1_score ?? null;
+                                return null;
+                              })();
+                              const whatIfValue = whatIfFollowUps[fq.key];
+                              return (
+                                <div key={fq.key}>
+                                  <p className="text-xs text-slate-600 mb-1">{fq.question}</p>
+                                  <select
+                                    className="w-full text-sm border border-blue-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400"
+                                    value={whatIfValue !== undefined ? whatIfValue : (currentScore ?? '')}
+                                    onChange={(e) => {
+                                      const val = Number(e.target.value);
+                                      if (val === currentScore) {
+                                        setWhatIfFollowUps(prev => { const next = { ...prev }; delete next[fq.key]; return next; });
+                                      } else {
+                                        setWhatIfFollowUps(prev => ({ ...prev, [fq.key]: val }));
+                                      }
+                                    }}
+                                  >
+                                    {currentScore === null && <option value="">— not answered —</option>}
+                                    {fq.options.map((opt, i) => (
+                                      <option key={i} value={opt.score}>
+                                        {opt.label} ({opt.score} pts){currentScore === opt.score ? ' \u2190 current' : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Footer */}
                       <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
                         <p className="text-xs text-slate-500">
-                          {hasChanges ? `${changesCount} change${changesCount !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
+                          {hasChanges ? `${changesCount + followUpChangesCount} change${(changesCount + followUpChangesCount) !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
                         </p>
-                        <button 
-                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); }}
+                        <button
+                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }}
                           className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
                         >
                           Close
