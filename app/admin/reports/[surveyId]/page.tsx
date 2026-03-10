@@ -5280,10 +5280,14 @@ export default function ExportReportPage() {
   
   // Initiatives in progress - sorted: Planning first, then Assessing
   const allInProgressItems = dimensionAnalysis
-    .flatMap(d => [
-      ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'In Development', sortOrder: 1 })),
-      ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Under Review', sortOrder: 2 }))
-    ])
+    .flatMap(d => {
+      const bench = elementBenchmarks[d.dim] || {};
+      const getPct = (name: string) => { const b = bench[name]; return b ? Math.round((b.currently / Math.max(b.total, 1)) * 100) : null; };
+      return [
+        ...d.planning.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'In Development', sortOrder: 1, peerPct: getPct(item.name) })),
+        ...d.assessing.map((item: any) => ({ ...item, dimNum: d.dim, dimName: d.name, type: 'Under Review', sortOrder: 2, peerPct: getPct(item.name) }))
+      ];
+    })
     .sort((a, b) => a.sortOrder - b.sortOrder);
   const quickWinOpportunities = allInProgressItems;
   
@@ -8969,6 +8973,9 @@ export default function ExportReportPage() {
                               <div className="flex items-center gap-2 mt-2">
                                 <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
                                 <span className="text-base text-slate-500">{item.dimName}</span>
+                                {item.peerPct !== null && (
+                                  <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -13673,7 +13680,12 @@ export default function ExportReportPage() {
                                 <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
                               </div>
                               <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                              <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-sm text-slate-500">{item.dimName} (D{item.dimNum})</span>
+                                {item.peerPct !== null && (
+                                  <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
