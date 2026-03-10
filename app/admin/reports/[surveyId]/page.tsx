@@ -10779,16 +10779,6 @@ export default function ExportReportPage() {
               .filter(d => d.score >= 64 || (d.benchmark != null && d.score >= d.benchmark))
               .slice(0, 3);
 
-            const focusCandidates = [...dimensionAnalysis]
-              .filter(d => !topStrengths.some(s => s.dim === d.dim))
-              .sort((a, b) => {
-                const priorityRankOrder = (w: number) => w >= 10 ? 0 : w >= 7 ? 1 : 2;
-                const rankDiff = priorityRankOrder(a.weight) - priorityRankOrder(b.weight);
-                if (rankDiff !== 0) return rankDiff;
-                return a.score - b.score;
-              })
-              .slice(0, 3);
-
             const patterns = getCrossDimensionPatterns(dimensionAnalysis);
             const topTension = patterns.tensions[0];
             const secondTension = patterns.tensions[1];
@@ -10836,8 +10826,8 @@ export default function ExportReportPage() {
             }
 
             // Paragraph 4: Where to focus
-            const topFocus = focusCandidates[0];
-            const secondFocus = focusCandidates[1];
+            const topFocus = strategicPriorityDims[0];
+            const secondFocus = strategicPriorityDims[1];
             let para4 = '';
             if (topFocus && secondFocus) {
               const topBenchGap = topFocus.benchmark != null ? Math.abs(topFocus.score - topFocus.benchmark) : null;
@@ -10998,7 +10988,7 @@ export default function ExportReportPage() {
                 <div className="px-10 pb-8 pt-2 border-t border-slate-100 mt-4">
                   <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 pb-2 border-b border-slate-200">Priority Dimensions</h4>
                   <div className="space-y-5">
-                    {focusCandidates.slice(0, 3).map((d, idx) => {
+                    {strategicPriorityDims.slice(0, 3).map((d, idx) => {
                       const lookup = playsLookup[d.dim] || { play: 'Build out ' + d.name, firstStep: 'Conduct a gap analysis and identify quick wins.' };
                       const customPlay = customNextSteps.plays?.[d.dim];
                       const playTitle = customPlay?.play ?? lookup.play;
