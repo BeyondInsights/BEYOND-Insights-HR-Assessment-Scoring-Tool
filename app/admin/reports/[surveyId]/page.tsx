@@ -8335,47 +8335,28 @@ export default function ExportReportPage() {
                     return STATUS_POINTS[currentStatus] ?? 0;
                   };
 
-                  // Compute projected score delta using element weights
-                  let projectedDimDelta = 0;
+                  // Compute projected score FROM SCRATCH using element weights
+                  // (delta approach breaks for unsure elements which get partial credit in actual scoring)
+                  let wEarned = 0, wMax = 0;
                   dimElements.forEach((el: any) => {
-                    const newStatus = whatIfChanges[el.name];
-                    if (!newStatus) return;
-                    const currentStatus = getStatusFromElement(el);
-                    const currentPts = STATUS_POINTS[currentStatus] ?? 0;
-                    const newPts = STATUS_POINTS[newStatus] ?? 0;
-                    const pointDelta = newPts - currentPts;
-                    if (pointDelta === 0) return;
-
                     const ew = ELEMENT_DIM_WEIGHTS[el.name];
                     const elemWeight = ew ? ew[1] : (1 / dimElements.length);
-                    projectedDimDelta += (pointDelta / 5) * elemWeight * 100;
+                    const newStatus = whatIfChanges[el.name];
+                    const finalPts = newStatus
+                      ? (STATUS_POINTS[newStatus] ?? 0)
+                      : (STATUS_POINTS[getStatusFromElement(el)] ?? 0);
+                    wEarned += finalPts * elemWeight;
+                    wMax += 5 * elemWeight;
                   });
+                  const projectedRawScore = wMax > 0 ? (wEarned / wMax) * 100 : 0;
 
                   // Apply geo multiplier and follow-up blending
+                  const projectedAdjusted = projectedRawScore * projectedGeoMult;
                   let projectedDimScore: number;
-                  if (whatIfGeoOverride !== null && whatIfGeoOverride !== originalGeoMult) {
-                    // Geo changed — reverse out old geo from base, apply new geo to (base + delta)
-                    let rawPreGeo: number;
-                    if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                      rawPreGeo = (actualDimScore - dimInfo.followUpScore * 0.15) / 0.85 / originalGeoMult;
-                    } else {
-                      rawPreGeo = originalGeoMult > 0 ? actualDimScore / originalGeoMult : actualDimScore;
-                    }
-                    const newRaw = rawPreGeo + projectedDimDelta;
-                    const newAdjusted = Math.round(newRaw * projectedGeoMult);
-                    if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                      projectedDimScore = Math.round(newAdjusted * 0.85 + dimInfo.followUpScore * 0.15);
-                    } else {
-                      projectedDimScore = newAdjusted;
-                    }
+                  if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                    projectedDimScore = Math.round(projectedAdjusted * 0.85 + dimInfo.followUpScore * 0.15);
                   } else {
-                    // Geo unchanged — simple delta addition
-                    const adjustedDelta = projectedDimDelta * projectedGeoMult;
-                    if (hasFollowUps && dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                      projectedDimScore = Math.round(actualDimScore + adjustedDelta * 0.85);
-                    } else {
-                      projectedDimScore = Math.round(actualDimScore + adjustedDelta);
-                    }
+                    projectedDimScore = Math.round(projectedAdjusted);
                   }
                   projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
                   
