@@ -8974,12 +8974,12 @@ export default function ExportReportPage() {
                                       <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
                                     </div>
                                     <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
+                                    {item.peerPct !== null && (
+                                      <p className="text-xs text-slate-400 mt-0.5 italic">{item.peerPct}% of participating organizations have this in place</p>
+                                    )}
                                     <div className="flex items-center gap-2 mt-2">
                                       <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
                                       <span className="text-base text-slate-500">{item.dimName}</span>
-                                      {item.peerPct !== null && (
-                                        <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
-                                      )}
                                     </div>
                                   </div>
                                 </div>
@@ -13710,12 +13710,10 @@ export default function ExportReportPage() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-sm text-slate-500">{item.dimName} (D{item.dimNum})</span>
-                                    {item.peerPct !== null && (
-                                      <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
-                                    )}
-                                  </div>
+                                  {item.peerPct !== null && (
+                                    <p className="text-xs text-slate-400 mt-0.5 italic">{item.peerPct}% of participating organizations have this in place</p>
+                                  )}
+                                  <p className="text-sm text-slate-500 mt-1">{item.dimName} (D{item.dimNum})</p>
                                 </div>
                               </div>
                             ))}
