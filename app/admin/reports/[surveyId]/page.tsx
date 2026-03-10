@@ -8958,29 +8958,58 @@ export default function ExportReportPage() {
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in development or under review <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
                   {quickWinOpportunities.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-5">
-                      {quickWinOpportunities.map((item: any, idx: number) => {
-                        const dimObj = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
-                        const pg = getEmployeePriorityGroup(dimObj?.weight || 0);
-                        return (
-                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-violet-400 hover:-translate-y-0.5 transition-all">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
-                                <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
-                              </div>
-                              <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
-                                <span className="text-base text-slate-500">{item.dimName}</span>
-                                {item.peerPct !== null && (
-                                  <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
-                                )}
-                              </div>
-                            </div>
+                    <div className="space-y-6">
+                      {(() => {
+                        const devItems = quickWinOpportunities.filter((item: any) => item.type === 'In Development');
+                        const reviewItems = quickWinOpportunities.filter((item: any) => item.type === 'Under Review');
+                        const renderCards = (items: any[]) => (
+                          <div className="grid grid-cols-2 gap-5">
+                            {items.map((item: any, idx: number) => {
+                              const dimObj = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
+                              const pg = getEmployeePriorityGroup(dimObj?.weight || 0);
+                              return (
+                                <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-violet-400 hover:-translate-y-0.5 transition-all">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
+                                    </div>
+                                    <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
+                                      <span className="text-base text-slate-500">{item.dimName}</span>
+                                      {item.peerPct !== null && (
+                                        <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         );
-                      })}
+                        return (
+                          <>
+                            {devItems.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm font-bold px-3 py-1 rounded-lg bg-violet-100 text-violet-700">In Development</span>
+                                  <span className="text-sm text-slate-500">({devItems.length})</span>
+                                </div>
+                                {renderCards(devItems)}
+                              </div>
+                            )}
+                            {reviewItems.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm font-bold px-3 py-1 rounded-lg bg-slate-100 text-slate-700">Under Review</span>
+                                  <span className="text-sm text-slate-500">({reviewItems.length})</span>
+                                </div>
+                                {renderCards(reviewItems)}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   ) : (
                     <div className="text-center py-8">
@@ -13664,32 +13693,57 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="px-12 py-8">
-                      <div className="grid grid-cols-2 gap-5">
-                        {quickWinOpportunities.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200">
-                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'In Development' ? 'bg-violet-600' : 'bg-slate-600'}`}>
-                              {item.type === 'In Development' ? (
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                              ) : (
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-sm font-bold px-3 py-1 rounded-lg ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700' : 'bg-slate-100 text-slate-700'}`}>{item.type}</span>
+                    <div className="px-12 py-8 space-y-6">
+                      {(() => {
+                        const devItems = quickWinOpportunities.filter((item: any) => item.type === 'In Development');
+                        const reviewItems = quickWinOpportunities.filter((item: any) => item.type === 'Under Review');
+                        const renderSlideCards = (items: any[]) => (
+                          <div className="grid grid-cols-2 gap-5">
+                            {items.map((item: any, idx: number) => (
+                              <div key={idx} className="flex items-start gap-4 p-5 bg-white rounded-xl border border-slate-200">
+                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${item.type === 'In Development' ? 'bg-violet-600' : 'bg-slate-600'}`}>
+                                  {item.type === 'In Development' ? (
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                                  ) : (
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-sm text-slate-500">{item.dimName} (D{item.dimNum})</span>
+                                    {item.peerPct !== null && (
+                                      <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-base text-slate-800 font-semibold leading-snug">{item.name}</p>
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-sm text-slate-500">{item.dimName} (D{item.dimNum})</span>
-                                {item.peerPct !== null && (
-                                  <span className="ml-auto text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{item.peerPct}% of peers have this</span>
-                                )}
-                              </div>
-                            </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        );
+                        return (
+                          <>
+                            {devItems.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm font-bold px-3 py-1 rounded-lg bg-violet-100 text-violet-700">In Development</span>
+                                  <span className="text-sm text-slate-500">({devItems.length})</span>
+                                </div>
+                                {renderSlideCards(devItems)}
+                              </div>
+                            )}
+                            {reviewItems.length > 0 && (
+                              <div>
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm font-bold px-3 py-1 rounded-lg bg-slate-100 text-slate-700">Under Review</span>
+                                  <span className="text-sm text-slate-500">({reviewItems.length})</span>
+                                </div>
+                                {renderSlideCards(reviewItems)}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}
