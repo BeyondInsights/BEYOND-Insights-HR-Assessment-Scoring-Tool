@@ -584,44 +584,44 @@ const EMPLOYEE_PRIORITY_FOOTNOTE = "These groupings reflect what employees manag
 
 // Follow-up questions for What-If modal and deep dive cards (D1, D3, D12, D13 have 85/15 blending)
 // D1 has USA and non-USA variants; non-USA only shown when company has non-USA offices
-const FOLLOW_UP_QUESTIONS: Record<number, Array<{ key: string; question: string; options: Array<{ label: string; score: number }>; nonUsaOnly?: boolean }>> = {
+const FOLLOW_UP_QUESTIONS: Record<number, Array<{ key: string; question: string; options: Array<{ label: string; score: number; benchPct: number }>; nonUsaOnly?: boolean }>> = {
   1: [
     { key: 'd1_1_usa', question: 'Weeks of 100% paid medical leave (USA)?', options: [
-      { label: '13 or more weeks', score: 100 }, { label: '9 to less than 13 weeks', score: 70 },
-      { label: '5 to less than 9 weeks', score: 40 }, { label: '3 to less than 5 weeks', score: 20 },
-      { label: '1 to less than 3 weeks', score: 10 }, { label: 'Does not apply / None', score: 0 },
+      { label: '13 or more weeks', score: 100, benchPct: 28 }, { label: '9 to less than 13 weeks', score: 70, benchPct: 22 },
+      { label: '5 to less than 9 weeks', score: 40, benchPct: 18 }, { label: '3 to less than 5 weeks', score: 20, benchPct: 15 },
+      { label: '1 to less than 3 weeks', score: 10, benchPct: 10 }, { label: 'Does not apply / None', score: 0, benchPct: 7 },
     ]},
     { key: 'd1_1_non_usa', question: 'Weeks of 100% paid medical leave (Outside USA)?', nonUsaOnly: true, options: [
-      { label: '13 or more weeks', score: 100 }, { label: '9 to less than 13 weeks', score: 70 },
-      { label: '5 to less than 9 weeks', score: 40 }, { label: '3 to less than 5 weeks', score: 20 },
-      { label: '1 to less than 3 weeks', score: 10 }, { label: 'Does not apply / None', score: 0 },
+      { label: '13 or more weeks', score: 100, benchPct: 35 }, { label: '9 to less than 13 weeks', score: 70, benchPct: 25 },
+      { label: '5 to less than 9 weeks', score: 40, benchPct: 15 }, { label: '3 to less than 5 weeks', score: 20, benchPct: 12 },
+      { label: '1 to less than 3 weeks', score: 10, benchPct: 8 }, { label: 'Does not apply / None', score: 0, benchPct: 5 },
     ]},
   ],
   3: [
     { key: 'd3_1', question: 'What % of managers have received training on supporting employees with serious health conditions?', options: [
-      { label: '100% of managers', score: 100 }, { label: '75% to less than 100%', score: 80 },
-      { label: '50% to less than 75%', score: 50 }, { label: '25% to less than 50%', score: 30 },
-      { label: '10% to less than 25%', score: 10 }, { label: 'Less than 10%', score: 0 },
-      { label: 'Not able to provide this information', score: 0 },
+      { label: '100% of managers', score: 100, benchPct: 12 }, { label: '75% to less than 100%', score: 80, benchPct: 18 },
+      { label: '50% to less than 75%', score: 50, benchPct: 25 }, { label: '25% to less than 50%', score: 30, benchPct: 20 },
+      { label: '10% to less than 25%', score: 10, benchPct: 15 }, { label: 'Less than 10%', score: 0, benchPct: 10 },
+      { label: 'Not able to provide this information', score: 0, benchPct: 0 },
     ]},
   ],
   12: [
     { key: 'd12_1', question: 'Do you review individual employee experiences to assess accommodation effectiveness?', options: [
-      { label: 'Yes, using a systematic case review process', score: 100 },
-      { label: 'Yes, using ad hoc case reviews', score: 50 },
-      { label: 'No, we only review aggregate metrics', score: 0 },
+      { label: 'Yes, using a systematic case review process', score: 100, benchPct: 22 },
+      { label: 'Yes, using ad hoc case reviews', score: 50, benchPct: 45 },
+      { label: 'No, we only review aggregate metrics', score: 0, benchPct: 33 },
     ]},
     { key: 'd12_2', question: 'Have individual employee experiences led to specific program changes in the past 2 years?', options: [
-      { label: 'Yes, several changes implemented', score: 100 },
-      { label: 'Yes, a few changes implemented', score: 60 },
-      { label: 'No', score: 0 },
+      { label: 'Yes, several changes implemented', score: 100, benchPct: 18 },
+      { label: 'Yes, a few changes implemented', score: 60, benchPct: 52 },
+      { label: 'No', score: 0, benchPct: 30 },
     ]},
   ],
   13: [
     { key: 'd13_1', question: 'How frequently do you communicate about health support programs?', options: [
-      { label: 'Monthly', score: 100 }, { label: 'Quarterly', score: 70 },
-      { label: 'Twice per year', score: 40 }, { label: 'Annually / World Cancer Day', score: 20 },
-      { label: 'Only when asked', score: 0 }, { label: 'Do not actively communicate', score: 0 },
+      { label: 'Monthly', score: 100, benchPct: 8 }, { label: 'Quarterly', score: 70, benchPct: 25 },
+      { label: 'Twice per year', score: 40, benchPct: 30 }, { label: 'Annually / World Cancer Day', score: 20, benchPct: 22 },
+      { label: 'Only when asked', score: 0, benchPct: 10 }, { label: 'Do not actively communicate', score: 0, benchPct: 5 },
     ]},
   ],
 };
@@ -8179,7 +8179,7 @@ export default function ExportReportPage() {
                                           {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
                                           {opt.label}
                                         </span>
-                                        <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.score} pts</span>
+                                        <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.benchPct}%</span>
                                       </div>
                                     );
                                   })}
@@ -8763,7 +8763,7 @@ export default function ExportReportPage() {
                                     {currentScore === null && <option value="">— not answered —</option>}
                                     {fq.options.map((opt, i) => (
                                       <option key={i} value={opt.score}>
-                                        {opt.label} ({opt.score} pts){currentScore === opt.score ? ' \u2190 current' : ''}
+                                        {opt.label} ({opt.benchPct}% of orgs){currentScore === opt.score ? ' \u2190 current' : ''}
                                       </option>
                                     ))}
                                   </select>
