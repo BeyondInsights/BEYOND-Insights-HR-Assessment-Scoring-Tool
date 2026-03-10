@@ -8146,8 +8146,53 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Follow-Up Questions — only for D1, D3, D12, D13 */}
+                    {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
+                      <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3">
+                        <h4 className="font-bold text-blue-800 text-sm mb-3">Follow-Up Questions</h4>
+                        <div className="space-y-4">
+                          {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
+                            const currentScore = (() => {
+                              if (d.dim === 1) {
+                                if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
+                                if (fq.key === 'd1_1_non_usa') return d.followUpRaw?.d1_1_non_usa_score ?? null;
+                                return null;
+                              }
+                              if (d.dim === 3) return d.followUpRaw?.d3_1_score ?? null;
+                              if (d.dim === 12) {
+                                if (fq.key === 'd12_1') return d.followUpRaw?.d12_1_score ?? null;
+                                if (fq.key === 'd12_2') return d.followUpRaw?.d12_2_score ?? null;
+                              }
+                              if (d.dim === 13) return d.followUpRaw?.d13_1_score ?? null;
+                              return null;
+                            })();
+                            return (
+                              <div key={fq.key}>
+                                <p className="text-xs text-slate-600 mb-2 font-medium">{fq.question}</p>
+                                <div className="space-y-1">
+                                  {fq.options.map((opt, i) => {
+                                    const isSelected = currentScore === opt.score;
+                                    return (
+                                      <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-white border border-blue-300 font-medium text-blue-800 shadow-sm' : 'bg-white/50 text-slate-600'}`}>
+                                        <span className="flex items-center gap-2">
+                                          {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+                                          {opt.label}
+                                        </span>
+                                        <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.score} pts</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  
+
                   {/* Footer - Navigation */}
                   <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
                     <div className="flex items-center justify-center">
@@ -9974,52 +10019,6 @@ export default function ExportReportPage() {
                             </div>
                           </div>
 
-                          {/* Follow-Up Questions (15% of dimension score) — only for D1, D3, D12, D13 */}
-                          {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
-                            <div className="mt-6 pt-4 border-t border-slate-200">
-                              <h4 className="text-sm font-semibold text-slate-700 mb-3">
-                                Follow-Up Questions
-                              </h4>
-                              <div className="space-y-4">
-                                {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
-                                  const currentScore = (() => {
-                                    if (d.dim === 1) {
-                                      if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
-                                      if (fq.key === 'd1_1_non_usa') return d.followUpRaw?.d1_1_non_usa_score ?? null;
-                                      return null;
-                                    }
-                                    if (d.dim === 3) return d.followUpRaw?.d3_1_score ?? null;
-                                    if (d.dim === 12) {
-                                      if (fq.key === 'd12_1') return d.followUpRaw?.d12_1_score ?? null;
-                                      if (fq.key === 'd12_2') return d.followUpRaw?.d12_2_score ?? null;
-                                    }
-                                    if (d.dim === 13) return d.followUpRaw?.d13_1_score ?? null;
-                                    return null;
-                                  })();
-                                  return (
-                                    <div key={fq.key}>
-                                      <p className="text-xs text-slate-600 mb-2 font-medium">{fq.question}</p>
-                                      <div className="space-y-1">
-                                        {fq.options.map((opt, i) => {
-                                          const isSelected = currentScore === opt.score;
-                                          return (
-                                            <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-blue-50 border border-blue-300 font-medium text-blue-800' : 'bg-slate-50 text-slate-600'}`}>
-                                              <span className="flex items-center gap-2">
-                                                {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
-                                                {opt.label}
-                                              </span>
-                                              <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.score} pts</span>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                                {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
-                              </div>
-                            </div>
-                          )}
 
                           {/* === THE IMPACT === */}
                           <p className="text-base font-semibold text-slate-700 mt-6 pt-4 border-t border-slate-200">
@@ -10396,52 +10395,6 @@ export default function ExportReportPage() {
                             </div>
                           </div>
 
-                          {/* Follow-Up Questions (15% of dimension score) — only for D1, D3, D12, D13 */}
-                          {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
-                            <div className="mt-6 pt-4 border-t border-slate-200">
-                              <h4 className="text-sm font-semibold text-slate-700 mb-3">
-                                Follow-Up Questions
-                              </h4>
-                              <div className="space-y-4">
-                                {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
-                                  const currentScore = (() => {
-                                    if (d.dim === 1) {
-                                      if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
-                                      if (fq.key === 'd1_1_non_usa') return d.followUpRaw?.d1_1_non_usa_score ?? null;
-                                      return null;
-                                    }
-                                    if (d.dim === 3) return d.followUpRaw?.d3_1_score ?? null;
-                                    if (d.dim === 12) {
-                                      if (fq.key === 'd12_1') return d.followUpRaw?.d12_1_score ?? null;
-                                      if (fq.key === 'd12_2') return d.followUpRaw?.d12_2_score ?? null;
-                                    }
-                                    if (d.dim === 13) return d.followUpRaw?.d13_1_score ?? null;
-                                    return null;
-                                  })();
-                                  return (
-                                    <div key={fq.key}>
-                                      <p className="text-xs text-slate-600 mb-2 font-medium">{fq.question}</p>
-                                      <div className="space-y-1">
-                                        {fq.options.map((opt, i) => {
-                                          const isSelected = currentScore === opt.score;
-                                          return (
-                                            <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-blue-50 border border-blue-300 font-medium text-blue-800' : 'bg-slate-50 text-slate-600'}`}>
-                                              <span className="flex items-center gap-2">
-                                                {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
-                                                {opt.label}
-                                              </span>
-                                              <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.score} pts</span>
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                                {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
-                              </div>
-                            </div>
-                          )}
 
                           {/* === THE IMPACT === */}
                           <p className="text-base font-semibold text-slate-700 mt-6 pt-4 border-t border-slate-200">
