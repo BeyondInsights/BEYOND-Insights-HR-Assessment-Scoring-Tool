@@ -8988,7 +8988,7 @@ export default function ExportReportPage() {
                                       <p className="text-sm text-slate-800">{item.name}</p>
                                       <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
                                     </div>
-                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''}{item.peerPct !== null ? ' · ' : ''}{(() => { const lvl = getElementLevel(item.name); return lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; })()}</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; return <span style={{ color }}>({label})</span>; })()}</p>
                                   </div>
                                 ))}
                               </div>
@@ -13709,7 +13709,7 @@ export default function ExportReportPage() {
                                           <p className="text-sm text-slate-800">{item.name}</p>
                                           <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
                                         </div>
-                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''}{item.peerPct !== null ? ' · ' : ''}{(() => { const lvl = getElementLevel(item.name); return lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; })()}</p>
+                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; return <span style={{ color }}>({label})</span>; })()}</p>
                                       </div>
                                     ))}
                                   </div>
