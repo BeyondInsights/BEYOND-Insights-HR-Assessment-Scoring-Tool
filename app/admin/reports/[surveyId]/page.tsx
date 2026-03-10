@@ -11070,7 +11070,7 @@ export default function ExportReportPage() {
 
                 {/* === SCORE CONTEXT BLOCK === */}
                 {(() => {
-                  // Compute tier-level benchmark averages
+                  // Compute tier-level benchmark averages (matches Score Composition algorithm with unsure substitution)
                   const computeTierBenchAvg = (level: string) => {
                     try {
                       const allA = (window as any).__allAssessments || [];
@@ -11084,6 +11084,13 @@ export default function ExportReportPage() {
                           const elems = Object.entries(result.elements).flatMap(([dStr, els]: [string, any]) =>
                             (els as any[]).map((e: any) => ({ ...e, dim: parseInt(dStr) }))
                           );
+                          // Compute per-dimension confirm rates for unsure substitution
+                          const bDimCR: Record<number, number> = {};
+                          for (let d = 1; d <= 13; d++) {
+                            const de = elems.filter((e: any) => e.dim === d || (ELEMENT_DIM_WEIGHTS[e.name] && ELEMENT_DIM_WEIGHTS[e.name][0] === d));
+                            if (de.length === 0) { bDimCR[d] = 1; continue; }
+                            bDimCR[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
+                          }
                           const levelElems = elems.filter((e: any) => getElementLevel(e.name) === level);
                           if (levelElems.length === 0) return;
                           let wNum = 0, wDen = 0;
@@ -11091,7 +11098,12 @@ export default function ExportReportPage() {
                             const ew = ELEMENT_DIM_WEIGHTS[e.name];
                             const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / levelElems.length);
                             let sn = 0;
-                            if (e.isStrength) sn = 1;
+                            if (e.isUnsure) {
+                              const dn = ew ? ew[0] : (e.dim || 1);
+                              const mu = TIER_MEANS[dn]?.[level] || 0;
+                              const cr = bDimCR[dn] || 0;
+                              sn = (mu * cr * cr) / 5;
+                            } else if (e.isStrength) sn = 1;
                             else if (e.isPlanning) sn = 0.6;
                             else if (e.isAssessing) sn = 0.4;
                             wNum += w * sn;
