@@ -8966,15 +8966,15 @@ export default function ExportReportPage() {
                           <div key={idx} className="p-5 bg-white rounded-xl border border-slate-200 hover:shadow-lg hover:border-violet-400 hover:-translate-y-0.5 transition-all">
                             <div className="flex items-center gap-2 mb-3">
                               <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
-                              <span className="text-sm font-medium text-slate-500">{item.dimName}</span>
-                            </div>
-                            <div className="flex items-center justify-between gap-2 mb-2">
-                              <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
+                              <span className="text-sm font-medium text-slate-500 flex-1">{item.dimName}</span>
                               <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg flex-shrink-0" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
                             </div>
-                            <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{item.type}</span>
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
+                              <span className={`text-xs font-semibold flex-shrink-0 ${item.type === 'In Development' ? 'text-violet-600' : 'text-amber-600'}`}>{item.type}</span>
+                            </div>
                             {item.peerPct !== null && (
-                              <p className="text-xs text-slate-400 mt-2 italic">{item.peerPct}% of participating organizations have this in place</p>
+                              <p className="text-xs text-slate-400 mt-1 italic">{item.peerPct}% of participating organizations have this in place</p>
                             )}
                           </div>
                         );
@@ -13671,15 +13671,15 @@ export default function ExportReportPage() {
                             <div key={idx} className="p-5 bg-white rounded-xl border border-slate-200">
                               <div className="flex items-center gap-2 mb-3">
                                 <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{item.dimNum}</span>
-                                <span className="text-sm font-medium text-slate-500">{item.dimName}</span>
-                              </div>
-                              <div className="flex items-center justify-between gap-2 mb-2">
-                                <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
+                                <span className="text-sm font-medium text-slate-500 flex-1">{item.dimName}</span>
                                 <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg flex-shrink-0" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
                               </div>
-                              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{item.type}</span>
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
+                                <span className={`text-xs font-semibold flex-shrink-0 ${item.type === 'In Development' ? 'text-violet-600' : 'text-amber-600'}`}>{item.type}</span>
+                              </div>
                               {item.peerPct !== null && (
-                                <p className="text-xs text-slate-400 mt-2 italic">{item.peerPct}% of participating organizations have this in place</p>
+                                <p className="text-xs text-slate-400 mt-1 italic">{item.peerPct}% of participating organizations have this in place</p>
                               )}
                             </div>
                           );
