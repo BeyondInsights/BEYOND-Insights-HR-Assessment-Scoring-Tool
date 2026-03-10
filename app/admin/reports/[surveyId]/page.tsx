@@ -8870,7 +8870,7 @@ export default function ExportReportPage() {
                     color: '#DC2626',
                     lightBg: '#fef2f2',
                     icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-                    count: Math.min(growthDimensions.length, 6)
+                    count: growthDimensions.length
                   },
                 ]).map(tab => {
                   const isActive = activeReportTab === tab.key;
@@ -8992,9 +8992,9 @@ export default function ExportReportPage() {
               {activeReportTab === 'growth' && (
                 <div id="growth-opportunities">
                   <h3 className="text-xl font-bold text-slate-800 mb-1">Areas for Growth</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
+                  <p className="text-base text-slate-600 mb-6 font-medium">{growthDimensions.length} {growthDimensions.length === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
                   <div className="grid grid-cols-2 gap-5">
-                    {growthDimensions.slice(0, 6).map((d) => {
+                    {growthDimensions.map((d) => {
                       const pg = getEmployeePriorityGroup(d.weight);
                       return (
                         <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-red-300 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
@@ -13604,7 +13604,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
-                            <p className="text-slate-300 mt-0.5 text-sm">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
+                            <p className="text-slate-300 mt-0.5 text-sm">{growthDimensions.length} {growthDimensions.length === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 px-4 py-2 bg-white/20 text-white text-sm font-medium rounded-lg">
@@ -13615,7 +13615,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="px-12 py-6">
                       <div className="grid grid-cols-2 gap-5">
-                        {growthDimensions.slice(0, 6).map((d) => (
+                        {growthDimensions.map((d) => (
                           <div key={d.dim} className="border border-slate-200 rounded-xl p-4 bg-white">
                             <div className="flex items-center justify-between mb-3">
                               <p className="font-semibold text-slate-800 text-base">{d.name}</p>
