@@ -8971,10 +8971,11 @@ export default function ExportReportPage() {
                             </div>
                             <div className="flex items-center justify-between gap-2 mb-1">
                               <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
-                              <span className={`text-xs font-semibold flex-shrink-0 ${item.type === 'In Development' ? 'text-violet-600' : 'text-amber-600'}`}>{item.type}</span>
+                              {(() => { const lvl = getElementLevel(item.name); return <span className={`text-xs font-semibold flex-shrink-0 ${lvl === 'core' ? 'text-emerald-600' : lvl === 'advanced' ? 'text-indigo-600' : 'text-sky-600'}`}>{lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'}</span>; })()}
                             </div>
+                            <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{item.type}</span>
                             {item.peerPct !== null && (
-                              <p className="text-xs text-slate-400 mt-1 italic">{item.peerPct}% of participating organizations have this in place</p>
+                              <p className="text-xs text-slate-400 mt-2 italic">{item.peerPct}% of participating organizations have this in place</p>
                             )}
                           </div>
                         );
@@ -13676,10 +13677,11 @@ export default function ExportReportPage() {
                               </div>
                               <div className="flex items-center justify-between gap-2 mb-1">
                                 <p className="text-sm text-slate-800 font-semibold leading-snug">{item.name}</p>
-                                <span className={`text-xs font-semibold flex-shrink-0 ${item.type === 'In Development' ? 'text-violet-600' : 'text-amber-600'}`}>{item.type}</span>
+                                {(() => { const lvl = getElementLevel(item.name); return <span className={`text-xs font-semibold flex-shrink-0 ${lvl === 'core' ? 'text-emerald-600' : lvl === 'advanced' ? 'text-indigo-600' : 'text-sky-600'}`}>{lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'}</span>; })()}
                               </div>
+                              <span className={`inline-block text-xs font-semibold px-2.5 py-1 rounded ${item.type === 'In Development' ? 'bg-violet-100 text-violet-700 border border-violet-200' : 'bg-amber-50 text-amber-700 border border-amber-200'}`}>{item.type}</span>
                               {item.peerPct !== null && (
-                                <p className="text-xs text-slate-400 mt-1 italic">{item.peerPct}% of participating organizations have this in place</p>
+                                <p className="text-xs text-slate-400 mt-2 italic">{item.peerPct}% of participating organizations have this in place</p>
                               )}
                             </div>
                           );
