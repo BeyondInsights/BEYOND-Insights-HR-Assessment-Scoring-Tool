@@ -7,6 +7,8 @@ const ADMIN_EMAILS = [
   'john.bekier@beyondinsights.com',
   'leslie.hutchings@gmail.com',
   'barbara.deal@publicisgroupe.com',
+  'rnellis@cew.org',
+  'nancyweber@me.com',
 ]
 
 export async function POST(request: Request) {
