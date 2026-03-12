@@ -16064,88 +16064,92 @@ export default function ExportReportPage() {
               </button>
             </div>
 
-            {/* Table */}
+            {/* Transposed Table: rows = metrics, columns = companies + benchmark */}
             <div className="p-6 overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="sticky top-0 bg-slate-50 z-20">
-                    <th className="sticky left-0 bg-slate-50 z-30 text-left px-3 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 min-w-[200px]">Company</th>
-                    <th className="px-3 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 text-center min-w-[90px]">Tier</th>
-                    <th className="px-3 py-3 font-bold text-slate-900 border-b-2 border-slate-300 text-center min-w-[80px]">Composite</th>
-                    <th className="px-3 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 border-l-2 border-l-slate-200 text-center min-w-[70px]">Core</th>
-                    <th className="px-3 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 text-center min-w-[70px]">Enhanced</th>
-                    <th className="px-3 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 border-r-2 border-r-slate-200 text-center min-w-[70px]">Advanced</th>
-                    {Array.from({ length: 13 }, (_, i) => i + 1).map(d => (
-                      <th key={d} className="px-2 py-3 font-medium text-slate-600 border-b-2 border-slate-300 text-center min-w-[60px] text-xs">
-                        {DIMENSION_SHORT_NAMES[d] || ('D' + d)}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {indexSummaryData.map((row: any, idx: number) => (
-                    <tr key={row.surveyId || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
-                      <td className="sticky left-0 z-10 px-3 py-2.5 font-medium text-slate-900 border-b border-slate-100" style={{ backgroundColor: idx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
-                        {row.companyName}
-                      </td>
-                      <td className="px-3 py-2.5 text-center border-b border-slate-100">
-                        {row.tier && (
-                          <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold" style={{ color: row.tier.color, backgroundColor: row.tier.color + '15' }}>
-                            {row.tier.name}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-center font-bold border-b border-slate-100" style={{ color: getScoreColor(row.compositeScore || 0) }}>
-                        {row.compositeScore ?? '-'}
-                      </td>
-                      <td className="px-3 py-2.5 text-center border-b border-slate-100 border-l-2 border-l-slate-100" style={{ color: getScoreColor(row.coreScore || 0) }}>
-                        {row.coreScore ?? '-'}
-                      </td>
-                      <td className="px-3 py-2.5 text-center border-b border-slate-100" style={{ color: getScoreColor(row.enhancedScore || 0) }}>
-                        {row.enhancedScore ?? '-'}
-                      </td>
-                      <td className="px-3 py-2.5 text-center border-b border-slate-100 border-r-2 border-r-slate-100" style={{ color: getScoreColor(row.advancedScore || 0) }}>
-                        {row.advancedScore ?? '-'}
-                      </td>
-                      {Array.from({ length: 13 }, (_, i) => i + 1).map(d => (
-                        <td key={d} className="px-2 py-2.5 text-center text-xs border-b border-slate-100" style={{ color: getScoreColor(row.dimensionScores?.[d] || 0) }}>
-                          {row.dimensionScores?.[d] ?? '-'}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+              {(() => {
+                const avg = (vals: number[]) => vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
+                const benchCore = avg(indexSummaryData.map((r: any) => r.coreScore).filter((v: any) => v != null));
+                const benchEnh = avg(indexSummaryData.map((r: any) => r.enhancedScore).filter((v: any) => v != null));
+                const benchAdv = avg(indexSummaryData.map((r: any) => r.advancedScore).filter((v: any) => v != null));
 
-                  {/* Benchmark Row */}
-                  {benchmarks && (
-                    <tr className="bg-slate-100 font-bold border-t-2 border-slate-300">
-                      <td className="sticky left-0 z-10 bg-slate-100 px-3 py-3 text-slate-700">BENCHMARK</td>
-                      <td className="px-3 py-3 text-center text-slate-500 text-xs">Avg</td>
-                      <td className="px-3 py-3 text-center" style={{ color: getScoreColor(benchmarks.compositeScore || 0) }}>
-                        {benchmarks.compositeScore ?? '-'}
-                      </td>
-                      {/* Core/Enhanced/Advanced benchmarks - compute from indexSummaryData */}
-                      {(() => {
-                        const avg = (vals: number[]) => vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-                        const coreAvg = avg(indexSummaryData.map((r: any) => r.coreScore).filter((v: any) => v != null));
-                        const enhAvg = avg(indexSummaryData.map((r: any) => r.enhancedScore).filter((v: any) => v != null));
-                        const advAvg = avg(indexSummaryData.map((r: any) => r.advancedScore).filter((v: any) => v != null));
+                const metricRows: { label: string; isBold?: boolean; isSeparator?: boolean; getValue: (row: any) => any; getBenchmark: () => any; renderCell?: (val: any) => React.ReactNode }[] = [
+                  {
+                    label: 'Tier', getValue: (r) => r.tier, getBenchmark: () => null,
+                    renderCell: (val) => val ? <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold" style={{ color: val.color, backgroundColor: val.color + '15' }}>{val.name}</span> : '-'
+                  },
+                  {
+                    label: 'Composite', isBold: true, getValue: (r) => r.compositeScore, getBenchmark: () => benchmarks?.compositeScore,
+                    renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
+                  },
+                  { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
+                  {
+                    label: 'Core Support', getValue: (r) => r.coreScore, getBenchmark: () => benchCore,
+                    renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
+                  },
+                  {
+                    label: 'Enhanced Support', getValue: (r) => r.enhancedScore, getBenchmark: () => benchEnh,
+                    renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
+                  },
+                  {
+                    label: 'Advanced Support', getValue: (r) => r.advancedScore, getBenchmark: () => benchAdv,
+                    renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
+                  },
+                  { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
+                  ...Array.from({ length: 13 }, (_, i) => i + 1).map(d => ({
+                    label: DIMENSION_SHORT_NAMES[d] || ('D' + d),
+                    getValue: (r: any) => r.dimensionScores?.[d],
+                    getBenchmark: () => benchmarks?.dimensionScores?.[d],
+                    renderCell: (val: any) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
+                  })),
+                ];
+
+                return (
+                  <table className="border-collapse text-sm">
+                    <thead>
+                      <tr className="bg-slate-50">
+                        <th className="sticky left-0 bg-slate-50 z-30 text-left px-4 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 min-w-[160px]">Metric</th>
+                        {benchmarks && (
+                          <th className="px-3 py-3 font-bold text-slate-700 border-b-2 border-slate-300 text-center min-w-[90px] bg-slate-100">BENCH</th>
+                        )}
+                        {indexSummaryData.map((row: any, idx: number) => (
+                          <th key={row.surveyId || idx} className="px-3 py-3 font-medium text-slate-800 border-b-2 border-slate-300 text-center min-w-[90px] whitespace-nowrap text-xs">
+                            {row.companyName}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {metricRows.map((metric, mIdx) => {
+                        if (metric.isSeparator) {
+                          return (
+                            <tr key={'sep-' + mIdx}>
+                              <td colSpan={1 + (benchmarks ? 1 : 0) + indexSummaryData.length} className="h-2 bg-slate-50 border-b border-slate-200"></td>
+                            </tr>
+                          );
+                        }
+                        const render = metric.renderCell || ((val: any) => val ?? '-');
                         return (
-                          <>
-                            <td className="px-3 py-3 text-center border-l-2 border-l-slate-200" style={{ color: getScoreColor(coreAvg || 0) }}>{coreAvg ?? '-'}</td>
-                            <td className="px-3 py-3 text-center" style={{ color: getScoreColor(enhAvg || 0) }}>{enhAvg ?? '-'}</td>
-                            <td className="px-3 py-3 text-center border-r-2 border-r-slate-200" style={{ color: getScoreColor(advAvg || 0) }}>{advAvg ?? '-'}</td>
-                          </>
+                          <tr key={mIdx} className={mIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}>
+                            <td className={`sticky left-0 z-10 px-4 py-2.5 border-b border-slate-100 text-slate-700 ${metric.isBold ? 'font-bold text-sm' : 'font-medium text-sm'}`} style={{ backgroundColor: mIdx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                              {metric.label}
+                            </td>
+                            {benchmarks && (
+                              <td className="px-3 py-2.5 text-center border-b border-slate-100 bg-slate-50 font-bold">
+                                {render(metric.getBenchmark())}
+                              </td>
+                            )}
+                            {indexSummaryData.map((row: any, cIdx: number) => (
+                              <td key={cIdx} className={`px-3 py-2.5 text-center border-b border-slate-100 ${metric.isBold ? 'font-bold' : ''}`}>
+                                {render(metric.getValue(row))}
+                              </td>
+                            ))}
+                          </tr>
                         );
-                      })()}
-                      {Array.from({ length: 13 }, (_, i) => i + 1).map(d => (
-                        <td key={d} className="px-2 py-3 text-center text-xs" style={{ color: getScoreColor(benchmarks.dimensionScores?.[d] || 0) }}>
-                          {benchmarks.dimensionScores?.[d] ?? '-'}
-                        </td>
-                      ))}
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                      })}
+                    </tbody>
+                  </table>
+                );
+              })()}
             </div>
 
             {/* Footer */}
