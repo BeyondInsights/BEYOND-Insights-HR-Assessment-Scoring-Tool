@@ -4528,6 +4528,7 @@ export default function ExportReportPage() {
   }, [surveyId]);
 
   // Index Summary: compute scores for all Index companies (excludes Panel)
+  // Uses the same inline WSI pipeline as wsiScoreHeader (element-weighted dim scores + geo + follow-up + 90/5/5)
   const indexSummaryData = useMemo(() => {
     const allA = (window as any).__allAssessments;
     if (!allA || allA.length === 0) return [];
@@ -4544,10 +4545,8 @@ export default function ExportReportPage() {
           const compResult = calculateCompanyScores(a);
           if (!compResult?.scores || !compResult?.elements) return null;
           const cn = a.firmographics_data?.company_name || a.company_name || 'Unknown';
-          const dimScores = compResult.scores.dimensionScores || {};
-          const composite = compResult.scores.compositeScore;
 
-          // Build flat element array for tier calc
+          // Build flat element array (same as _allElemsForRating in render)
           const allElems = Object.entries(compResult.elements).flatMap(([dimStr, elems]: [string, any]) =>
             (elems as any[]).map((e: any) => ({ ...e, dim: parseInt(dimStr) }))
           );
@@ -4583,15 +4582,73 @@ export default function ExportReportPage() {
             return wD > 0 ? Math.round((wN / wD) * 100) : 0;
           };
 
+          // --- WSI composite: inline pipeline matching wsiScoreHeader ---
+          // Step 1: Per-dimension element-weighted raw scores with unsure substitution
+          const dimElemScores: Record<number, number> = {};
+          for (let d = 1; d <= 13; d++) {
+            const dimElems = allElems.filter((e: any) => e.dim === d);
+            if (dimElems.length === 0) { dimElemScores[d] = 0; continue; }
+            let wEarned = 0, wMax = 0;
+            dimElems.forEach((e: any) => {
+              const ew = ELEMENT_DIM_WEIGHTS[e.name];
+              const elemWt = ew ? ew[1] : (1 / dimElems.length);
+              if (e.isUnsure) {
+                const level = getElementLevel(e.name);
+                const mu = TIER_MEANS[d]?.[level] || 0;
+                const cr = crRates[d] || 0;
+                wEarned += (mu * cr * cr) * elemWt;
+                wMax += 5 * elemWt;
+              } else {
+                const pts = e.isStrength ? 5 : e.isPlanning ? 3 : e.isAssessing ? 2 : 0;
+                wEarned += pts * elemWt;
+                wMax += 5 * elemWt;
+              }
+            });
+            dimElemScores[d] = wMax > 0 ? Math.round((wEarned / wMax) * 100) : 0;
+          }
+
+          // Step 2: Apply geo multipliers
+          const gm = compResult.scores.geoMultipliers || {};
+          for (let d = 1; d <= 13; d++) {
+            dimElemScores[d] = Math.round(dimElemScores[d] * (gm[d] ?? 1.0));
+          }
+
+          // Step 3: Follow-up blending for D1, D3, D12, D13
+          [1, 3, 12, 13].forEach(d => {
+            const fu = calculateFollowUpScore(d, a);
+            if (fu !== null) {
+              const key = ('d' + d) as keyof typeof DEFAULT_BLEND_WEIGHTS;
+              const gP = DEFAULT_BLEND_WEIGHTS[key]?.grid ?? 85;
+              const fP = DEFAULT_BLEND_WEIGHTS[key]?.followUp ?? 15;
+              dimElemScores[d] = Math.round((dimElemScores[d] * (gP / 100)) + (fu * (fP / 100)));
+            }
+          });
+
+          // Step 4: Dimension-weighted composite
+          let wsiWeightedDim = 0;
+          for (let d = 1; d <= 13; d++) {
+            wsiWeightedDim += dimElemScores[d] * ((DEFAULT_DIMENSION_WEIGHTS[d] || 0) / _dwt);
+          }
+          wsiWeightedDim = Math.round(wsiWeightedDim);
+
+          // Step 5: 90/5/5 blend
+          const mat = compResult.scores.maturityScore || 0;
+          const brd = compResult.scores.breadthScore || 0;
+          const wsiComposite = Math.round(
+            (wsiWeightedDim * (DEFAULT_COMPOSITE_WEIGHTS.weightedDim / 100)) +
+            (mat * (DEFAULT_COMPOSITE_WEIGHTS.maturity / 100)) +
+            (brd * (DEFAULT_COMPOSITE_WEIGHTS.breadth / 100))
+          );
+
           return {
             companyName: cn,
             surveyId: a.survey_id,
-            compositeScore: composite,
-            tier: composite !== null ? getWSITier(composite) : null,
+            compositeScore: wsiComposite,
+            tier: getWSITier(wsiComposite),
             coreScore: tierCalc('core'),
             enhancedScore: tierCalc('enhanced'),
             advancedScore: tierCalc('advanced'),
-            dimensionScores: dimScores,
+            dimensionScores: dimElemScores,
           };
         } catch { return null; }
       })
