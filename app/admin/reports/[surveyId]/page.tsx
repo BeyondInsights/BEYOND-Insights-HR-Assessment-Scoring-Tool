@@ -6886,11 +6886,11 @@ export default function ExportReportPage() {
                       {/* Composite weight footnote */}
                       <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-200">
                         <span className="text-sm text-slate-500">Composite = </span>
-                        <span className="text-sm font-semibold" style={{ color: '#047857' }}>35% Core</span>
+                        <span className="text-sm font-semibold text-slate-700">90% Weighted Dimensions</span>
                         <span className="text-sm text-slate-300">+</span>
-                        <span className="text-sm font-semibold" style={{ color: '#B45309' }}>50% Enhanced</span>
+                        <span className="text-sm font-semibold text-slate-700">5% Maturity</span>
                         <span className="text-sm text-slate-300">+</span>
-                        <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>15% Advanced</span>
+                        <span className="text-sm font-semibold text-slate-700">5% Breadth</span>
                       </div>
 
                     </div>
