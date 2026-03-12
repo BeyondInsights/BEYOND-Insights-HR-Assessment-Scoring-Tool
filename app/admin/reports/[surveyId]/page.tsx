@@ -4527,24 +4527,22 @@ export default function ExportReportPage() {
     else { setError('No survey ID provided'); setLoading(false); }
   }, [surveyId]);
 
-  // Index Summary: compute scores for all Index companies (excludes Panel)
+  // Index Summary: compute scores for ALL companies, then split into display (Index only) and benchmarks (all)
   // Uses the same inline WSI pipeline as wsiScoreHeader (element-weighted dim scores + geo + follow-up + 90/5/5)
-  const indexSummaryData = useMemo(() => {
+  const { indexSummaryData, indexBenchmarks } = useMemo(() => {
     const allA = (window as any).__allAssessments;
-    if (!allA || allA.length === 0) return [];
+    if (!allA || allA.length === 0) return { indexSummaryData: [], indexBenchmarks: null };
     const _dwt = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
 
-    return allA
-      .filter((a: any) => {
-        const sid = a.survey_id || '';
-        const cn = a.firmographics_data?.company_name || a.company_name || '';
-        return !sid.startsWith('PANEL-') && !cn.startsWith('Panel Company');
-      })
+    // Compute scores for every company (Index + Panel)
+    const allCompanyScores = allA
       .map((a: any) => {
         try {
           const compResult = calculateCompanyScores(a);
           if (!compResult?.scores || !compResult?.elements) return null;
           const cn = a.firmographics_data?.company_name || a.company_name || 'Unknown';
+          const sid = a.survey_id || '';
+          const isPanel = sid.startsWith('PANEL-') || cn.startsWith('Panel Company');
 
           // Build flat element array (same as _allElemsForRating in render)
           const allElems = Object.entries(compResult.elements).flatMap(([dimStr, elems]: [string, any]) =>
@@ -4642,7 +4640,8 @@ export default function ExportReportPage() {
 
           return {
             companyName: cn,
-            surveyId: a.survey_id,
+            surveyId: sid,
+            isPanel,
             compositeScore: wsiComposite,
             tier: getWSITier(wsiComposite),
             coreScore: tierCalc('core'),
@@ -4652,8 +4651,29 @@ export default function ExportReportPage() {
           };
         } catch { return null; }
       })
-      .filter((d: any) => d !== null)
+      .filter((d: any) => d !== null);
+
+    // Benchmark: average ALL companies (including Panel)
+    const avg = (vals: number[]) => vals.length > 0 ? Math.round(vals.reduce((a: number, b: number) => a + b, 0) / vals.length) : null;
+    const dimBench: Record<number, number | null> = {};
+    for (let d = 1; d <= 13; d++) {
+      dimBench[d] = avg(allCompanyScores.map((r: any) => r.dimensionScores?.[d]).filter((v: any) => v != null));
+    }
+    const iBenchmarks = {
+      compositeScore: avg(allCompanyScores.map((r: any) => r.compositeScore).filter((v: any) => v != null)),
+      coreScore: avg(allCompanyScores.map((r: any) => r.coreScore).filter((v: any) => v != null)),
+      enhancedScore: avg(allCompanyScores.map((r: any) => r.enhancedScore).filter((v: any) => v != null)),
+      advancedScore: avg(allCompanyScores.map((r: any) => r.advancedScore).filter((v: any) => v != null)),
+      dimensionScores: dimBench,
+      companyCount: allCompanyScores.length,
+    };
+
+    // Display rows: Index only (no Panel), sorted by composite
+    const displayRows = allCompanyScores
+      .filter((r: any) => !r.isPanel)
       .sort((a: any, b: any) => (b.compositeScore || 0) - (a.compositeScore || 0));
+
+    return { indexSummaryData: displayRows, indexBenchmarks: iBenchmarks };
   }, [allWSIScoresState, company]);
 
   // Presentation mode keyboard navigation
@@ -16110,7 +16130,7 @@ export default function ExportReportPage() {
               <div>
                 <h2 className="text-xl font-bold text-slate-900">Index Company Summary</h2>
                 <p className="text-sm text-slate-500 mt-1">
-                  {indexSummaryData.length} Index Companies. Sorted by Composite Score.
+                  {indexSummaryData.length} Index Companies. Sorted by Composite Score. Benchmark includes all {indexBenchmarks?.companyCount || 0} companies.
                 </p>
               </div>
               <button
@@ -16124,10 +16144,7 @@ export default function ExportReportPage() {
             {/* Transposed Table: rows = metrics, columns = companies + benchmark */}
             <div className="p-6 overflow-x-auto">
               {(() => {
-                const avg = (vals: number[]) => vals.length > 0 ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-                const benchCore = avg(indexSummaryData.map((r: any) => r.coreScore).filter((v: any) => v != null));
-                const benchEnh = avg(indexSummaryData.map((r: any) => r.enhancedScore).filter((v: any) => v != null));
-                const benchAdv = avg(indexSummaryData.map((r: any) => r.advancedScore).filter((v: any) => v != null));
+                const ib = indexBenchmarks;
 
                 const metricRows: { label: string; isBold?: boolean; isSeparator?: boolean; getValue: (row: any) => any; getBenchmark: () => any; renderCell?: (val: any) => React.ReactNode }[] = [
                   {
@@ -16135,27 +16152,27 @@ export default function ExportReportPage() {
                     renderCell: (val) => val ? <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold" style={{ color: val.color, backgroundColor: val.color + '15' }}>{val.name}</span> : '-'
                   },
                   {
-                    label: 'Composite', isBold: true, getValue: (r) => r.compositeScore, getBenchmark: () => benchmarks?.compositeScore,
+                    label: 'Composite', isBold: true, getValue: (r) => r.compositeScore, getBenchmark: () => ib?.compositeScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
                   {
-                    label: 'Core Support', getValue: (r) => r.coreScore, getBenchmark: () => benchCore,
+                    label: 'Core Support', getValue: (r) => r.coreScore, getBenchmark: () => ib?.coreScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
-                    label: 'Enhanced Support', getValue: (r) => r.enhancedScore, getBenchmark: () => benchEnh,
+                    label: 'Enhanced Support', getValue: (r) => r.enhancedScore, getBenchmark: () => ib?.enhancedScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
-                    label: 'Advanced Support', getValue: (r) => r.advancedScore, getBenchmark: () => benchAdv,
+                    label: 'Advanced Support', getValue: (r) => r.advancedScore, getBenchmark: () => ib?.advancedScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
                   ...Array.from({ length: 13 }, (_, i) => i + 1).map(d => ({
                     label: DIMENSION_SHORT_NAMES[d] || ('D' + d),
                     getValue: (r: any) => r.dimensionScores?.[d],
-                    getBenchmark: () => benchmarks?.dimensionScores?.[d],
+                    getBenchmark: () => ib?.dimensionScores?.[d],
                     renderCell: (val: any) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   })),
                 ];
@@ -16165,7 +16182,7 @@ export default function ExportReportPage() {
                     <thead>
                       <tr className="bg-slate-50">
                         <th className="sticky left-0 bg-slate-50 z-30 text-left px-4 py-3 font-semibold text-slate-700 border-b-2 border-slate-300 min-w-[160px]">Metric</th>
-                        {benchmarks && (
+                        {ib && (
                           <th className="px-3 py-3 font-bold text-slate-700 border-b-2 border-slate-300 text-center min-w-[90px] bg-slate-100">BENCH</th>
                         )}
                         {indexSummaryData.map((row: any, idx: number) => (
@@ -16180,7 +16197,7 @@ export default function ExportReportPage() {
                         if (metric.isSeparator) {
                           return (
                             <tr key={'sep-' + mIdx}>
-                              <td colSpan={1 + (benchmarks ? 1 : 0) + indexSummaryData.length} className="h-2 bg-slate-50 border-b border-slate-200"></td>
+                              <td colSpan={1 + (ib ? 1 : 0) + indexSummaryData.length} className="h-2 bg-slate-50 border-b border-slate-200"></td>
                             </tr>
                           );
                         }
@@ -16190,7 +16207,7 @@ export default function ExportReportPage() {
                             <td className={`sticky left-0 z-10 px-4 py-2.5 border-b border-slate-100 text-slate-700 ${metric.isBold ? 'font-bold text-sm' : 'font-medium text-sm'}`} style={{ backgroundColor: mIdx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
                               {metric.label}
                             </td>
-                            {benchmarks && (
+                            {ib && (
                               <td className="px-3 py-2.5 text-center border-b border-slate-100 bg-slate-50 font-bold">
                                 {render(metric.getBenchmark())}
                               </td>
