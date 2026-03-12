@@ -73,11 +73,15 @@ const DIMENSION_ORDER = [4, 8, 3, 2, 13, 6, 1, 5, 7, 9, 10, 11, 12];
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
-// D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
+// Items excluded post-launch for Year 1 fairness (matches admin report APP_ONLY_EXCLUDED_ITEMS)
 // Will be included in Year 2 scoring once all respondents have had opportunity to answer
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
+const APP_EXCLUDED_ITEMS: Record<number, string[]> = {
+  1: ['Full salary (100%) continuation during cancer-related short-term disability leave'],
+  9: ['Executive-led town halls focused on health benefits and employee support'],
+  10: ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'],
+  12: ['Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)'],
+  13: ['Cancer awareness month campaigns with resources'],
+};
 
 const COL1_WIDTH = 280;
 const COL2_WIDTH = 65;  // WIDENED from 50
@@ -361,7 +365,7 @@ function calculateDimensionScore(
 
   // Use shared WSI element-weighted scoring with unsure substitution
   const wsiResult = calculateElementWeightedDimScore(
-    dimNum, mainGrid, dimNum === 10 ? D10_EXCLUDED_ITEMS : undefined
+    dimNum, mainGrid, APP_EXCLUDED_ITEMS[dimNum] || undefined
   );
   result.rawScore = wsiResult.score;
   result.totalItems = wsiResult.totalItems;
@@ -370,8 +374,18 @@ function calculateDimensionScore(
 
   result.unsurePercent = result.totalItems > 0 ? result.unsureCount / result.totalItems : 0;
   result.isInsufficientData = result.unsurePercent > INSUFFICIENT_DATA_THRESHOLD;
-  const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
-  result.geoMultiplier = getGeoMultiplier(geoResponse);
+
+  // Single-country companies always get geo=1.0 (matches admin report logic)
+  const firmographics = assessment?.firmographics_data || {};
+  const s9a = firmographics.s9a || '';
+  const s9aLower = typeof s9a === 'string' ? s9a.toLowerCase() : '';
+  const isSingleCountry = s9aLower.includes('no other countries') || s9aLower.includes('headquarters only') || s9aLower === '';
+  if (isSingleCountry) {
+    result.geoMultiplier = 1.0;
+  } else {
+    const geoResponse = dimData[`d${dimNum}aa`] || dimData[`D${dimNum}aa`];
+    result.geoMultiplier = getGeoMultiplier(geoResponse);
+  }
   result.adjustedScore = Math.round(result.rawScore * result.geoMultiplier);
   
   // Apply weighted blend for D1, D3, D12, D13
@@ -1623,8 +1637,9 @@ function ReliabilityDiagnosticsModal({
     
     // Exclude D10 post-launch items for consistency with main scoring
     let items = Array.from(allItems);
-    if (dimNum === 10) {
-      items = items.filter(item => !D10_EXCLUDED_ITEMS.includes(item));
+    const excluded = APP_EXCLUDED_ITEMS[dimNum] || [];
+    if (excluded.length > 0) {
+      items = items.filter(item => !excluded.includes(item));
     }
     
     return items;
