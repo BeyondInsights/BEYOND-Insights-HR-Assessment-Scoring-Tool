@@ -466,12 +466,24 @@ function downloadHTML(data: any) {
   ].filter(Boolean).join('');
 
   const companyRows = [
-    fieldRow('Industry', data.firmo?.c2),
     fieldRow('Total Employees', data.firmo?.s8),
     fieldRow('Headquarters', data.firmo?.s9),
     fieldRow('Countries', data.firmo?.s9a),
-    fieldRow('Revenue', data.firmo?.c4 || data.firmo?.c5),
-    fieldRow('Remote/Hybrid', data.firmo?.c6),
+  ].filter(Boolean).join('');
+
+  /* ── AUTHORIZATION ── */
+  const authRows = [
+    fieldRow('Authorization Confirmation', data.firmo?.au1),
+    fieldRow('Authorized Representatives', Array.isArray(data.firmo?.au2) ? data.firmo.au2.join(', ') : data.firmo?.au2),
+  ].filter(Boolean).join('');
+
+  /* ── CLASSIFICATION ── */
+  const classRows = [
+    fieldRow('Industry / Sector', data.firmo?.c2),
+    fieldRow('Benefits Eligibility', data.firmo?.c3),
+    fieldRow('Non-Standard Worker Types', selectedOnly(data.firmo?.c3a)),
+    fieldRow('Annual Revenue', data.firmo?.c4 || data.firmo?.c5),
+    fieldRow('Remote / Hybrid Policy', data.firmo?.c6),
   ].filter(Boolean).join('');
 
   /* ── GENERAL BENEFITS ── */
@@ -558,9 +570,13 @@ function downloadHTML(data: any) {
     if (Array.isArray(val)) return val.map((v: string) => `<div style="font-size:13px;padding:2px 0">&bull; ${h(v)}</div>`).join('');
     return `<div style="font-size:13px">${h(String(val))}</div>`;
   };
-  const crossHTML = Object.keys(cross).length === 0 ? '' : `
+  const crossHTML = Object.keys(cross).length === 0 ? `
     <div class="card">
-      <div class="card-head" style="border-left-color:#10b981"><h2>Cross-Dimensional Assessment</h2></div>
+      <div class="card-head" style="border-left-color:#10b981"><h2>Cross-Dimensional Survey</h2></div>
+      <div style="padding:24px;text-align:center;font-size:13px;font-style:italic;color:#94a3b8">Not completed</div>
+    </div>` : `
+    <div class="card">
+      <div class="card-head" style="border-left-color:#10b981"><h2>Cross-Dimensional Survey</h2></div>
       <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
         <div style="border:1px solid #bbf7d0;border-radius:6px;padding:12px;background:#f0fdf4"><div style="font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em">Top 3 Priorities</div>${fmtList(cross.cd1a)}</div>
         <div style="border:1px solid #fde68a;border-radius:6px;padding:12px;background:#fffbeb"><div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em">Bottom 3 Priorities</div>${fmtList(cross.cd1b)}</div>
@@ -586,15 +602,19 @@ function downloadHTML(data: any) {
       if (row) impactInner += `<table>${row}</table>`;
     }
   });
-  const impactHTML = !impactInner ? '' : `
+  const impactHTML = !impactInner ? `
     <div class="card">
-      <div class="card-head" style="border-left-color:#f97316"><h2>Employee Impact Assessment</h2></div>
+      <div class="card-head" style="border-left-color:#f97316"><h2>Employee Impact</h2></div>
+      <div style="padding:24px;text-align:center;font-size:13px;font-style:italic;color:#94a3b8">Not completed</div>
+    </div>` : `
+    <div class="card">
+      <div class="card-head" style="border-left-color:#f97316"><h2>Employee Impact</h2></div>
       ${impactInner}
     </div>`;
 
   /* ── ASSEMBLE ── */
   const htmlContent = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
-<title>${h(data.companyName)} — Assessment Summary</title>
+<title>${h(data.companyName)} — Survey Summary</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.5;color:#1e293b;background:#fff;padding:32px 40px}
@@ -615,7 +635,7 @@ table{width:100%;border-collapse:collapse}
 
 <div style="border-bottom:3px solid #7a34a3;padding-bottom:16px;margin-bottom:24px">
 <div style="text-align:center;margin-bottom:12px"><div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#7a34a3">Best Companies for Working with Cancer</div>
-<div style="font-size:11px;color:#94a3b8">2026 Employer Index &mdash; Assessment Summary</div></div>
+<div style="font-size:11px;color:#94a3b8">2026 Employer Index &mdash; Survey Summary</div></div>
 <h1>${h(data.companyName)}</h1>
 <div style="font-size:12px;color:#64748b">${h(data.surveyId || '')} &bull; ${h(data.email || '')}</div></div>
 
@@ -623,9 +643,13 @@ table{width:100%;border-collapse:collapse}
 <div class="card"><div class="card-head" style="border-left-color:#7a34a3"><h2>Point of Contact</h2></div><table>${contactRows}</table></div>
 <div class="card"><div class="card-head" style="border-left-color:#3b82f6"><h2>Company Profile</h2></div><table>${companyRows}</table></div></div>
 
-${genRows ? `<div class="card"><div class="card-head" style="border-left-color:#6366f1"><h2>Benefits Landscape</h2></div><table>${genRows}</table></div>` : ''}
+${authRows ? `<div class="card"><div class="card-head" style="border-left-color:#8b5cf6"><h2>Authorization</h2></div><table>${authRows}</table></div>` : ''}
 
-${curRows ? `<div class="card"><div class="card-head" style="border-left-color:#ec4899"><h2>Current Support for Employees Managing Cancer</h2></div><table>${curRows}</table></div>` : ''}
+<div class="card"><div class="card-head" style="border-left-color:#06b6d4"><h2>Classification</h2></div>${classRows ? `<table>${classRows}</table>` : '<div style="padding:24px;text-align:center;font-size:13px;font-style:italic;color:#94a3b8">Not completed</div>'}</div>
+
+<div class="card"><div class="card-head" style="border-left-color:#6366f1"><h2>Benefits Landscape</h2></div>${genRows ? `<table>${genRows}</table>` : '<div style="padding:24px;text-align:center;font-size:13px;font-style:italic;color:#94a3b8">Not completed</div>'}</div>
+
+<div class="card"><div class="card-head" style="border-left-color:#ec4899"><h2>Current Support for Employees Managing Cancer</h2></div>${curRows ? `<table>${curRows}</table>` : '<div style="padding:24px;text-align:center;font-size:13px;font-style:italic;color:#94a3b8">Not completed</div>'}</div>
 
 <div style="margin:28px 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e8f0"><h2 style="font-size:18px;font-weight:800;color:#0f172a">13 Dimensions of Support</h2></div>
 ${dimensionsHTML}
@@ -642,7 +666,7 @@ ${impactHTML}
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${data.companyName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase()}-assessment-summary-${new Date().toISOString().split('T')[0]}.html`;
+  a.download = `${data.companyName.replace(/\s+/g, '-').replace(/[^a-zA-Z0-9-]/g, '').toLowerCase()}-survey-summary-${new Date().toISOString().split('T')[0]}.html`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1031,38 +1055,66 @@ export default function CompanyProfilePage() {
 
           <div className="bg-white border rounded-lg p-5" style={{ borderColor: BRAND.gray[200] }}>
             <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Profile</h2>
-            <Field label="Industry" value={data.firmo?.c2} />
             <Field label="Total Employees" value={data.firmo?.s8} />
             <Field label="Headquarters" value={data.firmo?.s9} />
             <Field label="Countries of Operation" value={data.firmo?.s9a} />
+          </div>
+        </div>
+
+        {/* AUTHORIZATION */}
+        {(data.firmo?.au1 || data.firmo?.au2) && (
+          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Authorization</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+              <Field label="Authorization Confirmation" value={data.firmo?.au1} />
+              <Field label="Authorized Representatives" value={Array.isArray(data.firmo?.au2) ? data.firmo.au2.join(', ') : data.firmo?.au2} />
+            </div>
+          </div>
+        )}
+
+        {/* CLASSIFICATION */}
+        <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Classification</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
+            <Field label="Industry / Sector" value={data.firmo?.c2} />
+            <Field label="Benefits Eligibility" value={data.firmo?.c3} />
+            <Field label="Non-Standard Worker Types" value={selectedOnly(data.firmo?.c3a)} />
             <Field label="Annual Revenue" value={data.firmo?.c4 || data.firmo?.c5} />
-            <Field label="Remote/Hybrid Policy" value={data.firmo?.c6} />
+            <Field label="Remote / Hybrid Policy" value={data.firmo?.c6} />
           </div>
         </div>
 
         {/* GENERAL BENEFITS */}
-        {Object.keys(data.general || {}).length > 0 && (
-          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Benefits Landscape</h2>
+        <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Benefits Landscape</h2>
+          {Object.keys(data.general || {}).length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
               {Object.entries(data.general).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-6 text-sm italic" style={{ color: BRAND.gray[400] }}>
+              Not completed
+            </div>
+          )}
+        </div>
 
         {/* CURRENT SUPPORT */}
-        {Object.keys(data.current || {}).length > 0 && (
-          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support for Employees Managing Cancer</h2>
+        <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Current Support for Employees Managing Cancer</h2>
+          {Object.keys(data.current || {}).length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
               {Object.entries(data.current).map(([k, v]) => (
                 <DataRow key={k} label={formatLabel(k)} value={selectedOnly(v)} />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-6 text-sm italic" style={{ color: BRAND.gray[400] }}>
+              Not completed
+            </div>
+          )}
+        </div>
 
         {/* 13 DIMENSIONS */}
         <div className="mb-4">
@@ -1130,9 +1182,9 @@ export default function CompanyProfilePage() {
         </div>
 
         {/* CROSS-DIMENSIONAL */}
-        {Object.keys(data.cross || {}).length > 0 && (
-          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Cross-Dimensional Assessment</h2>
+        <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Cross-Dimensional Survey</h2>
+          {Object.keys(data.cross || {}).length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div className="border rounded-lg p-4" style={{ borderColor: '#10B981', backgroundColor: '#F0FDF4' }}>
                 <div className="text-sm font-bold mb-2" style={{ color: '#065F46' }}>Top 3 Priority Dimensions</div>
@@ -1150,7 +1202,7 @@ export default function CompanyProfilePage() {
                   <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>Not provided</div>
                 )}
               </div>
-              
+
               <div className="border rounded-lg p-4" style={{ borderColor: '#F59E0B', backgroundColor: '#FFFBEB' }}>
                 <div className="text-sm font-bold mb-2" style={{ color: '#92400E' }}>Bottom 3 Priority Dimensions</div>
                 {data.cross.cd1b ? (
@@ -1167,7 +1219,7 @@ export default function CompanyProfilePage() {
                   <div className="text-xs italic" style={{ color: BRAND.gray[400] }}>Not provided</div>
                 )}
               </div>
-              
+
               <div className="border rounded-lg p-4" style={{ borderColor: '#EF4444', backgroundColor: '#FEF2F2' }}>
                 <div className="text-sm font-bold mb-2" style={{ color: '#991B1B' }}>Implementation Challenges</div>
                 {data.cross.cd2 ? (
@@ -1185,54 +1237,63 @@ export default function CompanyProfilePage() {
                 )}
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-6 text-sm italic" style={{ color: BRAND.gray[400] }}>
+              Not completed
+            </div>
+          )}
+        </div>
 
         {/* EMPLOYEE IMPACT */}
-        {Object.keys(data.impact || {}).length > 0 && (
-          <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
-            <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Employee Impact Assessment</h2>
-            
-            {data.impact.ei1 && typeof data.impact.ei1 === 'object' && (
-              <div className="mb-6 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
-                <div className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.primary }}>
-                  Program Impact by Outcome Area
+        <div className="bg-white border rounded-lg p-5 mb-6" style={{ borderColor: BRAND.gray[200] }}>
+          <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Employee Impact</h2>
+          {Object.keys(data.impact || {}).length > 0 ? (
+            <>
+              {data.impact.ei1 && typeof data.impact.ei1 === 'object' && (
+                <div className="mb-6 pb-4 border-b" style={{ borderColor: BRAND.gray[200] }}>
+                  <div className="text-sm font-bold uppercase tracking-wide mb-3" style={{ color: BRAND.primary }}>
+                    Program Impact by Outcome Area
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                    {Object.entries(data.impact.ei1).map(([item, rating]) => {
+                      const ratingStr = String(rating);
+                      const displayRating = FIELD_LABELS[ratingStr] || ratingStr.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                      const bgColor = ratingStr === 'significant' ? '#dcfce7' :
+                                     ratingStr === 'moderate' ? '#dbeafe' :
+                                     ratingStr === 'minimal' ? '#fef3c7' : BRAND.gray[100];
+
+                      return (
+                        <div key={item} className="flex items-center justify-between py-2.5 px-4 rounded border"
+                             style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
+                          <span className="text-sm font-medium" style={{ color: BRAND.gray[900] }}>
+                            {FIELD_LABELS[item] || item}
+                          </span>
+                          <span className="text-xs font-semibold px-3 py-1.5 rounded" style={{ backgroundColor: bgColor }}>
+                            {displayRating}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  {Object.entries(data.impact.ei1).map(([item, rating]) => {
-                    const ratingStr = String(rating);
-                    const displayRating = FIELD_LABELS[ratingStr] || ratingStr.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    const bgColor = ratingStr === 'significant' ? '#dcfce7' : 
-                                   ratingStr === 'moderate' ? '#dbeafe' : 
-                                   ratingStr === 'minimal' ? '#fef3c7' : BRAND.gray[100];
-                    
-                    return (
-                      <div key={item} className="flex items-center justify-between py-2.5 px-4 rounded border" 
-                           style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
-                        <span className="text-sm font-medium" style={{ color: BRAND.gray[900] }}>
-                          {FIELD_LABELS[item] || item}
-                        </span>
-                        <span className="text-xs font-semibold px-3 py-1.5 rounded" style={{ backgroundColor: bgColor }}>
-                          {displayRating}
-                        </span>
-                      </div>
-                    );
+              )}
+
+              <div className="space-y-3">
+                {Object.entries(data.impact)
+                  .filter(([k]) => k !== 'ei1' && !k.endsWith('_none'))
+                  .map(([k, v]) => {
+                    const val = selectedOnly(v);
+                    if (!val) return null;
+                    return <DataRow key={k} label={formatLabel(k)} value={val} />;
                   })}
-                </div>
               </div>
-            )}
-            
-            <div className="space-y-3">
-              {Object.entries(data.impact)
-                .filter(([k]) => k !== 'ei1' && !k.endsWith('_none'))
-                .map(([k, v]) => {
-                  const val = selectedOnly(v);
-                  if (!val) return null;
-                  return <DataRow key={k} label={formatLabel(k)} value={val} />;
-                })}
+            </>
+          ) : (
+            <div className="text-center py-6 text-sm italic" style={{ color: BRAND.gray[400] }}>
+              Not completed
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         <div className="mt-8 pt-4 border-t text-center text-[10px]" style={{ borderColor: BRAND.gray[200], color: BRAND.gray[500] }}>
           Best Companies for Working with Cancer: Employer Index - Copyright {new Date().getFullYear()} Cancer and Careers & CEW Foundation
