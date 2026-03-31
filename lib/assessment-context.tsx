@@ -99,7 +99,7 @@ interface AssessmentContextType {
   isLoaded: boolean
 
   // Auth/identity setters
-  setSurveyId: (id: string) => void
+  setSurveyId: (id: string | null) => void
   setEmail: (email: string) => void
   setCompanyName: (name: string) => void
   setAuthCompleted: (v: boolean) => void
@@ -138,8 +138,17 @@ export function useAssessmentContext(): AssessmentContextType {
 // ============================================
 
 export function AssessmentProvider({ children }: { children: React.ReactNode }) {
-  // Identity
-  const [surveyId, setSurveyId] = useState<string | null>(null)
+  // Identity — wrap setSurveyId to also persist to sessionStorage
+  const [surveyId, _setSurveyId] = useState<string | null>(null)
+  const setSurveyId = useCallback((id: string | null) => {
+    _setSurveyId(id)
+    surveyIdRef.current = id
+    if (id) {
+      sessionStorage.setItem('current_survey_id', id)
+    } else {
+      sessionStorage.removeItem('current_survey_id')
+    }
+  }, [])
   const [email, setEmail] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
   const [version, setVersion] = useState<number>(0)
@@ -502,7 +511,8 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   // ============================================
 
   const clearAll = useCallback(() => {
-    setSurveyId(null)
+    _setSurveyId(null)
+    surveyIdRef.current = null
     setEmail(null)
     setCompanyName(null)
     setVersion(0)

@@ -73,6 +73,15 @@ function AuthorizationContent() {
   })
 
   useEffect(() => {
+    // Wait for context to be loaded (sessionStorage recovery may be in progress)
+    if (!ctx.isLoaded && !ctx.surveyId) {
+      const savedId = sessionStorage.getItem('current_survey_id')
+      if (savedId) {
+        // Context is still recovering from sessionStorage — wait
+        return
+      }
+    }
+
     const checkAuth = async () => {
       // ============================================
       // FOUNDING PARTNER CHECK

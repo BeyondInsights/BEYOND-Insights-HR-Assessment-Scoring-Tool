@@ -15,6 +15,12 @@ export default function LetterPage() {
 
   // Check if user is authenticated
   useEffect(() => {
+    // Wait for context recovery before checking auth
+    if (!ctx.isLoaded && !ctx.surveyId) {
+      const savedId = sessionStorage.getItem('current_survey_id')
+      if (savedId) return // Still recovering — wait for next render
+    }
+
     const checkAuth = async () => {
       // ============================================
       // CHECK FOR FOUNDING PARTNER FIRST
@@ -47,7 +53,7 @@ export default function LetterPage() {
       }
     }
     checkAuth()
-  }, [router])
+  }, [router, ctx.isLoaded, ctx.surveyId, ctx.email])
 
   const handleContinue = async () => {
     if (!ready) return
