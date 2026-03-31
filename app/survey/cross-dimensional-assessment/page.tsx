@@ -105,6 +105,8 @@ export default function CrossDimensionalPage() {
     const saved = ctx.getSectionData('cross_dimensional');
     if (saved && Object.keys(saved).length > 0) {
       setAns(saved);
+      // Resume past intro if user already started answering
+      setStep(1);
     }
   }, [router]);
 

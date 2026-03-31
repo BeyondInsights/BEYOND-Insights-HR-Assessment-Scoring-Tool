@@ -59,7 +59,14 @@ export default function Dimension12Page() {
   
   useEffect(() => {
     const saved = ctx.getSectionData('dimension12');
-    if (saved) setAns(saved);
+    if (saved) {
+      setAns(saved);
+      // If main grid has answers, skip intro and go to grid
+      const grid = saved['d12a'];
+      if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
+        setStep(1);
+      }
+    }
 
     const firmData = ctx.getSectionData('firmographics');
     if (firmData) {

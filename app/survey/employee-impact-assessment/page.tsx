@@ -60,6 +60,8 @@ export default function EmployeeImpactPage() {
     const saved = ctx.getSectionData('employee_impact');
     if (saved && Object.keys(saved).length > 0) {
       setAns(saved);
+      // Resume past intro if user already started answering
+      setStep(1);
     }
   }, []);
 

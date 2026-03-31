@@ -61,7 +61,14 @@ export default function Dimension3Page() {
   // Load saved answers on mount
   useEffect(() => {
     const saved = ctx.getSectionData('dimension3');
-    if (saved) setAns(saved);
+    if (saved) {
+      setAns(saved);
+      // Resume at grid step if user already started answering
+      const grid = saved['d3a'];
+      if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
+        setStep(1);
+      }
+    }
 
     const firmData = ctx.getSectionData('firmographics');
     if (firmData) {

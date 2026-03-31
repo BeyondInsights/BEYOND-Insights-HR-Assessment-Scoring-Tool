@@ -62,7 +62,14 @@ export default function Dimension8Page() {
   
   useEffect(() => {
     const saved = ctx.getSectionData('dimension8');
-    if (saved) setAns(saved);
+    if (saved) {
+      setAns(saved);
+      // If main grid has answers, skip intro and go to grid
+      const grid = saved['d8a'];
+      if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
+        setStep(1);
+      }
+    }
 
     const firmData = ctx.getSectionData('firmographics');
     if (firmData) {
