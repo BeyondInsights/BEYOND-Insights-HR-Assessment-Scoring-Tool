@@ -353,6 +353,20 @@ export default function LoginPage() {
           if (result.appId) {
             setGeneratedAppId(result.appId)
             setShowAppId(true)
+            // Load the full record so context has version, user_id, etc.
+            const user = await getCurrentUser()
+            if (user) {
+              const { data: newAssessment } = await supabase
+                .from('assessments')
+                .select('*')
+                .eq('user_id', user.id)
+                .single()
+              if (newAssessment) {
+                ctx.setFullRecord(newAssessment)
+                console.log('[Login] Loaded full record for new user, version:', newAssessment.version)
+              }
+            }
+            // Ensure surveyId is set even if fullRecord didn't have it
             ctx.setSurveyId(result.appId)
             console.log('[Login] Set survey_id for new user:', result.appId)
           }

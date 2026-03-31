@@ -225,6 +225,8 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   // SAVE TO SUPABASE (via Netlify function)
   // ============================================
 
+  const retryCountRef = useRef(0)
+
   const saveToSupabase = useCallback(async (section?: string): Promise<boolean> => {
     const sid = surveyIdRef.current
     if (!sid) {
@@ -348,8 +350,13 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         versionRef.current = result.currentVersion
         savingRef.current = false
         setIsSaving(false)
-        // Retry with correct version
-        return saveToSupabase(section)
+        if (retryCountRef.current < 2) {
+          retryCountRef.current++
+          return saveToSupabase(section)
+        }
+        console.error('[AssessmentContext] Max retries for missing version')
+        retryCountRef.current = 0
+        return false
       }
 
       // Handle version conflict — update version and retry once
@@ -358,7 +365,13 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         versionRef.current = result.actualVersion
         savingRef.current = false
         setIsSaving(false)
-        return saveToSupabase(section)
+        if (retryCountRef.current < 2) {
+          retryCountRef.current++
+          return saveToSupabase(section)
+        }
+        console.error('[AssessmentContext] Max retries for version conflict')
+        retryCountRef.current = 0
+        return false
       }
 
       if (!response.ok || result.success === false) {
@@ -371,6 +384,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       }
 
       // Success
+      retryCountRef.current = 0
       if (result.newVersion) {
         setVersion(result.newVersion)
         versionRef.current = result.newVersion
