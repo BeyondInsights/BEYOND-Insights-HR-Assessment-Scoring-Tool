@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Info, X } from "lucide-react";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 // Fisher-Yates shuffle algorithm
 function shuffleArray<T>(array: T[]): T[] {
@@ -62,6 +62,7 @@ const DIMENSION_DEFINITIONS: Record<string, string> = {
 
 export default function CrossDimensionalPage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -87,34 +88,29 @@ export default function CrossDimensionalPage() {
     // Check if all 13 dimensions are complete
     let allComplete = true;
     for (let i = 1; i <= 13; i++) {
-      const complete = localStorage.getItem(`dimension${i}_complete`) === 'true';
+      const complete = ctx.getSectionComplete(`dimension${i}`);
       if (!complete) {
         allComplete = false;
         break;
       }
     }
-    
+
     if (!allComplete) {
       router.push("/dashboard");
       return;
     }
-    
+
     setAllDimensionsComplete(true);
 
-    const saved = localStorage.getItem("cross_dimensional_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
+    const saved = ctx.getSectionData('cross_dimensional');
+    if (saved && Object.keys(saved).length > 0) {
+      setAns(saved);
     }
   }, [router]);
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("cross_dimensional_data", JSON.stringify(ans));
+      ctx.setSectionData('cross_dimensional', ans);
     }
   }, [ans]);
 
@@ -207,8 +203,8 @@ export default function CrossDimensionalPage() {
       setStep(step + 1);
       setErrors("");
     } else {
-      localStorage.setItem("cross_dimensional_complete", "true");
-      await forceSyncNow();  // Force sync before navigation
+      ctx.setSectionComplete('cross_dimensional', true);
+      await ctx.saveToSupabase('cross_dimensional');
       router.push("/dashboard");
     }
   };
@@ -585,10 +581,10 @@ export default function CrossDimensionalPage() {
               You've successfully completed the cross-dimensional assessment.
             </p>
             <button
-              onClick={async () => { 
-                localStorage.setItem("cross_dimensional_complete", "true");
-                await forceSyncNow();  // Force sync before navigation
-                router.push("/dashboard"); 
+              onClick={async () => {
+                ctx.setSectionComplete('cross_dimensional', true);
+                await ctx.saveToSupabase('cross_dimensional');
+                router.push("/dashboard");
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >

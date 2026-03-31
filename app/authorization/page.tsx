@@ -4,29 +4,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { isAuthenticated, getUserAssessment } from '@/lib/supabase/auth'
 import { isFoundingPartner } from '@/lib/founding-partners'
 import { supabase } from '@/lib/supabase/client'
+import { useAssessmentContext } from '@/lib/assessment-context'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
-
-// Helper function to clear localStorage but preserve Supabase auth tokens
-const clearLocalStoragePreserveAuth = () => {
-  const supabaseKeys: string[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key && (key.startsWith('sb-') || key.startsWith('supabase'))) {
-      supabaseKeys.push(key)
-    }
-  }
-  const preserved: Record<string, string> = {}
-  supabaseKeys.forEach(key => {
-    const value = localStorage.getItem(key)
-    if (value) preserved[key] = value
-  })
-  localStorage.clear()
-  Object.entries(preserved).forEach(([key, value]) => {
-    localStorage.setItem(key, value)
-  })
-  console.log('Cleared localStorage but preserved', supabaseKeys.length, 'Supabase auth keys')
-}
 
 function Card({
   selected,
@@ -65,6 +45,7 @@ function Card({
 
 function AuthorizationContent() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
   
@@ -96,44 +77,41 @@ function AuthorizationContent() {
       // ============================================
       // FOUNDING PARTNER CHECK
       // ============================================
-      const surveyId = localStorage.getItem('survey_id') || ''
+      const surveyId = ctx.surveyId || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
+
       if (isFoundingPartner(surveyId)) {
         console.log('Founding Partner detected')
-        const authCompleted = localStorage.getItem('auth_completed') === 'true'
-        
-        if (authCompleted) {
-          console.log('✅ Founding Partner - auth already completed, redirecting to dashboard')
+
+        if (ctx.authCompleted) {
+          console.log('Founding Partner - auth already completed, redirecting to dashboard')
           router.push('/dashboard')
           return
         } else {
-          console.log('📋 Founding Partner - needs to complete authorization')
-          localStorage.setItem('auth_completed', 'true')
+          console.log('Founding Partner - needs to complete authorization')
+          ctx.setAuthCompleted(true)
           setLoading(false)
           return
         }
       }
       // ============================================
-      
+
       // ============================================
       // NEW USER BYPASS - Just created account
       // ============================================
-      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-      
-      if (justCreated || hasAuthFlag) {
+      const hasAuth = !!ctx.surveyId || !!ctx.email
+
+      if (hasAuth && !ctx.authCompleted) {
         console.log('New user or authenticated - bypassing auth check')
-        localStorage.removeItem('new_user_just_created')
         setLoading(false)
         return
       }
       // ============================================
-      
+
       // Check if user is authenticated with Supabase (ONLY for returning users)
       const authenticated = await isAuthenticated()
-      
-      if (!authenticated) {
+
+      if (!authenticated && !ctx.surveyId) {
         console.log('Not authenticated - redirecting to login')
         const redirectParam = redirect ? `?redirect=${encodeURIComponent(redirect)}` : ''
         router.push(`/${redirectParam}`)
@@ -141,41 +119,20 @@ function AuthorizationContent() {
       }
 
       // ============================================
-      // CLEAR OLD USER DATA ONLY IF TRULY DIFFERENT USER
-      // ============================================
-      const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
-      const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
-      
-      if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
-        console.log('Different user logging in - clearing old data')
-        clearLocalStoragePreserveAuth()
-        localStorage.setItem('auth_email', currentEmail || '')
-        localStorage.setItem('last_user_email', currentEmail || '')
-      } else if (currentEmail && !lastUserEmail) {
-        localStorage.setItem('last_user_email', currentEmail)
-        console.log('First login - setting last_user_email')
-      } else {
-        console.log('Same user returning - keeping all data')
-      }
-      // ============================================
-
-      // ============================================
       // CHECK IF AUTH IS ALREADY COMPLETED - REDIRECT TO DASHBOARD
       // ============================================
-      // Check BOTH Supabase and localStorage
-      const localAuthComplete = localStorage.getItem('auth_completed') === 'true'
-      
+
       // Load existing data if any
       try {
         const assessment = await getUserAssessment()
         if (assessment) {
-          // ✅ CRITICAL CHECK: If auth already completed, go to dashboard
-          if (assessment.auth_completed || localAuthComplete) {
-            console.log('✅ Authorization already completed - redirecting to dashboard')
+          // CRITICAL CHECK: If auth already completed, go to dashboard
+          if (assessment.auth_completed || ctx.authCompleted) {
+            console.log('Authorization already completed - redirecting to dashboard')
             router.push('/dashboard')
             return
           }
-          
+
           // Only load form data if auth not completed
           const authData = assessment.firmographics_data as any
           if (authData) {
@@ -188,49 +145,41 @@ function AuthorizationContent() {
             if (authData.au2) setAu2(authData.au2)
             if (authData.other) setOther(authData.other)
           }
-        } else if (localAuthComplete) {
-          // No Supabase record but localStorage says completed (founding partner case)
-          console.log('✅ Authorization completed (localStorage) - redirecting to dashboard')
+        } else if (ctx.authCompleted) {
+          // No Supabase record but context says completed (founding partner case)
+          console.log('Authorization completed (context) - redirecting to dashboard')
           router.push('/dashboard')
           return
         } else {
           // ============================================
-          // FALLBACK: Load from localStorage if Supabase didn't return data
-          // This handles returning users where getUserAssessment fails
+          // FALLBACK: Load from context if Supabase didn't return data
           // ============================================
-          console.log('📋 No Supabase assessment found, checking localStorage...')
-          
-          // Try to load firmographics_data from localStorage
-          const localFirmographics = localStorage.getItem('firmographics_data')
-          if (localFirmographics) {
-            try {
-              const authData = JSON.parse(localFirmographics)
-              console.log('📋 Found firmographics_data in localStorage:', Object.keys(authData))
-              if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
-              if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
-              if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
-              if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
-              if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
-              if (authData.au1) setAu1(authData.au1)
-              if (authData.au2) setAu2(authData.au2)
-              if (authData.other) setOther(authData.other)
-            } catch (e) {
-              console.error('Error parsing localStorage firmographics_data:', e)
-            }
+          console.log('No Supabase assessment found, checking context...')
+
+          // Try to load firmographics_data from context
+          const ctxFirmographics = ctx.getSectionData('firmographics')
+          if (ctxFirmographics) {
+            const authData = ctxFirmographics
+            console.log('Found firmographics_data in context:', Object.keys(authData))
+            if (authData.companyName) setCompanyInfo(prev => ({ ...prev, companyName: authData.companyName }))
+            if (authData.firstName) setCompanyInfo(prev => ({ ...prev, firstName: authData.firstName }))
+            if (authData.lastName) setCompanyInfo(prev => ({ ...prev, lastName: authData.lastName }))
+            if (authData.title) setCompanyInfo(prev => ({ ...prev, title: authData.title }))
+            if (authData.titleOther) setCompanyInfo(prev => ({ ...prev, titleOther: authData.titleOther }))
+            if (authData.au1) setAu1(authData.au1)
+            if (authData.au2) setAu2(authData.au2)
+            if (authData.other) setOther(authData.other)
           }
-          
-          // Also try to get company name from other localStorage sources
-          const loginCompanyName = localStorage.getItem('login_company_name')
-          if (loginCompanyName && !companyInfo.companyName) {
-            console.log('📋 Using company name from login_company_name:', loginCompanyName)
-            setCompanyInfo(prev => ({ ...prev, companyName: loginCompanyName }))
+
+          // Also try to get company name from context
+          if (ctx.companyName && !companyInfo.companyName) {
+            console.log('Using company name from context:', ctx.companyName)
+            setCompanyInfo(prev => ({ ...prev, companyName: ctx.companyName! }))
           }
-          
-          // Try login_first_name and login_last_name
-          const loginFirstName = localStorage.getItem('login_first_name')
-          const loginLastName = localStorage.getItem('login_last_name')
-          if (loginFirstName) setCompanyInfo(prev => ({ ...prev, firstName: prev.firstName || loginFirstName }))
-          if (loginLastName) setCompanyInfo(prev => ({ ...prev, lastName: prev.lastName || loginLastName }))
+
+          // Try login first/last name from context
+          if (ctx.loginFirstName) setCompanyInfo(prev => ({ ...prev, firstName: prev.firstName || ctx.loginFirstName! }))
+          if (ctx.loginLastName) setCompanyInfo(prev => ({ ...prev, lastName: prev.lastName || ctx.loginLastName! }))
         }
       } catch (error) {
         console.error('Error loading data:', error)
@@ -241,7 +190,7 @@ function AuthorizationContent() {
     }
 
     checkAuth()
-  }, [router, redirect])
+  }, [router, redirect, ctx])
   
   const handleBlur = (field: keyof typeof touched) => {
     setTouched(prev => ({ ...prev, [field]: true }))
@@ -314,26 +263,23 @@ function AuthorizationContent() {
     }
 
     if (canContinue) {
-      const currentEmail = (localStorage.getItem('auth_email') || '').toLowerCase().trim()
       const titleToStore = companyInfo.title === 'Other' ? companyInfo.titleOther : companyInfo.title
 
-      localStorage.setItem('login_company_name', companyInfo.companyName)
-      localStorage.setItem('login_first_name', companyInfo.firstName)
-      localStorage.setItem('login_last_name', companyInfo.lastName)
-      localStorage.setItem('login_title', titleToStore || '')
-      localStorage.setItem('authorization', JSON.stringify({ au1, au2, other }))
-      localStorage.setItem('auth_completed', 'true')
-      localStorage.setItem('last_user_email', currentEmail || '')
+      ctx.setCompanyName(companyInfo.companyName)
+      ctx.setLoginFirstName(companyInfo.firstName)
+      ctx.setLoginLastName(companyInfo.lastName)
+      ctx.setLoginTitle(titleToStore || '')
+      ctx.setAuthCompleted(true)
 
       // ============================================
       // CHECK IF FOUNDING PARTNER - SAVE TO SUPABASE
       // ============================================
-      const surveyId = localStorage.getItem('survey_id') || ''
+      const surveyId = ctx.surveyId || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
+
       if (isFoundingPartner(surveyId)) {
         console.log('Founding Partner - saving to Supabase then going to dashboard')
-        
+
         try {
           // =====================================================
           // CRITICAL: First get EXISTING firmographics from DATABASE
@@ -345,14 +291,14 @@ function AuthorizationContent() {
             .select('firmographics_data')
             .eq('survey_id', surveyId)
             .single()
-          
+
           if (fetchError) {
             console.error('Error fetching existing FP data:', fetchError)
           }
-          
+
           const existingFirmographics = (existingData?.firmographics_data as Record<string, any>) || {}
-          console.log('📊 Existing FP firmographics from DB:', Object.keys(existingFirmographics))
-          
+          console.log('Existing FP firmographics from DB:', Object.keys(existingFirmographics))
+
           // =====================================================
           // MERGE: Keep ALL existing Excel data + add new auth data
           // =====================================================
@@ -366,29 +312,16 @@ function AuthorizationContent() {
             au2,
             au2Other: other
           }
-          
-          // Also update localStorage for consistency with survey pages
-          localStorage.setItem('firmographics_data', JSON.stringify(mergedFirmographics))
-          
-          const { error } = await supabase
-            .from('assessments')
-            .update({
-              company_name: companyInfo.companyName,
-              firmographics_data: mergedFirmographics,
-              auth_completed: true,
-              updated_at: new Date().toISOString()
-            })
-            .eq('survey_id', surveyId)
-          
-          if (error) {
-            console.error('Error saving FP authorization:', error)
-          } else {
-            console.log('✅ FP authorization saved to Supabase (merged with existing Excel data)')
-          }
+
+          // Update context with merged firmographics
+          ctx.setSectionData('firmographics', mergedFirmographics)
+
+          // Save to Supabase via context
+          await ctx.saveToSupabase('firmographics')
         } catch (err) {
           console.error('Error saving FP data:', err)
         }
-        
+
         router.push('/dashboard')
         return
       }
@@ -397,104 +330,33 @@ function AuthorizationContent() {
       // ============================================
       // CHECK FOR NEW USER WITH BYPASS FLAGS
       // ============================================
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      
-      if (hasAuthFlag || justCreated) {
-        console.log('New user with bypass - saving to Supabase before going to payment')
-        // Clear the just created flag now
-        localStorage.removeItem('new_user_just_created')
-        
-        // STILL SAVE TO SUPABASE via survey_id
-        const storedSurveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
-        if (storedSurveyId) {
-          const titleToStore = companyInfo.title === 'Other (please specify)' 
-            ? companyInfo.titleOther 
-            : companyInfo.title
-          
-          const authorizationData = {
-            companyName: companyInfo.companyName,
-            firstName: companyInfo.firstName,
-            lastName: companyInfo.lastName,
-            title: titleToStore,
-            au1,
-            au2,
-            au2Other: other
-          }
-          
-          // Save to localStorage
-          localStorage.setItem('firmographics_data', JSON.stringify(authorizationData))
-          localStorage.setItem('login_company_name', companyInfo.companyName)
-          localStorage.setItem('login_first_name', companyInfo.firstName)
-          localStorage.setItem('login_last_name', companyInfo.lastName)
-          localStorage.setItem('auth_completed', 'true')
-          
-          // Try to save to Supabase via survey_id or app_id
-          const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase()
-          const { error } = await supabase
-            .from('assessments')
-            .update({
-              company_name: companyInfo.companyName,
-              email: localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '',
-              firmographics_data: authorizationData,
-              auth_completed: true,
-              updated_at: new Date().toISOString()
-            })
-            .or(`survey_id.eq.${storedSurveyId},app_id.eq.${normalizedId}`)
-          
-          if (error) {
-            console.error('Error saving bypass user auth:', error)
-          } else {
-            console.log('✅ Bypass user authorization saved to Supabase')
-          }
+      // If user has surveyId or email but is not a founding partner, treat as new/bypass user
+      if (ctx.surveyId && !ctx.paymentCompleted) {
+        console.log('New user with bypass - saving to context and Supabase before going to payment')
+
+        const authorizationData = {
+          companyName: companyInfo.companyName,
+          firstName: companyInfo.firstName,
+          lastName: companyInfo.lastName,
+          title: titleToStore,
+          au1,
+          au2,
+          au2Other: other
         }
-        
+
+        // Save to context
+        ctx.setSectionData('firmographics', authorizationData)
+
+        // Save to Supabase via context
+        await ctx.saveToSupabase('firmographics')
+
         router.push('/payment')
         return
       }
       // ============================================
 
-      // REGULAR USERS - Save to Supabase and check payment
+      // REGULAR USERS - Save to Supabase via context and check payment
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          // No Supabase user - check if they have bypass flags
-          const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-          if (hasAuthFlag) {
-            console.log('No Supabase user but has auth flag - saving via survey_id before payment')
-            
-            // Save via survey_id before proceeding
-            const storedSurveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
-            if (storedSurveyId) {
-              const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase()
-              await supabase
-                .from('assessments')
-                .update({
-                  company_name: companyInfo.companyName,
-                  email: localStorage.getItem('auth_email') || localStorage.getItem('login_email') || '',
-                  firmographics_data: {
-                    companyName: companyInfo.companyName,
-                    firstName: companyInfo.firstName,
-                    lastName: companyInfo.lastName,
-                    title: titleToStore,
-                    au1,
-                    au2,
-                    au2Other: other
-                  },
-                  auth_completed: true,
-                  updated_at: new Date().toISOString()
-                })
-                .or(`survey_id.eq.${storedSurveyId},app_id.eq.${normalizedId}`)
-            }
-            
-            router.push('/payment')
-          } else {
-            console.log('No Supabase user and no bypass - redirecting to login')
-            router.push('/')
-          }
-          return
-        }
-
         // BUILD COMPLETE DATA OBJECT WITH ALL ANSWERS
         const authorizationData = {
           companyName: companyInfo.companyName,
@@ -506,36 +368,25 @@ function AuthorizationContent() {
           other
         }
 
-        console.log('💾 Saving authorization data to Supabase:', authorizationData)
+        console.log('Saving authorization data via context:', authorizationData)
 
-        // SAVE BOTH DATA AND FLAG
-        const { error } = await supabase
-          .from('assessments')
-          .update({
-            company_name: companyInfo.companyName,
-            firmographics_data: authorizationData,  // ✅ ACTUAL ANSWERS
-            auth_completed: true,                    // ✅ COMPLETION FLAG
-            firmographics_complete: true,            // ✅ SECTION FLAG
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
+        // Save to context
+        ctx.setSectionData('firmographics', authorizationData)
+        ctx.setSectionComplete('firmographics', true)
 
-        console.log('✅ Save result:', error ? 'ERROR' : 'SUCCESS')
-        if (error) {
-          console.error('❌ Supabase error:', error)
-        }
+        // Save to Supabase via context
+        const saved = await ctx.saveToSupabase('firmographics')
 
-        if (error) {
-          console.error('Error saving:', error)
+        if (!saved) {
+          console.error('Error saving via context')
           setErrors('Failed to save. Please try again.')
           return
         }
-        
-        // Check payment status from BOTH Supabase AND localStorage
-        const assessment = await getUserAssessment()
-        const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
 
-        if (assessment?.payment_completed || localPaymentComplete) {
+        // Check payment status from context or Supabase
+        const assessment = await getUserAssessment()
+
+        if (assessment?.payment_completed || ctx.paymentCompleted) {
           console.log('Payment confirmed - redirecting to dashboard')
           router.push('/dashboard')
         } else {

@@ -4,9 +4,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Award, CheckCircle, CreditCard, Building, FileText, Star, AlertCircle } from 'lucide-react';
+import { useAssessmentContext } from '@/lib/assessment-context';
 
 export default function CertificationPage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState<'eligibility' | 'payment-method'>('eligibility');
   const [companyData, setCompanyData] = useState({
     name: '',
@@ -15,23 +17,23 @@ export default function CertificationPage() {
   });
 
   useEffect(() => {
-    // Load company data from localStorage
-    const company = localStorage.getItem('auth_company_name') || 'Your Organization';
-    const email = localStorage.getItem('auth_email') || '';
-    const contactName = localStorage.getItem('auth_contact_name') || '';
-    
+    // Load company data from context
+    const company = ctx.companyName || 'Your Organization';
+    const email = ctx.email || '';
+    const contactName = '';
+
     setCompanyData({ name: company, email, contactName });
 
     // Check if they've already paid
-    if (localStorage.getItem('payment_completed') === 'true') {
+    if (ctx.paymentCompleted) {
       router.push('/dashboard');
     }
-  }, [router]);
+  }, [router, ctx]);
 
   const handlePaymentMethodSelect = (method: 'card' | 'ach' | 'invoice') => {
     // Store selected method
-    localStorage.setItem('selected_payment_method', method);
-    
+    ctx.setPaymentMethod(method);
+
     if (method === 'invoice') {
       router.push('/payment/invoice');
     } else {

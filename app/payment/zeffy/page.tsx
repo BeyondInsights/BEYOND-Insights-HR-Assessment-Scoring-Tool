@@ -4,9 +4,11 @@ import { useRouter } from 'next/navigation'
 import { CheckCircle, Award, Building2, CreditCard, Loader2, Info } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function ZeffyPaymentPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [isLoading, setIsLoading] = useState(false)
   const [companyData, setCompanyData] = useState({
     name: '',
@@ -16,13 +18,11 @@ export default function ZeffyPaymentPage() {
   const [zeffyUrl, setZeffyUrl] = useState('')
 
   useEffect(() => {
-    const name = localStorage.getItem('login_company_name') || 'Your Organization'
-    const firstName = localStorage.getItem('login_first_name') || ''
-    const lastName = localStorage.getItem('login_last_name') || ''
-    const email = localStorage.getItem('auth_email') || ''
-    const surveyId = localStorage.getItem('survey_id') || 
-                     localStorage.getItem('application_id') || 
-                     `TEMP-${Date.now()}`
+    const name = ctx.companyName || 'Your Organization'
+    const firstName = ctx.loginFirstName || ''
+    const lastName = ctx.loginLastName || ''
+    const email = ctx.email || ''
+    const surveyId = ctx.surveyId || `TEMP-${Date.now()}`
     
     setCompanyData({
       name,
@@ -69,8 +69,8 @@ export default function ZeffyPaymentPage() {
     console.log('Payment window closed - checking payment status');
     
     // Check if payment was completed
-    const paymentCompleted = localStorage.getItem('payment_completed') === 'true';
-    
+    const paymentCompleted = ctx.paymentCompleted;
+
     if (paymentCompleted) {
       console.log('Payment detected - redirecting to dashboard');
       router.push('/dashboard');  // ✅ Go to dashboard

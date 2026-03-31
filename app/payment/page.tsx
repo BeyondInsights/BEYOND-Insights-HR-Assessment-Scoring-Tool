@@ -6,9 +6,11 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getUserAssessment } from '@/lib/supabase/auth'
 import { supabase } from '@/lib/supabase/client'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function PaymentPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [companyName, setCompanyName] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -20,15 +22,15 @@ export default function PaymentPage() {
   // Testing mode handler - simulates payment completion
   const handleTestingModePayment = (method: 'card' | 'ach' | 'invoice') => {
     if (!TESTING_MODE) return false; // Do nothing if not in testing mode
-    
+
     console.log(`[TESTING MODE] Simulating ${method} payment...`)
-    
+
     // Simulate payment completion
-    localStorage.removeItem('new_user_bypass')
-    localStorage.setItem('payment_completed', 'true')
-    localStorage.setItem('payment_method', method)
-    localStorage.setItem('payment_date', new Date().toISOString())
-    
+
+    ctx.setPaymentCompleted(true)
+    ctx.setPaymentMethod(method)
+    ctx.setPaymentDate(new Date().toISOString())
+
     // Redirect to dashboard
     router.push('/dashboard')
     return true; // Indicates testing mode handled it
@@ -37,42 +39,40 @@ export default function PaymentPage() {
   useEffect(() => {
   const checkPaymentStatus = async () => {
     try {
-      // First check localStorage (faster)
-      const localPaymentComplete = localStorage.getItem('payment_completed') === 'true'
-      
-     if (localPaymentComplete) {
-      console.log('Payment found in localStorage - redirecting immediately')
-      window.location.replace('/dashboard')  // ✅ Stronger redirect, no back button
-      return
-    }
-      
+      // First check context (faster)
+      if (ctx.paymentCompleted) {
+        console.log('Payment found in context - redirecting immediately')
+        window.location.replace('/dashboard')
+        return
+      }
+
       // Then check Supabase
       const assessment = await getUserAssessment()
-      
+
       if (assessment?.payment_completed) {
-  console.log('Payment found in Supabase - redirecting')
-  localStorage.setItem('payment_completed', 'true')
-  window.location.replace('/dashboard')  // ✅ Changed from .href
-  return
-}
-      
+        console.log('Payment found in Supabase - redirecting')
+        ctx.setPaymentCompleted(true)
+        window.location.replace('/dashboard')
+        return
+      }
+
       // No payment found - show payment page
       console.log('No payment found - showing payment options')
-      const name = localStorage.getItem('login_company_name') || 'Your Organization'
+      const name = ctx.companyName || 'Your Organization'
       setCompanyName(name)
       setLoading(false)
-      
+
     } catch (error) {
       console.error('Error checking payment status:', error)
       // On error, still show payment page
-      const name = localStorage.getItem('login_company_name') || 'Your Organization'
+      const name = ctx.companyName || 'Your Organization'
       setCompanyName(name)
       setLoading(false)
     }
   }
-  
+
   checkPaymentStatus()
-}, [])
+}, [ctx])
 
 
   // Show loading state while checking payment status

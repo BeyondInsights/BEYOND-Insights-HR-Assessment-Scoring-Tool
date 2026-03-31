@@ -1,8 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { Award, Users, CheckCircle2, Calendar, BarChart3, Bell, FileText } from 'lucide-react'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function CompletionPage() {
+  const ctx = useAssessmentContext()
   const [companyName, setCompanyName] = useState('')
   const [email, setEmail] = useState('')
   const [employeeSurveyOptIn, setEmployeeSurveyOptIn] = useState<boolean | null>(null)
@@ -11,29 +13,28 @@ export default function CompletionPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
+    const firmo = ctx.getSectionData('firmographics') || {}
     if (firmo?.companyName) setCompanyName(firmo.companyName)
-    
-    const savedEmail = localStorage.getItem('auth_email') || ''
+
+    const savedEmail = ctx.email || ''
     setEmail(savedEmail)
 
     // Check if they already made a selection
-    const existingOptIn = localStorage.getItem('employee_survey_opt_in')
-    if (existingOptIn !== null) {
-      setEmployeeSurveyOptIn(existingOptIn === 'true')
+    if (ctx.employeeSurveyOptIn !== null) {
+      setEmployeeSurveyOptIn(ctx.employeeSurveyOptIn)
     }
-  }, [])
+  }, [ctx])
 
   const handleOptInChange = (value: boolean) => {
     setEmployeeSurveyOptIn(value)
     setShowValidation(false)
-    
-    // Save to localStorage
-    localStorage.setItem('employee_survey_opt_in', value.toString())
+
+    // Save to context
+    ctx.setEmployeeSurveyOptIn(value)
     if (value) {
-      localStorage.setItem('employee_survey_opt_in_date', new Date().toISOString())
+      ctx.setEmployeeSurveyOptInDate(new Date().toISOString())
     } else {
-      localStorage.removeItem('employee_survey_opt_in_date')
+      ctx.setEmployeeSurveyOptInDate(null)
     }
   }
 
@@ -43,63 +44,23 @@ export default function CompletionPage() {
       document.getElementById('employee-survey-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
-    
+
     // ✅ SET FLAG SO DASHBOARD DOESN'T REDIRECT BACK HERE
-    localStorage.setItem('assessment_completion_shown', 'true')
-    localStorage.setItem('survey_fully_submitted', 'true')
-    
-    // ✅ SAVE EMPLOYEE SURVEY OPT-IN TO SUPABASE
+    ctx.setSurveySubmitted(true)
+
+    // ✅ SAVE TO SUPABASE VIA CONTEXT
     try {
-      const { supabase } = await import('@/lib/supabase/client')
-      const { data: { user } } = await supabase.auth.getUser()
-      const surveyId = localStorage.getItem('survey_id') || ''
-      
-      // Try to save via user_id first, then fall back to survey_id
-      if (user) {
-        const { error } = await supabase
-          .from('assessments')
-          .update({
-            employee_survey_opt_in: employeeSurveyOptIn,
-            survey_submitted: true,
-            submitted_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
-        
-        if (error) {
-          console.error('Failed to save via user_id:', error)
-        } else {
-          console.log('✅ Survey submission saved to Supabase via user_id')
-        }
-      }
-      
-      // Also try to save via survey_id (for FPs and users with survey_id)
-      if (surveyId) {
-        const { error } = await supabase
-          .from('assessments')
-          .update({
-            employee_survey_opt_in: employeeSurveyOptIn,
-            survey_submitted: true,
-            submitted_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('survey_id', surveyId)
-        
-        if (error) {
-          console.error('Failed to save via survey_id:', error)
-        } else {
-          console.log('✅ Survey submission saved to Supabase via survey_id')
-        }
-      }
+      await ctx.saveToSupabase()
+      console.log('Survey submission saved to Supabase via context')
     } catch (error) {
       console.error('Failed to save to Supabase:', error)
     }
-    
+
     // ✅ SEND COMPLETION EMAIL
     try {
-      const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}')
-      const firstName = localStorage.getItem('login_first_name') || ''
-      const lastName = localStorage.getItem('login_last_name') || ''
+      const firmo = ctx.getSectionData('firmographics') || {}
+      const firstName = ctx.loginFirstName || ''
+      const lastName = ctx.loginLastName || ''
       const name = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName
       
       const dashboardUrl = `${window.location.origin}/dashboard`

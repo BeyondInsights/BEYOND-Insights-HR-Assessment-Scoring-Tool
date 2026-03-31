@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { X, CheckCircle, AlertCircle, Award, Building2, CreditCard, Loader2 } from "lucide-react";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 interface CertificationPaymentProps {
   companyData?: {
@@ -28,16 +29,17 @@ export default function CertificationPayment({
   // GiftSmart form URL - replace with your production form when ready
   const GIFTSMART_FORM_URL = "https://fundraise.givesmart.com/form/AdWILw?vid=1m2tbw";
   
-  // Get data from localStorage if not passed as props
+  const ctx = useAssessmentContext();
+
+  // Get data from context if not passed as props
   useEffect(() => {
     if (!companyData.name) {
-      const storedData = localStorage.getItem('firmographics_data');
-      if (storedData) {
-        const parsed = JSON.parse(storedData);
-        companyData.name = parsed.companyName;
-        companyData.contactName = parsed.contactName;
-        companyData.industry = parsed.industry;
-        companyData.size = parsed.companySize;
+      const firmo = ctx.getSectionData('firmographics');
+      if (firmo) {
+        companyData.name = firmo.companyName;
+        companyData.contactName = firmo.contactName;
+        companyData.industry = firmo.industry;
+        companyData.size = firmo.companySize;
       }
     }
   }, []);

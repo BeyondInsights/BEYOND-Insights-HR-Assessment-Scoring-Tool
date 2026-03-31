@@ -4,12 +4,13 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase/client'
 import { FP_COMPANY_MAP, isFoundingPartner } from '@/lib/founding-partners'
-import { startHydration, endHydration, setStoredVersion, clearDirty } from '@/lib/supabase/auto-data-sync'
 import Footer from '@/components/Footer'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 function FPRegisterContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const code = searchParams.get('code') || ''
   
   const [consent, setConsent] = useState<'pending' | 'yes' | 'no'>('pending')
@@ -27,70 +28,22 @@ function FPRegisterContent() {
   const isValidCode = isFoundingPartner(code)
 
   // ============================================
-  // CRITICAL: Clear stale localStorage data when survey_id changes
+  // CRITICAL: Clear stale data when survey_id changes
   // This prevents cross-contamination between different companies
   // ============================================
-  const clearStaleLocalStorageData = () => {
-    const currentStoredId = localStorage.getItem('survey_id')
-    
+  const clearStaleData = () => {
+    const currentStoredId = ctx.surveyId
+
     // If there's existing data for a DIFFERENT survey_id, clear it all
     if (currentStoredId && currentStoredId !== code) {
-      console.log(`🧹 FP-REGISTER: Clearing stale data from previous session`)
-      console.log(`   Previous survey_id: ${currentStoredId}`)
-      console.log(`   New survey_id: ${code}`)
-      
-      // Clear all survey data keys
-      const dataKeysToClear = [
-        'firmographics_data',
-        'general_benefits_data',
-        'current_support_data',
-        'cross_dimensional_data',
-        'employee-impact-assessment_data',
-        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-      ]
-      
-      // Clear all completion flags
-      const completeKeysToClear = [
-        'firmographics_complete',
-        'general_benefits_complete',
-        'current_support_complete',
-        'cross_dimensional_complete',
-        'employee-impact-assessment_complete',
-        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
-      ]
-      
-      // Clear auth/login keys that might carry over
-      const authKeysToClear = [
-        'survey_id',
-        'login_Survey_id',
-        'login_email',
-        'auth_email',
-        'login_company_name',
-        'login_first_name',
-        'login_last_name',
-        'login_title',
-        'user_authenticated',
-        'auth_completed',
-        'payment_completed',
-        'payment_method',
-        'last_user_email',
-      ]
-      
-      const allKeysToClear = [...dataKeysToClear, ...completeKeysToClear, ...authKeysToClear]
-      
-      let clearedCount = 0
-      allKeysToClear.forEach(key => {
-        if (localStorage.getItem(key) !== null) {
-          localStorage.removeItem(key)
-          clearedCount++
-        }
-      })
-      
-      console.log(`🧹 FP-REGISTER: Cleared ${clearedCount} localStorage keys to prevent cross-contamination`)
-      return true // Data was cleared
+      console.log('[FP-REGISTER] Clearing stale data from previous session')
+      console.log('  Previous survey_id:', currentStoredId)
+      console.log('  New survey_id:', code)
+      ctx.clearAll()
+      return true
     }
-    
-    return false // No stale data to clear
+
+    return false
   }
   // ============================================
 
@@ -105,7 +58,7 @@ function FPRegisterContent() {
       }
 
       // CRITICAL: Clear any stale data from a different survey FIRST
-      clearStaleLocalStorageData()
+      clearStaleData()
 
       try {
         // Check if this FP code already has contact info registered
@@ -117,117 +70,14 @@ function FPRegisterContent() {
           .maybeSingle()
 
         if (existing?.email && existing?.firmographics_data?.firstName) {
-          // Already registered - auto-login and redirect to dashboard
-          console.log('Existing registration found - loading all survey data and redirecting to dashboard')
-          
-          const firmData = existing.firmographics_data as any
-          
-          // ============================================
-          // START HYDRATION - Prevents auto-sync from triggering during DB→localStorage writes
-          // ============================================
-          startHydration()
-          
-          try {
-            // ============================================
-            // LOAD AUTH/LOGIN INFO
-            // ============================================
-            localStorage.setItem('login_email', existing.email)
-            localStorage.setItem('auth_email', existing.email)
-            localStorage.setItem('survey_id', code)
-            localStorage.setItem('login_Survey_id', code)
-            localStorage.setItem('user_authenticated', 'true')
-            localStorage.setItem('last_user_email', existing.email)
-            localStorage.setItem('login_company_name', existing.company_name || companyName || 'Founding Partner')
-            localStorage.setItem('login_first_name', firmData.firstName || '')
-            localStorage.setItem('login_last_name', firmData.lastName || '')
-            localStorage.setItem('login_title', firmData.title || '')
-            localStorage.setItem('auth_completed', 'true')
-            localStorage.setItem('payment_completed', 'true')
-            
-            // ============================================
-            // LOAD ALL SURVEY DATA FROM SUPABASE
-            // ============================================
-            console.log('[FP-REGISTER] Loading all survey data into localStorage...')
-            
-            // Load survey data fields
-            const dataFields = [
-              { db: 'firmographics_data', local: 'firmographics_data' },
-              { db: 'general_benefits_data', local: 'general_benefits_data' },
-              { db: 'current_support_data', local: 'current_support_data' },
-              { db: 'cross_dimensional_data', local: 'cross_dimensional_data' },
-              { db: 'employee_impact_data', local: 'employee-impact-assessment_data' },  // Different names!
-              { db: 'dimension1_data', local: 'dimension1_data' },
-              { db: 'dimension2_data', local: 'dimension2_data' },
-              { db: 'dimension3_data', local: 'dimension3_data' },
-              { db: 'dimension4_data', local: 'dimension4_data' },
-              { db: 'dimension5_data', local: 'dimension5_data' },
-              { db: 'dimension6_data', local: 'dimension6_data' },
-              { db: 'dimension7_data', local: 'dimension7_data' },
-              { db: 'dimension8_data', local: 'dimension8_data' },
-              { db: 'dimension9_data', local: 'dimension9_data' },
-              { db: 'dimension10_data', local: 'dimension10_data' },
-              { db: 'dimension11_data', local: 'dimension11_data' },
-              { db: 'dimension12_data', local: 'dimension12_data' },
-              { db: 'dimension13_data', local: 'dimension13_data' },
-            ]
-            
-            dataFields.forEach(({ db, local }) => {
-              const value = existing[db]
-              if (value && typeof value === 'object' && Object.keys(value).length > 0) {
-                localStorage.setItem(local, JSON.stringify(value))
-                console.log(`  ✓ Loaded ${db} → ${local}`)
-              }
-            })
-            
-            // Load completion flags
-            const completeFields = [
-              { db: 'firmographics_complete', local: 'firmographics_complete' },
-              { db: 'general_benefits_complete', local: 'general_benefits_complete' },
-              { db: 'current_support_complete', local: 'current_support_complete' },
-              { db: 'cross_dimensional_complete', local: 'cross_dimensional_complete' },
-              { db: 'employee_impact_complete', local: 'employee-impact-assessment_complete' },  // Different names!
-              { db: 'dimension1_complete', local: 'dimension1_complete' },
-              { db: 'dimension2_complete', local: 'dimension2_complete' },
-              { db: 'dimension3_complete', local: 'dimension3_complete' },
-              { db: 'dimension4_complete', local: 'dimension4_complete' },
-              { db: 'dimension5_complete', local: 'dimension5_complete' },
-              { db: 'dimension6_complete', local: 'dimension6_complete' },
-              { db: 'dimension7_complete', local: 'dimension7_complete' },
-              { db: 'dimension8_complete', local: 'dimension8_complete' },
-              { db: 'dimension9_complete', local: 'dimension9_complete' },
-              { db: 'dimension10_complete', local: 'dimension10_complete' },
-              { db: 'dimension11_complete', local: 'dimension11_complete' },
-              { db: 'dimension12_complete', local: 'dimension12_complete' },
-              { db: 'dimension13_complete', local: 'dimension13_complete' },
-            ]
-            
-            completeFields.forEach(({ db, local }) => {
-              if (existing[db] === true) {
-                localStorage.setItem(local, 'true')
-                console.log(`  ✓ Loaded ${db} → ${local}: true`)
-              }
-            })
-            
-            // Load payment info
-            if (existing.payment_method) {
-              localStorage.setItem('payment_method', existing.payment_method)
-            }
-          } finally {
-            // ============================================
-            // END HYDRATION + SET VERSION + CLEAR DIRTY (always runs)
-            // ============================================
-            // Set local version to match server (prevents false conflict)
-            if (existing.version) {
-              setStoredVersion(existing.version)
-            }
-            // Clear any dirty flag (we just loaded fresh from server)
-            clearDirty()
-            // End hydration mode
-            endHydration()
-          }
-          
-          console.log('[FP-REGISTER] ✅ All survey data loaded successfully!')
-          
+          // Already registered - load full record into context and redirect
+          console.log('Existing registration found - loading all survey data via context')
+
+          ctx.setFullRecord(existing)
+          ctx.setUserType('fp')
+
+          console.log('[FP-REGISTER] All survey data loaded via context successfully!')
+
           router.push('/dashboard')
           return
         }
@@ -325,46 +175,20 @@ function FPRegisterContent() {
         if (insertError) throw insertError
       }
 
-      // ============================================
-      // CRITICAL: Clear ALL survey data before setting new session
-      // This prevents auto-sync from picking up stale data
-      // ============================================
-      console.log('🧹 FP-REGISTER: Clearing any remaining survey data before new session...')
-      const dataKeysToClear = [
-        'firmographics_data',
-        'general_benefits_data',
-        'current_support_data',
-        'cross_dimensional_data',
-        'employee-impact-assessment_data',
-        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-      ]
-      const completeKeysToClear = [
-        'firmographics_complete',
-        'general_benefits_complete',
-        'current_support_complete',
-        'cross_dimensional_complete',
-        'employee-impact-assessment_complete',
-        ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
-      ]
-      ;[...dataKeysToClear, ...completeKeysToClear].forEach(key => {
-        localStorage.removeItem(key)
-      })
-      // ============================================
+      // Clear stale context data before setting new session
+      ctx.clearAll()
 
-      // Auto-login and redirect
-      localStorage.setItem('login_email', formData.email.toLowerCase().trim())
-      localStorage.setItem('auth_email', formData.email.toLowerCase().trim())
-      localStorage.setItem('survey_id', code)
-      localStorage.setItem('login_Survey_id', code)
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', formData.email.toLowerCase().trim())
-      localStorage.setItem('login_company_name', displayCompanyName)
-      localStorage.setItem('login_first_name', formData.firstName.trim())
-      localStorage.setItem('login_last_name', formData.lastName.trim())
-      localStorage.setItem('login_title', formData.title.trim())
-      localStorage.setItem('auth_completed', 'true')
-      localStorage.setItem('payment_completed', 'true')
-      
+      // Set identity and auth state in context
+      ctx.setEmail(formData.email.toLowerCase().trim())
+      ctx.setSurveyId(code)
+      ctx.setCompanyName(displayCompanyName)
+      ctx.setLoginFirstName(formData.firstName.trim())
+      ctx.setLoginLastName(formData.lastName.trim())
+      ctx.setLoginTitle(formData.title.trim())
+      ctx.setAuthCompleted(true)
+      ctx.setPaymentCompleted(true)
+      ctx.setUserType('fp')
+
       router.push('/dashboard')
       
     } catch (err: any) {
@@ -377,37 +201,17 @@ function FPRegisterContent() {
   // Handle "No consent" - still let them access dashboard
   const handleNoConsent = () => {
     // Clear any stale data first
-    console.log('🧹 FP-REGISTER: Clearing any stale data (no consent flow)...')
-    const dataKeysToClear = [
-      'firmographics_data',
-      'general_benefits_data',
-      'current_support_data',
-      'cross_dimensional_data',
-      'employee-impact-assessment_data',
-      ...Array.from({length: 13}, (_, i) => `dimension${i+1}_data`)
-    ]
-    const completeKeysToClear = [
-      'firmographics_complete',
-      'general_benefits_complete',
-      'current_support_complete',
-      'cross_dimensional_complete',
-      'employee-impact-assessment_complete',
-      ...Array.from({length: 13}, (_, i) => `dimension${i+1}_complete`)
-    ]
-    const currentStoredId = localStorage.getItem('survey_id')
+    const currentStoredId = ctx.surveyId
     if (currentStoredId && currentStoredId !== code) {
-      ;[...dataKeysToClear, ...completeKeysToClear].forEach(key => {
-        localStorage.removeItem(key)
-      })
+      ctx.clearAll()
     }
-    
-    localStorage.setItem('survey_id', code)
-    localStorage.setItem('login_Survey_id', code)
-    localStorage.setItem('user_authenticated', 'true')
-    localStorage.setItem('login_company_name', companyName || 'Founding Partner')
-    localStorage.setItem('auth_completed', 'true')
-    localStorage.setItem('payment_completed', 'true')
-    
+
+    ctx.setSurveyId(code)
+    ctx.setCompanyName(companyName || 'Founding Partner')
+    ctx.setAuthCompleted(true)
+    ctx.setPaymentCompleted(true)
+    ctx.setUserType('fp')
+
     router.push('/dashboard')
   }
 

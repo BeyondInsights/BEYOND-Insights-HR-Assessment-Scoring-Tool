@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 // Fisher-Yates shuffle algorithm
 
@@ -25,6 +25,7 @@ const D8A_ITEMS_BASE = [
 
 export default function Dimension8Page() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -60,26 +61,18 @@ export default function Dimension8Page() {
   });
   
   useEffect(() => {
-    const saved = localStorage.getItem("dimension8_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
-    }
+    const saved = ctx.getSectionData('dimension8');
+    if (saved) setAns(saved);
 
-    const firmographicsData = localStorage.getItem("firmographics_data");
-    if (firmographicsData) {
-      const parsed = JSON.parse(firmographicsData);
-      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+    const firmData = ctx.getSectionData('firmographics');
+    if (firmData) {
+      setIsMultiCountry(firmData.s9a !== "No other countries - headquarters only");
     }
   }, []);
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("dimension8_data", JSON.stringify(ans));
+      ctx.setSectionData('dimension8', ans);
     }
   }, [ans]);
 
@@ -158,8 +151,8 @@ const getTotalSteps = () => {
     } else if (step === 3) {
       setStep(4); // Go to completion
     } else if (step === 4) {
-      localStorage.setItem("dimension8_complete", "true");
-      await forceSyncNow();  // Force sync before navigation
+      ctx.setSectionComplete('dimension8', true);
+      await ctx.saveToSupabase('dimension8');
       router.push("/dashboard");
       return;
     }
@@ -511,10 +504,10 @@ const getTotalSteps = () => {
               You've successfully completed the Work Continuation & Resumption dimension.
             </p>
             <button
-              onClick={async () => { 
-                localStorage.setItem("dimension8_complete", "true");
-                await forceSyncNow();  // Force sync before navigation
-                router.push("/dashboard"); 
+              onClick={async () => {
+                ctx.setSectionComplete('dimension8', true);
+                await ctx.saveToSupabase('dimension8');
+                router.push("/dashboard");
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >

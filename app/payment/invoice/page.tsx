@@ -6,9 +6,11 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getCurrentUser } from '@/lib/supabase/auth'
 import { supabase } from '@/lib/supabase/client'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function InvoicePaymentPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [loading, setLoading] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const emailSentRef = useRef(false)
@@ -31,11 +33,11 @@ export default function InvoicePaymentPage() {
 
   useEffect(() => {
     try {
-      const companyName = localStorage.getItem('login_company_name') || ''
-      const firstName = localStorage.getItem('login_first_name') || ''
-      const lastName = localStorage.getItem('login_last_name') || ''
-      const title = localStorage.getItem('login_title') || ''
-      const applicationId = localStorage.getItem('login_application_id') || ''
+      const companyName = ctx.companyName || ''
+      const firstName = ctx.loginFirstName || ''
+      const lastName = ctx.loginLastName || ''
+      const title = ctx.loginTitle || ''
+      const applicationId = ctx.surveyId || ''
 
       console.log('firstName:', firstName, 'lastName:', lastName, 'contactName:', `${firstName} ${lastName}`)
 
@@ -78,7 +80,7 @@ export default function InvoicePaymentPage() {
     setLoading(true)
 
     try {
-      const userEmail = localStorage.getItem('login_email') || localStorage.getItem('auth_email') || ''
+      const userEmail = ctx.email || ''
 
       const invoiceData = {
         ...companyData,
@@ -93,49 +95,15 @@ export default function InvoicePaymentPage() {
       localStorage.setItem('invoice_data', JSON.stringify(invoiceData))
       localStorage.setItem('current_invoice_number', invoiceData.invoiceNumber)
 
-      // ============================================
-      // SAVE INVOICE DATA TO SUPABASE
-      // ============================================
-      try {
-        const { supabase } = await import('@/lib/supabase/client')
-        const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
-        const { data: { user } } = await supabase.auth.getUser()
-        
-        const invoiceUpdate = {
-          invoice_data: invoiceData,
-          invoice_number: invoiceData.invoiceNumber,
-          payment_method: 'invoice',
-          updated_at: new Date().toISOString()
-        }
-        
-        // Try user_id first
-        if (user) {
-          await supabase
-            .from('assessments')
-            .update(invoiceUpdate)
-            .eq('user_id', user.id)
-        }
-        
-        // Also try survey_id
-        if (surveyId) {
-          const normalizedId = surveyId.replace(/-/g, '').toUpperCase()
-          await supabase
-            .from('assessments')
-            .update(invoiceUpdate)
-            .or(`survey_id.eq.${surveyId},app_id.eq.${normalizedId}`)
-        }
-        
-        console.log('✅ Invoice data saved to Supabase')
-      } catch (dbErr) {
-        console.error('Error saving invoice to Supabase:', dbErr)
-      }
+      // Invoice data stays in localStorage for view-only UI
+      // (also saved to Supabase below via context)
 
       const pdfBase64 = await generateInvoicePDF(invoiceData)
       console.log('PDF generated, base64 length:', pdfBase64?.length)
 
       if (!emailSentRef.current) {
         try {
-          const contactEmail = localStorage.getItem('login_email') || ''
+          const contactEmail = ctx.email || ''
           console.log('SENDING EMAIL to:', contactEmail)
 
           const emailResponse = await fetch('/api/send-invoice-email', {
@@ -162,67 +130,14 @@ export default function InvoicePaymentPage() {
         }
       }
 
-      localStorage.removeItem('new_user_bypass')
-      localStorage.setItem('payment_method', 'invoice')
-      localStorage.setItem('payment_completed', 'true')
-      localStorage.setItem('payment_date', new Date().toISOString())
+      ctx.setPaymentMethod('invoice')
+      ctx.setPaymentCompleted(true)
+      ctx.setPaymentDate(new Date().toISOString())
 
-      // Save to database
+      // Save to database via context
       try {
-        const user = await getCurrentUser()
-        const userEmailFallback = localStorage.getItem('auth_email') || ''
-
-        if (user) {
-          const { data: currentData } = await supabase
-            .from('assessments')
-            .select('firmographics_data, email')
-            .eq('user_id', user.id)
-            .single()
-
-          const existingFirst = currentData?.firmographics_data?.firstName
-          const existingLast = currentData?.firmographics_data?.lastName
-          const existingTitle = currentData?.firmographics_data?.title
-
-          const updatedFirmographics = {
-            ...(currentData?.firmographics_data || {}),
-            firstName: existingFirst || companyData.contactName.split(' ')[0] || '',
-            lastName: existingLast || companyData.contactName.split(' ').slice(1).join(' ') || '',
-            title: existingTitle || companyData.title || '',
-            email: currentData?.email || userEmail,
-            addressLine1: formData.addressLine1,
-            addressLine2: formData.addressLine2 || undefined,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-            country: formData.country,
-            poNumber: formData.poNumber || undefined
-          }
-
-          await supabase
-            .from('assessments')
-            .update({
-              payment_completed: true,
-              payment_method: 'invoice',
-              payment_date: new Date().toISOString(),
-              firmographics_data: updatedFirmographics
-            })
-            .eq('user_id', user.id)
-
-          console.log('✅ Payment saved via user_id')
-        } else if (userEmailFallback) {
-          console.log('No Supabase user - updating by email:', userEmailFallback)
-
-          await supabase
-            .from('assessments')
-            .update({
-              payment_completed: true,
-              payment_method: 'invoice',
-              payment_date: new Date().toISOString()
-            })
-            .eq('email', userEmailFallback.toLowerCase())
-
-          console.log('✅ Payment saved via email fallback')
-        }
+        await ctx.saveToSupabase()
+        console.log('Payment saved to Supabase via context')
       } catch (error) {
         console.error('Error saving payment to database:', error)
       }

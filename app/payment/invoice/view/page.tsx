@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { FileText, Download, Loader2, ArrowLeft, Mail, X, CheckCircle, AlertCircle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 // Branded Modal Component
 function BrandedModal({
@@ -69,6 +70,7 @@ function BrandedModal({
 
 export default function InvoiceViewPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [invoiceId, setInvoiceId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [invoiceData, setInvoiceData] = useState<any>(null)
@@ -99,7 +101,7 @@ export default function InvoiceViewPage() {
       }
       
       // No localStorage data - try to load from Supabase
-      const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || ''
+      const surveyId = ctx.surveyId || ''
       if (surveyId || id) {
         try {
           const { supabase } = await import('@/lib/supabase/client')
@@ -397,7 +399,7 @@ export default function InvoiceViewPage() {
   }
 
   const handleEmailInvoice = async () => {
-    const contactEmail = localStorage.getItem('login_email') || ''
+    const contactEmail = ctx.email || ''
     const pdfBase64 = await generatePDFBase64()
     
     const emailResponse = await fetch('/api/send-invoice-email', {

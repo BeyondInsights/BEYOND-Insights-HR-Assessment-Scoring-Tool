@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
+import { useAssessmentContext } from '@/lib/assessment-context';
 
 /* =========================
    BRAND
@@ -753,6 +754,7 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
 ========================= */
 export default function CompanyProfilePage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -767,9 +769,9 @@ export default function CompanyProfilePage() {
       // ============================================
       // CHECK FOR FOUNDING PARTNER FIRST
       // ============================================
-      const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || '';
+      const surveyId = ctx.surveyId || '';
       const { isFoundingPartner } = await import('@/lib/founding-partners');
-      
+
       if (isFoundingPartner(surveyId)) {
         console.log('Founding Partner detected - loading by survey_id:', surveyId);
         
@@ -841,15 +843,14 @@ export default function CompanyProfilePage() {
       // REGULAR USERS - Get current user from Supabase auth
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Check localStorage auth flags as backup
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true';
-      const authCompleted = localStorage.getItem('auth_completed') === 'true';
-      const storedSurveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || '';
-      
+      // Check context auth flags as backup
+      const authCompleted = ctx.authCompleted;
+      const storedSurveyId = ctx.surveyId || '';
+
       if (!user || !user.email) {
-        // No Supabase user - check if we have localStorage auth
-        if ((hasAuthFlag || authCompleted) && storedSurveyId) {
-          console.log('No Supabase user but have localStorage auth - loading by survey_id');
+        // No Supabase user - check if we have context auth
+        if (authCompleted && storedSurveyId) {
+          console.log('No Supabase user but have context auth - loading by survey_id');
           
           // Try to load by survey_id
           const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase();

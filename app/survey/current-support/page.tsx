@@ -3,10 +3,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 export default function CurrentSupportPage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState(1);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -25,21 +26,16 @@ export default function CurrentSupportPage() {
 
   // Load saved answers on mount
   useEffect(() => {
-    const saved = localStorage.getItem("current_support_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
+    const saved = ctx.getSectionData('current_support');
+    if (saved && Object.keys(saved).length > 0) {
+      setAns(saved);
     }
   }, []);
 
   // Save answers when they change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("current_support_data", JSON.stringify(ans));
+      ctx.setSectionData('current_support', ans);
     }
   }, [ans]);
 
@@ -335,9 +331,9 @@ export default function CurrentSupportPage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Step {step} of 13</span>
             <button 
-              onClick={async () => { 
-                localStorage.setItem("current_support_complete", "true");
-                await forceSyncNow();
+              onClick={async () => {
+                ctx.setSectionComplete('current_support', true);
+                await ctx.saveToSupabase('current_support');
                 router.push("/dashboard");
               }}
               className="text-sm text-orange-600 hover:text-orange-700 font-medium"
@@ -1043,8 +1039,8 @@ export default function CurrentSupportPage() {
             </p>
             <button
               onClick={async () => { 
-                localStorage.setItem("current_support_complete", "true");
-                await forceSyncNow();  // Force sync before navigation
+                ctx.setSectionComplete('current_support', true);
+                await ctx.saveToSupabase('current_support');
                 router.push("/dashboard"); 
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"

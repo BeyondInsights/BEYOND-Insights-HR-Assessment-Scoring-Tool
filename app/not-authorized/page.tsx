@@ -4,19 +4,19 @@ import { useRouter } from 'next/navigation'
 import { Mail, Copy, CheckCircle, AlertCircle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function NotAuthorizedPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [email, setEmail] = useState('')
   const [applicationId, setApplicationId] = useState('')
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    const storedEmail = localStorage.getItem('login_email') || ''
-    const storedAppId = localStorage.getItem('login_application_id') || ''
-    setEmail(storedEmail)
-    setApplicationId(storedAppId)
-  }, [])
+    setEmail(ctx.email || '')
+    setApplicationId(ctx.surveyId || '')
+  }, [ctx.email, ctx.surveyId])
 
   const assessmentLink = typeof window !== 'undefined' ? window.location.origin : ''
 

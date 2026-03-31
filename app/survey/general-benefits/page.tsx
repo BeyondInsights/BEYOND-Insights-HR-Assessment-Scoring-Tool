@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 export default function GeneralBenefitsPage() {
  console.log("GENERAL BENEFITS PAGE LOADED");
  const router = useRouter();
+ const ctx = useAssessmentContext();
  const [step, setStep] = useState(1);
  const [ans, setAns] = useState<any>({});
  const [isUSAOnly, setIsUSAOnly] = useState(false);
@@ -28,26 +29,26 @@ export default function GeneralBenefitsPage() {
  useEffect(() => {
  console.log("GENERAL ans changed:", ans);
  if (Object.keys(ans).length > 0) {
- localStorage.setItem("general_benefits_data", JSON.stringify(ans));
- console.log("SAVED general-benefits to localStorage");
+ ctx.setSectionData('general_benefits', ans);
+ console.log("SAVED general-benefits to context");
  }
  }, [ans]);
  
  // Check for USA-only on mount and auto-fill CB1a if needed
  useEffect(() => {
  console.log("GENERAL checking for saved data...");
- const saved = localStorage.getItem("general_benefits_data");
- if (saved) {
+ const saved = ctx.getSectionData('general_benefits');
+ if (saved && Object.keys(saved).length > 0) {
  console.log("FOUND saved general data:", saved);
- setAns(JSON.parse(saved));
+ setAns(saved);
  } else {
  console.log("NO saved general data found");
  }
- 
+
  // Check if USA-only from firmographics
- const firmographics = localStorage.getItem("firmographics_data");
+ const firmographics = ctx.getSectionData('firmographics');
  if (firmographics) {
-   const parsed = JSON.parse(firmographics);
+   const parsed = firmographics;
    // USA-only if: s9 contains "USA" or "United States" AND s9a is "No other countries"
    const hqIsUSA = parsed.s9 && (
      parsed.s9.toLowerCase().includes("usa") || 
@@ -271,7 +272,7 @@ export default function GeneralBenefitsPage() {
  <div className="flex items-center justify-between mb-2">
  <span className="text-sm text-gray-600">Step {step} of 9</span>
  <button 
- onClick={async () => { await forceSyncNow(); router.push("/dashboard"); }}
+ onClick={async () => { await ctx.saveToSupabase('general_benefits'); router.push("/dashboard"); }}
  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
  >
  ←  Back to Dashboard
@@ -728,9 +729,9 @@ export default function GeneralBenefitsPage() {
       You've successfully completed the General Employee Benefits section.
     </p>
     <button
-      onClick={async () => { 
-        localStorage.setItem("general_benefits_complete", "true");
-        await forceSyncNow();  // Force sync before navigation
+      onClick={async () => {
+        ctx.setSectionComplete('general_benefits', true);
+        await ctx.saveToSupabase('general_benefits');
         router.push("/dashboard");
       }}
       className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"

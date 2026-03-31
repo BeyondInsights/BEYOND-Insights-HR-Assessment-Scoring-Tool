@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 export default function FirmographicsPage() {
   console.log("FIRMOGRAPHICS PAGE LOADED");
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState(1);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -26,22 +27,17 @@ export default function FirmographicsPage() {
 
   // Load saved answers on mount
   useEffect(() => {
-    const saved = localStorage.getItem("firmographics_data");
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setAns(data);
-        console.log("Loaded firmographics:", data);
-      } catch (e) {
-        console.error("Error loading firmographics:", e);
-      }
+    const saved = ctx.getSectionData('firmographics');
+    if (saved && Object.keys(saved).length > 0) {
+      setAns(saved);
+      console.log("Loaded firmographics:", saved);
     }
   }, []);
 
   // Save answers when they change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("firmographics_data", JSON.stringify(ans));
+      ctx.setSectionData('firmographics', ans);
       console.log("Firmographics auto-saved:", ans);
     }
   }, [ans]);
@@ -352,7 +348,7 @@ export default function FirmographicsPage() {
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Step {step} of 10</span>
             <button 
-              onClick={async () => { localStorage.setItem("firmographics_complete", "true"); await forceSyncNow(); router.push("/dashboard"); }}
+              onClick={async () => { ctx.setSectionComplete('firmographics', true); await ctx.saveToSupabase('firmographics'); router.push("/dashboard"); }}
               className="text-sm text-orange-600 hover:text-orange-700 font-medium"
             >
               ← Back to Dashboard
@@ -1207,7 +1203,7 @@ export default function FirmographicsPage() {
               You've successfully completed the Company Profile section.
             </p>
             <button
-              onClick={async () => { localStorage.setItem("firmographics_complete", "true"); await forceSyncNow(); router.push("/dashboard"); }}
+              onClick={async () => { ctx.setSectionComplete('firmographics', true); await ctx.saveToSupabase('firmographics'); router.push("/dashboard"); }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"
             >
               Save & Continue to Dashboard →

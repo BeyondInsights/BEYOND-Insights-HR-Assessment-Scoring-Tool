@@ -5,56 +5,33 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CertificationPayment from "@/components/CertificationPayment";
 import { ArrowLeft } from "lucide-react";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 export default function CertificationApplyPage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [companyData, setCompanyData] = useState({});
   const [assessmentScore, setAssessmentScore] = useState<number>(0);
   const [isEligible, setIsEligible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Get data from localStorage
+    // Get data from context
     const loadAssessmentData = () => {
       try {
         // Get company data
-        const firmographicsData = localStorage.getItem('firmographics_data');
-        if (firmographicsData) {
-          const parsed = JSON.parse(firmographicsData);
+        const parsed = ctx.getSectionData('firmographics');
+        if (parsed) {
           setCompanyData({
             name: parsed.companyName || 'Your Organization',
             contactName: parsed.contactName,
-            email: localStorage.getItem('auth_email') || '',
+            email: ctx.email || '',
             industry: parsed.industry,
             size: parsed.companySize
           });
         }
 
-        // Calculate score from all sections
-        let totalScore = 0;
-        let sectionCount = 0;
-
-        const sections = [
-          'benefits_data',
-          'leave_data', 
-          'flexibility_data',
-          'support_data',
-          'culture_data',
-          'caregivers_data'
-        ];
-
-        sections.forEach(section => {
-          const data = localStorage.getItem(section);
-          if (data) {
-            const parsed = JSON.parse(data);
-            // Calculate section score (simplified - adjust based on your scoring logic)
-            const sectionScore = Object.values(parsed).filter(v => v === 'yes' || v === true).length * 10;
-            totalScore += Math.min(sectionScore, 100);
-            sectionCount++;
-          }
-        });
-
-        const finalScore = sectionCount > 0 ? Math.round(totalScore / sectionCount) : 0;
+        // Score is hardcoded for demo
         setAssessmentScore(85); // Fixed score for demo
         setIsEligible(true); // Always eligible for demo
         

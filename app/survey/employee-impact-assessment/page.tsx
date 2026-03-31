@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 const EI1_ITEMS = [
   "Employee retention / tenure",
@@ -29,6 +29,7 @@ const EI1_OPTIONS = [
 
 export default function EmployeeImpactPage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState({});
   const [errors, setErrors] = useState("");
@@ -56,21 +57,16 @@ export default function EmployeeImpactPage() {
 
   // Load saved data on mount
   useEffect(() => {
-    const saved = localStorage.getItem("employee-impact-assessment_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
+    const saved = ctx.getSectionData('employee_impact');
+    if (saved && Object.keys(saved).length > 0) {
+      setAns(saved);
     }
   }, []);
 
   // Save data whenever answers change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
+      ctx.setSectionData('employee_impact', ans);
     }
   }, [ans]);
 
@@ -164,9 +160,9 @@ export default function EmployeeImpactPage() {
       setErrors("");
     } else {
       // Mark as complete and navigate to dashboard
-      localStorage.setItem("employee-impact-assessment_complete", "true");
-      localStorage.setItem("employee-impact-assessment_data", JSON.stringify(ans));
-      await forceSyncNow();  // Force sync before navigation
+      ctx.setSectionData('employee_impact', ans);
+      ctx.setSectionComplete('employee_impact', true);
+      await ctx.saveToSupabase('employee_impact');
       router.push("/dashboard");
     }
   };

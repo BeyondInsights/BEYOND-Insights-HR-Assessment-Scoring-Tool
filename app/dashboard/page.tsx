@@ -6,9 +6,8 @@ import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import dynamic from 'next/dynamic'
 import { Lock, CheckCircle, CreditCard, Award } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { startHydration, endHydration } from '@/lib/supabase/auto-data-sync'
 import { isFoundingPartner, getFoundingPartnerMessage } from '@/lib/founding-partners'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 const ProgressCircle = dynamic(() => import('@/components/ProgressCircle'), {
   ssr: false
@@ -32,263 +31,161 @@ export default function DashboardPage() {
     employeeImpact: 0,
   })
 
+  const ctx = useAssessmentContext()
+
   useEffect(() => {
     if (typeof window === 'undefined') return
-    
-    // Check if authorization is complete
-    const authCompleted = localStorage.getItem('auth_completed') === 'true';
-    if (!authCompleted) {
-      router.push('/authorization');
-      return;
-    }
-    
-    const loadDataAndCalculateProgress = async () => {
-      if (typeof window === 'undefined') return;
-      
-      const surveyId = localStorage.getItem('survey_id') || '';
-      const normalized = surveyId.replace(/-/g, '').toUpperCase();
-      
-      // ============================================
-      // SUPABASE FALLBACK: If localStorage is missing data, fetch from DB
-      // This handles multi-browser/device scenarios
-      // ============================================
-      const localFirmComplete = localStorage.getItem('firmographics_complete');
-      const localGenComplete = localStorage.getItem('general_benefits_complete');
-      const localFirmData = localStorage.getItem('firmographics_data');
-      const localGenData = localStorage.getItem('general_benefits_data');
-      const localCurData = localStorage.getItem('current_support_data');
-      
-      // If we have a survey_id but missing completion flags OR data, fetch from Supabase
-      if (surveyId && (
-        !localFirmComplete || !localGenComplete ||
-        !localFirmData || !localGenData || !localCurData
-      )) {
-        console.log('📥 Dashboard: Missing localStorage data, fetching from Supabase...');
-        try {
-          const { data: dbData, error } = await supabase
-            .from('assessments')
-            .select('*')
-            .or(`survey_id.eq.${surveyId},app_id.eq.${surveyId},survey_id.eq.${normalized},app_id.eq.${normalized}`)
-            .maybeSingle();
-          
-          if (dbData && !error) {
-            console.log('✅ Dashboard: Found data in Supabase, hydrating localStorage...');
-            
-            // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
-            startHydration();
-            try {
-              // Hydrate localStorage from database
-              if (dbData.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(dbData.firmographics_data));
-              if (dbData.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(dbData.general_benefits_data));
-              if (dbData.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(dbData.current_support_data));
-              if (dbData.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(dbData.cross_dimensional_data));
-              if (dbData.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(dbData.employee_impact_data));
-              
-              for (let i = 1; i <= 13; i++) {
-                const dimData = dbData[`dimension${i}_data`];
-                if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData));
-              }
-              
-              // Hydrate completion flags
-              if (dbData.firmographics_complete) localStorage.setItem('firmographics_complete', 'true');
-              if (dbData.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true');
-              if (dbData.current_support_complete) localStorage.setItem('current_support_complete', 'true');
-              if (dbData.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true');
-              if (dbData.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true');
-              
-              for (let i = 1; i <= 13; i++) {
-                if (dbData[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true');
-              }
-              
-              if (dbData.company_name) localStorage.setItem('login_company_name', dbData.company_name);
-            } finally {
-              // END HYDRATION - re-enable dirty tracking
-              endHydration();
-            }
-          }
-        } catch (err) {
-          console.error('Dashboard: Error fetching from Supabase:', err);
-        }
+
+    // If context not loaded yet, wait for sessionStorage recovery
+    if (!ctx.isLoaded && !ctx.surveyId) {
+      // Check if there's a session to recover — if not, redirect to login
+      const savedId = sessionStorage.getItem('current_survey_id')
+      if (!savedId) {
+        router.push('/login')
+        return
       }
-      
-      // Now calculate progress from localStorage (which may have just been hydrated)
-      calculateProgress();
-    };
-    
+      // Context will auto-recover from sessionStorage — wait for it
+      return
+    }
+
+    // Check if authorization is complete
+    if (!ctx.authCompleted) {
+      router.push('/authorization')
+      return
+    }
+
     const calculateProgress = () => {
-      if (typeof window === 'undefined') return;
-      
       try {
-        const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9','s9a','c2','c3','c4','c5','c6'];
-        const genRequired = ['cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b'];
-        const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or3','or5a','or6'];
-        
-        const savedEmail = localStorage.getItem('auth_email') || '';
-        setEmail(savedEmail);
-        
-        // Check if user is a Founding Partner (fee waived)
-        const surveyId = localStorage.getItem('survey_id') || '';
-        const isFoundingPart = isFoundingPartner(surveyId);
-        setIsFoundingPartnerUser(isFoundingPart);
-        
-        // Get payment status - Founding Partners automatically have payment completed
-        const paymentStatus = localStorage.getItem('payment_completed');
-        const method = localStorage.getItem('payment_method');
-        setPaymentCompleted(isFoundingPart || paymentStatus === 'true');
-        setPaymentMethod(isFoundingPart ? 'founding_partner' : (method || ''));
-        
-        const firmo = JSON.parse(localStorage.getItem('firmographics_data') || '{}');
-        if (firmo?.companyName) setCompanyName(firmo.companyName);
-        
-        const general = JSON.parse(localStorage.getItem('general_benefits_data') || '{}');
-        const current = JSON.parse(localStorage.getItem('current_support_data') || '{}');
-        
-        const firmComplete = localStorage.getItem('firmographics_complete') === 'true';
-        const genComplete = localStorage.getItem('general_benefits_complete') === 'true';
-        const curComplete = localStorage.getItem('current_support_complete') === 'true';
-        
-        // Helper to check if dimension has its main grid populated (for partial progress)
+        const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9','s9a','c2','c3','c4','c5','c6']
+        const genRequired = ['cb1_standard','cb1_leave','cb1_wellness','cb1_financial','cb1_navigation','cb1a','cb2b']
+        const curRequired = ['cb3a','cb3b','cb3c','cb3d','or1','or2a','or3','or5a','or6']
+
+        setEmail(ctx.email || '')
+
+        const sid = ctx.surveyId || ''
+        const isFoundingPart = isFoundingPartner(sid)
+        setIsFoundingPartnerUser(isFoundingPart)
+
+        setPaymentCompleted(isFoundingPart || ctx.paymentCompleted)
+        setPaymentMethod(isFoundingPart ? 'founding_partner' : (ctx.paymentMethod || ''))
+
+        const firmo = ctx.getSectionData('firmographics') || {}
+        if (firmo?.companyName) setCompanyName(firmo.companyName)
+
+        const general = ctx.getSectionData('general_benefits') || {}
+        const current = ctx.getSectionData('current_support') || {}
+
+        const firmComplete = ctx.getSectionComplete('firmographics')
+        const genComplete = ctx.getSectionComplete('general_benefits')
+        const curComplete = ctx.getSectionComplete('current_support')
+
         const getDimensionProgress = (dimNum: number, dimData: any): number => {
-          if (!dimData || typeof dimData !== 'object') return 0;
-          const mainGrid = dimData[`d${dimNum}a`];
-          if (!mainGrid || typeof mainGrid !== 'object') return 0;
-          const itemCount = Object.keys(mainGrid).length;
-          // Each dimension has ~10-19 items, cap at 95% if not flagged complete
-          return itemCount === 0 ? 0 : Math.min(95, Math.round((itemCount / 12) * 100));
-        };
-        
-        const dimProgress = [];
+          if (!dimData || typeof dimData !== 'object') return 0
+          const mainGrid = dimData[`d${dimNum}a`]
+          if (!mainGrid || typeof mainGrid !== 'object') return 0
+          const itemCount = Object.keys(mainGrid).length
+          return itemCount === 0 ? 0 : Math.min(95, Math.round((itemCount / 12) * 100))
+        }
+
+        const dimProgress = []
         for (let i = 1; i <= 13; i++) {
-          const dimData = JSON.parse(localStorage.getItem(`dimension${i}_data`) || '{}');
-          const flagComplete = localStorage.getItem(`dimension${i}_complete`) === 'true';
-          
-          // Only show 100% if the completion FLAG is set
-          // Otherwise show partial progress based on items filled
+          const dimData = ctx.getSectionData(`dimension${i}`) || {}
+          const flagComplete = ctx.getSectionComplete(`dimension${i}`)
           if (flagComplete) {
-            dimProgress.push(100);
+            dimProgress.push(100)
           } else {
-            dimProgress.push(getDimensionProgress(i, dimData));
+            dimProgress.push(getDimensionProgress(i, dimData))
           }
         }
-        setDimensionProgress(dimProgress);
-        
-        let firmProg = 0;
-        let genProg = 0;
-        let curProg = 0;
-        
-        // Firmographics: ONLY use flag for 100%
+        setDimensionProgress(dimProgress)
+
+        let firmProg = 0, genProg = 0, curProg = 0
+
         if (firmComplete) {
-          firmProg = 100;
+          firmProg = 100
         } else {
           const firmCount = firmRequired.filter(field => {
-            if (field === 's6' || field === 'c4') {
-              return Array.isArray(firmo[field]) && firmo[field].length > 0;
-            }
-            return firmo[field] && firmo[field] !== '';
-          }).length;
-          firmProg = Math.round((firmCount / firmRequired.length) * 100);
+            if (field === 's6' || field === 'c4') return Array.isArray(firmo[field]) && firmo[field].length > 0
+            return firmo[field] && firmo[field] !== ''
+          }).length
+          firmProg = Math.round((firmCount / firmRequired.length) * 100)
         }
-        
-        // General Benefits: ONLY use flag for 100%
+
         if (genComplete) {
-          genProg = 100;
+          genProg = 100
         } else if (general && Object.keys(general).length > 0) {
           const genCount = genRequired.filter(field => {
-            if (Array.isArray(general[field])) {
-              return general[field].length > 0;
-            }
-            return general[field] && general[field] !== '';
-          }).length;
-          genProg = Math.round((genCount / genRequired.length) * 100);
+            if (Array.isArray(general[field])) return general[field].length > 0
+            return general[field] && general[field] !== ''
+          }).length
+          genProg = Math.round((genCount / genRequired.length) * 100)
         }
-        
-        // Current Support: ONLY use flag for 100%
+
         if (curComplete) {
-          curProg = 100;
+          curProg = 100
         } else if (current && Object.keys(current).length > 0) {
           const curCount = curRequired.filter(field => {
-            if (Array.isArray(current[field])) {
-              return current[field].length > 0;
-            }
-            return current[field] && current[field] !== '';
-          }).length;
-          curProg = Math.round((curCount / curRequired.length) * 100);
+            if (Array.isArray(current[field])) return current[field].length > 0
+            return current[field] && current[field] !== ''
+          }).length
+          curProg = Math.round((curCount / curRequired.length) * 100)
         }
-        
-        setSectionProgress({
-          firmographics: firmProg,
-          general: genProg,
-          current: curProg
-        });
-        
-        const empImpact = JSON.parse(localStorage.getItem('employee-impact-assessment_data') || '{}');
-        const crossDim = JSON.parse(localStorage.getItem('cross_dimensional_data') || '{}');
-        
-        const empImpactComplete = localStorage.getItem('employee-impact-assessment_complete') === 'true';
-        const crossDimComplete = localStorage.getItem('cross_dimensional_complete') === 'true';
-        
-        let empImpactProg = 0;
-        let crossDimProg = 0;
-        
-        // Employee Impact: ONLY use flag for 100%
+
+        setSectionProgress({ firmographics: firmProg, general: genProg, current: curProg })
+
+        const empImpact = ctx.getSectionData('employee_impact') || {}
+        const crossDim = ctx.getSectionData('cross_dimensional') || {}
+
+        const empImpactComplete = ctx.getSectionComplete('employee_impact')
+        const crossDimComplete = ctx.getSectionComplete('cross_dimensional')
+
+        let empImpactProg = 0, crossDimProg = 0
+
         if (empImpactComplete) {
-          empImpactProg = 100;
+          empImpactProg = 100
         } else {
-          let completedSteps = 0;
+          let completedSteps = 0
           if (empImpact.ei1) {
-            const ei1Items = Object.keys(empImpact.ei1).length;
-            completedSteps += ei1Items === 10 ? 1 : ei1Items / 10;
+            const ei1Items = Object.keys(empImpact.ei1).length
+            completedSteps += ei1Items === 10 ? 1 : ei1Items / 10
           }
-          if (empImpact.ei2) completedSteps += 1;
-          const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic";
-          if (shouldAnswerEI3 && empImpact.ei3) completedSteps += 1;
-          else if (!shouldAnswerEI3 && empImpact.ei2) completedSteps += 1;
-          if (empImpact.ei4 || empImpact.ei4_none || empImpact.ei5 || empImpact.ei5_none) completedSteps += 1;
-          empImpactProg = Math.round((completedSteps / 4) * 100);
+          if (empImpact.ei2) completedSteps += 1
+          const shouldAnswerEI3 = empImpact.ei2 === "yes_comprehensive" || empImpact.ei2 === "yes_basic"
+          if (shouldAnswerEI3 && empImpact.ei3) completedSteps += 1
+          else if (!shouldAnswerEI3 && empImpact.ei2) completedSteps += 1
+          if (empImpact.ei4 || empImpact.ei4_none || empImpact.ei5 || empImpact.ei5_none) completedSteps += 1
+          empImpactProg = Math.round((completedSteps / 4) * 100)
         }
-        
-        // Cross-Dimensional: ONLY use flag for 100%
+
         if (crossDimComplete) {
-          crossDimProg = 100;
+          crossDimProg = 100
         } else {
-          const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0;
-          const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0;
-          const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0;
-          const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0);
-          crossDimProg = Math.round((totalAnswered / 7) * 100);
+          const top3Count = Array.isArray(crossDim.cd1a) ? crossDim.cd1a.length : 0
+          const bottom3Count = Array.isArray(crossDim.cd1b) ? crossDim.cd1b.length : 0
+          const challengesCount = Array.isArray(crossDim.cd2) ? crossDim.cd2.length : 0
+          const totalAnswered = top3Count + bottom3Count + (challengesCount > 0 ? 1 : 0)
+          crossDimProg = Math.round((totalAnswered / 7) * 100)
         }
-        
-        setAdvancedProgress({
-          crossDimensional: crossDimProg,
-          employeeImpact: empImpactProg
-        });
-        
-        const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 && 
+
+        setAdvancedProgress({ crossDimensional: crossDimProg, employeeImpact: empImpactProg })
+
+        const allComplete = firmProg === 100 && genProg === 100 && curProg === 100 &&
                             dimProgress.every(p => p === 100) &&
-                            crossDimProg === 100 && empImpactProg === 100;
-        
-        if (allComplete && !localStorage.getItem('assessment_completion_shown')) {
-          localStorage.setItem('assessment_completion_shown', 'true');
-          router.push('/completion');
+                            crossDimProg === 100 && empImpactProg === 100
+
+        if (allComplete && !ctx.surveySubmitted) {
+          router.push('/completion')
         }
       } catch (error) {
-        console.error('Error in calculateProgress:', error);
-        setSectionProgress({ firmographics: 0, general: 0, current: 0 });
-        setDimensionProgress(new Array(13).fill(0));
-        setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 });
+        console.error('Error in calculateProgress:', error)
+        setSectionProgress({ firmographics: 0, general: 0, current: 0 })
+        setDimensionProgress(new Array(13).fill(0))
+        setAdvancedProgress({ crossDimensional: 0, employeeImpact: 0 })
       }
-    };
-    
-    loadDataAndCalculateProgress();
-    
-    const handleFocus = () => {
-      loadDataAndCalculateProgress();
-    };
-    
-    window.addEventListener("focus", handleFocus);
-    
-    return () => window.removeEventListener("focus", handleFocus);
-  }, [router])
+    }
+
+    calculateProgress()
+  }, [router, ctx.isLoaded, ctx.surveyId, ctx])
 
   // Payment bypass for testing - FORCED ON FOR TESTING
   const bypassPayment = false  // CHANGE THIS TO false FOR PRODUCTION
@@ -435,7 +332,7 @@ export default function DashboardPage() {
                   </p>
                   {!isInvoice && (
                     <p className="text-sm text-gray-600 mt-2">
-                      Payment Date: {new Date(localStorage.getItem('payment_date') || Date.now()).toLocaleDateString()}
+                      Payment Date: {new Date(ctx.paymentDate || Date.now()).toLocaleDateString()}
                     </p>
                   )}
                 </div>

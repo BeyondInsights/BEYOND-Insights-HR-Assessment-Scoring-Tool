@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { supabase } from '@/lib/supabase/client'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function LetterPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [ready, setReady] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -17,21 +19,21 @@ export default function LetterPage() {
       // ============================================
       // CHECK FOR FOUNDING PARTNER FIRST
       // ============================================
-      const surveyId = localStorage.getItem('survey_id') || ''
+      const surveyId = ctx.surveyId || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
+
       if (isFoundingPartner(surveyId)) {
         console.log('Founding Partner - skipping Supabase check on letter page')
         return
       }
       // ============================================
-      
+
       // ============================================
       // CHECK FOR NEW USER BYPASS FLAG
       // ============================================
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      
+      const hasAuthFlag = !!ctx.surveyId || !!ctx.email
+      const justCreated = false
+
       if (hasAuthFlag || justCreated) {
         console.log('User authenticated via bypass flag - allowing access')
         return
@@ -56,25 +58,25 @@ export default function LetterPage() {
       // ============================================
       // CHECK FOR FOUNDING PARTNER
       // ============================================
-      const surveyId = localStorage.getItem('survey_id') || ''
+      const surveyId = ctx.surveyId || ''
       const { isFoundingPartner } = await import('@/lib/founding-partners')
-      
+
       if (isFoundingPartner(surveyId)) {
         console.log('Founding Partner - going to authorization')
         router.push('/authorization')
         return
       }
       // ============================================
-      
+
       // ============================================
       // CHECK FOR NEW USER WITH BYPASS FLAGS
       // ============================================
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-      const justCreated = localStorage.getItem('new_user_just_created') === 'true'
-      const authCompleted = localStorage.getItem('auth_completed') === 'true'
+      const hasAuthFlag = !!ctx.surveyId || !!ctx.email
+      const justCreated = false
+      const authCompleted = ctx.authCompleted
       
       // Only redirect to authorization if auth is NOT already completed
-      if ((hasAuthFlag || justCreated) && !authCompleted) {
+      if ((hasAuthFlag || justCreated) && !ctx.authCompleted) {
         console.log('New user with bypass - proceeding to authorization')
         router.push('/authorization')
         return
@@ -106,8 +108,8 @@ export default function LetterPage() {
     } catch (error) {
       console.error('Error updating letter status:', error)
       // On error, still try to proceed if they have auth flags
-      const hasAuthFlag = localStorage.getItem('user_authenticated') === 'true'
-      if (hasAuthFlag) {
+      const hasAuthFlagFallback = !!ctx.surveyId || !!ctx.email
+      if (hasAuthFlagFallback) {
         router.push('/authorization')
       }
     } finally {

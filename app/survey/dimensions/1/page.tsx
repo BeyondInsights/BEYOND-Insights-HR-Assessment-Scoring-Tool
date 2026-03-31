@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 
 // Data for D1.a - ALL 11 ITEMS FROM SURVEY
@@ -25,6 +25,7 @@ const D1A_ITEMS_BASE = [
 
 export default function Dimension1Page() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [step, setStep] = useState(0);
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
@@ -61,28 +62,19 @@ export default function Dimension1Page() {
   
   // Load saved answers on mount
   useEffect(() => {
-    const saved = localStorage.getItem("dimension1_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
-    }
-    
-    // Check if multi-country from firmographics
-    const firmographicsData = localStorage.getItem("firmographics_data");
-    if (firmographicsData) {
-      const parsed = JSON.parse(firmographicsData);
-      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+    const saved = ctx.getSectionData('dimension1');
+    if (saved) setAns(saved);
+
+    const firmData = ctx.getSectionData('firmographics');
+    if (firmData) {
+      setIsMultiCountry(firmData.s9a !== "No other countries - headquarters only");
     }
   }, []);
 
   // Save answers when they change
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("dimension1_data", JSON.stringify(ans));
+      ctx.setSectionData('dimension1', ans);
     }
   }, [ans]);
 
@@ -235,8 +227,8 @@ export default function Dimension1Page() {
     } else if (step === 9) {
       setStep(10);
     } else if (step === 10) {
-      localStorage.setItem("dimension1_complete", "true");
-      await forceSyncNow();  // Force sync before navigation
+      ctx.setSectionComplete('dimension1', true);
+      await ctx.saveToSupabase('dimension1');
       router.push("/dashboard");
       return;
     }
@@ -1025,8 +1017,8 @@ export default function Dimension1Page() {
             </p>
             <button
               onClick={async () => { 
-                localStorage.setItem("dimension1_complete", "true");
-                await forceSyncNow();  // Force sync before navigation
+                ctx.setSectionComplete('dimension1', true);
+                await ctx.saveToSupabase('dimension1');
                 router.push("/dashboard"); 
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"

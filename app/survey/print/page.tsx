@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 // Import all schemas from the index file
 import {
@@ -50,22 +51,19 @@ const ALL_DIMENSION_SCHEMAS = [
 
 export default function PrintPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({})
   const [companyName, setCompanyName] = useState('Your Company')
   const [currentDate, setCurrentDate] = useState('')
 
   useEffect(() => {
-    const name = localStorage.getItem('login_company_name') || 
-                 localStorage.getItem('companyName') || 
-                 'Your Organization'
-    setCompanyName(name)
-    
-    setCurrentDate(new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    setCompanyName(ctx.companyName || 'Your Organization')
+    setCurrentDate(new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
     }))
-  }, [])
+  }, [ctx.companyName])
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => ({

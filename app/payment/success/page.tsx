@@ -3,9 +3,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Award, ArrowRight, FileText } from 'lucide-react';
+import { useAssessmentContext } from '@/lib/assessment-context';
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [paymentInfo, setPaymentInfo] = useState({
     method: '',
     date: '',
@@ -19,46 +21,15 @@ useEffect(() => {
   
   // If coming from Zeffy, MARK PAYMENT AS COMPLETE
   if (fromZeffy) {
-    localStorage.removeItem('new_user_bypass');
-    localStorage.setItem('payment_completed', 'true');
-    localStorage.setItem('payment_method', 'card');
-    localStorage.setItem('payment_date', new Date().toISOString());
-    
-    // ============================================
-    // SAVE PAYMENT TO SUPABASE
-    // ============================================
+    ctx.setPaymentCompleted(true);
+    ctx.setPaymentMethod('card');
+    ctx.setPaymentDate(new Date().toISOString());
+
+    // Save to Supabase via context
     (async () => {
       try {
-        const { supabase } = await import('@/lib/supabase/client');
-        const surveyId = localStorage.getItem('survey_id') || localStorage.getItem('login_Survey_id') || '';
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        const paymentUpdate = {
-          payment_completed: true,
-          payment_method: 'card',
-          payment_amount: 1250.00,
-          payment_date: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        
-        // Try user_id first
-        if (user) {
-          await supabase
-            .from('assessments')
-            .update(paymentUpdate)
-            .eq('user_id', user.id);
-        }
-        
-        // Also try survey_id
-        if (surveyId) {
-          const normalizedId = surveyId.replace(/-/g, '').toUpperCase();
-          await supabase
-            .from('assessments')
-            .update(paymentUpdate)
-            .or(`survey_id.eq.${surveyId},app_id.eq.${normalizedId}`);
-        }
-        
-        console.log('✅ Payment saved to Supabase');
+        await ctx.saveToSupabase();
+        console.log('Payment saved to Supabase via context');
       } catch (err) {
         console.error('Error saving payment to Supabase:', err);
       }
@@ -94,8 +65,8 @@ useEffect(() => {
   }
   
   // Set payment info display
-  const method = localStorage.getItem('payment_method') || 'card';
-  const date = localStorage.getItem('payment_date') || new Date().toISOString();
+  const method = ctx.paymentMethod || 'card';
+  const date = ctx.paymentDate || new Date().toISOString();
   const txnId = `TXN-${Date.now()}`;
   
   let methodDisplay = 'Credit Card';

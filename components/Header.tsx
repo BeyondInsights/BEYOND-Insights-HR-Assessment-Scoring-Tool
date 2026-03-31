@@ -1,37 +1,14 @@
 'use client'
 import { useRouter, usePathname } from 'next/navigation'
 import { FileText, Download, Receipt } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import SyncStatusIndicator from './SyncStatusIndicator'
+import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function Header() {
   const router = useRouter()
   const pathname = usePathname()
-  const [showInvoiceButton, setShowInvoiceButton] = useState(false)
-  
-  // Check if user paid via invoice - WITH NUCLEAR USER VERIFICATION
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const currentEmail = localStorage.getItem('auth_email')
-      const paymentMethod = localStorage.getItem('payment_method')
-      const lastUserEmail = localStorage.getItem('last_user_email')
-      
-      // NUCLEAR OPTION: If there's a last user email and it doesn't match current, NUKE everything payment-related
-      if (lastUserEmail && currentEmail && lastUserEmail !== currentEmail) {
-        console.log('🧹 Header detected different user - clearing payment data')
-        localStorage.removeItem('payment_method')
-        localStorage.removeItem('payment_completed')
-        localStorage.removeItem('payment_date')
-        localStorage.removeItem('invoice_data')
-        setShowInvoiceButton(false)
-        return
-      }
-      
-      // Only show if payment method is invoice AND there's a current user
-      const isInvoice = paymentMethod === 'invoice' && currentEmail
-      setShowInvoiceButton(isInvoice)
-    }
-  }, [])
+  const ctx = useAssessmentContext()
+
+  const showInvoiceButton = ctx.paymentMethod === 'invoice' && !!ctx.email
   
   // Hide Back to Dashboard on Dashboard, Letter, and Authorization pages
   const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
@@ -94,10 +71,17 @@ export default function Header() {
               </button>
             )}
             
-            {/* Sync Status - small, at the end */}
-            <div className="border-l border-gray-300 pl-3 ml-1">
-              <SyncStatusIndicator />
-            </div>
+            {/* Save Status */}
+            {ctx.isSaving && (
+              <div className="border-l border-gray-300 pl-3 ml-1 text-xs text-blue-600">
+                Saving...
+              </div>
+            )}
+            {ctx.lastSaveError && !ctx.isSaving && (
+              <div className="border-l border-gray-300 pl-3 ml-1 text-xs text-amber-600">
+                Save failed
+              </div>
+            )}
           </div>
         </div>
       </div>

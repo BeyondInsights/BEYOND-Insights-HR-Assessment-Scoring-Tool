@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
-import { forceSyncNow } from "@/lib/supabase/auto-data-sync";
+import { useAssessmentContext } from "@/lib/assessment-context";
 
 
 const D4A_ITEMS_BASE = [
@@ -23,6 +23,7 @@ const D4A_ITEMS_BASE = [
 export default function Dimension4Page() {
   const [step, setStep] = useState(0);
   const router = useRouter();
+  const ctx = useAssessmentContext();
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [isMultiCountry, setIsMultiCountry] = useState(false);
@@ -57,31 +58,18 @@ export default function Dimension4Page() {
   });
   
   useEffect(() => {
-    const saved = localStorage.getItem("dimension4_data");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
+    const saved = ctx.getSectionData('dimension4');
+    if (saved) setAns(saved);
 
-    // Convert d1_6 to array if it was saved as a string
-      if (parsed.d1_6 && !Array.isArray(parsed.d1_6)) {
-        parsed.d1_6 = [parsed.d1_6];
-      }    
-        setAns(parsed);
-      } catch (e) {
-        console.error("Error loading saved data:", e);
-      }
-    }
-
-    const firmographicsData = localStorage.getItem("firmographics_data");
-    if (firmographicsData) {
-      const parsed = JSON.parse(firmographicsData);
-      setIsMultiCountry(parsed.s9a !== "No other countries - headquarters only");
+    const firmData = ctx.getSectionData('firmographics');
+    if (firmData) {
+      setIsMultiCountry(firmData.s9a !== "No other countries - headquarters only");
     }
   }, []);
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
-      localStorage.setItem("dimension4_data", JSON.stringify(ans));
+      ctx.setSectionData('dimension4', ans);
     }
   }, [ans]);
 
@@ -194,8 +182,8 @@ export default function Dimension4Page() {
     } else if (step === 5) {
       setStep(6);
     } else if (step === 6) {
-      localStorage.setItem("dimension4_complete", "true");
-      await forceSyncNow();  // Force sync before navigation
+      ctx.setSectionComplete('dimension4', true);
+      await ctx.saveToSupabase('dimension4');
       router.push("/dashboard");
       return;
     }
@@ -663,8 +651,8 @@ export default function Dimension4Page() {
             </p>
             <button
               onClick={async () => { 
-                localStorage.setItem("dimension4_complete", "true");
-                await forceSyncNow();  // Force sync before navigation
+                ctx.setSectionComplete('dimension4', true);
+                await ctx.saveToSupabase('dimension4');
                 router.push("/dashboard");
               }}
               className="px-10 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-shadow"

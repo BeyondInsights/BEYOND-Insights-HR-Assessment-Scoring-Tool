@@ -6,174 +6,57 @@ import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
 import { supabase } from '@/lib/supabase/client'
 import { isFoundingPartner } from '@/lib/founding-partners'
-import { isSharedFP, loadSharedFPData } from '@/lib/supabase/fp-shared-storage'
-import { loadUserDataFromSupabase } from '@/lib/supabase/load-data-from-supabase'
-import { startHydration, endHydration, setStoredVersion, clearDirty, normalizeSurveyId } from '@/lib/supabase/auto-data-sync'
+import { isSharedFP } from '@/lib/supabase/fp-shared-storage'
+import { useAssessmentContext } from '@/lib/assessment-context'
 import Footer from '@/components/Footer'
 
 // ============================================
 // LOAD USER DATA BY APP_ID - Works for ANY user with data in assessments table
-// This replaces the old hardcoded COMPD_USER_IDS list
+// Returns the DB record so the caller can populate context
 // ============================================
 
-async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise<{ found: boolean; authCompleted: boolean }> {
+async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise<{ found: boolean; authCompleted: boolean; record: any | null }> {
   const exact = surveyId?.trim() || ''
   const normalized = surveyId?.replace(/-/g, '').toUpperCase() || ''
   const normalizedEmail = email?.toLowerCase().trim() || ''
-  
+
   try {
-    console.log('📥 Checking for existing user by app_id:', exact, 'or', normalized)
-    
-    // Try BOTH exact and normalized - covers all legacy data formats
+    console.log('[Login] Checking for existing user by app_id:', exact, 'or', normalized)
+
     const { data, error } = await supabase
       .from('assessments')
       .select('*')
       .or(`app_id.eq.${exact},app_id.eq.${normalized},survey_id.eq.${exact},survey_id.eq.${normalized}`)
       .maybeSingle()
-    
+
     if (error) {
       console.error('Error checking user by app_id:', error)
-      return { found: false, authCompleted: false }
+      return { found: false, authCompleted: false, record: null }
     }
-    
+
     if (!data) {
       console.log('No existing record found for app_id:', normalized)
-      return { found: false, authCompleted: false }
+      return { found: false, authCompleted: false, record: null }
     }
-    
+
     // Verify email matches (security check)
     const dbEmail = (data.email || '').toLowerCase().trim()
     if (dbEmail && normalizedEmail && dbEmail !== normalizedEmail) {
       console.error('Email mismatch - possible unauthorized access attempt')
-      console.error(`  DB email: ${dbEmail}, Provided: ${normalizedEmail}`)
-      return { found: false, authCompleted: false }
+      return { found: false, authCompleted: false, record: null }
     }
-    
-    console.log('✅ Found existing record, populating localStorage...')
-    
-    // Calculate this BEFORE hydration so it's available after
-    const inferredAuthComplete = data.auth_completed || 
-      data.survey_submitted || 
+
+    const inferredAuthComplete = data.auth_completed ||
+      data.survey_submitted ||
       (data.firmographics_complete && data.general_benefits_complete && data.current_support_complete && data.dimension1_complete)
-    
-    // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
-    startHydration()
-    
-    try {
-      // Load DATA fields
-      if (data.firmographics_data) localStorage.setItem('firmographics_data', JSON.stringify(data.firmographics_data))
-      if (data.general_benefits_data) localStorage.setItem('general_benefits_data', JSON.stringify(data.general_benefits_data))
-      if (data.current_support_data) localStorage.setItem('current_support_data', JSON.stringify(data.current_support_data))
-      if (data.cross_dimensional_data) localStorage.setItem('cross_dimensional_data', JSON.stringify(data.cross_dimensional_data))
-      if (data.employee_impact_data) localStorage.setItem('employee-impact-assessment_data', JSON.stringify(data.employee_impact_data))
-      for (let i = 1; i <= 13; i++) {
-        const dimData = data[`dimension${i}_data`]
-        if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
-      }
-      if (data.company_name) localStorage.setItem('login_company_name', data.company_name)
-    
-      // Load COMPLETION FLAGS
-      if (inferredAuthComplete) {
-        localStorage.setItem('auth_completed', 'true')
-        console.log('  ✓ Set auth_completed: true (inferred:', !data.auth_completed, ')')
-      } else {
-        localStorage.removeItem('auth_completed')
-      }
-      if (data.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
-      if (data.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
-      if (data.current_support_complete) localStorage.setItem('current_support_complete', 'true')
-      if (data.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
-      if (data.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
-      for (let i = 1; i <= 13; i++) {
-        if (data[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
-      }
-    
-      // Also store payment info if present
-      if (data.payment_completed) localStorage.setItem('payment_completed', 'true')
-      if (data.payment_method) localStorage.setItem('payment_method', data.payment_method)
-    
-      // ============================================
-      // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS
-      // Critical to prevent re-asking the question!
-      // ============================================
-      if (data.employee_survey_opt_in !== null && data.employee_survey_opt_in !== undefined) {
-        localStorage.setItem('employee_survey_opt_in', String(data.employee_survey_opt_in))
-        console.log('  ✓ Set employee_survey_opt_in:', data.employee_survey_opt_in)
-      }
-      if (data.survey_submitted) {
-        localStorage.setItem('survey_fully_submitted', 'true')
-        localStorage.setItem('assessment_completion_shown', 'true')
-        console.log('  ✓ Set survey submission flags')
-      }
-    
-      // Invoice data
-      if (data.invoice_data) {
-        localStorage.setItem('invoice_data', JSON.stringify(data.invoice_data))
-        console.log('  ✓ Set invoice_data')
-      }
-      if (data.invoice_number) {
-        localStorage.setItem('current_invoice_number', data.invoice_number)
-      }
-    
-      // First/last name from firmographics
-      if (data.firmographics_data) {
-        const firmo = data.firmographics_data
-        if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
-        if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
-        if (firmo.title) localStorage.setItem('login_title', firmo.title)
-      }
-    
-    } finally {
-      // END HYDRATION - re-enable dirty tracking
-      endHydration()
-      // Set version to match server (prevents false conflict)
-      if (data.version) {
-        setStoredVersion(data.version)
-      }
-      // Clear any dirty flag (we just loaded fresh from server)
-      clearDirty()
-    }
-    
-    console.log('✅ User data loaded successfully from Supabase')
-    return { found: true, authCompleted: inferredAuthComplete }
-    
+
+    console.log('[Login] Found existing record in Supabase')
+    return { found: true, authCompleted: !!inferredAuthComplete, record: data }
+
   } catch (error) {
     console.error('Error in checkAndLoadUserByAppId:', error)
-    return { found: false, authCompleted: false }
+    return { found: false, authCompleted: false, record: null }
   }
-}
-
-// Legacy function name for backwards compatibility
-async function loadCompdUserData(surveyId: string): Promise<boolean> {
-  const result = await checkAndLoadUserByAppId(surveyId, '')
-  return result.found
-}
-
-// Legacy check - now always returns false since we check DB directly
-function isCompdUser(surveyId: string): boolean {
-  return false // No longer use hardcoded list
-}
-// ============================================
-
-// Helper function to clear localStorage but preserve Supabase auth tokens
-const clearLocalStoragePreserveAuth = () => {
-  const supabaseKeys: string[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key && (key.startsWith('sb-') || key.startsWith('supabase'))) {
-      supabaseKeys.push(key)
-    }
-  }
-  const preserved: Record<string, string> = {}
-  supabaseKeys.forEach(key => {
-    const value = localStorage.getItem(key)
-    if (value) preserved[key] = value
-  })
-  localStorage.clear()
-  Object.entries(preserved).forEach(([key, value]) => {
-    localStorage.setItem(key, value)
-  })
-  console.log('Cleared localStorage but preserved', supabaseKeys.length, 'Supabase auth keys')
 }
 
 // ASSESSMENT_WINDOW_CLOSED — Set to false to re-enable login functionality
@@ -181,6 +64,7 @@ const ASSESSMENT_WINDOW_CLOSED = false
 
 export default function LoginPage() {
   const router = useRouter()
+  const ctx = useAssessmentContext()
   const [email, setEmail] = useState('')
   const [surveyId, setSurveyId] = useState('')
   const [isNewUser, setIsNewUser] = useState(true)
@@ -217,34 +101,10 @@ export default function LoginPage() {
 
     const trimmedSurveyId = surveyId.trim().toUpperCase()
 
-    // ============================================
-    // CLEAR OLD USER DATA ONLY IF DIFFERENT USER
-    // ============================================
     const currentEmail = (email || '').toLowerCase().trim()
-    const lastUserEmail = (localStorage.getItem('last_user_email') || '').toLowerCase().trim()
-    const currentStoredSurveyId = localStorage.getItem('survey_id') || ''
 
-    // Clear data if EITHER email OR survey_id is different
-    // IMPORTANT: Normalize survey IDs before comparing (remove dashes, uppercase)
-    // This handles cases like CAC-260210-48518EB vs CAC26021048518EB
-    const emailChanged = lastUserEmail && currentEmail && lastUserEmail !== currentEmail
-    const surveyIdChanged = !isNewUser && currentStoredSurveyId && trimmedSurveyId && 
-      normalizeSurveyId(currentStoredSurveyId) !== normalizeSurveyId(trimmedSurveyId)
-
-    if (emailChanged || surveyIdChanged) {
-      console.log('Different user/survey logging in - clearing old data')
-      if (emailChanged) console.log(`  Email changed: ${lastUserEmail} → ${currentEmail}`)
-      if (surveyIdChanged) console.log(`  Survey ID changed: ${currentStoredSurveyId} → ${trimmedSurveyId}`)
-      clearLocalStoragePreserveAuth()
-      localStorage.setItem('auth_email', currentEmail)
-      localStorage.setItem('last_user_email', currentEmail)
-    } else if (currentEmail && !lastUserEmail) {
-      localStorage.setItem('last_user_email', currentEmail)
-      console.log('First login - setting last_user_email')
-    } else {
-      console.log('Same user returning - keeping all data')
-    }
-    // ============================================
+    // Clear context for any new login (context replaces localStorage — fresh load from DB)
+    ctx.clearAll()
 
     // ============================================
     // CHECK FOR ANY RETURNING USER BY APP_ID
@@ -252,34 +112,30 @@ export default function LoginPage() {
     // Works for comp'd users, regular users, anyone in the assessments table
     // ============================================
     if (!isNewUser && !isFoundingPartner(trimmedSurveyId) && !isSharedFP(trimmedSurveyId)) {
-      console.log('🔍 Checking database for returning user:', trimmedSurveyId)
-      
+      console.log('[Login] Checking database for returning user:', trimmedSurveyId)
+
       setSuccessMessage('Checking your progress...')
       const result = await checkAndLoadUserByAppId(trimmedSurveyId, email)
-      
-      if (result.found) {
-        console.log('✅ Found existing user in database!')
-        
-        // Store login info
-        localStorage.setItem('login_email', email)
-        localStorage.setItem('auth_email', email)
-        localStorage.setItem('survey_id', trimmedSurveyId)
-        localStorage.setItem('user_authenticated', 'true')
-        localStorage.setItem('last_user_email', email)
-        localStorage.setItem('login_Survey_id', trimmedSurveyId)
-        
+
+      if (result.found && result.record) {
+        console.log('[Login] Found existing user in database!')
+
+        // Populate context from DB record
+        ctx.setFullRecord(result.record)
+        ctx.setEmail(currentEmail)
+        ctx.setSurveyId(trimmedSurveyId)
+
         if (result.authCompleted) {
-          setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
+          setSuccessMessage('Welcome back! Redirecting to dashboard...')
           setTimeout(() => router.push('/dashboard'), 1500)
         } else {
-          setSuccessMessage('✅ Found your progress! Redirecting...')
+          setSuccessMessage('Found your progress! Redirecting...')
           setTimeout(() => router.push('/letter'), 1500)
         }
-        
+
         setLoading(false)
         return
       }
-      // If not found, continue to other checks (Supabase auth, etc.)
       console.log('No existing record found, continuing to standard auth flow...')
     }
     // ============================================
@@ -288,28 +144,20 @@ export default function LoginPage() {
     // CHECK FOR SHARED FP (uses fp_shared_assessments table)
     // ============================================
     if (!isNewUser && isSharedFP(trimmedSurveyId)) {
-      console.log('🏪 Shared FP detected:', trimmedSurveyId)
-      
-      // Store login info
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
-      localStorage.setItem('survey_id', trimmedSurveyId)
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', trimmedSurveyId)
-      
-      // Load shared data from Supabase
+      console.log('[Login] Shared FP detected:', trimmedSurveyId)
+
+      ctx.setSurveyId(trimmedSurveyId)
+      ctx.setEmail(currentEmail)
+
+      // Load shared data from Supabase directly into context
       setSuccessMessage('Loading your team\'s progress...')
-      const loaded = await loadSharedFPData(trimmedSurveyId)
-      
-      // Check if auth completed
-      const authCompleted = localStorage.getItem('auth_completed') === 'true'
-      
-      if (authCompleted) {
-        setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
+      const loaded = await ctx.loadFromSupabase(trimmedSurveyId)
+
+      if (ctx.authCompleted) {
+        setSuccessMessage('Welcome back! Redirecting to dashboard...')
         setTimeout(() => router.push('/dashboard'), 1500)
       } else {
-        setSuccessMessage('✅ Found existing progress! Redirecting...')
+        setSuccessMessage('Found existing progress! Redirecting...')
         setTimeout(() => router.push('/letter'), 1500)
       }
       setLoading(false)
@@ -321,163 +169,60 @@ export default function LoginPage() {
     // CHECK FOR REGULAR FOUNDING PARTNER
     // ============================================
     if (!isNewUser && isFoundingPartner(trimmedSurveyId)) {
-      console.log('Founding Partner ID detected:', trimmedSurveyId)
-      
-      // Set localStorage first
-      localStorage.setItem('login_email', email)
-      localStorage.setItem('auth_email', email)
-      localStorage.setItem('survey_id', trimmedSurveyId)
-      localStorage.setItem('user_authenticated', 'true')
-      localStorage.setItem('last_user_email', email)
-      localStorage.setItem('login_Survey_id', trimmedSurveyId)
-      
-      // Check if Supabase record exists and create/load accordingly
+      console.log('[Login] Founding Partner ID detected:', trimmedSurveyId)
+
+      ctx.setSurveyId(trimmedSurveyId)
+      ctx.setEmail(currentEmail)
+      ctx.setUserType('fp')
+
       setSuccessMessage('Checking your progress...')
-      
+
       try {
-        // Import company name function
         const { getFPCompanyName } = await import('@/lib/founding-partners')
-        const companyName = getFPCompanyName(trimmedSurveyId)
-        
-        // Check for existing record by survey_id - try exact first, then normalized
+        const fpCompanyName = getFPCompanyName(trimmedSurveyId)
+
+        // Check for existing record
         const normalizedId = trimmedSurveyId.replace(/-/g, '').toUpperCase()
-        
-        // Try exact survey_id first (most common for FPs)
         let existing = null
         const { data: exactMatch } = await supabase
           .from('assessments')
           .select('*')
           .eq('survey_id', trimmedSurveyId)
           .maybeSingle()
-        
+
         if (exactMatch) {
           existing = exactMatch
-          console.log('Found FP by exact survey_id:', trimmedSurveyId)
         } else {
-          // Try app_id with normalized version
           const { data: normalizedMatch } = await supabase
             .from('assessments')
             .select('*')
             .eq('app_id', normalizedId)
             .maybeSingle()
-          
-          if (normalizedMatch) {
-            existing = normalizedMatch
-            console.log('Found FP by normalized app_id:', normalizedId)
-          }
+          if (normalizedMatch) existing = normalizedMatch
         }
-        
+
         if (existing) {
-          // Load existing data to localStorage
-          console.log('Found existing FP record - loading ALL data and completion flags')
-          console.log('DB record keys:', Object.keys(existing))
-          console.log('firmographics_data exists:', !!existing.firmographics_data)
-          console.log('dimension1_data exists:', !!existing.dimension1_data)
-          
-          // START HYDRATION - prevents auto-sync from marking these writes as "dirty"
-          startHydration()
-          
-          try {
-            // Load DATA fields
-            if (existing.firmographics_data) {
-              localStorage.setItem('firmographics_data', JSON.stringify(existing.firmographics_data))
-              console.log('  ✓ Set firmographics_data')
-            }
-            if (existing.general_benefits_data) {
-              localStorage.setItem('general_benefits_data', JSON.stringify(existing.general_benefits_data))
-              console.log('  ✓ Set general_benefits_data')
-            }
-            if (existing.current_support_data) {
-              localStorage.setItem('current_support_data', JSON.stringify(existing.current_support_data))
-              console.log('  ✓ Set current_support_data')
-            }
-            if (existing.cross_dimensional_data) {
-              localStorage.setItem('cross_dimensional_data', JSON.stringify(existing.cross_dimensional_data))
-              console.log('  ✓ Set cross_dimensional_data')
-            }
-            if (existing.employee_impact_data) {
-              localStorage.setItem('employee-impact-assessment_data', JSON.stringify(existing.employee_impact_data))
-              console.log('  ✓ Set employee_impact_data')
-            }
-            for (let i = 1; i <= 13; i++) {
-              const dimData = existing[`dimension${i}_data`]
-              if (dimData) localStorage.setItem(`dimension${i}_data`, JSON.stringify(dimData))
-            }
-            if (existing.company_name) localStorage.setItem('login_company_name', existing.company_name)
-            
-            // Load COMPLETION FLAGS
-            if (existing.auth_completed) {
-              localStorage.setItem('auth_completed', 'true')
-            } else {
-              localStorage.removeItem('auth_completed')
-            }
-            if (existing.firmographics_complete) localStorage.setItem('firmographics_complete', 'true')
-            if (existing.general_benefits_complete) localStorage.setItem('general_benefits_complete', 'true')
-            if (existing.current_support_complete) localStorage.setItem('current_support_complete', 'true')
-            if (existing.cross_dimensional_complete) localStorage.setItem('cross_dimensional_complete', 'true')
-            if (existing.employee_impact_complete) localStorage.setItem('employee-impact-assessment_complete', 'true')
-            for (let i = 1; i <= 13; i++) {
-              if (existing[`dimension${i}_complete`]) localStorage.setItem(`dimension${i}_complete`, 'true')
-            }
-            
-            // ============================================
-            // EMPLOYEE SURVEY OPT-IN & SUBMISSION STATUS (FP)
-            // ============================================
-            if (existing.employee_survey_opt_in !== null && existing.employee_survey_opt_in !== undefined) {
-              localStorage.setItem('employee_survey_opt_in', String(existing.employee_survey_opt_in))
-              console.log('  ✓ Set employee_survey_opt_in:', existing.employee_survey_opt_in)
-            }
-            if (existing.survey_submitted) {
-              localStorage.setItem('survey_fully_submitted', 'true')
-              localStorage.setItem('assessment_completion_shown', 'true')
-              console.log('  ✓ Set survey submission flags')
-            }
-            
-            // Invoice data (FP)
-            if (existing.invoice_data) {
-              localStorage.setItem('invoice_data', JSON.stringify(existing.invoice_data))
-              console.log('  ✓ Set invoice_data')
-            }
-            if (existing.invoice_number) {
-              localStorage.setItem('current_invoice_number', existing.invoice_number)
-            }
-            
-            // First/last name from firmographics (FP)
-            if (existing.firmographics_data) {
-              const firmo = existing.firmographics_data
-              if (firmo.firstName) localStorage.setItem('login_first_name', firmo.firstName)
-              if (firmo.lastName) localStorage.setItem('login_last_name', firmo.lastName)
-              if (firmo.title) localStorage.setItem('login_title', firmo.title)
-            }
-          } finally {
-            // END HYDRATION - re-enable dirty tracking
-            endHydration()
-          }
-          
-          console.log('✅ Loaded all FP data and completion flags from Supabase')
-          
-          // Route based on whether they've completed authorization
+          // Populate context from DB record
+          ctx.setFullRecord(existing)
+          console.log('[Login] Loaded FP data from Supabase')
+
           if (existing.auth_completed) {
-            setSuccessMessage('✅ Welcome back! Redirecting to dashboard...')
-            setTimeout(() => {
-              router.push('/dashboard')
-            }, 1500)
+            setSuccessMessage('Welcome back! Redirecting to dashboard...')
+            setTimeout(() => router.push('/dashboard'), 1500)
           } else {
-            setSuccessMessage('✅ Found your progress! Redirecting...')
-            setTimeout(() => {
-              router.push('/letter')
-            }, 1500)
+            setSuccessMessage('Found your progress! Redirecting...')
+            setTimeout(() => router.push('/letter'), 1500)
           }
         } else {
           // Create new FP record
-          console.log('Creating new FP record in Supabase')
-          const { error } = await supabase
+          console.log('[Login] Creating new FP record in Supabase')
+          const { data: newRecord, error } = await supabase
             .from('assessments')
             .insert({
               survey_id: trimmedSurveyId,
               app_id: trimmedSurveyId,
               email: email.toLowerCase(),
-              company_name: companyName || 'Founding Partner',
+              company_name: fpCompanyName || 'Founding Partner',
               is_founding_partner: true,
               payment_completed: true,
               payment_method: 'FP Comp',
@@ -485,30 +230,27 @@ export default function LoginPage() {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
-          
+            .select()
+            .single()
+
           if (error) {
             console.error('Error creating FP record:', error)
-          } else {
-            console.log('FP record created successfully')
+          } else if (newRecord) {
+            ctx.setFullRecord(newRecord)
           }
-          if (companyName) localStorage.setItem('login_company_name', companyName)
-          setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-          setTimeout(() => {
-            // Check if somehow already has auth_completed (edge case)
-            const authDone = localStorage.getItem('auth_completed') === 'true'
-            router.push(authDone ? '/dashboard' : '/letter')
-          }, 1500)
+          if (fpCompanyName) ctx.setCompanyName(fpCompanyName)
+          ctx.setPaymentCompleted(true)
+          ctx.setPaymentMethod('FP Comp')
+
+          setSuccessMessage('Founding Partner access confirmed! Redirecting...')
+          setTimeout(() => router.push('/letter'), 1500)
         }
       } catch (err) {
         console.error('Error handling FP login:', err)
-        // On error, check if they've already done auth
-        const authDone = localStorage.getItem('auth_completed') === 'true'
-        setSuccessMessage('✅ Founding Partner access confirmed! Redirecting...')
-        setTimeout(() => {
-          router.push(authDone ? '/dashboard' : '/letter')
-        }, 1500)
+        setSuccessMessage('Founding Partner access confirmed! Redirecting...')
+        setTimeout(() => router.push(ctx.authCompleted ? '/dashboard' : '/letter'), 1500)
       }
-      
+
       setLoading(false)
       return
     }
@@ -523,56 +265,36 @@ export default function LoginPage() {
       if (result.mode === 'error') {
         setErrors(result.message)
       } else {
-        // ============================================
-        // CLEAR OLD DATA FOR NEW USERS (preserve Supabase auth)
-        // ============================================
-        if (result.mode === 'new') {
-          console.log('New user account - clearing old localStorage data (preserving auth)')
-          clearLocalStoragePreserveAuth()
-          localStorage.setItem('auth_email', currentEmail)
-          localStorage.setItem('login_email', email)
-        }
-        // ============================================
-        
-        // Store email in localStorage
-        localStorage.setItem('login_email', email)
-        localStorage.setItem('auth_email', email)
-        localStorage.setItem('user_authenticated', 'true')
-        localStorage.setItem('last_user_email', email)
-        
-        // ============================================
-        // FIX: SET BOTH survey_id AND login_Survey_id FOR ALL USERS
-        // ============================================
+        // Set context identity
+        ctx.setEmail(currentEmail)
+        ctx.setUserType('regular')
+
         if (!isNewUser) {
-          // Keep original format - normalization is only for comparison
           const userSurveyId = surveyId.trim().toUpperCase()
-          localStorage.setItem('survey_id', userSurveyId)
-          localStorage.setItem('login_Survey_id', userSurveyId)
-          console.log('[LOGIN] Set survey_id for returning user:', userSurveyId)
+          ctx.setSurveyId(userSurveyId)
         }
-        // ============================================
-        
+
         // For existing/returning users
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            // CRITICAL: Load all user data from Supabase into localStorage
-            console.log('[LOGIN] Loading returning user data from Supabase...')
-            await loadUserDataFromSupabase()
-            
+            // Load all user data from Supabase into context
+            console.log('[Login] Loading returning user data from Supabase...')
+
             const { data: assessment } = await supabase
               .from('assessments')
-              .select('auth_completed')
+              .select('*')
               .eq('user_id', user.id)
               .single()
-            
+
+            if (assessment) {
+              ctx.setFullRecord(assessment)
+            }
+
             setSuccessMessage(result.message)
             setTimeout(() => {
-              // Check BOTH Supabase AND localStorage for auth_completed
               const dbAuthCompleted = assessment?.auth_completed === true
-              const localAuthCompleted = localStorage.getItem('auth_completed') === 'true'
-              
-              if (dbAuthCompleted || localAuthCompleted) {
+              if (dbAuthCompleted || ctx.authCompleted) {
                 router.push('/dashboard')
               } else {
                 router.push('/letter')
@@ -580,15 +302,13 @@ export default function LoginPage() {
             }, 1000)
           }
         } else if (result.mode === 'new') {
-          // New user - show App ID and set bypass flag
+          // New user - show App ID
           setSuccessMessage('Account created successfully!')
           if (result.appId) {
             setGeneratedAppId(result.appId)
             setShowAppId(true)
-            localStorage.setItem('survey_id', result.appId)
-            localStorage.setItem('login_Survey_id', result.appId)
-            localStorage.setItem('new_user_just_created', 'true')
-            console.log('[LOGIN] Set survey_id for new user:', result.appId)
+            ctx.setSurveyId(result.appId)
+            console.log('[Login] Set survey_id for new user:', result.appId)
           }
         }
       }
@@ -601,10 +321,7 @@ export default function LoginPage() {
   }
 
   const handleProceedToSurvey = () => {
-    localStorage.setItem('user_authenticated', 'true')
-    // If auth already completed (returning user), go to dashboard
-    const authDone = localStorage.getItem('auth_completed') === 'true'
-    router.push(authDone ? '/dashboard' : '/letter')
+    router.push(ctx.authCompleted ? '/dashboard' : '/letter')
   }
     
   return (

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import SavedToast from "@/components/SavedToast";
-import AutoDataSync from "@/lib/supabase/auto-data-sync";
-import SyncConflictBanner from "@/components/SyncConflictBanner";
-import SyncDiagnostics from "@/lib/supabase/SyncDiagnostics";
 import SecurityProtection from "@/components/SecurityProtection";
+import { AssessmentProvider } from "@/lib/assessment-context";
 
 const geistSans = Inter({
   variable: "--font-geist-sans",
@@ -31,11 +28,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SecurityProtection />
-        <AutoDataSync />
-        <SyncDiagnostics />
-        <SyncConflictBanner />
-        {children}
-        <SavedToast />
+        <AssessmentProvider>
+          {children}
+        </AssessmentProvider>
       </body>
     </html>
   );
