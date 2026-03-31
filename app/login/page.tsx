@@ -81,6 +81,7 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('')
   const [generatedAppId, setGeneratedAppId] = useState('')
   const [showAppId, setShowAppId] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   // Safety net: email already exists
   const [emailExistsWarning, setEmailExistsWarning] = useState(false)
@@ -537,6 +538,32 @@ export default function LoginPage() {
                           <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
                             {formatAppId(generatedAppId)}
                           </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(formatAppId(generatedAppId)).then(() => {
+                                setCopied(true)
+                                setTimeout(() => setCopied(false), 2000)
+                              })
+                            }}
+                            className="mt-3 mx-auto flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            {copied ? (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                Copied!
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                                Copy Survey ID
+                              </>
+                            )}
+                          </button>
                         </div>
 
                         <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
