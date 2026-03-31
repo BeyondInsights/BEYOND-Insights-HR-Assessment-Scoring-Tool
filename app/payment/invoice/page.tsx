@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Building2, MapPin, Download, Loader2 } from 'lucide-react'
+import { FileText, Building2, MapPin, Download, Loader2, CheckCircle, Printer } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { getCurrentUser } from '@/lib/supabase/auth'
@@ -14,6 +14,9 @@ export default function InvoicePaymentPage() {
   const [loading, setLoading] = useState(false)
   const [scriptLoaded, setScriptLoaded] = useState(false)
   const emailSentRef = useRef(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null)
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null)
 
   const [companyData, setCompanyData] = useState({
     companyName: '',
@@ -66,6 +69,30 @@ export default function InvoicePaymentPage() {
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (pdfBlobUrl) URL.revokeObjectURL(pdfBlobUrl)
+    }
+  }, [pdfBlobUrl])
+
+  const handleDownloadPdf = () => {
+    if (!pdfBlobUrl) return
+    const link = document.createElement('a')
+    link.href = pdfBlobUrl
+    link.download = `Invoice-${(companyData.companyName || 'Company').replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handlePrintPdf = () => {
+    if (!pdfBlobUrl) return
+    const printWindow = window.open(pdfBlobUrl)
+    if (printWindow) {
+      printWindow.addEventListener('load', () => { printWindow.print() })
+    }
+  }
+
   const handleDownloadInvoice = async () => {
     if (!formData.addressLine1 || !formData.city || !formData.state || !formData.zipCode || !formData.country) {
       alert('Please fill in all required address fields')
@@ -98,7 +125,8 @@ export default function InvoicePaymentPage() {
       // Invoice data stays in localStorage for view-only UI
       // (also saved to Supabase below via context)
 
-      const pdfBase64 = await generateInvoicePDF(invoiceData)
+      const pdfResult = await generateInvoicePDF(invoiceData)
+      const pdfBase64 = pdfResult.pdfBase64
       console.log('PDF generated, base64 length:', pdfBase64?.length)
 
       if (!emailSentRef.current) {
@@ -142,15 +170,15 @@ export default function InvoicePaymentPage() {
         console.error('Error saving payment to database:', error)
       }
 
+      const blobUrl = URL.createObjectURL(pdfResult.blob)
+      setPdfBlobUrl(blobUrl)
+      setPdfBlob(pdfResult.blob)
+      setShowConfirmation(true)
       setLoading(false)
 
       setTimeout(() => {
         emailSentRef.current = false
       }, 3000)
-
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 1500)
     } catch (error) {
       console.error('Error generating invoice:', error)
       alert('There was an error generating the invoice. Please try again.')
@@ -368,8 +396,8 @@ export default function InvoicePaymentPage() {
       doc.text('Cancer and Careers | www.cancerandcareers.org | cacbestcompanies@cew.org', pageWidth / 2, yPos, { align: 'center' })
 
       const pdfBase64 = doc.output('datauristring', { compress: true }).split(',')[1]
-      doc.save(`Invoice-${data.invoiceNumber}.pdf`)
-      return pdfBase64
+      const blob = doc.output('blob')
+      return { pdfBase64, blob }
     } catch (error) {
       console.error('Error in PDF generation:', error)
       throw error
@@ -381,6 +409,7 @@ export default function InvoicePaymentPage() {
       <Header />
 
       <main className="max-w-3xl mx-auto px-6 py-10 flex-1">
+        {!showConfirmation ? (
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="flex items-center mb-6">
             <FileText className="w-10 h-10 text-orange-600 mr-3" />
@@ -392,7 +421,7 @@ export default function InvoicePaymentPage() {
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-blue-900 font-semibold mb-2">
-              You'll receive immediate access to begin your survey
+              You&apos;ll receive immediate access to begin your survey
             </p>
             <p className="text-sm text-blue-900">
               Your invoice will download automatically. Results will be provided upon receipt of payment within 30 days.
@@ -556,7 +585,7 @@ export default function InvoicePaymentPage() {
                 ) : (
                   <>
                     <Download className="w-5 h-5 mr-2" />
-                    Download Invoice & Begin Survey
+                    Generate Invoice & Begin Survey
                   </>
                 )}
               </button>
@@ -570,6 +599,62 @@ export default function InvoicePaymentPage() {
             </div>
           </form>
         </div>
+        ) : (
+        <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+          <div className="flex justify-center mb-4">
+            <CheckCircle className="w-16 h-16 text-green-500" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your invoice has been generated</h1>
+          <p className="text-gray-600 mb-2">
+            Your survey is ready to begin. You can download or print your invoice below for your records.
+          </p>
+
+          {pdfBlobUrl && (
+            <object data={pdfBlobUrl} type="application/pdf" className="w-full h-[450px] border border-slate-200 rounded-lg mt-6">
+              <div className="flex flex-col items-center justify-center h-full bg-slate-50 rounded-lg p-8">
+                <p className="text-gray-600 mb-4">PDF preview is not available in your browser.</p>
+                <button
+                  onClick={handleDownloadPdf}
+                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Invoice PDF
+                </button>
+              </div>
+            </object>
+          )}
+
+          <div className="flex justify-center gap-4 mt-6">
+            <button
+              onClick={handleDownloadPdf}
+              className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download Invoice
+            </button>
+            <button
+              onClick={handlePrintPdf}
+              className="inline-flex items-center px-6 py-3 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+            >
+              <Printer className="w-5 h-5 mr-2" />
+              Print Invoice
+            </button>
+          </div>
+
+          <div className="border-t border-gray-200 mt-8 pt-6">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="w-full sm:w-auto bg-gradient-to-r from-orange-500 to-orange-600 text-white px-10 py-4 rounded-lg font-semibold text-lg hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all"
+            >
+              Begin My Survey
+            </button>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-4">
+            Invoice details have been saved. Payment is due within 30 days. You have full access to your survey starting now.
+          </p>
+        </div>
+        )}
       </main>
 
       <Footer />

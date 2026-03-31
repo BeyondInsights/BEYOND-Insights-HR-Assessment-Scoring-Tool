@@ -111,7 +111,10 @@ export default function PaymentPage() {
             Survey Payment
           </h1>
           <p className="text-lg text-gray-600">
-            Complete payment to begin your survey
+            Complete your registration to begin your survey
+          </p>
+          <p className="text-sm text-slate-600 leading-relaxed max-w-2xl mx-auto text-center mt-2 mb-6">
+            Your one-time participation fee supports the research, analysis, and expert reporting that powers the Index. Every participating organization receives a personalized benchmarking report with actionable recommendations — giving your team clear insight into how your workplace cancer support compares and where to focus next.
           </p>
         </div>
 
@@ -126,8 +129,43 @@ export default function PaymentPage() {
           </div>
           <div className="mt-4 pt-4 border-t border-gray-200">
             <div className="flex justify-between">
-              <span className="text-gray-600">Survey Fee</span>
+              <span className="text-gray-600">One-Time Participation Fee</span>
               <span className="text-2xl font-bold text-gray-900">$1,250</span>
+            </div>
+          </div>
+        </div>
+
+        {/* What's Included */}
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 mb-8">
+          <h3 className="text-sm font-semibold text-slate-700 mb-3">What&apos;s Included</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Personalized Benchmarking Report</p>
+                <p className="text-xs text-slate-500">Detailed analysis of your organization across all 13 dimensions of workplace cancer support</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Peer Comparison Insights</p>
+                <p className="text-xs text-slate-500">See how your programs compare to other participating organizations</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Actionable Recommendations</p>
+                <p className="text-xs text-slate-500">Prioritized, research-backed recommendations tailored to your results</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              <div>
+                <p className="text-sm font-bold text-slate-800">Index Recognition Eligibility</p>
+                <p className="text-xs text-slate-500">Organizations meeting the threshold earn recognition as a Best Company for Working with Cancer</p>
+              </div>
             </div>
           </div>
         </div>
@@ -221,7 +259,7 @@ export default function PaymentPage() {
             <div>
               <h3 className="font-semibold text-blue-900 mb-2">About Invoice Payment</h3>
               <p className="text-sm text-blue-800 mb-2">
-                Selecting invoice payment grants you immediate access to begin your survey. Your results will be provided upon receipt of payment (due within 30 days).
+                Selecting invoice payment grants you immediate access to begin your survey. An invoice will be sent within one business day, with payment due within 30 days. Your benchmarking report will be delivered upon completion of the survey.
               </p>
             </div>
           </div>
