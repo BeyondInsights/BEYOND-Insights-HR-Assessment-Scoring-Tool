@@ -210,7 +210,7 @@ export default function Dimension10Page() {
                 d10a: { ...prev.d10a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension10', ans);
               return ctx.saveToSupabase('dimension10');

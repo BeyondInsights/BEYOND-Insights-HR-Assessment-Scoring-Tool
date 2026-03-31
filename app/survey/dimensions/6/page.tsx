@@ -232,7 +232,7 @@ export default function Dimension6Page() {
                 d6a: { ...prev.d6a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension6', ans);
               return ctx.saveToSupabase('dimension6');

@@ -206,7 +206,7 @@ export default function Dimension13Page() {
                 d13a: { ...prev.d13a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension13', ans);
               return ctx.saveToSupabase('dimension13');

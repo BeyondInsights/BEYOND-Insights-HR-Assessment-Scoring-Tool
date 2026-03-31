@@ -222,7 +222,7 @@ const next = async () => {
                 d11a: { ...prev.d11a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension11', ans);
               return ctx.saveToSupabase('dimension11');

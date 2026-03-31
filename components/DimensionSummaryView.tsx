@@ -13,12 +13,29 @@ interface DimensionSummaryViewProps {
   onSave: () => Promise<boolean>;
 }
 
+// Dimension definitions — the description shown during the intro step
+const DIMENSION_DEFINITIONS: Record<number, string> = {
+  1: 'Time off policies and schedule adaptations that enable employees to receive treatment without sacrificing job security or income.',
+  2: 'Financial protections that prevent economic hardship during treatment, including comprehensive coverage and expense assistance.',
+  3: 'Training and resources that equip managers to support employees managing cancer or other serious health conditions.',
+  4: 'Specialized programs and partnerships that connect employees to cancer-specific guidance, navigation, and expert resources.',
+  5: 'Physical and environmental modifications that help employees continue working comfortably during and after treatment.',
+  6: 'Workplace norms, leadership behaviors, and peer dynamics that make employees feel safe disclosing a diagnosis and seeking support.',
+  7: 'Protections and opportunities that ensure a cancer diagnosis does not derail an employee\'s professional growth or advancement.',
+  8: 'Structured, supportive processes for helping employees maintain productivity during treatment and transition back to full capacity.',
+  9: 'Visible leadership commitment, dedicated funding, and organizational infrastructure for cancer support programs.',
+  10: 'Support for employees who are caregivers for family members managing cancer or other serious health conditions.',
+  11: 'Proactive health programs, legal protections beyond minimums, and workplace safety measures.',
+  12: 'Systematic tracking of program effectiveness, employee outcomes, and regular refinement of support offerings.',
+  13: 'Proactive, sensitive, and accessible communication about available cancer support programs and resources.',
+};
+
 const STATUS_COLORS: Record<string, string> = {
-  'currently': '#0D9488',    // teal-600
-  'planning': '#2563EB',     // blue-600
-  'assessing': '#D97706',    // amber-600
-  'not able': '#64748B',     // slate-500
-  'unsure': '#7C3AED',       // violet-600
+  'currently': '#0D9488',
+  'planning': '#2563EB',
+  'assessing': '#D97706',
+  'not able': '#64748B',
+  'unsure': '#7C3AED',
 };
 
 function getStatusColor(status: string): string {
@@ -57,6 +74,17 @@ export default function DimensionSummaryView({
 
   const elements = Object.entries(gridData);
   const totalCount = elements.length;
+  const definition = DIMENSION_DEFINITIONS[dimensionNumber] || '';
+
+  // Check if there are follow-up questions
+  const gridKey = `d${dimensionNumber}a`;
+  const followUpKeys = Object.keys(allAnswers).filter(
+    k => k !== gridKey && !k.endsWith('_none')
+  );
+  const hasFollowUps = followUpKeys.some(k => {
+    const v = allAnswers[k];
+    return v !== null && v !== undefined && v !== '';
+  });
 
   const handleStatusChange = (elementName: string, newStatus: string) => {
     onGridChange(elementName, newStatus);
@@ -69,33 +97,32 @@ export default function DimensionSummaryView({
     router.push('/dashboard');
   };
 
-  // Follow-up questions
-  const gridKey = `d${dimensionNumber}a`;
-  const followUps = Object.entries(allAnswers).filter(
-    ([k]) => k !== gridKey && !k.endsWith('_none') && allAnswers[k] !== null && allAnswers[k] !== undefined && allAnswers[k] !== ''
-  );
+  const handleContinueToFollowUps = () => {
+    // Switch to step-by-step view — the dimension page will navigate to the appropriate follow-up step
+    onSwitchToStepView();
+  };
 
   return (
     <div className="max-w-3xl mx-auto">
-      {/* Header */}
+      {/* Dimension Header + Definition */}
       <div className="mb-8">
         <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-1">
           Dimension {dimensionNumber} of 13
         </p>
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">
+        <h1 className="text-2xl font-bold text-slate-900">
           {dimensionName}
         </h1>
-        <div className="flex items-center justify-between mt-3">
-          <p className="text-sm text-slate-500">
-            {totalCount} elements reviewed — select any to update your response
-          </p>
-          <button
-            onClick={onSwitchToStepView}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            Step-by-step view
-          </button>
-        </div>
+        <p className="text-sm text-slate-600 mt-2 leading-relaxed">
+          {definition}
+        </p>
+      </div>
+
+      {/* Instructions */}
+      <div className="mb-6">
+        <p className="text-sm text-slate-700">
+          Here are the answers you provided to each element of this dimension.
+          You can click on any element to update your answer.
+        </p>
       </div>
 
       {/* Element List */}
@@ -107,31 +134,23 @@ export default function DimensionSummaryView({
 
           return (
             <React.Fragment key={name}>
-              {/* Row */}
               <div
                 onClick={() => setEditingElement(isEditing ? null : name)}
                 className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors ${
                   isEditing ? 'bg-slate-50' : 'hover:bg-slate-50/60'
                 } ${!isLast && !isEditing ? 'border-b border-slate-100' : ''}`}
               >
-                {/* Status indicator — thin vertical bar */}
                 <div
                   className="w-0.5 h-8 rounded-full flex-shrink-0"
                   style={{ backgroundColor: color }}
                 />
-
-                {/* Element name */}
                 <span className="flex-1 text-sm text-slate-800 leading-snug">{name}</span>
-
-                {/* Status text */}
                 <span
                   className="text-xs font-medium flex-shrink-0"
                   style={{ color }}
                 >
                   {shortStatus(status)}
                 </span>
-
-                {/* Chevron */}
                 <svg
                   className={`w-3.5 h-3.5 text-slate-300 transition-transform flex-shrink-0 ${isEditing ? 'rotate-90' : ''}`}
                   fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -140,7 +159,6 @@ export default function DimensionSummaryView({
                 </svg>
               </div>
 
-              {/* Inline edit */}
               {isEditing && (
                 <div className="px-5 pb-4 pt-1 bg-slate-50 border-b border-slate-100">
                   <div className="space-y-0.5">
@@ -186,51 +204,53 @@ export default function DimensionSummaryView({
         })}
       </div>
 
-      {/* Follow-Up Details */}
-      {followUps.length > 0 && (
-        <div className="mt-10">
-          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
-            Follow-Up Details
-          </h2>
-          <div className="border border-slate-200 rounded-xl overflow-hidden bg-white divide-y divide-slate-100">
-            {followUps.map(([key, value]) => {
-              const displayValue = Array.isArray(value)
-                ? value.join(', ')
-                : typeof value === 'object'
-                  ? JSON.stringify(value)
-                  : String(value);
-
-              const label = key
-                .replace(/^d\d+_?/, '')
-                .replace(/_/g, ' ')
-                .replace(/\b\w/g, l => l.toUpperCase())
-                .trim() || key;
-
-              return (
-                <div key={key} className="px-5 py-3.5">
-                  <div className="text-xs text-slate-400 mb-0.5">{label}</div>
-                  <div className="text-sm text-slate-800">{displayValue}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Bottom Navigation */}
-      <div className="mt-10 flex items-center justify-between">
+      {/* Action Buttons */}
+      <div className="mt-8 space-y-3">
+        {/* Continue to follow-up questions */}
         <button
-          onClick={() => router.push('/dashboard')}
-          className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+          onClick={handleContinueToFollowUps}
+          className="w-full flex items-center justify-between px-5 py-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-colors text-left"
         >
-          Back to Dashboard
+          <div>
+            <p className="text-sm font-medium text-slate-800">
+              Continue to review other dimension questions
+            </p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Review and update your answers to follow-up questions for this dimension
+            </p>
+          </div>
+          <svg className="w-5 h-5 text-slate-400 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
+
+        {/* Save and return to dashboard */}
         <button
           onClick={handleSaveAndReturn}
           disabled={saving}
-          className="px-5 py-2.5 bg-slate-900 text-white text-sm font-medium rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-between px-5 py-4 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 text-left"
         >
-          {saving ? 'Saving...' : 'Save & Return to Dashboard'}
+          <div>
+            <p className="text-sm font-medium">
+              {saving ? 'Saving...' : 'Save & return to dashboard'}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Your element answers above have been saved. Skip follow-up questions for now.
+            </p>
+          </div>
+          <svg className="w-5 h-5 text-slate-400 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* View toggle */}
+      <div className="mt-6 text-center">
+        <button
+          onClick={onSwitchToStepView}
+          className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          Switch to step-by-step view
         </button>
       </div>
     </div>

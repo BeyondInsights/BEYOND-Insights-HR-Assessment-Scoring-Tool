@@ -205,7 +205,7 @@ const getTotalSteps = () => {
                 d8a: { ...prev.d8a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension8', ans);
               return ctx.saveToSupabase('dimension8');

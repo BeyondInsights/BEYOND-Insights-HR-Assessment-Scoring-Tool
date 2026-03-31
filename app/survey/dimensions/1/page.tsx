@@ -281,7 +281,7 @@ export default function Dimension1Page() {
                 d1a: { ...prev.d1a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension1', ans);
               return ctx.saveToSupabase('dimension1');

@@ -240,7 +240,7 @@ export default function Dimension4Page() {
                 d4a: { ...prev.d4a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension4', ans);
               return ctx.saveToSupabase('dimension4');

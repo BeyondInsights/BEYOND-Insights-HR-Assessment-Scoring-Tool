@@ -240,7 +240,7 @@ export default function Dimension3Page() {
                 d3a: { ...prev.d3a, [element]: status }
               }));
             }}
-            onSwitchToStepView={() => setViewMode('step')}
+            onSwitchToStepView={() => { setViewMode('step'); setStep(2); }}
             onSave={async () => {
               ctx.setSectionData('dimension3', ans);
               return ctx.saveToSupabase('dimension3');
