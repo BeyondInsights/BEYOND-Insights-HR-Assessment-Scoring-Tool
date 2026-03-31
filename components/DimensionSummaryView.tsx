@@ -103,7 +103,7 @@ export default function DimensionSummaryView({
   };
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto">
       {/* Dimension Header + Definition */}
       <div className="mb-8">
         <p className="text-xs font-semibold tracking-widest text-slate-400 uppercase mb-1">
@@ -125,43 +125,42 @@ export default function DimensionSummaryView({
         </p>
       </div>
 
-      {/* Element List */}
-      <div className="border border-slate-200 rounded-xl overflow-hidden bg-white">
-        {elements.map(([name, status], idx) => {
+      {/* Element Grid — 2 columns on desktop, 1 on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {elements.map(([name, status]) => {
           const color = getStatusColor(status);
           const isEditing = editingElement === name;
-          const isLast = idx === elements.length - 1;
 
           return (
             <React.Fragment key={name}>
               <div
                 onClick={() => setEditingElement(isEditing ? null : name)}
-                className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors ${
-                  isEditing ? 'bg-slate-50' : 'hover:bg-slate-50/60'
-                } ${!isLast && !isEditing ? 'border-b border-slate-100' : ''}`}
+                className={`flex items-start gap-3 px-4 py-3 bg-white border rounded-lg cursor-pointer transition-colors min-h-[68px] ${
+                  isEditing ? 'border-slate-300 bg-slate-50 md:col-span-2' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60'
+                }`}
+                style={isEditing ? { gridColumn: '1 / -1' } : undefined}
               >
                 <div
-                  className="w-0.5 h-8 rounded-full flex-shrink-0"
+                  className="w-0.5 min-h-[32px] self-stretch rounded-full flex-shrink-0 mt-0.5"
                   style={{ backgroundColor: color }}
                 />
-                <span className="flex-1 text-sm text-slate-800 leading-snug">{name}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-slate-800 leading-snug">{name}</span>
+                </div>
                 <span
-                  className="text-xs font-medium flex-shrink-0"
+                  className="text-xs font-medium flex-shrink-0 mt-0.5"
                   style={{ color }}
                 >
                   {shortStatus(status)}
                 </span>
-                <svg
-                  className={`w-3.5 h-3.5 text-slate-300 transition-transform flex-shrink-0 ${isEditing ? 'rotate-90' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
               </div>
 
               {isEditing && (
-                <div className="px-5 pb-4 pt-1 bg-slate-50 border-b border-slate-100">
-                  <div className="space-y-0.5">
+                <div
+                  className="px-4 pb-3 -mt-2 mb-1 bg-slate-50 border border-t-0 border-slate-300 rounded-b-lg"
+                  style={{ gridColumn: '1 / -1' }}
+                >
+                  <div className="space-y-0.5 pt-2">
                     {statusOptions.map(option => {
                       const optionColor = getStatusColor(option);
                       const selected = status === option;
