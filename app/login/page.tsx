@@ -177,7 +177,7 @@ const clearLocalStoragePreserveAuth = () => {
 }
 
 // ASSESSMENT_WINDOW_CLOSED — Set to false to re-enable login functionality
-const ASSESSMENT_WINDOW_CLOSED = true
+const ASSESSMENT_WINDOW_CLOSED = false
 
 export default function LoginPage() {
   const router = useRouter()
