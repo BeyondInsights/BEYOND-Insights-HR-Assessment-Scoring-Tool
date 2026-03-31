@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
@@ -62,17 +62,75 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
 // ASSESSMENT_WINDOW_CLOSED — Set to false to re-enable login functionality
 const ASSESSMENT_WINDOW_CLOSED = false
 
+type Step = 'select' | 'new' | 'returning'
+type ReturningVariant = 'continue' | 'review'
+
 export default function LoginPage() {
   const router = useRouter()
   const ctx = useAssessmentContext()
+
+  // Step flow
+  const [step, setStep] = useState<Step>('select')
+  const [returningVariant, setReturningVariant] = useState<ReturningVariant>('continue')
+
+  // Form state
   const [email, setEmail] = useState('')
   const [surveyId, setSurveyId] = useState('')
-  const [isNewUser, setIsNewUser] = useState(true)
   const [errors, setErrors] = useState('')
   const [loading, setLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
   const [generatedAppId, setGeneratedAppId] = useState('')
   const [showAppId, setShowAppId] = useState(false)
+
+  // Safety net: email already exists
+  const [emailExistsWarning, setEmailExistsWarning] = useState(false)
+  const [existingSurveyId, setExistingSurveyId] = useState('')
+  const [checkingEmail, setCheckingEmail] = useState(false)
+
+  const resetForm = useCallback(() => {
+    setEmail('')
+    setSurveyId('')
+    setErrors('')
+    setSuccessMessage('')
+    setGeneratedAppId('')
+    setShowAppId(false)
+    setEmailExistsWarning(false)
+    setExistingSurveyId('')
+  }, [])
+
+  const goToStep = useCallback((newStep: Step, variant?: ReturningVariant) => {
+    resetForm()
+    setStep(newStep)
+    if (variant) setReturningVariant(variant)
+  }, [resetForm])
+
+  // Safety net: check if email already exists (for new user flow)
+  const checkEmailExists = useCallback(async (emailToCheck: string) => {
+    if (!emailToCheck.includes('@')) return
+    setCheckingEmail(true)
+    try {
+      const { data } = await supabase
+        .from('assessments')
+        .select('email, survey_id')
+        .ilike('email', emailToCheck.trim())
+        .limit(1)
+
+      if (data && data.length > 0) {
+        setEmailExistsWarning(true)
+        setExistingSurveyId(data[0].survey_id || '')
+      } else {
+        setEmailExistsWarning(false)
+        setExistingSurveyId('')
+      }
+    } catch {
+      // Silently fail — don't block registration
+    } finally {
+      setCheckingEmail(false)
+    }
+  }, [])
+
+  // Determine isNewUser from step for the handleSubmit logic
+  const isNewUser = step === 'new'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,7 +139,7 @@ export default function LoginPage() {
     setSuccessMessage('')
     setGeneratedAppId('')
     setShowAppId(false)
-    
+
     // Validation
     if (!email.trim()) {
       setErrors('Please enter your email address')
@@ -100,16 +158,13 @@ export default function LoginPage() {
     }
 
     const trimmedSurveyId = surveyId.trim().toUpperCase()
-
     const currentEmail = (email || '').toLowerCase().trim()
 
-    // Clear context for any new login (context replaces localStorage — fresh load from DB)
+    // Clear context for any new login
     ctx.clearAll()
 
     // ============================================
     // CHECK FOR ANY RETURNING USER BY APP_ID
-    // This checks the database for any user with matching app_id + email
-    // Works for comp'd users, regular users, anyone in the assessments table
     // ============================================
     if (!isNewUser && !isFoundingPartner(trimmedSurveyId) && !isSharedFP(trimmedSurveyId)) {
       console.log('[Login] Checking database for returning user:', trimmedSurveyId)
@@ -120,7 +175,6 @@ export default function LoginPage() {
       if (result.found && result.record) {
         console.log('[Login] Found existing user in database!')
 
-        // Populate context from DB record
         ctx.setFullRecord(result.record)
         ctx.setEmail(currentEmail)
         ctx.setSurveyId(trimmedSurveyId)
@@ -141,7 +195,7 @@ export default function LoginPage() {
     // ============================================
 
     // ============================================
-    // CHECK FOR SHARED FP (uses fp_shared_assessments table)
+    // CHECK FOR SHARED FP
     // ============================================
     if (!isNewUser && isSharedFP(trimmedSurveyId)) {
       console.log('[Login] Shared FP detected:', trimmedSurveyId)
@@ -149,9 +203,8 @@ export default function LoginPage() {
       ctx.setSurveyId(trimmedSurveyId)
       ctx.setEmail(currentEmail)
 
-      // Load shared data from Supabase directly into context
       setSuccessMessage('Loading your team\'s progress...')
-      const loaded = await ctx.loadFromSupabase(trimmedSurveyId)
+      await ctx.loadFromSupabase(trimmedSurveyId)
 
       if (ctx.authCompleted) {
         setSuccessMessage('Welcome back! Redirecting to dashboard...')
@@ -181,7 +234,6 @@ export default function LoginPage() {
         const { getFPCompanyName } = await import('@/lib/founding-partners')
         const fpCompanyName = getFPCompanyName(trimmedSurveyId)
 
-        // Check for existing record
         const normalizedId = trimmedSurveyId.replace(/-/g, '').toUpperCase()
         let existing = null
         const { data: exactMatch } = await supabase
@@ -202,9 +254,7 @@ export default function LoginPage() {
         }
 
         if (existing) {
-          // Populate context from DB record
           ctx.setFullRecord(existing)
-          console.log('[Login] Loaded FP data from Supabase')
 
           if (existing.auth_completed) {
             setSuccessMessage('Welcome back! Redirecting to dashboard...')
@@ -214,7 +264,6 @@ export default function LoginPage() {
             setTimeout(() => router.push('/letter'), 1500)
           }
         } else {
-          // Create new FP record
           console.log('[Login] Creating new FP record in Supabase')
           const { data: newRecord, error } = await supabase
             .from('assessments')
@@ -265,7 +314,6 @@ export default function LoginPage() {
       if (result.mode === 'error') {
         setErrors(result.message)
       } else {
-        // Set context identity
         ctx.setEmail(currentEmail)
         ctx.setUserType('regular')
 
@@ -274,11 +322,9 @@ export default function LoginPage() {
           ctx.setSurveyId(userSurveyId)
         }
 
-        // For existing/returning users
         if (result.mode === 'existing' && !result.needsVerification) {
           const user = await getCurrentUser()
           if (user) {
-            // Load all user data from Supabase into context
             console.log('[Login] Loading returning user data from Supabase...')
 
             const { data: assessment } = await supabase
@@ -302,7 +348,6 @@ export default function LoginPage() {
             }, 1000)
           }
         } else if (result.mode === 'new') {
-          // New user - show App ID
           setSuccessMessage('Account created successfully!')
           if (result.appId) {
             setGeneratedAppId(result.appId)
@@ -323,12 +368,16 @@ export default function LoginPage() {
   const handleProceedToSurvey = () => {
     router.push(ctx.authCompleted ? '/dashboard' : '/letter')
   }
-    
+
+  // ============================================
+  // RENDER
+  // ============================================
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl">
-          <div className="bg-white rounded-2xl shadow-2xl p-10">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
             {/* Header with badge and title */}
             <div className="flex items-center justify-center gap-6 mb-8">
               <div className="flex-shrink-0">
@@ -338,7 +387,7 @@ export default function LoginPage() {
                   className="h-40 sm:h-48 lg:h-56 w-auto"
                 />
               </div>
-              
+
               <div className="flex-1">
                 <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#F37021] leading-snug">
                   Welcome to the
@@ -354,11 +403,11 @@ export default function LoginPage() {
             {ASSESSMENT_WINDOW_CLOSED ? (
               <div className="py-8">
                 <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-6 text-center">
-                  2026 Assessment Window Closed
+                  2026 Survey Window Closed
                 </h2>
                 <div className="space-y-4 text-base sm:text-lg text-slate-600 leading-relaxed">
                   <p>
-                    Thank you to all organizations that participated in the 2026 assessment.
+                    Thank you to all organizations that participated in the 2026 survey.
                   </p>
                   <p>
                     Companies selected for this year&apos;s Best Companies for Working with Cancer will be notified the week of March 9th.
@@ -367,126 +416,346 @@ export default function LoginPage() {
                     Check back the week of March 23rd for the public announcement of recognized companies.
                   </p>
                   <p>
-                    Information about the 2027 assessment cycle, including the application window and eligibility details, will be announced later this year.
+                    Information about the 2027 survey cycle, including the application window and eligibility details, will be announced later this year.
                   </p>
                 </div>
                 <p className="mt-6 text-sm text-slate-500">
-                  If you completed the 2026 assessment and have questions about your submission, please contact{' '}
+                  If you completed the 2026 survey and have questions about your submission, please contact{' '}
                   <a href="mailto:cacbestcompanies@cew.org" className="text-blue-600 hover:text-blue-800 underline">cacbestcompanies@cew.org</a>.
                 </p>
               </div>
             ) : (
-            /* ASSESSMENT_WINDOW_CLOSED — Everything below is the original login form. Set ASSESSMENT_WINDOW_CLOSED = false to re-enable. */
+            /* ASSESSMENT_WINDOW_CLOSED — Everything below is the active login flow. Set ASSESSMENT_WINDOW_CLOSED = true to disable. */
             <>
-            {/* Generated App ID Display */}
-            {showAppId && generatedAppId && (
-              <div className="mb-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+
+            {/* ============================================ */}
+            {/* STEP: CARD SELECTION (Welcome Overlay)       */}
+            {/* ============================================ */}
+            {step === 'select' && (
+              <div className="animate-fadeIn">
+                <p className="text-center text-slate-600 mb-8 text-lg">
+                  Select the option that best describes you
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Card 1 — New User */}
+                  <button
+                    onClick={() => goToStep('new')}
+                    className="group text-left p-6 bg-white border-2 border-blue-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                      I&apos;m a new participant
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      My organization has not yet started the survey. I&apos;m ready to register and begin.
+                    </p>
+                  </button>
+
+                  {/* Card 2 — Returning User (Incomplete) */}
+                  <button
+                    onClick={() => goToStep('returning', 'continue')}
+                    className="group text-left p-6 bg-white border-2 border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
+                      <svg className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                      I&apos;ve already started the survey
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      I previously registered and received a Survey ID, but haven&apos;t finished yet. I&apos;d like to pick up where I left off.
+                    </p>
+                  </button>
+
+                  {/* Card 3 — Returning User (Review/Update) */}
+                  <button
+                    onClick={() => goToStep('returning', 'review')}
+                    className="group text-left p-6 bg-white border-2 border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 cursor-pointer"
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
+                      <svg className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                      I completed the survey and want to make updates
+                    </h3>
+                    <p className="text-sm text-slate-600">
+                      I finished the survey but would like to review my responses and make changes.
+                    </p>
+                  </button>
+                </div>
+
+                {/* Security note */}
+                <div className="mt-8 flex items-start gap-2 text-xs text-slate-500">
+                  <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                   </svg>
-                  <div className="flex-1">
-                    <p className="font-semibold text-green-900 text-lg mb-2">
-                      ✅ You&apos;re All Set!
-                    </p>
-                    <p className="text-sm text-green-800 mb-3 font-semibold">
-                      Your unique Survey ID:
-                    </p>
-                    <div className="bg-white p-4 rounded-lg border-2 border-green-400 mb-4">
-                      <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
-                        {formatAppId(generatedAppId)}
-                      </p>
-                    </div>
+                  <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your survey using your email and Survey ID combination.</span>
+                </div>
+              </div>
+            )}
 
-                    <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
-                      <p className="text-sm text-slate-900 font-semibold mb-2">
-                        🔐 Important - Save This ID!
-                      </p>
-                      <p className="text-sm text-slate-800">
-                        You can start your Survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
-                      </p>
-                    </div>
+            {/* ============================================ */}
+            {/* STEP 2A: NEW USER FORM                       */}
+            {/* ============================================ */}
+            {step === 'new' && (
+              <div className="animate-fadeIn">
+                {/* Back link */}
+                <button
+                  onClick={() => goToStep('select')}
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                  Back to options
+                </button>
 
-                    <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded">
-                      <p className="text-xs text-amber-900">
-                        <strong>💡 Pro Tip:</strong> Write down your Survey ID or take a screenshot. You&apos;ll need it to access your Survey from any device.
-                      </p>
-                    </div>
+                {/* Generated App ID Display */}
+                {showAppId && generatedAppId ? (
+                  <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="font-semibold text-green-900 text-lg mb-2">
+                          You&apos;re All Set!
+                        </p>
+                        <p className="text-sm text-green-800 mb-3 font-semibold">
+                          Your unique Survey ID:
+                        </p>
+                        <div className="bg-white p-4 rounded-lg border-2 border-green-400 mb-4">
+                          <p className="text-2xl font-bold text-center text-green-900 font-mono tracking-wider">
+                            {formatAppId(generatedAppId)}
+                          </p>
+                        </div>
 
-                    <button
-                      onClick={handleProceedToSurvey}
-                      className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg transform hover:scale-105"
-                    >
-                      Begin Survey Now →
-                    </button>
+                        <div className="mb-4 p-4 border-2 rounded-lg" style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}>
+                          <p className="text-sm text-slate-900 font-semibold mb-2">
+                            Important - Save This ID!
+                          </p>
+                          <p className="text-sm text-slate-800">
+                            You can start your survey right now and work at your own pace. Your progress is automatically saved, so you can stop and return anytime. Just use your email and this Survey ID to pick up exactly where you left off.
+                          </p>
+                        </div>
+
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded">
+                          <p className="text-xs text-amber-900">
+                            <strong>Pro Tip:</strong> Write down your Survey ID or take a screenshot. You&apos;ll need it to access your survey from any device.
+                          </p>
+                        </div>
+
+                        <button
+                          onClick={handleProceedToSurvey}
+                          className="w-full py-3.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-bold text-lg hover:from-green-700 hover:to-green-800 transition-all shadow-lg"
+                        >
+                          Begin Survey Now
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <>
+                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Start Your Survey</h2>
+                    <p className="text-slate-600 mb-6">
+                      You&apos;ll receive a unique Survey ID after registering. Save this ID — you&apos;ll need it to return to your survey at any time.
+                    </p>
+
+                    {/* Success Message */}
+                    {successMessage && (
+                      <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <p className="text-sm text-green-800">{successMessage}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Error Message */}
+                    {errors && (
+                      <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                        <div className="flex items-center">
+                          <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p className="text-sm text-red-800">{errors}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Safety net: email already exists warning */}
+                    {emailExistsWarning && (
+                      <div className="mb-6 p-5 bg-amber-50 border-2 border-amber-300 rounded-xl">
+                        <div className="flex items-start gap-3">
+                          <svg className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                          </svg>
+                          <div className="flex-1">
+                            <p className="font-semibold text-amber-900 mb-1">
+                              This email is already associated with an existing survey.
+                            </p>
+                            <p className="text-sm text-amber-800 mb-3">
+                              If you previously started the survey, you don&apos;t need to register again. Use your existing Survey ID to continue.
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => goToStep('returning', 'continue')}
+                              className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700 transition-colors"
+                            >
+                              Switch to Returning User Login
+                            </button>
+                            <p className="text-xs text-amber-700 mt-3">
+                              If you&apos;re registering a different survey for the same organization, please contact{' '}
+                              <a href="mailto:cacbestcompanies@cew.org" className="underline">cacbestcompanies@cew.org</a>.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          id="email"
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value)
+                            setEmailExistsWarning(false)
+                          }}
+                          onBlur={(e) => {
+                            if (e.target.value.includes('@')) {
+                              checkEmailExists(e.target.value)
+                            }
+                          }}
+                          placeholder="your.email@company.com"
+                          required
+                          className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
+                        />
+                        {checkingEmail && (
+                          <p className="text-xs text-slate-400 mt-1">Checking...</p>
+                        )}
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={loading || emailExistsWarning}
+                        className="w-full text-white py-3.5 rounded-lg font-semibold bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transform hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                      >
+                        {loading ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Processing...
+                          </span>
+                        ) : (
+                          'Register & Begin'
+                        )}
+                      </button>
+                    </form>
+
+                    {/* How it works */}
+                    <div
+                      className="mt-6 p-4 rounded-lg border-2 text-sm text-slate-800"
+                      style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <svg className="w-5 h-5 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="font-bold text-slate-900">Here&apos;s How It Works:</p>
+                      </div>
+                      <ol className="space-y-2 ml-2">
+                        <li className="flex items-start">
+                          <span className="font-bold text-[#F37021] mr-2">1.</span>
+                          <span>Enter your email and click &quot;Register &amp; Begin&quot;</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-[#F37021] mr-2">2.</span>
+                          <span>You&apos;ll receive a unique Survey ID — save it!</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-[#F37021] mr-2">3.</span>
+                          <span>Begin your survey right away</span>
+                        </li>
+                        <li className="flex items-start">
+                          <span className="font-bold text-[#F37021] mr-2">4.</span>
+                          <span>Your progress saves automatically — stop anytime and come back later</span>
+                        </li>
+                      </ol>
+                    </div>
+                  </>
+                )}
               </div>
             )}
 
-            {/* Success Message for returning users */}
-            {successMessage && !showAppId && (
-              <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            {/* ============================================ */}
+            {/* STEP 2B: RETURNING USER FORM                 */}
+            {/* ============================================ */}
+            {step === 'returning' && (
+              <div className="animate-fadeIn">
+                {/* Back link */}
+                <button
+                  onClick={() => goToStep('select')}
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
-                  <p className="text-sm text-green-800">{successMessage}</p>
-                </div>
-              </div>
-            )}
+                  Back to options
+                </button>
 
-            {/* Error Message */}
-            {errors && (
-              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
-                <div className="flex items-center">
-                  <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-sm text-red-800">{errors}</p>
-                </div>
-              </div>
-            )}
+                <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                  {returningVariant === 'continue' ? 'Continue Your Survey' : 'Review & Update Your Survey'}
+                </h2>
+                <p className="text-slate-600 mb-6">
+                  {returningVariant === 'continue'
+                    ? 'Enter the email address and Survey ID you received when you first registered. Your progress is saved automatically — you\'ll pick up right where you left off.'
+                    : 'Enter the email address and Survey ID you received when you first registered. You can review all sections and update any of your responses.'
+                  }
+                </p>
 
-            {/* Only show form if App ID hasn't been generated */}
-            {!showAppId && (
-              <>
-                {/* Toggle: New User vs Returning User */}
-                <div className="flex gap-2 mb-8 bg-orange-100 p-1 rounded-lg">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewUser(true)
-                      setErrors('')
-                      setSuccessMessage('')
-                    }}
-                    className={`flex-1 py-3 rounded-lg font-bold transition-all ${
-                      isNewUser
-                        ? 'bg-white text-slate-900 shadow-md'
-                        : 'text-slate-700 hover:text-slate-900'
-                    }`}
-                  >
-                    New User
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsNewUser(false)
-                      setErrors('')
-                      setSuccessMessage('')
-                    }}
-                    className={`flex-1 py-3 rounded-lg font-bold transition-all ${
-                      !isNewUser
-                        ? 'bg-white text-slate-900 shadow-md'
-                        : 'text-slate-700 hover:text-slate-900'
-                    }`}
-                  >
-                    Returning User
-                  </button>
-                </div>
+                {/* Success Message */}
+                {successMessage && (
+                  <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <p className="text-sm text-green-800">{successMessage}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Message */}
+                {errors && (
+                  <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+                    <div className="flex items-center">
+                      <svg className="w-5 h-5 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm text-red-800">{errors}</p>
+                    </div>
+                  </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Email Input */}
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-slate-800 mb-2">
                       Email Address *
@@ -502,28 +771,24 @@ export default function LoginPage() {
                     />
                   </div>
 
-                  {/* Survey ID Input (for returning users) */}
-                  {!isNewUser && (
-                    <div>
-                      <label htmlFor="surveyId" className="block text-sm font-semibold text-slate-800 mb-2">
-                        Survey ID *
-                      </label>
-                      <input
-                        type="text"
-                        id="surveyId"
-                        value={surveyId}
-                        onChange={(e) => setSurveyId(e.target.value.toUpperCase())}
-                        className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg font-mono text-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
-                        placeholder="CAC-251027-001AB"
-                        maxLength={20}
-                      />
-                      <p className="text-xs text-slate-600 mt-2">
-                        Enter your Survey ID (with or without dashes)
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <label htmlFor="surveyId" className="block text-sm font-semibold text-slate-800 mb-2">
+                      Survey ID *
+                    </label>
+                    <input
+                      type="text"
+                      id="surveyId"
+                      value={surveyId}
+                      onChange={(e) => setSurveyId(e.target.value.toUpperCase())}
+                      className="w-full px-4 py-3 border-2 border-slate-300 rounded-lg font-mono text-lg focus:border-[#F37021] focus:ring-2 focus:ring-orange-100 outline-none transition-all"
+                      placeholder="e.g., CAC-251202-73411EF"
+                      maxLength={20}
+                    />
+                    <p className="text-xs text-slate-500 mt-2">
+                      Enter your Survey ID (with or without dashes)
+                    </p>
+                  </div>
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
                     disabled={loading}
@@ -538,93 +803,40 @@ export default function LoginPage() {
                         Processing...
                       </span>
                     ) : (
-                      isNewUser ? 'Start Survey' : 'Continue Survey'
+                      returningVariant === 'continue' ? 'Continue' : 'Review My Survey'
                     )}
                   </button>
                 </form>
 
-                {/* Help Text */}
-                <div
-                  className="mt-6 space-y-3 text-sm text-slate-800 p-4 rounded-lg border-2"
-                  style={{ backgroundColor: '#C7EAFB', borderColor: '#a8d7f0' }}
-                >
-                  {isNewUser ? (
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="font-bold text-slate-900">New Users - Here&apos;s How It Works:</p>
-                      </div>
-                      <ol className="space-y-2 ml-2">
-                        <li className="flex items-start">
-                          <span className="font-bold text-[#F37021] mr-2">1.</span>
-                          <span>Enter your email and click &quot;Start Survey&quot;</span>
-                        </li>
-                        <li className="flex items-start">
-                          <span className="font-bold text-[#F37021] mr-2">2.</span>
-                          <span>You&apos;ll receive a unique Survey ID - save it!</span>
-                        </li>
-                        <li className="flex items-start">
-                          <span className="font-bold text-[#F37021] mr-2">3.</span>
-                          <span>Begin your Survey right away</span>
-                        </li>
-                        <li className="flex items-start">
-                          <span className="font-bold text-[#F37021] mr-2">4.</span>
-                          <span>Your Survey progress saves automatically - stop anytime and come back later</span>
-                        </li>
-                        <li className="flex items-start">
-                          <span className="font-bold text-[#F37021] mr-2">5.</span>
-                          <span>To return: Use the &quot;Returning User&quot; option with your email and Survey ID</span>
-                        </li>
-                      </ol>
-                    </div>
-                  ) : (
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <svg className="w-5 h-5 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <p className="font-bold text-slate-900">Welcome Back!</p>
-                      </div>
-                      <p className="mb-3">
-                        To continue your Survey, enter the email address you used when you started, along with your Survey ID.
-                      </p>
-                      <p className="text-sm bg-white/60 border border-blue-300 rounded p-3">
-                        <strong>💾 Don&apos;t worry -</strong> All your progress has been saved. You&apos;ll pick up exactly where you left off!
-                      </p>
-                    </div>
-                  )}
-                  <div className="pt-3 border-t-2" style={{ borderColor: '#a8d7f0' }}>
-                    <p className="flex items-start gap-2 text-xs text-slate-700">
-                      <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                      </svg>
-                      <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your Survey using your email and Survey ID combination.</span>
-                    </p>
-                  </div>
+                {/* Help text */}
+                <div className="mt-6 p-4 bg-slate-50 border border-slate-200 rounded-lg">
+                  <p className="text-sm text-slate-600">
+                    Can&apos;t find your Survey ID? Check your registration confirmation email, or contact{' '}
+                    <a href="mailto:cacbestcompanies@cew.org" className="text-blue-600 hover:text-blue-800 underline font-medium">
+                      cacbestcompanies@cew.org
+                    </a>{' '}
+                    for assistance.
+                  </p>
                 </div>
 
-                {/* Forgot Survey ID Section */}
-                <div className="mt-8 pt-6 border-t border-amber-200 text-center">
-                  <p className="text-sm text-slate-700 mb-3">
-                    Lost your Survey ID?
-                  </p>
+                {/* Forgot Survey ID link */}
+                <div className="mt-4 text-center">
                   <button
                     type="button"
                     onClick={() => router.push('/forgot-survey-id')}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-bold inline-flex items-center gap-2"
+                    className="text-sm text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-1.5"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Find My Survey ID →
+                    Find My Survey ID
                   </button>
                 </div>
-              </>
+              </div>
             )}
+
             </>
-            /* ASSESSMENT_WINDOW_CLOSED — End of original login form */
+            /* ASSESSMENT_WINDOW_CLOSED — End of active login flow */
             )}
 
             {/* CAC logo */}
@@ -640,6 +852,17 @@ export default function LoginPage() {
       </main>
 
       <Footer />
+
+      {/* Fade-in animation */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+      `}</style>
     </div>
   )
 }
