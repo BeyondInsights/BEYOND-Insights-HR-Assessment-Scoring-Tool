@@ -785,8 +785,13 @@ export default function CompanyProfilePage() {
   const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
+    // Wait for context recovery before fetching
+    if (!ctx.isLoaded && !ctx.surveyId) {
+      const savedId = sessionStorage.getItem('current_survey_id')
+      if (savedId) return // Still recovering — wait for next render
+    }
     fetchUserAssessment();
-  }, []);
+  }, [ctx.isLoaded, ctx.surveyId]);
 
   const fetchUserAssessment = async () => {
     try {
@@ -872,9 +877,9 @@ export default function CompanyProfilePage() {
       const storedSurveyId = ctx.surveyId || '';
 
       if (!user || !user.email) {
-        // No Supabase user - check if we have context auth
-        if (authCompleted && storedSurveyId) {
-          console.log('No Supabase user but have context auth - loading by survey_id');
+        // No Supabase user - check if we have context survey ID
+        if (storedSurveyId) {
+          console.log('No Supabase user but have context survey_id - loading by survey_id');
           
           // Try to load by survey_id
           const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase();
