@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 import { useAssessmentContext } from "@/lib/assessment-context";
+import DimensionSummaryView from "@/components/DimensionSummaryView";
 
 
 const D6A_ITEMS_BASE = [
@@ -29,7 +30,8 @@ export default function Dimension6Page() {
   const [ans, setAns] = useState<any>({});
   const [errors, setErrors] = useState<string>("");
   const [isMultiCountry, setIsMultiCountry] = useState(false);
-  
+  const [viewMode, setViewMode] = useState<'auto' | 'step' | 'summary'>('auto');
+
   // ===== VALIDATION ADDITIONS =====
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
@@ -67,6 +69,9 @@ export default function Dimension6Page() {
       const grid = saved['d6a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
+        if (Object.keys(grid).length >= D6A_ITEMS_BASE.length) {
+          setViewMode('summary');
+        }
       }
     }
 
@@ -207,10 +212,42 @@ export default function Dimension6Page() {
     setErrors("");
   };
 
+  const gridComplete6 = ans['d6a'] && typeof ans['d6a'] === 'object' && Object.keys(ans['d6a']).length >= D6A_ITEMS_BASE.length;
+  const showSummary6 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete6);
+
+  if (showSummary6 && viewMode !== 'step') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <Header />
+        <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
+          <DimensionSummaryView
+            dimensionNumber={6}
+            dimensionName="Culture & Psychological Safety"
+            gridData={ans['d6a'] || {}}
+            allAnswers={ans}
+            statusOptions={STATUS_OPTIONS}
+            onGridChange={(element, status) => {
+              setAns((prev: any) => ({
+                ...prev,
+                d6a: { ...prev.d6a, [element]: status }
+              }));
+            }}
+            onSwitchToStepView={() => setViewMode('step')}
+            onSave={async () => {
+              ctx.setSectionData('dimension6', ans);
+              return ctx.saveToSupabase('dimension6');
+            }}
+          />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Header />
-      
+
       <main className="flex-1 max-w-5xl mx-auto px-4 py-8">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
@@ -224,6 +261,12 @@ export default function Dimension6Page() {
             />
           </div>
         </div>
+
+        {gridComplete6 && (
+          <button onClick={() => setViewMode('summary')} className="text-sm text-blue-600 hover:text-blue-800 mb-4">
+            View all answers at a glance
+          </button>
+        )}
 
         {errors && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
