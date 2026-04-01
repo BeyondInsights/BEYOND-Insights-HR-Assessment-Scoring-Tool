@@ -118,12 +118,33 @@ export default function DimensionSummaryView({
       </div>
 
       {/* Instructions */}
-      <div className="mb-6">
+      <div className="mb-5">
         <p className="text-sm text-slate-700">
           Here are the answers you provided to each element of this dimension.
           You can click on any element to update your answer.
         </p>
       </div>
+
+      {/* Status Summary Bar */}
+      {(() => {
+        const counts: Record<string, { count: number; color: string; label: string }> = {};
+        elements.forEach(([, s]) => {
+          const label = shortStatus(s);
+          if (!counts[label]) counts[label] = { count: 0, color: getStatusColor(s), label };
+          counts[label].count++;
+        });
+        const groups = Object.values(counts).filter(g => g.count > 0);
+        return (
+          <div className="mb-5 flex items-center gap-4 text-xs text-slate-600">
+            {groups.map(g => (
+              <span key={g.label} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-sm flex-shrink-0" style={{ backgroundColor: g.color }} />
+                <span>{g.label}: <strong className="text-slate-800">{g.count}</strong></span>
+              </span>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Element Grid — 2 columns on desktop, 1 on mobile */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -212,10 +233,10 @@ export default function DimensionSummaryView({
         >
           <div>
             <p className="text-sm font-medium text-slate-800">
-              Continue to review other dimension questions
+              Review follow-up questions
             </p>
             <p className="text-xs text-slate-500 mt-0.5">
-              Review and update your answers to follow-up questions for this dimension
+              e.g., paid leave duration, geographic variations, additional details
             </p>
           </div>
           <svg className="w-5 h-5 text-slate-400 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
