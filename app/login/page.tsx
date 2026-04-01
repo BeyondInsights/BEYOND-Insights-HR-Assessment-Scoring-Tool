@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authenticateUser, getCurrentUser } from '@/lib/supabase/auth'
 import { formatAppId } from '@/lib/supabase/utils'
@@ -68,6 +68,16 @@ type ReturningVariant = 'continue' | 'review'
 export default function LoginPage() {
   const router = useRouter()
   const ctx = useAssessmentContext()
+
+  // Welcome overlay
+  const [showWelcome, setShowWelcome] = useState(true)
+  const [welcomeFading, setWelcomeFading] = useState(false)
+
+  useEffect(() => {
+    const fadeTimer = setTimeout(() => setWelcomeFading(true), 2000)
+    const hideTimer = setTimeout(() => setShowWelcome(false), 2700)
+    return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer) }
+  }, [])
 
   // Step flow
   const [step, setStep] = useState<Step>('new')
@@ -390,6 +400,27 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
+      {/* Welcome Overlay */}
+      {showWelcome && (
+        <div
+          className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ${
+            welcomeFading ? 'opacity-0' : 'opacity-100'
+          }`}
+        >
+          <div className="text-center px-6">
+            <img
+              src="/best-companies-2026-logo.png"
+              alt="Best Companies Award Logo"
+              className="h-28 sm:h-36 w-auto mx-auto mb-6"
+            />
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
+              Welcome to the<br />
+              Best Companies for Working with Cancer
+            </h2>
+          </div>
+        </div>
+      )}
+
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl">
           <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
