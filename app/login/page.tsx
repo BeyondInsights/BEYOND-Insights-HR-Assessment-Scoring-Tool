@@ -74,8 +74,8 @@ export default function LoginPage() {
   const [welcomeFading, setWelcomeFading] = useState(false)
 
   useEffect(() => {
-    const fadeTimer = setTimeout(() => setWelcomeFading(true), 2000)
-    const hideTimer = setTimeout(() => setShowWelcome(false), 2700)
+    const fadeTimer = setTimeout(() => setWelcomeFading(true), 2800)
+    const hideTimer = setTimeout(() => setShowWelcome(false), 3800)
     return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer) }
   }, [])
 
@@ -403,24 +403,28 @@ export default function LoginPage() {
       {/* Welcome Overlay */}
       {showWelcome && (
         <div
-          className={`fixed inset-0 z-50 flex flex-col items-center justify-start pt-[12vh] bg-white transition-opacity duration-700 ${
-            welcomeFading ? 'opacity-0' : 'opacity-100'
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-start pt-[10vh] transition-all duration-1000 ease-in-out ${
+            welcomeFading ? 'opacity-0 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0'
           }`}
+          style={{ background: 'linear-gradient(180deg, #FFF7ED 0%, #FFFBEB 40%, #FFF7ED 100%)' }}
         >
           <div className="text-center px-6">
-            <img
-              src="/best-companies-2026-logo.png"
-              alt="Best Companies Award Logo"
-              className="h-40 sm:h-52 w-auto mx-auto mb-6"
-            />
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
+            <div className="welcome-logo">
+              <img
+                src="/best-companies-2026-logo.png"
+                alt="Best Companies Award Logo"
+                className="h-40 sm:h-52 w-auto mx-auto mb-6"
+              />
+            </div>
+            <h2 className="welcome-title text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
               Welcome to the<br />
               Best Companies for Working with Cancer Initiative
             </h2>
-            <p className="text-base text-slate-600 mt-4 max-w-md mx-auto leading-relaxed">
+            <p className="welcome-subtitle text-base text-slate-600 mt-4 max-w-md mx-auto leading-relaxed">
               Thank you for your commitment to supporting employees facing cancer and other serious health conditions.
             </p>
-            <p className="text-sm text-slate-400 mt-6">
+            <div className="welcome-divider w-16 h-0.5 bg-[#F37021] mx-auto mt-6 mb-4 rounded-full opacity-40" />
+            <p className="welcome-footer text-sm text-slate-400">
               A Cancer and Careers Initiative
             </p>
           </div>
@@ -860,7 +864,7 @@ export default function LoginPage() {
 
       <Footer />
 
-      {/* Fade-in animation */}
+      {/* Animations */}
       <style jsx>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -868,6 +872,25 @@ export default function LoginPage() {
         }
         .animate-fadeIn {
           animation: fadeIn 0.3s ease-out;
+        }
+        @keyframes welcomeRise {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .welcome-logo {
+          animation: welcomeRise 0.8s ease-out both;
+        }
+        .welcome-title {
+          animation: welcomeRise 0.8s ease-out 0.3s both;
+        }
+        .welcome-subtitle {
+          animation: welcomeRise 0.8s ease-out 0.6s both;
+        }
+        .welcome-divider {
+          animation: welcomeRise 0.6s ease-out 0.9s both;
+        }
+        .welcome-footer {
+          animation: welcomeRise 0.6s ease-out 1.0s both;
         }
       `}</style>
     </div>
