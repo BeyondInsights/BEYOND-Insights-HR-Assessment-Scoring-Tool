@@ -86,6 +86,97 @@ const PROPOSED_QUESTIONS: Array<{
   },
 ]
 
+// ============================================
+// SECTION 4: CANDIDATES FOR ELIMINATION / CONSOLIDATION
+// ============================================
+
+interface EliminationItem {
+  element: string
+  weight: string
+  stability: string
+  reason: string
+}
+
+interface EliminationGroup {
+  dim: string
+  dimNum: number
+  action: string
+  summary: string
+  items: EliminationItem[]
+  consolidations?: Array<{ into: string; merge: string[] }>
+}
+
+const ELIMINATION_GROUP_1: EliminationGroup[] = [
+  {
+    dim: 'Caregiver & Family Support', dimNum: 10, action: 'Trim from 20 to ~12\u201314 elements',
+    summary: 'This dimension has the most elements of any dimension. The bottom 8 elements all have low weight and low stability, contributing minimal differentiation. Several overlap with financial and support elements in other dimensions.',
+    items: [
+      { element: 'Dependent care account matching/contributions', weight: '3.6%', stability: '26%', reason: 'Very specific financial mechanism with limited differentiation value' },
+      { element: 'Emergency caregiver funds', weight: '3.7%', stability: '28%', reason: 'Overlaps with general hardship funds in D2' },
+      { element: 'Mental health support specifically for caregivers', weight: '3.9%', stability: '40%', reason: 'Likely captured by general EAP/mental health elements elsewhere' },
+      { element: 'Dependent care subsidies', weight: '3.9%', stability: '42%', reason: 'Overlaps with dependent care account matching above' },
+      { element: 'Caregiver peer support groups', weight: '4.0%', stability: '42%', reason: 'Overlaps with general peer support element in D6' },
+      { element: 'Legal/financial planning assistance for caregivers', weight: '4.1%', stability: '46%', reason: 'Niche; overlaps with D2 financial counseling' },
+    ],
+    consolidations: [
+      { into: 'Comprehensive caregiver financial support', merge: ['Dependent care account matching', 'Emergency caregiver funds', 'Dependent care subsidies', 'Legal/financial planning assistance'] },
+    ],
+  },
+  {
+    dim: 'Prevention, Wellness & Legal Compliance', dimNum: 11, action: 'Trim from 13 to ~10 elements',
+    summary: 'Three elements have low weight and stability, and are generic wellness items rather than cancer-specific measures.',
+    items: [
+      { element: 'Lifestyle coaching programs', weight: '4.0%', stability: '16%', reason: 'Lowest stability in the entire survey. Generic wellness, not cancer-specific.' },
+      { element: 'Risk factor tracking/reporting', weight: '4.4%', stability: '32%', reason: 'Vague and difficult for companies to interpret consistently' },
+      { element: 'Targeted risk-reduction programs', weight: '4.6%', stability: '36%', reason: 'Overlaps with lifestyle coaching; unclear what qualifies' },
+    ],
+  },
+  {
+    dim: 'Manager Preparedness & Capability', dimNum: 3, action: 'Consider cutting 1\u20132 elements',
+    summary: 'Two elements have low stability and limited grounding in EMC findings.',
+    items: [
+      { element: 'AI-powered guidance tools', weight: '5.8%', stability: '33%', reason: 'Aspirational/futuristic; very few companies have this. Not supported by EMC findings.' },
+      { element: 'Legal compliance training', weight: '5.5%', stability: '24%', reason: 'Overlaps with general manager training. Legal compliance is embedded in broader training programs.' },
+    ],
+  },
+  {
+    dim: 'Continuous Improvement & Outcomes', dimNum: 12, action: 'Cut or relocate 1\u20132 elements',
+    summary: 'Two elements have placement or clarity issues alongside low statistical performance.',
+    items: [
+      { element: 'Measure screening campaign ROI', weight: '6.5%', stability: '24%', reason: 'This is a D11 (prevention) metric, not a D12 (continuous improvement) item. Confusing placement.' },
+      { element: 'Business impact/ROI assessment', weight: '6.5%', stability: '25%', reason: 'Vague in practice. Difficult for companies to answer meaningfully.' },
+    ],
+  },
+]
+
+const ELIMINATION_GROUP_2: EliminationItem[] = [
+  { element: 'Phased return-to-work plans (D8)', weight: '4.5%', stability: '20%', reason: 'Low weight statistically, but EMC shows this is the #3 adjustment employees wished for (42%). Low weight likely because it\u2019s near-table-stakes among good companies. Keep \u2014 weight should increase with adoption.' },
+  { element: 'Hardship grants (D2)', weight: '4.0%', stability: '40%', reason: 'Low weight but financial burden is the #1 EMC gap at 37%. Low weight because very few companies offer it. Keep.' },
+  { element: 'New hire orientation coverage (D13)', weight: '4.7%', stability: '17%', reason: 'Low weight/stability, but EMC shows only 4% learned about support at onboarding. A leading indicator the field hasn\u2019t adopted yet. Keep \u2014 will gain weight as adoption increases.' },
+  { element: 'Dedicated budget allocation (D9)', weight: '4.8%', stability: '26%', reason: 'Low weight but conceptually important \u2014 budget commitment is a real differentiator for program sustainability. Keep.' },
+  { element: 'Contingency planning for treatment schedules (D8)', weight: '4.4%', stability: '21%', reason: 'EMC shows 58% continued working during treatment. Schedule flexibility is critical for that population. Keep.' },
+]
+
+const ELIMINATION_GROUP_3: EliminationGroup[] = [
+  {
+    dim: 'Insurance & Financial Protection', dimNum: 2, action: 'Consolidate from 17 to ~11\u201312 elements',
+    summary: 'The bottom 9 elements are underperforming. Rather than cutting individual items, consolidating preserves conceptual coverage while reducing survey length.',
+    items: [],
+    consolidations: [
+      { into: 'Comprehensive disability income protection', merge: ['STD covering 60%+', 'LTD covering 60%+', 'Employer-paid disability supplements'] },
+      { into: 'Clinical trial support', merge: ['Clinical trial coverage', 'Paid time off for clinical trial participation'] },
+      { into: 'Out-of-pocket cost protection', merge: ['Voluntary supplemental insurance', 'Set out-of-pocket maximums'] },
+    ],
+  },
+  {
+    dim: 'Executive Commitment & Resources', dimNum: 9, action: 'Consolidate 2\u20133 overlapping elements',
+    summary: 'D9 has 12 elements with 5 below 65% of equal weight. Several overlap conceptually.',
+    items: [
+      { element: 'ESG/CSR reporting inclusion + Support metrics in annual report/sustainability reporting', weight: 'Various', stability: 'Various', reason: 'Nearly the same thing \u2014 both measure whether support programs appear in external reporting. Consolidate into one.' },
+    ],
+  },
+]
+
 const DIM_COLORS: Record<number, string> = {
   2: '#F59E0B', 3: '#10B981', 4: '#3B82F6', 6: '#6366F1',
   8: '#14B8A6', 12: '#A855F7', 13: '#EAB308',
@@ -335,6 +426,173 @@ export default function UpdatesPage() {
                 )}
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* SECTION 4: CANDIDATES FOR ELIMINATION      */}
+        {/* ============================================ */}
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-10">
+          <div className="px-6 py-4 bg-gray-900 text-white">
+            <h2 className="text-lg font-bold">Candidates for Elimination or Consolidation</h2>
+            <p className="text-sm text-gray-400 mt-0.5">Based on element weighting analysis and EMC research cross-reference</p>
+          </div>
+
+          <div className="px-6 py-4 bg-slate-50 border-b border-gray-200">
+            <p className="text-sm text-gray-700 leading-relaxed">
+              Element weighting tells us what currently differentiates high-scoring companies from low-scoring ones. The EMC report tells us what employees actually need. These are not always the same. An element can have a low weight because few companies offer it (not enough data to detect a pattern) or because most companies offer it (table stakes). In both cases the element may still matter from the employee perspective.
+            </p>
+            <p className="text-sm text-gray-700 mt-2 leading-relaxed">
+              With that in mind, candidates are grouped into three categories based on whether weighting data and EMC evidence align.
+            </p>
+          </div>
+
+          {/* GROUP 1: Strong deletion candidates */}
+          <div className="px-6 py-5 border-b border-gray-200">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border bg-red-50 text-red-700 border-red-200">Group 1</span>
+              <h3 className="text-sm font-bold text-gray-900">Candidates for Removal or Consolidation</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-5">Low weight, low stability, and limited EMC support. These add survey length without adding meaningful measurement value.</p>
+
+            <div className="space-y-6">
+              {ELIMINATION_GROUP_1.map(group => (
+                <div key={group.dimNum} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: DIM_COLORS[group.dimNum] || '#64748B' }}>{group.dimNum}</div>
+                    <div>
+                      <span className="text-sm font-bold text-gray-900">D{group.dimNum}: {group.dim}</span>
+                      <span className="text-xs text-gray-500 ml-2">{group.action}</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3">
+                    <p className="text-xs text-gray-600 mb-3">{group.summary}</p>
+                    {group.items.length > 0 && (
+                      <table className="w-full text-sm mb-3">
+                        <thead>
+                          <tr className="text-xs text-gray-500 uppercase tracking-wide">
+                            <th className="text-left px-3 py-1.5 font-semibold">Element</th>
+                            <th className="text-center px-2 py-1.5 font-semibold w-16">Weight</th>
+                            <th className="text-center px-2 py-1.5 font-semibold w-16">Stability</th>
+                            <th className="text-left px-3 py-1.5 font-semibold">Rationale</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {group.items.map((item, i) => (
+                            <tr key={i}>
+                              <td className="px-3 py-2 text-gray-800 font-medium">{item.element}</td>
+                              <td className="px-2 py-2 text-center text-gray-600">{item.weight}</td>
+                              <td className="px-2 py-2 text-center text-gray-600">{item.stability}</td>
+                              <td className="px-3 py-2 text-xs text-gray-600">{item.reason}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                    {group.consolidations && group.consolidations.length > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded px-3 py-2.5">
+                        <p className="text-xs font-semibold text-blue-800 mb-1.5">Suggested consolidations:</p>
+                        {group.consolidations.map((c, i) => (
+                          <div key={i} className="text-xs text-blue-700 mb-1 last:mb-0">
+                            <span className="font-medium">{c.into}</span> &larr; merge {c.merge.join(', ')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* GROUP 2: Low weight but EMC says keep */}
+          <div className="px-6 py-5 border-b border-gray-200">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border bg-green-50 text-green-700 border-green-200">Group 2</span>
+              <h3 className="text-sm font-bold text-gray-900">Low Weight but EMC Evidence Says Keep</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-5">These underperform statistically but address real employee needs identified in the EMC research. Recommend keeping.</p>
+
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                    <th className="text-left px-4 py-2 font-semibold">Element</th>
+                    <th className="text-center px-2 py-2 font-semibold w-16">Weight</th>
+                    <th className="text-center px-2 py-2 font-semibold w-16">Stability</th>
+                    <th className="text-left px-3 py-2 font-semibold">Why Keep</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {ELIMINATION_GROUP_2.map((item, i) => (
+                    <tr key={i}>
+                      <td className="px-4 py-2.5 text-gray-800 font-medium">{item.element}</td>
+                      <td className="px-2 py-2.5 text-center text-gray-600">{item.weight}</td>
+                      <td className="px-2 py-2.5 text-center text-gray-600">{item.stability}</td>
+                      <td className="px-3 py-2.5 text-xs text-gray-600">{item.reason}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* GROUP 3: Borderline — consolidate */}
+          <div className="px-6 py-5">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded border bg-amber-50 text-amber-700 border-amber-200">Group 3</span>
+              <h3 className="text-sm font-bold text-gray-900">Borderline — Consolidate Rather Than Delete</h3>
+            </div>
+            <p className="text-xs text-gray-500 mb-5">These could go either way. Consolidating into fewer composite items preserves conceptual coverage while reducing survey length.</p>
+
+            <div className="space-y-4">
+              {ELIMINATION_GROUP_3.map(group => (
+                <div key={group.dimNum} className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: DIM_COLORS[group.dimNum] || '#64748B' }}>{group.dimNum}</div>
+                    <div>
+                      <span className="text-sm font-bold text-gray-900">D{group.dimNum}: {group.dim}</span>
+                      <span className="text-xs text-gray-500 ml-2">{group.action}</span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3">
+                    <p className="text-xs text-gray-600 mb-3">{group.summary}</p>
+                    {group.items.length > 0 && (
+                      <table className="w-full text-sm mb-3">
+                        <thead>
+                          <tr className="text-xs text-gray-500 uppercase tracking-wide">
+                            <th className="text-left px-3 py-1.5 font-semibold">Element</th>
+                            <th className="text-center px-2 py-1.5 font-semibold w-16">Weight</th>
+                            <th className="text-center px-2 py-1.5 font-semibold w-16">Stability</th>
+                            <th className="text-left px-3 py-1.5 font-semibold">Rationale</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {group.items.map((item, i) => (
+                            <tr key={i}>
+                              <td className="px-3 py-2 text-gray-800 font-medium">{item.element}</td>
+                              <td className="px-2 py-2 text-center text-gray-600">{item.weight}</td>
+                              <td className="px-2 py-2 text-center text-gray-600">{item.stability}</td>
+                              <td className="px-3 py-2 text-xs text-gray-600">{item.reason}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                    {group.consolidations && group.consolidations.length > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded px-3 py-2.5">
+                        <p className="text-xs font-semibold text-blue-800 mb-1.5">Suggested consolidations:</p>
+                        {group.consolidations.map((c, i) => (
+                          <div key={i} className="text-xs text-blue-700 mb-1 last:mb-0">
+                            <span className="font-medium">{c.into}</span> &larr; merge {c.merge.join(', ')}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
