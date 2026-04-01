@@ -271,21 +271,6 @@ export default function UpdatesPage() {
               </div>
             </div>
 
-            {/* Landing Page */}
-            <div className="px-6 py-5">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <svg className="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-base font-semibold text-gray-900">Redesigned Landing Page</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Replaced the old single login form with a 3-card welcome flow: &quot;I am a new participant,&quot; &quot;I have already started the survey,&quot; and &quot;I completed the survey and want to make updates.&quot; Each card routes to the appropriate login experience. Clearer, faster onboarding.
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Unsure Button */}
             <div className="px-6 py-5">
               <div className="flex items-start gap-3">
