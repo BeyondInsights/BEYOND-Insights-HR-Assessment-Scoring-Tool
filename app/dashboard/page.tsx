@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import dynamic from 'next/dynamic'
-import { Lock, CheckCircle, CreditCard, Award } from 'lucide-react'
+import { Lock, CheckCircle, CreditCard, Award, AlertCircle } from 'lucide-react'
 import { isFoundingPartner, getFoundingPartnerMessage } from '@/lib/founding-partners'
 import { useAssessmentContext } from '@/lib/assessment-context'
 
@@ -30,6 +30,7 @@ export default function DashboardPage() {
     crossDimensional: 0,
     employeeImpact: 0,
   })
+  const [unsureCount, setUnsureCount] = useState(0)
 
   const ctx = useAssessmentContext()
 
@@ -98,6 +99,21 @@ export default function DashboardPage() {
           }
         }
         setDimensionProgress(dimProgress)
+
+        // Count all "Unsure" responses across dimensions
+        let totalUnsure = 0
+        for (let i = 1; i <= 13; i++) {
+          const dimData = ctx.getSectionData(`dimension${i}`)
+          if (!dimData) continue
+          const grid = dimData[`d${i}a`]
+          if (!grid || typeof grid !== 'object') continue
+          Object.values(grid).forEach((status) => {
+            if (typeof status === 'string' && status.toLowerCase().includes('unsure')) {
+              totalUnsure++
+            }
+          })
+        }
+        setUnsureCount(totalUnsure)
 
         let firmProg = 0, genProg = 0, curProg = 0
 
@@ -485,7 +501,18 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">13 Dimensions of Support</h2>
+          {unsureCount > 0 && (
+            <button
+              onClick={() => router.push('/survey/review-unsure')}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-100 hover:border-purple-300 transition-colors"
+            >
+              <AlertCircle className="w-4 h-4" />
+              Review Unsure Responses ({unsureCount})
+            </button>
+          )}
+        </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
             const isLocked = !paymentCompleted || !allCoreDone;
