@@ -440,9 +440,10 @@ export default function LoginPage() {
                 />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
-                The Best Companies for Working with Cancer Initiative
+                The Best Companies for<br />
+                Working with Cancer Initiative
               </h1>
-              <p className="text-base text-slate-700 mt-3 max-w-lg mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg text-slate-800 mt-4 max-w-lg mx-auto leading-relaxed font-medium italic">
                 Recognizing organizations that excel in supporting employees facing cancer or other serious health conditions.
               </p>
             </div>
