@@ -440,10 +440,7 @@ export default function UpdatesPage() {
 
           <div className="px-6 py-4 bg-slate-50 border-b border-gray-200">
             <p className="text-sm text-gray-700 leading-relaxed">
-              Element weighting tells us what currently differentiates high-scoring companies from low-scoring ones. The EMC report tells us what employees actually need. These are not always the same. An element can have a low weight because few companies offer it (not enough data to detect a pattern) or because most companies offer it (table stakes). In both cases the element may still matter from the employee perspective.
-            </p>
-            <p className="text-sm text-gray-700 mt-2 leading-relaxed">
-              With that in mind, candidates are grouped into three categories based on whether weighting data and EMC evidence align.
+              These candidates were identified by cross-referencing element weight and stability scores with findings from the EMC employee survey. Elements with low weight and low stability that also lacked support in the EMC data are candidates for removal. Some elements had similarly low scores but were kept because the EMC research indicated they address real employee needs (see Group 2 below).
             </p>
           </div>
 
