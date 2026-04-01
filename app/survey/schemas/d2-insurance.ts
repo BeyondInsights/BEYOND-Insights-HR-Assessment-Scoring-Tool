@@ -3,10 +3,12 @@ export const d2Schema = {
     type: 'grid',
     label: 'Insurance & Financial Protection Programs',
     statusOptions: [
-      'Currently offer',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to offer in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Coverage for clinical trials and experimental treatments not covered by standard health insurance',

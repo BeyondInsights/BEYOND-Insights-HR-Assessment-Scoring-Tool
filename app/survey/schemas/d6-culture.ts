@@ -3,10 +3,12 @@ export const d6Schema = {
     type: 'grid',
     label: 'Culture & Psychological Safety Programs',
     statusOptions: [
-      'Currently offer',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to offer in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Strong anti-discrimination policies specific to health conditions',

@@ -3,10 +3,12 @@ export const d11Schema = {
     type: 'grid',
     label: 'Prevention, Wellness & Legal Compliance Programs',
     statusOptions: [
-      'Currently offer',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to offer in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'At least 70% coverage for regionally / locally recommended screenings',

@@ -289,15 +289,11 @@ export default function PrintPage() {
         let gridOptions = field.statusOptions || field.responseOptions || field.scale || []
         const gridItems = field.programs || field.items || field.elements || []
         
-        const isDimensionGrid = gridOptions.some(opt => 
-          opt.includes('Not able to offer') || 
-          opt.includes('Currently offer') ||
-          opt.includes('Assessing feasibility')
+        const isDimensionGrid = gridOptions.some(opt =>
+          opt === 'In Place' ||
+          opt === 'Not Planned' ||
+          opt === 'Under Review'
         )
-        
-        if (isDimensionGrid && gridOptions[0] && gridOptions[0].includes('Currently')) {
-          gridOptions = [...gridOptions].reverse()
-        }
         
         return (
           <div className="mb-6">

@@ -23,29 +23,32 @@ const DIMENSION_NAMES = [
 ]
 
 const STATUS_OPTIONS = [
-  'Not able to offer in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently offer',
+  'In Place',
+  'In Development',
+  'Under Review',
+  'Open to Exploring',
+  'Not Planned',
   'Unsure',
 ]
 
 const STATUS_COLORS: Record<string, string> = {
-  'currently': '#0D9488',
-  'planning': '#2563EB',
-  'assessing': '#D97706',
-  'not able': '#64748B',
-  'unsure': '#7C3AED',
+  'in place': '#0D9488',
+  'in development': '#2563EB',
+  'under review': '#D97706',
+  'open to exploring': '#8B5CF6',
+  'not planned': '#64748B',
+  'unsure': '#9CA3AF',
 }
 
 function getStatusColor(status: string): string {
   const lower = status.toLowerCase()
-  if (lower.startsWith('currently')) return STATUS_COLORS['currently']
-  if (lower.includes('active planning')) return STATUS_COLORS['planning']
-  if (lower.includes('assessing') || lower.includes('researching')) return STATUS_COLORS['assessing']
-  if (lower.includes('not able')) return STATUS_COLORS['not able']
+  if (lower === 'in place') return STATUS_COLORS['in place']
+  if (lower === 'in development') return STATUS_COLORS['in development']
+  if (lower === 'under review') return STATUS_COLORS['under review']
+  if (lower === 'open to exploring') return STATUS_COLORS['open to exploring']
+  if (lower === 'not planned') return STATUS_COLORS['not planned']
   if (lower.includes('unsure')) return STATUS_COLORS['unsure']
-  return STATUS_COLORS['not able']
+  return STATUS_COLORS['not planned']
 }
 
 interface UnsureItem {

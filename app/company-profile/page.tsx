@@ -54,34 +54,11 @@ const DIM_TITLE: Record<number, string> = {
    RESPONSE OPTIONS
 ========================= */
 const RESPONSE_OPTIONS = [
-  'Not able to offer in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently offer',
-  'Unsure'
-];
-
-const RESPONSE_OPTIONS_D3 = [
-  'Not able to provide in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently provide to managers',
-  'Unsure'
-];
-
-const RESPONSE_OPTIONS_D12 = [
-  'Not able to measure / track in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently measure / track',
-  'Unsure'
-];
-
-const RESPONSE_OPTIONS_D13 = [
-  'Not able to utilize in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently use',
+  'In Place',
+  'In Development',
+  'Under Review',
+  'Open to Exploring',
+  'Not Planned',
   'Unsure'
 ];
 
@@ -329,67 +306,35 @@ const hasProgramStatusMap = (v: any) => v && typeof v === 'object' && !Array.isA
 ========================= */
 function normalizeStatus(s: string | number, dimNumber: number = 0): string {
   // Handle numeric status codes from Founding Partner data
-  // 1 = Not able to offer, 2 = Assessing, 3 = Planning, 4 = Currently offer, 5 = Unsure
   const numStatus = typeof s === 'number' ? s : parseInt(String(s));
-  
+
   if (!isNaN(numStatus) && numStatus >= 1 && numStatus <= 5) {
     switch (numStatus) {
-      case 4:
-        // Dimension-specific "Currently" labels
-        if (dimNumber === 3) return 'Currently provide to managers';
-        if (dimNumber === 12) return 'Currently measure / track';
-        if (dimNumber === 13) return 'Currently use';
-        return 'Currently offer';
-      case 3: return 'In active planning / development';
-      case 2: return 'Assessing feasibility';
-      case 1:
-        if (dimNumber === 3) return 'Not able to provide in foreseeable future';
-        if (dimNumber === 12) return 'Not able to measure / track in foreseeable future';
-        if (dimNumber === 13) return 'Not able to utilize in foreseeable future';
-        return 'Not able to offer in foreseeable future';
+      case 4: return 'In Place';
+      case 3: return 'In Development';
+      case 2: return 'Under Review';
+      case 1: return 'Not Planned';
       case 5: return 'Unsure';
     }
   }
-  
-  // Handle text-based statuses
-  const x = String(s).toLowerCase();
-  
-  // Already dimension-specific
-  if (x.includes('provide to managers')) return 'Currently provide to managers';
-  if (x.includes('currently measure') || x.includes('currently track')) return 'Currently measure / track';
-  if (x.includes('currently use')) return 'Currently use';
-  
-  // Generic "Currently offer" - APPLY DIMENSION-AWARE CONVERSION
-  if (x.includes('currently offer')) {
-    if (dimNumber === 3) return 'Currently provide to managers';
-    if (dimNumber === 12) return 'Currently measure / track';
-    if (dimNumber === 13) return 'Currently use';
-    return 'Currently offer';
-  }
-  
-  // Other "currently" variations (without "offer")
-  if (x.includes('currently') && !x.includes('provide') && !x.includes('use') && !x.includes('measure') && !x.includes('track')) {
-    if (dimNumber === 3) return 'Currently provide to managers';
-    if (dimNumber === 12) return 'Currently measure / track';
-    if (dimNumber === 13) return 'Currently use';
-    return 'Currently offer';
-  }
-  
-  if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In active planning / development';
-  if (x.includes('assessing') || x.includes('feasibility')) return 'Assessing feasibility';
+
+  const x = String(s).toLowerCase().trim();
+
+  // New scale — exact matches
+  if (x === 'in place') return 'In Place';
+  if (x === 'in development') return 'In Development';
+  if (x === 'under review') return 'Under Review';
+  if (x === 'open to exploring') return 'Open to Exploring';
+  if (x === 'not planned') return 'Not Planned';
+  if (x === 'unsure') return 'Unsure';
+
+  // Legacy scale — map to new labels
+  if (x.includes('currently')) return 'In Place';
+  if (x.includes('active') || x.includes('development') || x.includes('planning')) return 'In Development';
+  if (x.includes('assessing') || x.includes('feasibility')) return 'Under Review';
+  if (x.includes('not able')) return 'Not Planned';
   if (x.includes('unsure')) return 'Unsure';
-  
-  // "Not able to" variants - dimension-aware
-  if (x.includes('not able to measure') || x.includes('not able to track')) return 'Not able to measure / track in foreseeable future';
-  if (x.includes('not able to provide')) return 'Not able to provide in foreseeable future';
-  if (x.includes('not able to utilize')) return 'Not able to utilize in foreseeable future';
-  if (x.includes('not able')) {
-    if (dimNumber === 3) return 'Not able to provide in foreseeable future';
-    if (dimNumber === 12) return 'Not able to measure / track in foreseeable future';
-    if (dimNumber === 13) return 'Not able to utilize in foreseeable future';
-    return 'Not able to offer in foreseeable future';
-  }
-  
+
   return 'Other';
 }
 
@@ -550,15 +495,14 @@ function downloadHTML(data: any) {
     // Programs table
     let progsHTML = '';
     if (programs.length > 0) {
-      const activeKey = dim.number === 3 ? 'currently provide' : dim.number === 12 ? 'currently measure' : dim.number === 13 ? 'currently use' : 'currently offer';
-      const offered = programs.filter(p => p.status.toLowerCase().includes(activeKey)).length;
+      const offered = programs.filter(p => p.status === 'In Place').length;
       const total = programs.length;
       const pct = total > 0 ? Math.round((offered / total) * 100) : 0;
 
       const rows = programs.map(({ program, status }) => {
         const sl = status.toLowerCase();
-        const fg = sl.includes('currently') ? '#166534' : sl.includes('planning') ? '#1e40af' : sl.includes('assessing') ? '#92400e' : sl.includes('not able') ? '#991b1b' : '#6b7280';
-        const short = status.replace(/ in foreseeable future/g, '').replace('In active planning / development', 'Planning / Development');
+        const fg = sl === 'in place' ? '#166534' : sl === 'in development' ? '#1e40af' : sl === 'under review' ? '#92400e' : sl === 'open to exploring' ? '#6d28d9' : sl === 'not planned' ? '#991b1b' : '#6b7280';
+        const short = status;
         return `<tr class="status-row"><td>${h(program)}</td><td class="status-label" style="color:${fg}">${h(short)}</td></tr>`;
       }).join('');
 
@@ -734,14 +678,11 @@ function DataRow({ label, value }: { label: string; value?: any }) {
 }
 
 function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: string; status: string }>; dimNumber: number }) {
-  let options = RESPONSE_OPTIONS;
-  if (dimNumber === 13) options = RESPONSE_OPTIONS_D13;
-  else if (dimNumber === 12) options = RESPONSE_OPTIONS_D12;
-  else if (dimNumber === 3) options = RESPONSE_OPTIONS_D3;
+  const options = RESPONSE_OPTIONS;
 
   const byStatus: Record<string, Array<string>> = {};
   options.forEach(opt => (byStatus[opt] = []));
-  
+
   // Programs already have normalized statuses from parseDimensionData
   programs.forEach(({ program, status }) => {
     if (!byStatus[status]) byStatus[status] = [];
@@ -749,12 +690,7 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
   });
 
   const totalPrograms = programs.length;
-  const activeStatuses = dimNumber === 3 ? ['Currently provide to managers'] :
-                        dimNumber === 12 ? ['Currently measure / track'] :
-                        dimNumber === 13 ? ['Currently use'] :
-                        ['Currently offer'];
-  
-  const offeredCount = activeStatuses.reduce((sum, status) => sum + (byStatus[status]?.length || 0), 0);
+  const offeredCount = byStatus['In Place']?.length || 0;
   const coverage = totalPrograms > 0 ? Math.round((offeredCount / totalPrograms) * 100) : 0;
 
   return (
@@ -768,13 +704,16 @@ function SupportMatrix({ programs, dimNumber }: { programs: Array<{ program: str
         </div>
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 4)}, minmax(0, 1fr))` }}>
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${Math.min(options.length, 3)}, minmax(0, 1fr))` }}>
         {options.map((option) => {
           const count = byStatus[option]?.length || 0;
-          const borderColor = option.toLowerCase().includes('currently') ? '#10B981' : 
-                             option.toLowerCase().includes('planning') ? '#3B82F6' :
-                             option.toLowerCase().includes('assessing') ? '#F59E0B' : 
-                             option.toLowerCase().includes('unsure') ? '#9CA3AF' :
+          const ol = option.toLowerCase();
+          const borderColor = ol === 'in place' ? '#0D9488' :
+                             ol === 'in development' ? '#2563EB' :
+                             ol === 'under review' ? '#D97706' :
+                             ol === 'open to exploring' ? '#8B5CF6' :
+                             ol === 'not planned' ? '#64748B' :
+                             ol === 'unsure' ? '#9CA3AF' :
                              BRAND.gray[300];
           
           return (

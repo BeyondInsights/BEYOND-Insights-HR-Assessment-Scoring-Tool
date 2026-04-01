@@ -31,30 +31,50 @@ const DIMENSION_DEFINITIONS: Record<number, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
+  'in place': '#0D9488',
+  'in development': '#2563EB',
+  'under review': '#D97706',
+  'open to exploring': '#8B5CF6',
+  'not planned': '#64748B',
+  'unsure': '#9CA3AF',
+  // Legacy fallbacks
   'currently': '#0D9488',
   'planning': '#2563EB',
   'assessing': '#D97706',
   'not able': '#64748B',
-  'unsure': '#7C3AED',
 };
 
 function getStatusColor(status: string): string {
   const lower = status.toLowerCase();
+  // New scale
+  if (lower === 'in place') return STATUS_COLORS['in place'];
+  if (lower === 'in development') return STATUS_COLORS['in development'];
+  if (lower === 'under review') return STATUS_COLORS['under review'];
+  if (lower === 'open to exploring') return STATUS_COLORS['open to exploring'];
+  if (lower === 'not planned') return STATUS_COLORS['not planned'];
+  if (lower.includes('unsure')) return STATUS_COLORS['unsure'];
+  // Legacy scale
   if (lower.startsWith('currently')) return STATUS_COLORS['currently'];
   if (lower.includes('active planning')) return STATUS_COLORS['planning'];
   if (lower.includes('assessing') || lower.includes('researching')) return STATUS_COLORS['assessing'];
   if (lower.includes('not able')) return STATUS_COLORS['not able'];
-  if (lower.includes('unsure')) return STATUS_COLORS['unsure'];
-  return STATUS_COLORS['not able'];
+  return STATUS_COLORS['not planned'];
 }
 
 function shortStatus(status: string): string {
   const lower = status.toLowerCase();
-  if (lower.startsWith('currently')) return 'Currently Offer';
-  if (lower.includes('active planning')) return 'In Planning';
-  if (lower.includes('assessing') || lower.includes('researching')) return 'Assessing';
-  if (lower.includes('not able')) return 'Not Offered';
+  // New scale — return as-is
+  if (lower === 'in place') return 'In Place';
+  if (lower === 'in development') return 'In Development';
+  if (lower === 'under review') return 'Under Review';
+  if (lower === 'open to exploring') return 'Open to Exploring';
+  if (lower === 'not planned') return 'Not Planned';
   if (lower.includes('unsure')) return 'Unsure';
+  // Legacy scale
+  if (lower.startsWith('currently')) return 'In Place';
+  if (lower.includes('active planning')) return 'In Development';
+  if (lower.includes('assessing') || lower.includes('researching')) return 'Under Review';
+  if (lower.includes('not able')) return 'Not Planned';
   return status;
 }
 

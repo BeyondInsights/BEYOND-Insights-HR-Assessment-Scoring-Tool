@@ -105,20 +105,21 @@ export default function Dimension3Page() {
   
 
   const STATUS_OPTIONS = [
-    "Not able to provide in foreseeable future",
-    "Assessing feasibility",
-    "In active planning / development",
-    "Currently provide to managers",
+    "In Place",
+    "In Development",
+    "Under Review",
+    "Open to Exploring",
+    "Not Planned",
     "Unsure"
   ];
 
   
   // Check if any training is provided (for follow-up questions)
   const hasAnyProvided = Object.values(ans.d3a || {}).some(
-    (status) => status === "Currently provide to managers"
+    (status) => status === "In Place"
   );
 
-  // D3aa should show if multi-country AND at least one "Currently provide to managers"
+  // D3aa should show if multi-country AND at least one "In Place"
   const showD3aa = isMultiCountry && hasAnyProvided;
   const showD3_1a = hasAnyProvided;
   const showD3_1 = hasAnyProvided;
@@ -303,30 +304,37 @@ export default function Dimension3Page() {
                 </p>
               </div>
 
-              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-4">How this assessment works:</h3>
-                <ul className="space-y-3 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>You'll see different support options associated with this dimension, one at a time</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span><strong>Indicate the current status of each option within your organization</strong></span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>After selecting a response, it will automatically advance to the next option</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Click any green bar to review or change your answer to that element</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2 mt-1">•</span>
-                    <span>Once all support options are evaluated, the Continue button will appear</span>
-                  </li>
-                </ul>
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-4">
+                <p className="text-gray-700 mb-3">
+                  You will see several elements associated with this dimension, each representing a program, policy, or practice. For each element, select the option that best reflects your organization's current status.
+                </p>
+                <p className="text-gray-600 text-sm">
+                  Not every element will be feasible or relevant for every organization — that is completely expected. Answer based on where your organization stands today.
+                </p>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <div className="bg-gray-100 px-4 py-2.5 border-b border-gray-200">
+                  <h3 className="font-semibold text-gray-900 text-sm">Response Scale</h3>
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {[
+                    { label: 'In Place', color: '#0D9488', desc: 'This program, policy, or practice is currently active and available to employees.' },
+                    { label: 'In Development', color: '#2563EB', desc: 'A formal plan exists and resources have been allocated to implement this within the next 12\u201318 months.' },
+                    { label: 'Under Review', color: '#D97706', desc: 'Actively evaluating the feasibility, cost, or design of this program. No implementation timeline yet, but it is on leadership\'s radar.' },
+                    { label: 'Open to Exploring', color: '#8B5CF6', desc: 'Had not considered this, but learning about it has sparked interest. Open to reviewing whether this could work for your organization.' },
+                    { label: 'Not Planned', color: '#64748B', desc: 'Considered this and determined it is not feasible or appropriate for your organization at this time.' },
+                    { label: 'Unsure', color: '#9CA3AF', desc: 'Don\'t have enough information to answer this accurately. Flags the item for internal follow-up.' },
+                  ].map(opt => (
+                    <div key={opt.label} className="flex items-start gap-3 px-4 py-3">
+                      <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: opt.color }} />
+                      <div>
+                        <span className="text-sm font-semibold text-gray-900">{opt.label}</span>
+                        <p className="text-xs text-gray-600 mt-0.5">{opt.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="flex justify-center mt-8">
@@ -334,7 +342,7 @@ export default function Dimension3Page() {
                   onClick={() => setStep(1)}
                   className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all text-lg"
                 >
-                  Begin Assessment
+                  Begin Dimension
                 </button>
               </div>
             </div>

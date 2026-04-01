@@ -3,10 +3,12 @@ export const d8Schema = {
     type: 'grid',
     label: 'Work Continuation & Resumption Programs',
     statusOptions: [
-      'Currently offer',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to offer in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Flexible work arrangements during treatment',

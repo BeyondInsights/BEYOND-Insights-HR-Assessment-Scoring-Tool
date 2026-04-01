@@ -3,10 +3,12 @@ export const d5Schema = {
     type: 'grid',
     label: 'Workplace Accommodations Programs',
     statusOptions: [
-      'Currently offer',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to offer in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Physical workspace modifications',

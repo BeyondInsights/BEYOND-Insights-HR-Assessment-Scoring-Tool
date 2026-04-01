@@ -3,10 +3,12 @@ export const d10Schema = {
     type: 'grid',
     label: 'Caregiver & Family Support Programs',
     statusOptions: [
-      'Currently offer',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to offer in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Paid caregiver leave with expanded eligibility (beyond local legal requirements)',

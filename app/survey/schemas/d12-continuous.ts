@@ -3,10 +3,12 @@ export const d12Schema = {
     type: 'grid',
     label: 'Continuous Improvement & Outcomes Measurement',
     statusOptions: [
-      'Currently measure / track',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to measure / track in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Return-to-work success metrics',

@@ -3,10 +3,12 @@ export const d3Schema = {
     type: 'grid',
     label: 'Manager Preparedness & Capability Programs',
     statusOptions: [
-      'Currently provide to managers',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to provide in foreseeable future'
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
+      'Unsure'
     ],
     programs: [
       'Manager training on supporting employees managing cancer or other serious health conditions/illnesses and their teams',

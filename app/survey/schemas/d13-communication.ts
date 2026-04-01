@@ -3,10 +3,11 @@ export const d13Schema = {
     type: 'grid',
     label: 'Communication & Awareness Programs',
     statusOptions: [
-      'Currently use',
-      'In active planning / development',
-      'Assessing feasibility',
-      'Not able to utilize in foreseeable future',
+      'In Place',
+      'In Development',
+      'Under Review',
+      'Open to Exploring',
+      'Not Planned',
       'Unsure'
     ],
     programs: [
