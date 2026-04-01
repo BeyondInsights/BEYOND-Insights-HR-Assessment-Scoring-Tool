@@ -20,26 +20,20 @@ const NEW_ELEMENTS: Array<{
   rationale: string
   overlap?: string
 }> = [
-  // D2
-  { dim: 'Insurance & Financial Protection', dimNum: 2, id: 'D2-NEW-2', priority: 'MEDIUM', element: 'Prescription cost assistance or co-pay support program for cancer treatment medications', rationale: 'Prescription assistance was wished for by 25% of employees who were not offered it.' },
   // D3
   { dim: 'Manager Preparedness & Capability', dimNum: 3, id: 'D3-NEW-1', priority: 'HIGH', element: 'Managers are trained specifically on available company benefits, leave policies, and support resources (operational knowledge training, distinct from empathy/sensitivity training)', rationale: 'Only 42% of managers were knowledgeable about benefits despite 69% showing empathy. 53% "learned as situations arose." Empathy without operational knowledge creates well-intentioned inconsistency.' },
   // D4
   { dim: 'Specialized Resources', dimNum: 4, id: 'D4-NEW-1', priority: 'HIGH', element: 'HR proactively reaches out to the employee after learning of a serious health condition (rather than waiting for the employee to request assistance)', rationale: 'Massive gender gaps in HR support: men rated HR 20\u201330 points higher. Only 38% of women said HR helped with paperwork vs 64% men.' },
   { dim: 'Specialized Resources', dimNum: 4, id: 'D4-NEW-2', priority: 'MEDIUM', element: 'Simplified administrative process for accessing benefits during a serious health condition (e.g., reduced paperwork, single-form access, digital submission options)', rationale: 'Only 48% of women said admin was easy to navigate vs 76% men. HR operational quality is the largest gender equity issue.' },
   // D6
-  { dim: 'Culture & Psychological Safety', dimNum: 6, id: 'D6-NEW-2', priority: 'HIGH', element: 'Designated single point of contact assigned to the employee upon disclosure of a serious health condition', rationale: '28% of women lacked confidence in disclosure vs just 7% of men. A designated contact reduces anxiety and inconsistency.' },
   { dim: 'Culture & Psychological Safety', dimNum: 6, id: 'D6-NEW-3', priority: 'MEDIUM', element: 'Employee has explicit control over who in the organization is informed about their condition (written consent required before any information sharing)', rationale: 'Privacy violations cited in verbatims. Employee control over information is foundational to psychological safety.' },
   // D8
   { dim: 'Work Continuation & Resumption', dimNum: 8, id: 'D8-NEW-1', priority: 'HIGH', element: 'Structured post-treatment check-in program (e.g., scheduled check-ins at 30, 60, and 90 days after active treatment completion)', rationale: 'Support ratings drop from 54% during treatment to just 22% after treatment ends \u2014 a 32-point cliff. This is the #1 opportunity to differentiate.' },
   { dim: 'Work Continuation & Resumption', dimNum: 8, id: 'D8-NEW-2', priority: 'HIGH', element: 'Continued workplace accommodations available during recovery phase (beyond active treatment period)', rationale: 'Only 16% of women rated post-treatment support as good vs 40% men. Accommodations that end at treatment end create the cliff.' },
-  { dim: 'Work Continuation & Resumption', dimNum: 8, id: 'D8-NEW-3', priority: 'HIGH', element: 'Performance expectations explicitly adjusted during post-treatment recovery period (not just during active treatment)', rationale: 'Employees describe support as "falling off a cliff" when trying to return to full capacity.' },
   { dim: 'Work Continuation & Resumption', dimNum: 8, id: 'D8-NEW-4', priority: 'MEDIUM', element: 'Access to cognitive recovery resources for treatment-related effects (e.g., memory aids, task management support for "chemo brain")', rationale: 'Cognitive effects of treatment are a widely cited barrier to returning to full productivity.' },
   // D12
   { dim: 'Continuous Improvement & Outcomes', dimNum: 12, id: 'D12-NEW-1', priority: 'MEDIUM', element: 'Organization tracks support delivery and outcomes by demographic group (e.g., gender, role level, tenure) to identify and address disparities', rationale: 'Gender disparities of 20\u201351 points across critical dimensions. Pressure to return: 96% men vs 45% women. Companies that don\u2019t measure this can\u2019t fix it.' },
   // D13
-  { dim: 'Communication & Awareness', dimNum: 13, id: 'D13-NEW-1', priority: 'HIGH', element: 'Serious health condition support resources are covered during new employee onboarding or orientation', rationale: 'Only 4% learned about cancer support at onboarding. 17% of CAC members were "never clearly informed."' },
-  { dim: 'Communication & Awareness', dimNum: 13, id: 'D13-NEW-2', priority: 'MEDIUM', element: 'Cancer and serious illness support resources are accessible on the benefits portal or intranet without requiring a specific search or direct request to HR', rationale: 'Women were 12x more likely than men to report never being informed (12% vs 1%). Passive accessibility reduces this gap.' },
   { dim: 'Communication & Awareness', dimNum: 13, id: 'D13-NEW-3', priority: 'MEDIUM', element: 'Employees are proactively informed of their legal rights (FMLA, ADA, state-level protections) related to medical leave and disability accommodations', rationale: '48% learned about support reactively (at or after disclosure). Proactive legal rights education shifts the timeline.' },
 ]
 
@@ -237,7 +231,7 @@ export default function UpdatesPage() {
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-10">
           <div className="px-6 py-4 bg-gray-900 text-white">
             <h2 className="text-lg font-bold">Proposed New Elements</h2>
-            <p className="text-sm text-gray-400 mt-0.5">14 new grid elements recommended based on the Employee Cancer Experience Report 2025</p>
+            <p className="text-sm text-gray-400 mt-0.5">9 new grid elements recommended based on the Employee Cancer Experience Report 2025</p>
           </div>
 
           <div className="divide-y divide-gray-200">
