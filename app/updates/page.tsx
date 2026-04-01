@@ -354,9 +354,52 @@ export default function UpdatesPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-gray-900">Element Clarification Tooltips</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Added plain-language explanations for 22 technical or ambiguous elements across the 13 dimensions. These appear automatically as blue info boxes when a user encounters an element that contains financial jargon, medical terminology, or concepts that may be unfamiliar (e.g., &quot;Accelerated life insurance benefits,&quot; &quot;CAR-T therapy,&quot; &quot;ESG/CSR reporting&quot;).
+                  <p className="text-sm text-gray-600 mt-1 mb-3">
+                    Added plain-language explanations for 22 technical or ambiguous elements across the 13 dimensions. These appear automatically as blue info boxes when a user encounters the element during the survey.
                   </p>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden text-xs">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-500 uppercase tracking-wide">
+                          <th className="text-left px-3 py-2 font-semibold w-12">Dim</th>
+                          <th className="text-left px-3 py-2 font-semibold">Element</th>
+                          <th className="text-left px-3 py-2 font-semibold">Explanation Shown</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {[
+                          { dim: 'D1', element: 'Disability pay top-up (employer adds to disability insurance)', tip: 'Employer supplements your disability insurance payments to cover a larger percentage of lost income during treatment leave.' },
+                          { dim: 'D1', element: 'Leave donation bank (employees can donate PTO to colleagues)', tip: 'A program where employees can voluntarily contribute unused paid time off to a shared pool that colleagues with serious health conditions can access.' },
+                          { dim: 'D2', element: 'Coverage for advanced therapies (CAR-T, proton therapy, immunotherapy)', tip: 'Specialized cancer treatments that may not be covered by standard plans. Asks whether your organization provides additional coverage.' },
+                          { dim: 'D2', element: 'Accelerated life insurance benefits (partial payout for terminal / critical illness)', tip: 'Allows employees to receive a portion of their life insurance benefit while living, if diagnosed with a terminal or critical illness.' },
+                          { dim: 'D2', element: 'Voluntary supplemental illness insurance (with employer contribution)', tip: 'Optional additional insurance for serious illnesses where the employer helps pay the premium cost.' },
+                          { dim: 'D2', element: 'Employer-paid disability insurance supplements', tip: 'The employer funds additional disability coverage beyond what the standard plan provides.' },
+                          { dim: 'D3', element: 'AI-powered guidance tools', tip: 'Technology that uses AI to provide managers with real-time recommendations for supporting employees with serious health conditions.' },
+                          { dim: 'D4', element: 'Survivorship planning assistance', tip: 'Professional guidance to help employees transition from active treatment to post-treatment life.' },
+                          { dim: 'D4', element: 'Occupational therapy/vocational rehabilitation', tip: 'Specialists who help employees rebuild work skills, adapt to physical limitations, and explore job modifications.' },
+                          { dim: 'D5', element: 'Cognitive / fatigue support tools', tip: 'Resources that help with memory, focus, and energy management during and after treatment \u2014 sometimes called "chemo brain" support.' },
+                          { dim: 'D5', element: 'Assistive technology catalog', tip: 'An inventory of available adaptive equipment or software that helps with work tasks.' },
+                          { dim: 'D6', element: 'Clear process for confidential health disclosures', tip: 'A formal, private procedure for employees to share health information with HR while maintaining confidentiality.' },
+                          { dim: 'D6', element: 'Stigma-reduction initiatives', tip: 'Programs to reduce fear and negative attitudes around serious health conditions, such as awareness campaigns or leadership messaging.' },
+                          { dim: 'D8', element: 'Contingency planning for treatment schedules', tip: 'Advance planning to adjust work commitments if treatment timing or side effects unexpectedly change.' },
+                          { dim: 'D8', element: 'Access to specialized work resumption professionals', tip: 'Licensed professionals such as occupational therapists who help employees safely return to work.' },
+                          { dim: 'D9', element: 'Executive accountability metrics', tip: 'Measurable targets tied to executive performance reviews regarding support program effectiveness.' },
+                          { dim: 'D9', element: 'Compensation tied to support outcomes', tip: 'Executive compensation directly linked to achievements in employee support program effectiveness.' },
+                          { dim: 'D9', element: 'ESG/CSR reporting inclusion', tip: 'Including support initiatives in Environmental, Social, and Governance or Corporate Social Responsibility public reports.' },
+                          { dim: 'D10', element: 'Expanded caregiver leave eligibility beyond legal definitions', tip: 'Caregiver leave beyond legal requirements, recognizing extended family, close friends, and non-traditional family structures.' },
+                          { dim: 'D11', element: 'Targeted risk-reduction programs', tip: 'Focused initiatives to reduce health risks for specific employee groups, such as enhanced screenings for higher-risk populations.' },
+                          { dim: 'D11', element: 'Genetic screening/counseling', tip: 'Testing to identify inherited genetic risk factors, paired with professional counseling to explain results and options.' },
+                          { dim: 'D13', element: 'Manager toolkit for cascade communications', tip: 'Pre-written templates and guidance to help managers discuss serious illness support programs with their teams.' },
+                        ].map((row, i) => (
+                          <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                            <td className="px-3 py-2 text-gray-500 font-medium align-top">{row.dim}</td>
+                            <td className="px-3 py-2 text-gray-800 font-medium align-top">{row.element}</td>
+                            <td className="px-3 py-2 text-gray-600 align-top">{row.tip}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
