@@ -21,19 +21,15 @@ const NEW_ELEMENTS: Array<{
   overlap?: string
 }> = [
   // D2
-  { dim: 'Insurance & Financial Protection', dimNum: 2, id: 'D2-NEW-1', priority: 'MEDIUM', element: 'Employee hardship or emergency fund available for cancer-related out-of-pocket expenses', rationale: 'Financial burden is the #1 cited gap at 37%. 82% were not offered hardship funds; 28% wished they were.', overlap: 'Similar to existing D2 element "Hardship grants program funded by employer" \u2014 review whether to replace or keep both.' },
   { dim: 'Insurance & Financial Protection', dimNum: 2, id: 'D2-NEW-2', priority: 'MEDIUM', element: 'Prescription cost assistance or co-pay support program for cancer treatment medications', rationale: 'Prescription assistance was wished for by 25% of employees who were not offered it.' },
-  { dim: 'Insurance & Financial Protection', dimNum: 2, id: 'D2-NEW-3', priority: 'MEDIUM', element: 'Travel and/or lodging benefits for employees who must travel for specialized cancer treatment', rationale: '18% wished they had travel/lodging assistance. Unmet demand for specialized care access.', overlap: 'Similar to existing D2 element "Travel/lodging reimbursement for specialized care beyond insurance coverage" \u2014 review whether to replace or keep both.' },
   // D3
   { dim: 'Manager Preparedness & Capability', dimNum: 3, id: 'D3-NEW-1', priority: 'HIGH', element: 'Managers are trained specifically on available company benefits, leave policies, and support resources (operational knowledge training, distinct from empathy/sensitivity training)', rationale: 'Only 42% of managers were knowledgeable about benefits despite 69% showing empathy. 53% "learned as situations arose." Empathy without operational knowledge creates well-intentioned inconsistency.' },
   // D4
   { dim: 'Specialized Resources', dimNum: 4, id: 'D4-NEW-1', priority: 'HIGH', element: 'HR proactively reaches out to the employee after learning of a serious health condition (rather than waiting for the employee to request assistance)', rationale: 'Massive gender gaps in HR support: men rated HR 20\u201330 points higher. Only 38% of women said HR helped with paperwork vs 64% men.' },
   { dim: 'Specialized Resources', dimNum: 4, id: 'D4-NEW-2', priority: 'MEDIUM', element: 'Simplified administrative process for accessing benefits during a serious health condition (e.g., reduced paperwork, single-form access, digital submission options)', rationale: 'Only 48% of women said admin was easy to navigate vs 76% men. HR operational quality is the largest gender equity issue.' },
   // D6
-  { dim: 'Culture & Psychological Safety', dimNum: 6, id: 'D6-NEW-1', priority: 'HIGH', element: 'Formal, documented disclosure protocol for serious health conditions (defines who receives information, confidentiality commitments, and next-step actions)', rationale: '91% had at least one concern about disclosing. Pre-disclosure confidence is a leading indicator of downstream outcomes.', overlap: 'Similar to existing D6 element "Clear process for confidential health disclosures" \u2014 this is more specific about documentation and protocol steps.' },
   { dim: 'Culture & Psychological Safety', dimNum: 6, id: 'D6-NEW-2', priority: 'HIGH', element: 'Designated single point of contact assigned to the employee upon disclosure of a serious health condition', rationale: '28% of women lacked confidence in disclosure vs just 7% of men. A designated contact reduces anxiety and inconsistency.' },
   { dim: 'Culture & Psychological Safety', dimNum: 6, id: 'D6-NEW-3', priority: 'MEDIUM', element: 'Employee has explicit control over who in the organization is informed about their condition (written consent required before any information sharing)', rationale: 'Privacy violations cited in verbatims. Employee control over information is foundational to psychological safety.' },
-  { dim: 'Culture & Psychological Safety', dimNum: 6, id: 'D6-NEW-4', priority: 'LOW', element: 'Cancer-specific or serious illness Employee Resource Group (ERG) or peer support community available to employees', rationale: 'Close work friends rated 92% supportive \u2014 highest of any group. Yet 91% were not offered formal peer support.', overlap: 'Similar to existing D6 element "Employee peer support groups (internal employees with shared experience)" \u2014 this adds ERG specificity.' },
   // D8
   { dim: 'Work Continuation & Resumption', dimNum: 8, id: 'D8-NEW-1', priority: 'HIGH', element: 'Structured post-treatment check-in program (e.g., scheduled check-ins at 30, 60, and 90 days after active treatment completion)', rationale: 'Support ratings drop from 54% during treatment to just 22% after treatment ends \u2014 a 32-point cliff. This is the #1 opportunity to differentiate.' },
   { dim: 'Work Continuation & Resumption', dimNum: 8, id: 'D8-NEW-2', priority: 'HIGH', element: 'Continued workplace accommodations available during recovery phase (beyond active treatment period)', rationale: 'Only 16% of women rated post-treatment support as good vs 40% men. Accommodations that end at treatment end create the cliff.' },
@@ -241,7 +237,7 @@ export default function UpdatesPage() {
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-10">
           <div className="px-6 py-4 bg-gray-900 text-white">
             <h2 className="text-lg font-bold">Proposed New Elements</h2>
-            <p className="text-sm text-gray-400 mt-0.5">18 new grid elements recommended based on the Employee Cancer Experience Report 2025</p>
+            <p className="text-sm text-gray-400 mt-0.5">14 new grid elements recommended based on the Employee Cancer Experience Report 2025</p>
           </div>
 
           <div className="divide-y divide-gray-200">
