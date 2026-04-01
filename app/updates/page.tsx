@@ -174,7 +174,7 @@ export default function UpdatesPage() {
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-gray-900">Removed localStorage &mdash; Supabase-Only Data</h3>
                   <p className="text-sm text-gray-600 mt-1">
-                    All survey data is now stored exclusively in Supabase via a React context provider. This enables true cross-device access &mdash; users can start on one computer and continue on another. Eliminates data loss from browser clearing and ensures all responses are immediately backed up server-side.
+                    The original design used browser localStorage to allow offline continuation, but this created unnecessary complications. All survey data is now saved directly to the database on every change. If internet access is lost, users simply pick up where they left off once connectivity is restored.
                   </p>
                 </div>
               </div>
