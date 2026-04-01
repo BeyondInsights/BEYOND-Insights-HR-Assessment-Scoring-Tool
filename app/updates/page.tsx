@@ -236,7 +236,7 @@ export default function UpdatesPage() {
                 <div className="flex-1">
                   <h3 className="text-base font-semibold text-gray-900">New 6-Option Response Scale</h3>
                   <p className="text-sm text-gray-600 mt-1 mb-3">
-                    Replaced the old 5-option scale with a new 6-option scale informed by EMC research. Added &quot;Open to Exploring&quot; to capture companies newly aware of a need, distinct from deliberate &quot;Not Planned.&quot;
+                    Replaced the old 5-option scale with a new 6-option scale. Added &quot;Open to Exploring&quot; to capture companies newly aware of a need, distinct from deliberate &quot;Not Planned.&quot;
                   </p>
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
                     {SCALE_ITEMS.map(item => (
