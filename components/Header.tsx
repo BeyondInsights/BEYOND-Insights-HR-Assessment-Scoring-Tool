@@ -79,10 +79,10 @@ export default function Header() {
                 <button
                   onClick={() => router.push('/survey/review-unsure')}
                   className="flex items-center gap-1.5 bg-purple-600 text-white px-3 py-2 rounded-lg font-medium shadow-sm hover:bg-purple-700 transition text-xs whitespace-nowrap"
-                  title="Review and update elements marked as Unsure"
+                  title="Review items marked as Unsure or flagged for team review"
                 >
                   <AlertCircle className="w-3.5 h-3.5" />
-                  Unsure ({unsureCount})
+                  Items to Review ({unsureCount})
                 </button>
               )}
 

@@ -158,10 +158,9 @@ export default function ReviewUnsurePage() {
             </svg>
             Back to Dashboard
           </button>
-          <h1 className="text-2xl font-bold text-slate-900">Review Unsure Responses</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Items to Review</h1>
           <p className="text-sm text-slate-600 mt-2 leading-relaxed">
-            Below are all elements you marked as &quot;Unsure&quot; across the 13 dimensions.
-            Click any element to update your response.
+            Below are all elements you marked as &quot;Unsure&quot; across the 13 dimensions. You can update your response or download this list to review with other team members before updating.
           </p>
         </div>
 
@@ -172,9 +171,9 @@ export default function ReviewUnsurePage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-slate-800 mb-2">No Unsure Responses</h2>
+            <h2 className="text-lg font-semibold text-slate-800 mb-2">No Items to Review</h2>
             <p className="text-sm text-slate-600">
-              You have no elements marked as &quot;Unsure&quot; across any dimension.
+              You have no elements marked as &quot;Unsure&quot; across any dimension. All elements have been answered.
             </p>
             <button
               onClick={() => router.push('/dashboard')}
@@ -305,6 +304,41 @@ export default function ReviewUnsurePage() {
 
             {/* Action buttons */}
             <div className="mt-8 space-y-3">
+              <button
+                onClick={() => {
+                  const lines = ['Items to Review - Unsure Responses', '', 'Dimension | Element | Current Response', '---|---|---']
+                  Object.entries(grouped)
+                    .sort(([a], [b]) => Number(a) - Number(b))
+                    .forEach(([dimNum, items]) => {
+                      items.forEach(item => {
+                        lines.push(`D${item.dimensionNumber}: ${item.dimensionName} | ${item.elementName} | Unsure`)
+                      })
+                    })
+                  const text = lines.join('\n')
+                  const blob = new Blob([text], { type: 'text/plain' })
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `unsure-items-for-review-${new Date().toISOString().split('T')[0]}.txt`
+                  document.body.appendChild(a)
+                  a.click()
+                  document.body.removeChild(a)
+                  URL.revokeObjectURL(url)
+                }}
+                className="w-full flex items-center justify-between px-5 py-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-colors text-left"
+              >
+                <div>
+                  <p className="text-sm font-medium text-slate-800">
+                    Download for review with other team members
+                  </p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Export this list so colleagues can help determine the correct responses
+                  </p>
+                </div>
+                <svg className="w-5 h-5 text-slate-400 flex-shrink-0 ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </button>
               <button
                 onClick={handleSaveAndReturn}
                 disabled={saving}

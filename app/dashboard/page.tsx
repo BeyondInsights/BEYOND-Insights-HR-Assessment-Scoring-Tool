@@ -485,7 +485,10 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        <h2 className="text-xl font-bold text-gray-900 mb-4">13 Dimensions of Support</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">13 Dimensions of Support</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          You can complete these in any order. Consider starting with the dimensions you and your team are most familiar with.
+        </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
             const isLocked = !paymentCompleted || !allCoreDone;

@@ -315,6 +315,51 @@ export default function UpdatesPage() {
                 </div>
               </div>
             </div>
+
+            {/* Items to Review + Download */}
+            <div className="px-6 py-5">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-gray-900">Items to Review &mdash; Download for Team Collaboration</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Renamed the &quot;Unsure&quot; header button to &quot;Items to Review&quot; and added a download option. Users can export a list of all Unsure elements to share with colleagues who can help determine the correct responses before updating.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Dimension Completion Progress */}
+            <div className="px-6 py-5">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-gray-900">Dimension Completion Progress</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    When completing a dimension, users now see how many of the 13 dimensions are done (e.g., &quot;7 of 13 dimensions complete&quot;). The dashboard also includes a note that dimensions can be completed in any order.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Element Tooltips */}
+            <div className="px-6 py-5">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-sky-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-base font-semibold text-gray-900">Element Clarification Tooltips</h3>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Added plain-language explanations for 22 technical or ambiguous elements across the 13 dimensions. These appear automatically as blue info boxes when a user encounters an element that contains financial jargon, medical terminology, or concepts that may be unfamiliar (e.g., &quot;Accelerated life insurance benefits,&quot; &quot;CAR-T therapy,&quot; &quot;ESG/CSR reporting&quot;).
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
