@@ -553,11 +553,6 @@ export default function LoginPage() {
                   </div>
                 ) : (
                   <>
-                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Start Your Survey</h2>
-                    <p className="text-slate-600 mb-6">
-                      You&apos;ll receive a unique Survey ID after registering. Save this ID — you&apos;ll need it to return to your survey at any time.
-                    </p>
-
                     {/* Success Message */}
                     {successMessage && (
                       <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded">
