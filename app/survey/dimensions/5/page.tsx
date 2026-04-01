@@ -185,7 +185,7 @@ export default function Dimension5Page() {
   };
 
   const gridComplete5 = ans['d5a'] && typeof ans['d5a'] === 'object' && Object.keys(ans['d5a']).length >= D5A_ITEMS_BASE.length;
-  const showSummary5 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete5);
+  const showSummary5 = viewMode === 'summary';
 
   if (showSummary5 && viewMode !== 'step') {
     return (

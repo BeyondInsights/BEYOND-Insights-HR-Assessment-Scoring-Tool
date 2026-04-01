@@ -200,7 +200,7 @@ export default function Dimension12Page() {
   };
 
   const gridComplete12 = ans['d12a'] && typeof ans['d12a'] === 'object' && Object.keys(ans['d12a']).length >= D12A_ITEMS_BASE.length;
-  const showSummary12 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete12);
+  const showSummary12 = viewMode === 'summary';
 
   if (showSummary12 && viewMode !== 'step') {
     return (

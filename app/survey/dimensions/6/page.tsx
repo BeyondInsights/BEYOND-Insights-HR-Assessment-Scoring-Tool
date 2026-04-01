@@ -213,7 +213,7 @@ export default function Dimension6Page() {
   };
 
   const gridComplete6 = ans['d6a'] && typeof ans['d6a'] === 'object' && Object.keys(ans['d6a']).length >= D6A_ITEMS_BASE.length;
-  const showSummary6 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete6);
+  const showSummary6 = viewMode === 'summary';
 
   if (showSummary6 && viewMode !== 'step') {
     return (

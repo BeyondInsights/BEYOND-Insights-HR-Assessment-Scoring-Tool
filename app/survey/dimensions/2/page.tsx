@@ -196,7 +196,7 @@ export default function Dimension2Page() {
   };
 
   const gridComplete2 = ans['d2a'] && typeof ans['d2a'] === 'object' && Object.keys(ans['d2a']).length >= D2A_ITEMS_BASE.length;
-  const showSummary2 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete2);
+  const showSummary2 = viewMode === 'summary';
 
   if (showSummary2 && viewMode !== 'step') {
     return (

@@ -181,7 +181,7 @@ export default function Dimension7Page() {
   };
 
   const gridComplete7 = ans['d7a'] && typeof ans['d7a'] === 'object' && Object.keys(ans['d7a']).length >= D7A_ITEMS_BASE.length;
-  const showSummary7 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete7);
+  const showSummary7 = viewMode === 'summary';
 
   if (showSummary7 && viewMode !== 'step') {
     return (

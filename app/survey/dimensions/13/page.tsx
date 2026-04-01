@@ -187,7 +187,7 @@ export default function Dimension13Page() {
   };
 
   const gridComplete13 = ans['d13a'] && typeof ans['d13a'] === 'object' && Object.keys(ans['d13a']).length >= D13A_ITEMS_BASE.length;
-  const showSummary13 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete13);
+  const showSummary13 = viewMode === 'summary';
 
   if (showSummary13 && viewMode !== 'step') {
     return (

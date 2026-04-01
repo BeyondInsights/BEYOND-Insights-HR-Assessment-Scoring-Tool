@@ -186,7 +186,7 @@ const getTotalSteps = () => {
   };
 
   const gridComplete9 = ans['d9a'] && typeof ans['d9a'] === 'object' && Object.keys(ans['d9a']).length >= D9A_ITEMS_BASE.length;
-  const showSummary9 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete9);
+  const showSummary9 = viewMode === 'summary';
 
   if (showSummary9 && viewMode !== 'step') {
     return (

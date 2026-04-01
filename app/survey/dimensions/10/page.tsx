@@ -191,7 +191,7 @@ export default function Dimension10Page() {
   };
 
   const gridComplete10 = ans['d10a'] && typeof ans['d10a'] === 'object' && Object.keys(ans['d10a']).length >= D10A_ITEMS_BASE.length;
-  const showSummary10 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete10);
+  const showSummary10 = viewMode === 'summary';
 
   if (showSummary10 && viewMode !== 'step') {
     return (

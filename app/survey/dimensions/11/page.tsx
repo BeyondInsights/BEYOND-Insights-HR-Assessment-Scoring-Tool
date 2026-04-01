@@ -203,7 +203,7 @@ const next = async () => {
 };
 
   const gridComplete11 = ans['d11a'] && typeof ans['d11a'] === 'object' && Object.keys(ans['d11a']).length >= D11A_ITEMS_BASE.length;
-  const showSummary11 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete11);
+  const showSummary11 = viewMode === 'summary';
 
   if (showSummary11 && viewMode !== 'step') {
     return (

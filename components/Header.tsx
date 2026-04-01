@@ -1,6 +1,7 @@
 'use client'
+import { useMemo } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { FileText, Download, Receipt } from 'lucide-react'
+import { FileText, Download, Receipt, AlertCircle } from 'lucide-react'
 import { useAssessmentContext } from '@/lib/assessment-context'
 
 export default function Header() {
@@ -9,6 +10,21 @@ export default function Header() {
   const ctx = useAssessmentContext()
 
   const showInvoiceButton = ctx.paymentMethod === 'invoice' && !!ctx.email
+
+  // Count unsure responses across all 13 dimensions
+  const unsureCount = useMemo(() => {
+    let count = 0
+    for (let i = 1; i <= 13; i++) {
+      const data = ctx.getSectionData(`dimension${i}`)
+      if (!data) continue
+      const grid = data[`d${i}a`]
+      if (!grid || typeof grid !== 'object') continue
+      Object.values(grid).forEach((status) => {
+        if (typeof status === 'string' && status.toLowerCase().includes('unsure')) count++
+      })
+    }
+    return count
+  }, [ctx])
   
   // Hide Back to Dashboard on Dashboard, Letter, and Authorization pages
   const showBack = !['/dashboard', '/letter', '/authorization'].includes(pathname)
@@ -38,7 +54,18 @@ export default function Header() {
               <FileText className="w-3.5 h-3.5" />
               My Responses
             </button>
-            
+
+            {unsureCount > 0 && pathname !== '/survey/review-unsure' && (
+              <button
+                onClick={() => router.push('/survey/review-unsure')}
+                className="flex items-center gap-1.5 bg-purple-600 text-white px-3 py-2 rounded-lg font-medium shadow-sm hover:bg-purple-700 transition text-xs whitespace-nowrap"
+                title="Review and update elements marked as Unsure"
+              >
+                <AlertCircle className="w-3.5 h-3.5" />
+                Unsure ({unsureCount})
+              </button>
+            )}
+
             {!onPrintPage && (
               <button
                 onClick={goPrintView}

@@ -221,7 +221,7 @@ export default function Dimension4Page() {
   };
 
   const gridComplete4 = ans['d4a'] && typeof ans['d4a'] === 'object' && Object.keys(ans['d4a']).length >= D4A_ITEMS_BASE.length;
-  const showSummary4 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete4);
+  const showSummary4 = viewMode === 'summary';
 
   if (showSummary4 && viewMode !== 'step') {
     return (

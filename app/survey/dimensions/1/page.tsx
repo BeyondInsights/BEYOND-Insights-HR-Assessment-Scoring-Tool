@@ -262,7 +262,7 @@ export default function Dimension1Page() {
   };
 
   const gridComplete1 = ans['d1a'] && typeof ans['d1a'] === 'object' && Object.keys(ans['d1a']).length >= D1A_ITEMS_BASE.length;
-  const showSummary1 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete1);
+  const showSummary1 = viewMode === 'summary';
 
   if (showSummary1 && viewMode !== 'step') {
     return (

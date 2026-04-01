@@ -221,7 +221,7 @@ export default function Dimension3Page() {
   };
 
   const gridComplete3 = ans['d3a'] && typeof ans['d3a'] === 'object' && Object.keys(ans['d3a']).length >= D3A_ITEMS_BASE.length;
-  const showSummary3 = viewMode === 'summary' || (viewMode === 'auto' && gridComplete3);
+  const showSummary3 = viewMode === 'summary';
 
   if (showSummary3 && viewMode !== 'step') {
     return (
