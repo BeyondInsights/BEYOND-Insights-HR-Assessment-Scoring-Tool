@@ -70,7 +70,7 @@ export default function LoginPage() {
   const ctx = useAssessmentContext()
 
   // Step flow
-  const [step, setStep] = useState<Step>('select')
+  const [step, setStep] = useState<Step>('new')
   const [returningVariant, setReturningVariant] = useState<ReturningVariant>('continue')
 
   // Form state
@@ -443,97 +443,51 @@ export default function LoginPage() {
             /* ASSESSMENT_WINDOW_CLOSED — Everything below is the active login flow. Set ASSESSMENT_WINDOW_CLOSED = true to disable. */
             <>
 
-            {/* ============================================ */}
-            {/* STEP: CARD SELECTION (Welcome Overlay)       */}
-            {/* ============================================ */}
-            {step === 'select' && (
-              <div className="animate-fadeIn">
-                <p className="text-center text-slate-600 mb-8 text-lg">
-                  Select the option that best describes you
-                </p>
+            {/* Welcome Copy */}
+            <div className="mb-8 text-center">
+              <p className="text-sm text-slate-700 leading-relaxed">
+                Welcome to the Cancer and Careers Best Companies for Working with Cancer Initiative, recognizing organizations that excel in supporting employees facing cancer or other serious health conditions.
+              </p>
+              <p className="text-sm text-slate-700 leading-relaxed mt-3">
+                Employers who participate help set the standard for workplace support, gain valuable benchmarking insights into their company&apos;s policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Cancer and Careers Best Companies for Working with Cancer Index.
+              </p>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Card 1 — New User */}
-                  <button
-                    onClick={() => goToStep('new')}
-                    className="group text-left p-6 bg-white border-2 border-blue-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 cursor-pointer"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                      I am a new participant
-                    </h3>
-                    <p className="text-sm text-slate-600">
-                      My organization has not yet started the survey. I am ready to register and begin.
-                    </p>
-                  </button>
-
-                  {/* Card 2 — Returning User (Incomplete) */}
-                  <button
-                    onClick={() => goToStep('returning', 'continue')}
-                    className="group text-left p-6 bg-white border-2 border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 cursor-pointer"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
-                      <svg className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                      I have already started the survey
-                    </h3>
-                    <p className="text-sm text-slate-600">
-                      I previously registered and received a Survey ID, but have not finished yet. I would like to pick up where I left off.
-                    </p>
-                  </button>
-
-                  {/* Card 3 — Returning User (Review/Update) */}
-                  <button
-                    onClick={() => goToStep('returning', 'review')}
-                    className="group text-left p-6 bg-white border-2 border-slate-200 rounded-xl shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-200 cursor-pointer"
-                  >
-                    <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center mb-4 group-hover:bg-blue-50 transition-colors">
-                      <svg className="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                      I completed the survey and want to make updates
-                    </h3>
-                    <p className="text-sm text-slate-600">
-                      I finished the survey but would like to review my responses and make changes.
-                    </p>
-                  </button>
-                </div>
-
-                {/* Security note */}
-                <div className="mt-8 flex items-start gap-2 text-xs text-slate-500">
-                  <svg className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-                  </svg>
-                  <span><strong>Secure & Private:</strong> Your data is encrypted and protected. Only you can access your survey using your email and Survey ID combination.</span>
-                </div>
-              </div>
-            )}
+            {/* Toggle: New User vs Returning User */}
+            <div className="flex gap-2 mb-8 bg-orange-100 p-1 rounded-lg">
+              <button
+                type="button"
+                onClick={() => {
+                  goToStep('new')
+                }}
+                className={`flex-1 py-3 rounded-lg font-bold transition-all ${
+                  step === 'new'
+                    ? 'bg-white text-slate-900 shadow-md'
+                    : 'text-slate-700 hover:text-slate-900'
+                }`}
+              >
+                New User
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  goToStep('returning', 'continue')
+                }}
+                className={`flex-1 py-3 rounded-lg font-bold transition-all ${
+                  step === 'returning'
+                    ? 'bg-white text-slate-900 shadow-md'
+                    : 'text-slate-700 hover:text-slate-900'
+                }`}
+              >
+                Returning User
+              </button>
+            </div>
 
             {/* ============================================ */}
-            {/* STEP 2A: NEW USER FORM                       */}
+            {/* NEW USER FORM                                */}
             {/* ============================================ */}
             {step === 'new' && (
               <div className="animate-fadeIn">
-                {/* Back link */}
-                <button
-                  onClick={() => goToStep('select')}
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back to options
-                </button>
-
                 {/* Generated App ID Display */}
                 {showAppId && generatedAppId ? (
                   <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg">
@@ -747,29 +701,15 @@ export default function LoginPage() {
             )}
 
             {/* ============================================ */}
-            {/* STEP 2B: RETURNING USER FORM                 */}
+            {/* RETURNING USER FORM                          */}
             {/* ============================================ */}
             {step === 'returning' && (
               <div className="animate-fadeIn">
-                {/* Back link */}
-                <button
-                  onClick={() => goToStep('select')}
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-800 mb-6 transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                  Back to options
-                </button>
-
                 <h2 className="text-2xl font-bold text-slate-800 mb-2">
-                  {returningVariant === 'continue' ? 'Continue Your Survey' : 'Review & Update Your Survey'}
+                  Welcome Back
                 </h2>
                 <p className="text-slate-600 mb-6">
-                  {returningVariant === 'continue'
-                    ? 'Enter the email address and Survey ID you received when you first registered. Your progress is saved automatically — you\'ll pick up right where you left off.'
-                    : 'Enter the email address and Survey ID you received when you first registered. You can review all sections and update any of your responses.'
-                  }
+                  Enter the email address and Survey ID you received when you first registered. Your progress is saved automatically &mdash; you&apos;ll pick up right where you left off.
                 </p>
 
                 {/* Success Message */}
@@ -844,7 +784,7 @@ export default function LoginPage() {
                         Processing...
                       </span>
                     ) : (
-                      returningVariant === 'continue' ? 'Continue' : 'Review My Survey'
+                      'Continue Survey'
                     )}
                   </button>
                 </form>
