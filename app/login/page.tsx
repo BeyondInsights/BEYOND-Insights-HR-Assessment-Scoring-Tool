@@ -403,7 +403,7 @@ export default function LoginPage() {
       {/* Welcome Overlay */}
       {showWelcome && (
         <div
-          className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-700 ${
+          className={`fixed inset-0 z-50 flex flex-col items-center justify-start pt-[12vh] bg-white transition-opacity duration-700 ${
             welcomeFading ? 'opacity-0' : 'opacity-100'
           }`}
         >
@@ -411,12 +411,18 @@ export default function LoginPage() {
             <img
               src="/best-companies-2026-logo.png"
               alt="Best Companies Award Logo"
-              className="h-28 sm:h-36 w-auto mx-auto mb-6"
+              className="h-40 sm:h-52 w-auto mx-auto mb-6"
             />
             <h2 className="text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
               Welcome to the<br />
               Best Companies for Working with Cancer
             </h2>
+            <p className="text-base text-slate-600 mt-4 max-w-md mx-auto leading-relaxed">
+              Thank you for your commitment to supporting employees facing cancer and other serious health conditions.
+            </p>
+            <p className="text-sm text-slate-400 mt-6">
+              A Cancer and Careers Initiative
+            </p>
           </div>
         </div>
       )}
@@ -473,7 +479,7 @@ export default function LoginPage() {
             {/* Value Proposition */}
             <div className="mb-8 text-center border-t border-slate-200 pt-6">
               <p className="text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
-                Participating employers help set the standard for workplace support, gain valuable benchmarking insights into their policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Best Companies for Working with Cancer Index.
+                Participating employers help set the standard for workplace support, gain valuable benchmarking insights into their policies, programs, and culture, and if certified, will be featured in the 2027 Best Companies for Working with Cancer Index.
               </p>
             </div>
 
