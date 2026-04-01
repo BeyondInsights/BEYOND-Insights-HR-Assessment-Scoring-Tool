@@ -464,10 +464,10 @@ export default function LoginPage() {
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                      I&apos;m a new participant
+                      I am a new participant
                     </h3>
                     <p className="text-sm text-slate-600">
-                      My organization has not yet started the survey. I&apos;m ready to register and begin.
+                      My organization has not yet started the survey. I am ready to register and begin.
                     </p>
                   </button>
 
@@ -482,10 +482,10 @@ export default function LoginPage() {
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-slate-800 mb-2">
-                      I&apos;ve already started the survey
+                      I have already started the survey
                     </h3>
                     <p className="text-sm text-slate-600">
-                      I previously registered and received a Survey ID, but haven&apos;t finished yet. I&apos;d like to pick up where I left off.
+                      I previously registered and received a Survey ID, but have not finished yet. I would like to pick up where I left off.
                     </p>
                   </button>
 
