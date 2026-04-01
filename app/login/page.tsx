@@ -405,8 +405,8 @@ export default function LoginPage() {
               <h1 className="text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
                 Best Companies for Working with Cancer
               </h1>
-              <p className="text-sm text-slate-500 font-medium mt-1">
-                A Cancer and Careers Initiative
+              <p className="text-base text-slate-700 mt-3 max-w-lg mx-auto leading-relaxed">
+                Recognizing organizations that excel in supporting employees facing cancer or other serious health conditions.
               </p>
             </div>
 
@@ -439,10 +439,10 @@ export default function LoginPage() {
             /* ASSESSMENT_WINDOW_CLOSED — Everything below is the active login flow. Set ASSESSMENT_WINDOW_CLOSED = true to disable. */
             <>
 
-            {/* Welcome Copy */}
+            {/* Value Proposition */}
             <div className="mb-8 text-center border-t border-slate-200 pt-6">
               <p className="text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
-                This initiative recognizes organizations that excel in supporting employees facing cancer or other serious health conditions. Participating employers help set the standard for workplace support, gain benchmarking insights into their policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Best Companies Index.
+                Participating employers help set the standard for workplace support, gain valuable benchmarking insights into their policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Best Companies for Working with Cancer Index.
               </p>
             </div>
 
