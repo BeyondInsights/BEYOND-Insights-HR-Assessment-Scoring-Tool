@@ -41,6 +41,7 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
 }: UseProgressiveStatusGridArgs<TAns>) {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState(0);
+  const initializedRef = useRef(false);
 
   const ansRef = useRef<TAns>(ans);
   const currentIndexRef = useRef<number>(0);
@@ -59,6 +60,22 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
     () => (shuffle ? shuffleArray(itemsBase) : [...itemsBase]),
     [shuffle, itemsBase]
   );
+
+  // On mount: if returning user has partial answers, start at the first unanswered item
+  useEffect(() => {
+    if (initializedRef.current) return;
+    const grid = (ans as any)?.[gridKey] || {};
+    const answeredKeys = Object.keys(grid);
+    if (answeredKeys.length > 0 && answeredKeys.length < items.length) {
+      const firstUnanswered = items.findIndex(itm => !grid[itm]);
+      if (firstUnanswered !== -1) {
+        setCurrentItemIndex(firstUnanswered);
+      }
+      initializedRef.current = true;
+    } else if (answeredKeys.length > 0) {
+      initializedRef.current = true;
+    }
+  }, [ans, gridKey, items]);
 
   // Label drift diagnostic (dev safety net)
   useEffect(() => {
