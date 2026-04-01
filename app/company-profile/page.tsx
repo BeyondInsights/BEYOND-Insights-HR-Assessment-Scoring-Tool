@@ -99,47 +99,67 @@ const FIELD_LABELS: Record<string, string> = {
   // Screener
   s1: 'Birth Year',
   s2: 'Gender Identity',
+  s2_other: 'Gender Identity (Self-Described)',
   s3: 'Employment Status',
   s4a: 'Department/Function',
+  s4a_other: 'Department/Function (Other)',
   s4b: 'Primary Job Function',
+  s4b_other: 'Primary Job Function (Other)',
   s5: 'Level in Organization',
+  s5_other: 'Level in Organization (Other)',
   s6: 'Areas of Responsibility',
   s7: 'Influence on Benefits Decisions',
   s8: 'Total Employees',
   s9: 'Headquarters Location',
+  s9_other: 'Headquarters Location (Other)',
   s9a: 'Countries with Operations',
-  
+
   // Classification
   c2: 'Industry',
+  c2_other: 'Industry (Other)',
   c3: 'Benefits Eligibility',
   c3a: 'Employee Groups Excluded',
   c4: 'Annual Revenue',
+  c4_other: 'Groups Excluded (Other)',
   c5: 'Annual Revenue',
   c6: 'Remote/Hybrid Work Policy',
-  
+
   // General Benefits
   cb1: 'Current Benefits Offered',
+  cb1_standard: 'Standard Benefits',
+  cb1_leave: 'Leave & Flexibility Benefits',
+  cb1_wellness: 'Wellness & Support Programs',
+  cb1_financial: 'Financial & Legal Benefits',
+  cb1_navigation: 'Care Navigation & Support',
   cb1a: 'Employees with National Healthcare Access',
   cb2b: 'Benefits Planned (Next 2 Years)',
-  
+
   // Current Support
   cb3a: 'Support Beyond Legal Requirements',
   cb3b: 'Program Structure',
+  cb3b_other: 'Program Structure (Other)',
   cb3c: 'Health Conditions Covered',
+  cb3c_other: 'Health Conditions (Other)',
   cb3d: 'Program Development Method',
-  
+  cb3d_other: 'Program Development (Other)',
+
   // Organization Approach
   or1: 'Current Approach to Support',
-  or2a: 'What Triggered Enhanced Support',
-  or2b: 'Most Impactful Change',
+  or2a: 'Services Offered',
+  or2a_other: 'Services Offered (Other)',
+  or2b: 'Other Services Description',
   or3: 'Primary Barriers',
+  or3_other: 'Primary Barriers (Other)',
   or5a: 'Caregiver Support Types',
+  or5a_other: 'Caregiver Support (Other)',
   or6: 'Effectiveness Monitoring',
-  
+  or6_other: 'Effectiveness Monitoring (Other)',
+
   // Cross-Dimensional
   cd1a: 'Top 3 Priority Dimensions',
   cd1b: 'Bottom 3 Priority Dimensions',
   cd2: 'Implementation Challenges',
+  cd2_other: 'Implementation Challenges (Other)',
   
   // Employee Impact
   ei1: 'Program Impact by Outcome Area',
@@ -460,14 +480,23 @@ function downloadHTML(data: any) {
   const contactRows = [
     data.firmo?.firstName || data.firmo?.lastName ? fieldRow('Name', `${data.firmo?.firstName || ''} ${data.firmo?.lastName || ''}`.trim()) : '',
     fieldRow('Title', data.firmo?.title || data.firmo?.s4b),
+    fieldRow('Job Function (Other)', data.firmo?.s4b_other),
     fieldRow('Email', data.email),
+    fieldRow('Birth Year', data.firmo?.s1),
+    fieldRow('Gender Identity', data.firmo?.s2),
+    fieldRow('Gender Identity (Self-Described)', data.firmo?.s2_other),
+    fieldRow('Department/Function', data.firmo?.s4a),
+    fieldRow('Department (Other)', data.firmo?.s4a_other),
     fieldRow('Level', data.firmo?.s5),
+    fieldRow('Level (Other)', data.firmo?.s5_other),
+    fieldRow('Areas of Responsibility', Array.isArray(data.firmo?.s6) ? data.firmo.s6.join(', ') : data.firmo?.s6),
     fieldRow('Benefits Influence', data.firmo?.s7),
   ].filter(Boolean).join('');
 
   const companyRows = [
     fieldRow('Total Employees', data.firmo?.s8),
     fieldRow('Headquarters', data.firmo?.s9),
+    fieldRow('Headquarters (Other)', data.firmo?.s9_other),
     fieldRow('Countries', data.firmo?.s9a),
   ].filter(Boolean).join('');
 
@@ -480,8 +509,10 @@ function downloadHTML(data: any) {
   /* ── CLASSIFICATION ── */
   const classRows = [
     fieldRow('Industry / Sector', data.firmo?.c2),
+    fieldRow('Industry (Other)', data.firmo?.c2_other),
     fieldRow('Benefits Eligibility', data.firmo?.c3),
     fieldRow('Non-Standard Worker Types', selectedOnly(data.firmo?.c3a)),
+    fieldRow('Groups Excluded (Other)', data.firmo?.c4_other),
     fieldRow('Annual Revenue', data.firmo?.c4 || data.firmo?.c5),
     fieldRow('Remote / Hybrid Policy', data.firmo?.c6),
   ].filter(Boolean).join('');
@@ -1053,8 +1084,16 @@ export default function CompanyProfilePage() {
             <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Contact Information</h2>
             <Field label="Name" value={`${data.firmo?.firstName || ''} ${data.firmo?.lastName || ''}`.trim() || 'N/A'} />
             <Field label="Title" value={data.firmo?.title || data.firmo?.s4b} />
+            {data.firmo?.s4b_other && <Field label="Job Function (Other)" value={data.firmo.s4b_other} />}
             <Field label="Email" value={data.email} />
+            <Field label="Birth Year" value={data.firmo?.s1} />
+            <Field label="Gender Identity" value={data.firmo?.s2} />
+            {data.firmo?.s2_other && <Field label="Gender Identity (Self-Described)" value={data.firmo.s2_other} />}
+            <Field label="Department/Function" value={data.firmo?.s4a} />
+            {data.firmo?.s4a_other && <Field label="Department (Other)" value={data.firmo.s4a_other} />}
             <Field label="Level" value={data.firmo?.s5} />
+            {data.firmo?.s5_other && <Field label="Level (Other)" value={data.firmo.s5_other} />}
+            <Field label="Areas of Responsibility" value={data.firmo?.s6} />
             <Field label="Benefits Influence" value={data.firmo?.s7} />
           </div>
 
@@ -1062,6 +1101,7 @@ export default function CompanyProfilePage() {
             <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Company Profile</h2>
             <Field label="Total Employees" value={data.firmo?.s8} />
             <Field label="Headquarters" value={data.firmo?.s9} />
+            {data.firmo?.s9_other && <Field label="Headquarters (Other)" value={data.firmo.s9_other} />}
             <Field label="Countries of Operation" value={data.firmo?.s9a} />
           </div>
         </div>
@@ -1082,8 +1122,10 @@ export default function CompanyProfilePage() {
           <h2 className="text-lg font-bold mb-4" style={{ color: BRAND.gray[900] }}>Classification</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
             <Field label="Industry / Sector" value={data.firmo?.c2} />
+            {data.firmo?.c2_other && <Field label="Industry (Other)" value={data.firmo.c2_other} />}
             <Field label="Benefits Eligibility" value={data.firmo?.c3} />
             <Field label="Non-Standard Worker Types" value={selectedOnly(data.firmo?.c3a)} />
+            {data.firmo?.c4_other && <Field label="Groups Excluded (Other)" value={data.firmo.c4_other} />}
             <Field label="Annual Revenue" value={data.firmo?.c4 || data.firmo?.c5} />
             <Field label="Remote / Hybrid Policy" value={data.firmo?.c6} />
           </div>
