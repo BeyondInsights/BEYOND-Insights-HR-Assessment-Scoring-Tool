@@ -168,6 +168,7 @@ function FPRegisterContent() {
               consentDate: new Date().toISOString(),
               registeredAt: new Date().toISOString(),
             },
+            survey_year: 2027,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })

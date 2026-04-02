@@ -277,6 +277,7 @@ export default function LoginPage() {
               payment_completed: true,
               payment_method: 'FP Comp',
               payment_amount: 1250.00,
+              survey_year: 2027,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             })
