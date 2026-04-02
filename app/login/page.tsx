@@ -69,16 +69,6 @@ export default function LoginPage() {
   const router = useRouter()
   const ctx = useAssessmentContext()
 
-  // Welcome overlay
-  const [showWelcome, setShowWelcome] = useState(true)
-  const [welcomeFading, setWelcomeFading] = useState(false)
-
-  useEffect(() => {
-    const fadeTimer = setTimeout(() => setWelcomeFading(true), 2800)
-    const hideTimer = setTimeout(() => setShowWelcome(false), 3800)
-    return () => { clearTimeout(fadeTimer); clearTimeout(hideTimer) }
-  }, [])
-
   // Step flow
   const [step, setStep] = useState<Step>('new')
   const [returningVariant, setReturningVariant] = useState<ReturningVariant>('continue')
@@ -400,37 +390,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 via-amber-50 to-orange-50 flex flex-col">
-      {/* Welcome Overlay */}
-      {showWelcome && (
-        <div
-          className={`fixed inset-0 z-50 flex flex-col items-center justify-start pt-[10vh] transition-all duration-1000 ease-in-out ${
-            welcomeFading ? 'opacity-0 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0'
-          }`}
-          style={{ background: 'linear-gradient(180deg, #FFF7ED 0%, #FFFBEB 40%, #FFF7ED 100%)' }}
-        >
-          <div className="text-center px-6">
-            <div className="welcome-logo">
-              <img
-                src="/best-companies-2027-logo.png"
-                alt="Best Companies Award Logo"
-                className="h-40 sm:h-52 w-auto mx-auto mb-6"
-              />
-            </div>
-            <h2 className="welcome-title text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
-              Welcome to the Cancer and Careers<br />
-              Best Companies for Working with Cancer Initiative
-            </h2>
-            <p className="welcome-subtitle text-base text-slate-600 mt-4 max-w-md mx-auto leading-relaxed">
-              Recognizing organizations that excel in supporting employees facing cancer or other serious health conditions.
-            </p>
-            <div className="welcome-divider w-16 h-0.5 bg-[#F37021] mx-auto mt-6 mb-4 rounded-full opacity-40" />
-            <p className="welcome-footer text-sm text-slate-400">
-              A Cancer and Careers Initiative
-            </p>
-          </div>
-        </div>
-      )}
-
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-3xl">
           <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
