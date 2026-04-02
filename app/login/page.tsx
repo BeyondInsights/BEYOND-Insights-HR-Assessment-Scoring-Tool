@@ -482,9 +482,15 @@ export default function LoginPage() {
             <>
 
             {/* Value Proposition */}
-            <div className="mb-8 text-center border-t border-slate-200 pt-6">
-              <p className="text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
-                We are currently accepting applications for 2027 consideration. The Index evaluates the strength of employer benefits, policies, culture and resources, measured against weighted priorities identified by employees navigating cancer. Employers who participate help set the standard for workplace support, gain valuable benchmarking insights into their company&apos;s policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Cancer and Careers Best Companies for Working with Cancer Index.
+            <div className="mb-8 border-t border-slate-200 pt-6 max-w-xl mx-auto space-y-3">
+              <p className="text-base text-slate-800 leading-relaxed text-center font-semibold">
+                We are currently accepting applications for 2027 consideration.
+              </p>
+              <p className="text-sm text-slate-600 leading-relaxed text-left">
+                The Index evaluates the strength of employer benefits, policies, culture and resources, measured against weighted priorities identified by employees navigating cancer.
+              </p>
+              <p className="text-sm text-slate-600 leading-relaxed text-left">
+                Employers who participate help set the standard for workplace support, gain valuable benchmarking insights into their company&apos;s policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Cancer and Careers Best Companies for Working with Cancer Index.
               </p>
             </div>
 
