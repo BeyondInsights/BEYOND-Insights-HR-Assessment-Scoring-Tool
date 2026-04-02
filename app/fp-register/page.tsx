@@ -269,7 +269,7 @@ function FPRegisterContent() {
             {/* Header */}
             <div className="text-center mb-8">
               <img
-                src="/best-companies-2026-logo.png"
+                src="/best-companies-2027-logo.png"
                 alt="Best Companies Award Logo"
                 className="h-24 w-auto mx-auto mb-6"
               />

@@ -5762,7 +5762,7 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-10">
                   <div className="bg-white rounded-xl p-5 shadow-lg">
-                    <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                    <Image src="/best-companies-2027-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
                   </div>
                   <div>
                     <p className="text-slate-500 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
@@ -11586,7 +11586,7 @@ export default function ExportReportPage() {
             <div className="relative bg-white px-12 py-6 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="p-2">
-                  <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
+                  <Image src="/best-companies-2027-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
                 </div>
                 <h2 className="text-4xl font-bold text-slate-800">Thank You</h2>
                 <div className="p-2">
@@ -12025,7 +12025,7 @@ export default function ExportReportPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-10">
                           <div className="bg-white rounded-xl p-5 shadow-lg">
-                            <Image src="/best-companies-2026-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                            <Image src="/best-companies-2027-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
                           </div>
                           <div>
                             <p className="text-slate-500 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
@@ -15361,7 +15361,7 @@ export default function ExportReportPage() {
                     <div className="bg-white px-12 py-8">
                       <div className="flex items-center justify-between">
                         <div className="p-2">
-                          <Image src="/best-companies-2026-logo.png" alt="Best Companies" width={120} height={120} className="object-contain" />
+                          <Image src="/best-companies-2027-logo.png" alt="Best Companies" width={120} height={120} className="object-contain" />
                         </div>
                         <h2 className="text-5xl font-bold text-slate-800">Thank You</h2>
                         <div className="p-2">

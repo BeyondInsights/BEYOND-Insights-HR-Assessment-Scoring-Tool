@@ -135,7 +135,7 @@ export default function LetterPage() {
               2026 Best Companies for<br />Working with Cancer Initiative
             </h1>
             <img
-              src="/best-companies-2026-logo.png"
+              src="/best-companies-2027-logo.png"
               alt="Best Companies for Working with Cancer Award Logo"
               className="h-24 sm:h-28 lg:h-32 w-auto flex-shrink-0 drop-shadow-lg"
             />

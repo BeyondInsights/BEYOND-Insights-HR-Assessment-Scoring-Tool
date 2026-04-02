@@ -411,17 +411,17 @@ export default function LoginPage() {
           <div className="text-center px-6">
             <div className="welcome-logo">
               <img
-                src="/best-companies-2026-logo.png"
+                src="/best-companies-2027-logo.png"
                 alt="Best Companies Award Logo"
                 className="h-40 sm:h-52 w-auto mx-auto mb-6"
               />
             </div>
             <h2 className="welcome-title text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
-              Welcome to the<br />
+              Welcome to the Cancer and Careers<br />
               Best Companies for Working with Cancer Initiative
             </h2>
             <p className="welcome-subtitle text-base text-slate-600 mt-4 max-w-md mx-auto leading-relaxed">
-              Thank you for your commitment to supporting employees facing cancer and other serious health conditions.
+              Recognizing organizations that excel in supporting employees facing cancer or other serious health conditions.
             </p>
             <div className="welcome-divider w-16 h-0.5 bg-[#F37021] mx-auto mt-6 mb-4 rounded-full opacity-40" />
             <p className="welcome-footer text-sm text-slate-400">
@@ -438,14 +438,14 @@ export default function LoginPage() {
             <div className="text-center mb-6">
               <div className="flex justify-center mb-5">
                 <img
-                  src="/best-companies-2026-logo.png"
+                  src="/best-companies-2027-logo.png"
                   alt="Best Companies Award Logo"
                   className="h-32 sm:h-40 w-auto"
                 />
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold text-[#F37021] leading-tight">
-                The Best Companies for<br />
-                Working with Cancer Initiative
+                Welcome to the Cancer and Careers<br />
+                Best Companies for Working with Cancer Initiative
               </h1>
               <p className="text-base sm:text-lg text-slate-800 mt-4 max-w-lg mx-auto leading-relaxed font-medium italic">
                 Recognizing organizations that excel in supporting employees facing cancer or other serious health conditions.
@@ -484,7 +484,7 @@ export default function LoginPage() {
             {/* Value Proposition */}
             <div className="mb-8 text-center border-t border-slate-200 pt-6">
               <p className="text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
-                Participating employers help set the standard for workplace support, gain valuable benchmarking insights into their policies, programs, and culture, and if certified, will be featured in the 2027 Best Companies for Working with Cancer Index.
+                We are currently accepting applications for 2027 consideration. The Index evaluates the strength of employer benefits, policies, culture and resources, measured against weighted priorities identified by employees navigating cancer. Employers who participate help set the standard for workplace support, gain valuable benchmarking insights into their company&apos;s policies, programs, and culture &ndash; and if certified &ndash; will be featured in the 2027 Cancer and Careers Best Companies for Working with Cancer Index.
               </p>
             </div>
 

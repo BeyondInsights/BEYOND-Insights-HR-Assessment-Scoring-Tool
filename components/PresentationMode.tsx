@@ -125,7 +125,7 @@ export default function PresentationMode(props: PresentationModeProps) {
           <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-8">
-                <div className="bg-white rounded-xl p-4 shadow-lg"><Image src="/best-companies-2026-logo.png" alt="Logo" width={120} height={120} /></div>
+                <div className="bg-white rounded-xl p-4 shadow-lg"><Image src="/best-companies-2027-logo.png" alt="Logo" width={120} height={120} /></div>
                 <div>
                   <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
                   <h1 className="text-3xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>

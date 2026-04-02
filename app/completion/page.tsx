@@ -92,7 +92,7 @@ export default function CompletionPage() {
         <div className="max-w-4xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <img src="/cancer-careers-logo.png" alt="Cancer and Careers" className="h-12 w-auto" />
-            <img src="/best-companies-2026-logo.png" alt="Best Companies Award" className="h-14 w-auto" />
+            <img src="/best-companies-2027-logo.png" alt="Best Companies Award" className="h-14 w-auto" />
           </div>
         </div>
       </div>
