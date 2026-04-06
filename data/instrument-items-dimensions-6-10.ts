@@ -379,16 +379,6 @@ const D8_INTRO: InstrumentItem = {
 // D8.a - Main grid items (12 items)
 const D8A_ITEMS: InstrumentItem[] = [
   {
-    id: "D8.a1",
-    section: "D8",
-    text: "Flexible work arrangements during treatment",
-    route: "/survey/dimensions/8",
-    type: "likert-4",
-    fieldName: "d8a",
-    randomize: true,
-    multiCountryFollowUp: true
-  },
-  {
     id: "D8.a2",
     section: "D8",
     text: "Phased return-to-work plans",

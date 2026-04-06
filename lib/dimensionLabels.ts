@@ -223,7 +223,6 @@ const D7_QUESTIONS: Record<string, string> = {
 // ============================================
 const D8_QUESTIONS: Record<string, string> = {
   // D8.a Grid Items (12 programs)
-  "Flexible work arrangements during treatment": "Flexible work during treatment",
   "Phased return-to-work plans": "Phased return-to-work plans",
   "Workload adjustments during treatment": "Workload adjustments",
   "Flexibility for medical setbacks": "Flexibility for medical setbacks",

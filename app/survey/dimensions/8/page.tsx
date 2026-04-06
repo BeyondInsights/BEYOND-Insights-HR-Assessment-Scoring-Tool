@@ -11,7 +11,6 @@ import ELEMENT_TOOLTIPS from "@/data/element-tooltips";
 // Fisher-Yates shuffle algorithm
 
 const D8A_ITEMS_BASE = [
-  "Flexible work arrangements during treatment",
   "Phased return-to-work plans",
   "Workload adjustments during treatment",
   "Flexibility for medical setbacks",

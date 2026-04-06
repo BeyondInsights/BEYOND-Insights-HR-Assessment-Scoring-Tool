@@ -84,8 +84,7 @@ const rows = [
   ['D7', 'Career Continuity & Advancement', 7, 'Succession planning protections', ''],
   ['D7', 'Career Continuity & Advancement', 8, 'Project continuity protocols', ''],
   ['D7', 'Career Continuity & Advancement', 9, 'Optional stay-connected program', ''],
-  ['D8', 'Work Continuation & Resumption', 1, 'Flexible work arrangements during treatment', ''],
-  ['D8', 'Work Continuation & Resumption', 2, 'Phased return-to-work plans', ''],
+  ['D8', 'Work Continuation & Resumption', 1, 'Phased return-to-work plans', ''],
   ['D8', 'Work Continuation & Resumption', 3, 'Workload adjustments during treatment', ''],
   ['D8', 'Work Continuation & Resumption', 4, 'Flexibility for medical setbacks', ''],
   ['D8', 'Work Continuation & Resumption', 5, 'Buddy/mentor pairing for support', ''],
@@ -213,7 +212,7 @@ html += `<tr style="background:#1B3A5C;color:white;font-weight:bold;font-size:12
 html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Element</td><td>Dimension</td><td>Context</td></tr>`;
 html += `<tr><td>Flexible work hours during treatment</td><td>D1 - Medical Leave &amp; Flexibility</td><td>Hours/scheduling during active treatment</td></tr>`;
 html += `<tr style="background:#FEE2E2;text-decoration:line-through;"><td>Flexible scheduling options</td><td>D5 - Workplace Accommodations</td><td>Removed — similar to D8 flexible work arrangements</td></tr>`;
-html += `<tr><td>Flexible work arrangements during treatment</td><td>D8 - Work Continuation &amp; Resumption</td><td>Arrangements for continuing/resuming work</td></tr>`;
+html += `<tr style="background:#FEE2E2;text-decoration:line-through;"><td>Flexible work arrangements during treatment</td><td>D8 - Work Continuation &amp; Resumption</td><td>Removed — overlaps with D1 flexible hours + other D8 elements</td></tr>`;
 html += `<tr><td>Flexible work arrangements for caregivers</td><td>D10 - Caregiver &amp; Family Support</td><td>Caregiver-specific flexibility</td></tr>`;
 html += `</table>`;
 
@@ -232,7 +231,8 @@ html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Dimens
 html += `<tr style="background:#FEE2E2;"><td>D4</td><td>Nutrition coaching</td><td>Removed per client request</td></tr>`;
 html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Priority parking</td><td>Removed per client request</td></tr>`;
 html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Remote work capability</td><td>Duplicate of D1 "Remote work options for on-site employees"</td></tr>`;
-html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Flexible scheduling options</td><td>Similar to D8 "Flexible work arrangements during treatment"</td></tr>`;
+html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Flexible scheduling options</td><td>Similar to D8 flexible work arrangements</td></tr>`;
+html += `<tr style="background:#FEE2E2;"><td>D8</td><td>Flexible work arrangements during treatment</td><td>Overlaps with D1 flexible hours + other D8 elements</td></tr>`;
 
 html += `<tr style="background:#2563EB;color:white;font-weight:bold;"><td colspan="3">Response Scale Changes (2026 → 2027)</td></tr>`;
 html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Change</td><td>Details</td><td>Status</td></tr>`;

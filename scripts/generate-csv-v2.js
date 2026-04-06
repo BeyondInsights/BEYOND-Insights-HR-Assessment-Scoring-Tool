@@ -94,7 +94,7 @@ const rows = [
   ['D7', 'Career Continuity & Advancement', 7, 'Succession planning protections', ''],
   ['D7', 'Career Continuity & Advancement', 8, 'Project continuity protocols', ''],
   ['D7', 'Career Continuity & Advancement', 9, 'Optional stay-connected program', ''],
-  ['D8', 'Work Continuation & Resumption', 1, 'Flexible work arrangements during treatment', ''],
+  ['D8', 'Work Continuation & Resumption', '-', 'Flexible work arrangements during treatment', 'REMOVED (overlaps D1 + other D8)'],
   ['D8', 'Work Continuation & Resumption', 2, 'Phased return-to-work plans', ''],
   ['D8', 'Work Continuation & Resumption', 3, 'Workload adjustments during treatment', ''],
   ['D8', 'Work Continuation & Resumption', 4, 'Flexibility for medical setbacks', ''],
