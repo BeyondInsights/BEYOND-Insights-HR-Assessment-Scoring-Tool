@@ -22,7 +22,9 @@ const D1A_ITEMS_BASE = [
   "Disability pay top-up (employer adds to disability insurance)",
   "PTO accrual during leave",
   "Paid micro-breaks for medical-related side effects",
-  "Full salary (100%) continuation during cancer-related short-term disability leave"
+  "Full salary (100%) continuation during cancer-related short-term disability leave",
+  "Guaranteed full salary and insurance continuation for a defined period",
+  "Guaranteed job protection for a defined period"
 ];
 
 export default function Dimension1Page() {
@@ -137,6 +139,8 @@ export default function Dimension1Page() {
   const showD1_4b = ans.d1a?.["Reduced schedule/part-time with full benefits"] === "In Place";
   const showD1_5 = ans.d1a?.["Job protection beyond local / legal requirements"] === "In Place";
   const showD1_6 = ans.d1a?.["Disability pay top-up (employer adds to disability insurance)"] === "In Place";
+  const showD1_7 = ans.d1a?.["Guaranteed full salary and insurance continuation for a defined period"] === "In Place";
+  const showD1_8 = ans.d1a?.["Guaranteed job protection for a defined period"] === "In Place";
 
   // D1aa should show if multi-country AND at least one "In Place"
   const hasAnyOffered = Object.values(ans.d1a || {}).some(
@@ -154,6 +158,8 @@ export default function Dimension1Page() {
     if (showD1_4b) total++;
     if (showD1_5) total++;
     if (showD1_6) total++;
+    if (showD1_7) total++;
+    if (showD1_8) total++;
     total++; // completion screen
     return total;
   };
@@ -202,7 +208,9 @@ export default function Dimension1Page() {
         else if (showD1_4b) setStep(7);
         else if (showD1_5) setStep(8);
         else if (showD1_6) setStep(9);
-        else setStep(10); // Completion
+        else if (showD1_7) setStep(10);
+        else if (showD1_8) setStep(11);
+        else setStep(12); // Completion
       }
     } else if (step === 3) {
       // From D1.b
@@ -212,35 +220,54 @@ export default function Dimension1Page() {
       else if (showD1_4b) setStep(7);
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
-      else setStep(10); // Completion
+      else if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 4) {
       if (showD1_2) setStep(5);
       else if (showD1_4a) setStep(6);
       else if (showD1_4b) setStep(7);
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
-      else setStep(10);
+      else if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 5) {
       if (showD1_4a) setStep(6);
       else if (showD1_4b) setStep(7);
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
-      else setStep(10);
+      else if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 6) {
       if (showD1_4b) setStep(7);
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
-      else setStep(10);
+      else if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 7) {
       if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
-      else setStep(10);
+      else if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 8) {
       if (showD1_6) setStep(9);
-      else setStep(10);
+      else if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 9) {
-      setStep(10);
+      if (showD1_7) setStep(10);
+      else if (showD1_8) setStep(11);
+      else setStep(12);
     } else if (step === 10) {
+      if (showD1_8) setStep(11);
+      else setStep(12);
+    } else if (step === 11) {
+      setStep(12);
+    } else if (step === 12) {
       ctx.setSectionComplete('dimension1', true);
       await ctx.saveToSupabase('dimension1');
       router.push("/dashboard");
@@ -1065,8 +1092,78 @@ export default function Dimension1Page() {
   </div>
 )}
 
-        {/* Step 10: Completion */}
-        {step === 10 && (
+        {/* D1.7 - Guaranteed full salary and insurance duration */}
+        {step === 10 && showD1_7 && (
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Guaranteed Full Salary & Insurance</h3>
+
+            <p className="text-gray-700 mb-2">
+              What is the total duration of the <strong>guaranteed full salary and benefits</strong> from the point of diagnosis disclosure?
+            </p>
+            <p className="text-sm text-gray-600 mb-6">(Select ONE)</p>
+
+            <div className="space-y-2">
+              {[
+                "Up to 3 months",
+                "3 to less than 6 months",
+                "6 to less than 12 months",
+                "1 to less than 2 years",
+                "2 years or more",
+                "No defined limit / case-by-case"
+              ].map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setField("d1_7_duration", opt)}
+                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
+                    ans.d1_7_duration === opt
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* D1.8 - Guaranteed job protection duration */}
+        {step === 11 && showD1_8 && (
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Guaranteed Job Protection</h3>
+
+            <p className="text-gray-700 mb-2">
+              What is the total duration of <strong>guaranteed job protection</strong> from the point of diagnosis disclosure?
+            </p>
+            <p className="text-sm text-gray-600 mb-6">(Select ONE)</p>
+
+            <div className="space-y-2">
+              {[
+                "Up to 3 months",
+                "3 to less than 6 months",
+                "6 to less than 12 months",
+                "1 to less than 2 years",
+                "2 years or more",
+                "No defined limit / case-by-case"
+              ].map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => setField("d1_8_duration", opt)}
+                  className={`w-full px-4 py-3 text-left rounded-lg border-2 transition-all ${
+                    ans.d1_8_duration === opt
+                      ? "border-blue-500 bg-blue-50"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Step 12: Completion */}
+        {step === 12 && (
           <div className="bg-white p-8 rounded-lg shadow-sm text-center">
             <div className="mb-6">
               <svg className="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

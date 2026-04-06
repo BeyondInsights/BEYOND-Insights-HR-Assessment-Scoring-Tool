@@ -47,7 +47,11 @@ const D1_QUESTIONS: Record<string, string> = {
   "d1_5_non_usa": "Job protection duration (Non-USA)",
   
   // D1.6 - Disability Enhancement
-  "d1_6": "Disability benefit enhancements"
+  "d1_6": "Disability benefit enhancements",
+  "Guaranteed full salary and insurance continuation for a defined period": "Guaranteed salary & insurance",
+  "Guaranteed job protection for a defined period": "Guaranteed job protection (defined period)",
+  "d1_7_duration": "Guaranteed salary & insurance duration",
+  "d1_8_duration": "Guaranteed job protection duration"
 };
 
 // ============================================
