@@ -110,7 +110,7 @@ export default function Dimension8Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    "Unsure"
+    // "Unsure" // Hidden for launch - revisiting with Rebecca
   ];
 
 const hasAnyOffered = Object.values(ans.d8a || {}).some(
@@ -291,7 +291,6 @@ const getTotalSteps = () => {
                     { label: 'Under Review', color: '#D97706', desc: 'Actively evaluating the feasibility, cost, or design of this program. No implementation timeline yet, but it is on leadership\'s radar.' },
                     { label: 'Open to Exploring', color: '#8B5CF6', desc: 'Had not considered this, but learning about it has sparked interest. Open to reviewing whether this could work for your organization.' },
                     { label: 'Not Planned', color: '#64748B', desc: 'Considered this and determined it is not feasible or appropriate for your organization at this time.' },
-                    { label: 'Unsure', color: '#9CA3AF', desc: 'Don\'t have enough information to answer this accurately. Flags the item for internal follow-up.' },
                   ].map(opt => (
                     <div key={opt.label} className="flex items-start gap-3 px-4 py-3">
                       <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: opt.color }} />

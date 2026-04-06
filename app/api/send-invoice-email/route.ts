@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
                         Best Companies for Working with Cancer
                       </h1>
                       <p style="color: #6b7280; font-size: 14px; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
-                        2026 Initiative
+                        2027 Initiative
                       </p>
                     </td>
                   </tr>
@@ -111,8 +111,8 @@ export async function POST(request: NextRequest) {
                               Payment Terms
                             </p>
                             <p style="color: #78350f; font-size: 14px; margin: 8px 0 0 0; line-height: 1.5;">
-                              Payment is due within 30 days. Full payment is required to receive your benchmarking report 
-                              and consideration for the 2026 Cancer and Careers Best Companies for Working With Cancer Initiative.
+                              Payment is due within 30 days. Full payment is required to receive your benchmarking report
+                              and consideration for the 2027 Cancer and Careers Best Companies for Working With Cancer Initiative.
                             </p>
                           </td>
                         </tr>
@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
                                     Access Survey Dashboard
                                   </a>
                                   <p style="color: #991b1b; font-size: 13px; margin: 15px 0 0 0; font-weight: 500;">
-                                    Submission Deadline: February 15, 2026
+                                    Submission Deadline: October 1, 2026
                                   </p>
                                 </td>
                               </tr>

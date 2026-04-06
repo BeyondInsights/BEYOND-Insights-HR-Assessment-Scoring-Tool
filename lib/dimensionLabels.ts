@@ -123,7 +123,6 @@ const D4_QUESTIONS: Record<string, string> = {
   "Care coordination concierge": "Care coordination concierge",
   "Online tools, apps, or portals for health/benefits support": "Online health/benefits tools",
   "Survivorship planning assistance": "Survivorship planning",
-  "Nutrition coaching": "Nutrition coaching",
   "Physical rehabilitation support": "Physical rehabilitation",
   "Occupational therapy/vocational rehabilitation": "Occupational therapy",
   
@@ -152,7 +151,6 @@ const D5_QUESTIONS: Record<string, string> = {
   "Flexible scheduling options": "Flexible scheduling",
   "Remote work capability": "Remote work capability",
   "Rest areas / quiet spaces": "Rest areas/quiet spaces",
-  "Priority parking": "Priority parking",
   "Temporary role redesigns": "Temporary role redesigns",
   "Assistive technology catalog": "Assistive technology",
   "Transportation reimbursement": "Transportation reimbursement",

@@ -162,7 +162,7 @@ export default function CompletionPage() {
                     <span className="ml-2 text-red-600 text-lg">*</span>
                   </h2>
                   <p className="text-sm text-gray-700 leading-relaxed mb-3">
-                    Your survey fee includes the option to deploy an employee survey to evaluate perceptions of your company programs and benefits, and identify opportunities for enhancements.
+                    Your participation includes the option to deploy an optional employee survey ($500) to evaluate perceptions of your company programs and benefits, and identify opportunities for enhancements.
                   </p>
                   <p className="text-sm text-gray-700 leading-relaxed mb-3">
                     If interested, our independent research provider, <strong>BEYOND Insights</strong>, will provide a unique survey link which can be sent internally to your employees. Upon completion, BEYOND Insights will provide a detailed report and analysis.
@@ -280,7 +280,7 @@ export default function CompletionPage() {
                     1
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Survey Close: February 15, 2026</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">Survey Close: October 1, 2026</h3>
                     <p className="text-sm text-gray-700">
                       BEYOND Insights will conduct and finalize analysis following the close of the survey.
                     </p>
@@ -293,9 +293,9 @@ export default function CompletionPage() {
                     2
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Initiative Release</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">Index Release: January, 2027</h3>
                     <p className="text-sm text-gray-700">
-                      The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in late March, 2026.
+                      The Cancer and Careers 2027 Best Companies for Working With Cancer Index is scheduled to be released in January, 2027.
                     </p>
                   </div>
                 </div>
@@ -306,7 +306,7 @@ export default function CompletionPage() {
                     3
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: Distributed March 2026</h3>
+                    <h3 className="font-semibold text-gray-900 mb-1">Benchmarking Reports: Distributed February, 2027</h3>
                     <div className="bg-white border border-teal-200 rounded-lg p-3">
                       <p className="text-xs text-gray-600">
                         <strong>Please Note:</strong> Benchmarking Reports are included with the survey fee. All reports are completely confidential and shared back only to the participating company. No individual data is shared with the public or any other participating company.

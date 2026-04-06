@@ -692,15 +692,6 @@ const D5_ITEMS: InstrumentItem[] = [
   {
     id: "D5.a7",
     section: "D5",
-    text: "Priority parking",
-    route: "/survey/dimensions/5",
-    type: "likert-4",
-    fieldName: "d5a",
-    gridItem: true,
-  },
-  {
-    id: "D5.a8",
-    section: "D5",
     text: "Temporary role redesigns",
     route: "/survey/dimensions/5",
     type: "likert-4",

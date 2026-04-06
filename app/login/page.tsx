@@ -444,7 +444,7 @@ export default function LoginPage() {
             {/* Value Proposition */}
             <div className="mb-8 border-t border-slate-200 pt-6 max-w-xl mx-auto space-y-3">
               <p className="text-base text-slate-800 leading-relaxed text-center font-semibold">
-                We are currently accepting applications for 2027 consideration.
+                The 2027 Survey is Now Open
               </p>
               <p className="text-sm text-slate-600 leading-relaxed text-left">
                 The Index evaluates the strength of employer benefits, policies, culture and resources, measured against weighted priorities identified by employees navigating cancer.

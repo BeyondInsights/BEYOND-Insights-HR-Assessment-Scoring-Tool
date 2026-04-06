@@ -289,7 +289,6 @@ export const DIM_SUPPORT: Record<number,string[]> = {
     'Private space for medical needs',
     'Modified dress code for medical devices',
     'Service animal accommodations',
-    'Parking accommodations',
   ],
   6: [
     'Strong anti-discrimination policies specific to health conditions',

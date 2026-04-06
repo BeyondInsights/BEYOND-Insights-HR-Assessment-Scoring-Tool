@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
                         <tr>
                           <td style="padding: 20px;">
                             <p style="color: ${employeeSurveyOptIn ? '#065f46' : '#374151'}; font-size: 14px; margin: 0 0 8px 0; font-weight: 600;">
-                              ${employeeSurveyOptIn ? '✅ Employee Survey - Opted In' : 'Employee Survey - Not Selected'}
+                              ${employeeSurveyOptIn ? '✅ Optional Employee Survey ($500) - Opted In' : 'Optional Employee Survey ($500) - Not Selected'}
                             </p>
                             <p style="color: ${employeeSurveyOptIn ? '#047857' : '#4b5563'}; font-size: 14px; margin: 0; line-height: 1.5;">
                               ${employeeSurveyOptIn 
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
                           </td>
                           <td style="padding-left: 15px;">
                             <p style="color: #1a1a1a; font-size: 15px; font-weight: 600; margin: 0 0 5px 0;">
-                              Survey Close: February 15, 2026
+                              Survey Close: October 1, 2026
                             </p>
                             <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.5;">
                               BEYOND Insights will conduct and finalize analysis following the close of the survey.
@@ -152,10 +152,10 @@ export async function POST(request: NextRequest) {
                           </td>
                           <td style="padding-left: 15px;">
                             <p style="color: #1a1a1a; font-size: 15px; font-weight: 600; margin: 0 0 5px 0;">
-                              Initiative Release
+                              Index Release: January, 2027
                             </p>
                             <p style="color: #6b7280; font-size: 14px; margin: 0; line-height: 1.5;">
-                              The Cancer and Careers 2026 Best Companies for Working With Cancer Initiative release is scheduled to be announced in late March, 2026.
+                              The Cancer and Careers 2027 Best Companies for Working With Cancer Index is scheduled to be released in January, 2027.
                             </p>
                           </td>
                         </tr>
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
                           </td>
                           <td style="padding-left: 15px;">
                             <p style="color: #1a1a1a; font-size: 15px; font-weight: 600; margin: 0 0 5px 0;">
-                              Benchmarking Reports: Distributed March 2026
+                              Benchmarking Reports: Distributed February, 2027
                             </p>
                             <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0; line-height: 1.5;">
                               Benchmarking Reports are included with the survey fee. All reports are completely confidential and shared back only to the participating company.
