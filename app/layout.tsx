@@ -15,6 +15,7 @@ const geistMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://beyond-insights-hr-assessment-scoring-tool.netlify.app"),
   title: "Best Companies for Working with Cancer | 2027 Survey",
   description:
     "Assess how your company supports employees affected by cancer. A Cancer and Careers workplace support survey.",
@@ -25,12 +26,19 @@ export const metadata: Metadata = {
     siteName: "Best Companies for Working with Cancer",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/best-companies-2027-logo.png",
+        alt: "Best Companies for Working with Cancer 2027",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Best Companies for Working with Cancer | 2027 Survey",
     description:
       "Assess how your company supports employees affected by cancer. A Cancer and Careers workplace support survey.",
+    images: ["/best-companies-2027-logo.png"],
   },
 };
 
