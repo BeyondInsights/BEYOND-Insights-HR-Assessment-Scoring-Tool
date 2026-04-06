@@ -23,7 +23,7 @@ const D1A_ITEMS_BASE = [
   "PTO accrual during leave",
   "Paid micro-breaks for medical-related side effects",
   "Full salary (100%) continuation during cancer-related short-term disability leave",
-  "Guaranteed full salary and insurance continuation for a defined period",
+  "Guaranteed full salary and health insurance continuation for a defined period",
   "Guaranteed job protection for a defined period"
 ];
 
@@ -139,7 +139,7 @@ export default function Dimension1Page() {
   const showD1_4b = ans.d1a?.["Reduced schedule/part-time with full benefits"] === "In Place";
   const showD1_5 = ans.d1a?.["Job protection beyond local / legal requirements"] === "In Place";
   const showD1_6 = ans.d1a?.["Disability pay top-up (employer adds to disability insurance)"] === "In Place";
-  const showD1_7 = ans.d1a?.["Guaranteed full salary and insurance continuation for a defined period"] === "In Place";
+  const showD1_7 = ans.d1a?.["Guaranteed full salary and health insurance continuation for a defined period"] === "In Place";
   const showD1_8 = ans.d1a?.["Guaranteed job protection for a defined period"] === "In Place";
 
   // D1aa should show if multi-country AND at least one "In Place"

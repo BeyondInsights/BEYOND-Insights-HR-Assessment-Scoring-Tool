@@ -48,7 +48,7 @@ const D1_QUESTIONS: Record<string, string> = {
   
   // D1.6 - Disability Enhancement
   "d1_6": "Disability benefit enhancements",
-  "Guaranteed full salary and insurance continuation for a defined period": "Guaranteed salary & insurance",
+  "Guaranteed full salary and health insurance continuation for a defined period": "Guaranteed salary & insurance",
   "Guaranteed job protection for a defined period": "Guaranteed job protection (defined period)",
   "d1_7_duration": "Guaranteed salary & insurance duration",
   "d1_8_duration": "Guaranteed job protection duration"
@@ -153,7 +153,6 @@ const D5_QUESTIONS: Record<string, string> = {
   "Cognitive / fatigue support tools": "Cognitive/fatigue support tools",
   "Ergonomic equipment funding": "Ergonomic equipment funding",
   "Flexible scheduling options": "Flexible scheduling",
-  "Remote work capability": "Remote work capability",
   "Rest areas / quiet spaces": "Rest areas/quiet spaces",
   "Temporary role redesigns": "Temporary role redesigns",
   "Assistive technology catalog": "Assistive technology",

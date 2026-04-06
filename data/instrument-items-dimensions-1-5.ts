@@ -674,15 +674,6 @@ const D5_ITEMS: InstrumentItem[] = [
   {
     id: "D5.a5",
     section: "D5",
-    text: "Remote work capability",
-    route: "/survey/dimensions/5",
-    type: "likert-4",
-    fieldName: "d5a",
-    gridItem: true,
-  },
-  {
-    id: "D5.a6",
-    section: "D5",
     text: "Rest areas / quiet spaces",
     route: "/survey/dimensions/5",
     type: "likert-4",

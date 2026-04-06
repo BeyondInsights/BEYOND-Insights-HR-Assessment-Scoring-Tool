@@ -15,7 +15,6 @@ const D5A_ITEMS_BASE = [
   "Cognitive / fatigue support tools",
   "Ergonomic equipment funding",
   "Flexible scheduling options",
-  "Remote work capability",
   "Rest areas / quiet spaces",
   "Temporary role redesigns",
   "Assistive technology catalog",
