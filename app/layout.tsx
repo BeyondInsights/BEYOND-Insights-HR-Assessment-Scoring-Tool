@@ -15,8 +15,23 @@ const geistMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Best Companies Index",
-  description: "Cancer and Careers Workplace Support Assessment",
+  title: "Best Companies for Working with Cancer | 2027 Survey",
+  description:
+    "Assess how your company supports employees affected by cancer. A Cancer and Careers workplace support survey.",
+  openGraph: {
+    title: "Best Companies for Working with Cancer | 2027 Survey",
+    description:
+      "Assess how your company supports employees affected by cancer. A Cancer and Careers workplace support survey.",
+    siteName: "Best Companies for Working with Cancer",
+    type: "website",
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Best Companies for Working with Cancer | 2027 Survey",
+    description:
+      "Assess how your company supports employees affected by cancer. A Cancer and Careers workplace support survey.",
+  },
 };
 
 export default function RootLayout({

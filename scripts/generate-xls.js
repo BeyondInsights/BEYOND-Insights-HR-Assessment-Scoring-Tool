@@ -1,4 +1,4 @@
-const fs = require('fs');
+const XLSX = require('xlsx');
 
 const rows = [
   ['D1', 'Medical Leave & Flexibility', 1, 'Paid medical leave beyond local / legal requirements', ''],
@@ -56,10 +56,10 @@ const rows = [
   ['D5', 'Workplace Accommodations & Modifications', 2, 'Cognitive / fatigue support tools', ''],
   ['D5', 'Workplace Accommodations & Modifications', 3, 'Ergonomic equipment funding', ''],
   ['D5', 'Workplace Accommodations & Modifications', 4, 'Rest areas / quiet spaces', ''],
-  ['D5', 'Workplace Accommodations & Modifications', 6, 'Temporary role redesigns', ''],
-  ['D5', 'Workplace Accommodations & Modifications', 7, 'Assistive technology catalog', ''],
-  ['D5', 'Workplace Accommodations & Modifications', 8, 'Transportation reimbursement', ''],
-  ['D5', 'Workplace Accommodations & Modifications', 9, 'Policy accommodations (e.g., dress code flexibility, headphone use)', ''],
+  ['D5', 'Workplace Accommodations & Modifications', 5, 'Temporary role redesigns', ''],
+  ['D5', 'Workplace Accommodations & Modifications', 6, 'Assistive technology catalog', ''],
+  ['D5', 'Workplace Accommodations & Modifications', 7, 'Transportation reimbursement', ''],
+  ['D5', 'Workplace Accommodations & Modifications', 8, 'Policy accommodations (e.g., dress code flexibility, headphone use)', ''],
   ['D5', 'Workplace Accommodations & Modifications', '-', 'Priority parking', 'REMOVED'],
   ['D5', 'Workplace Accommodations & Modifications', '-', 'Remote work capability', 'REMOVED (duplicate of D1)'],
   ['D5', 'Workplace Accommodations & Modifications', '-', 'Flexible scheduling options', 'REMOVED (similar to D8)'],
@@ -85,16 +85,17 @@ const rows = [
   ['D7', 'Career Continuity & Advancement', 8, 'Project continuity protocols', ''],
   ['D7', 'Career Continuity & Advancement', 9, 'Optional stay-connected program', ''],
   ['D8', 'Work Continuation & Resumption', 1, 'Phased return-to-work plans', ''],
-  ['D8', 'Work Continuation & Resumption', 3, 'Workload adjustments during treatment', ''],
-  ['D8', 'Work Continuation & Resumption', 4, 'Flexibility for medical setbacks', ''],
-  ['D8', 'Work Continuation & Resumption', 5, 'Buddy/mentor pairing for support', ''],
-  ['D8', 'Work Continuation & Resumption', 6, 'Structured progress reviews', ''],
-  ['D8', 'Work Continuation & Resumption', 7, 'Contingency planning for treatment schedules', ''],
-  ['D8', 'Work Continuation & Resumption', 8, 'Long-term success tracking', ''],
-  ['D8', 'Work Continuation & Resumption', 9, 'Access to occupational therapy/vocational rehabilitation', ''],
-  ['D8', 'Work Continuation & Resumption', 10, 'Online peer support forums', ''],
-  ['D8', 'Work Continuation & Resumption', 11, 'Access to specialized work resumption professionals', ''],
-  ['D8', 'Work Continuation & Resumption', 12, 'Manager training on supporting team members during treatment/return', ''],
+  ['D8', 'Work Continuation & Resumption', 2, 'Workload adjustments during treatment', ''],
+  ['D8', 'Work Continuation & Resumption', 3, 'Flexibility for medical setbacks', ''],
+  ['D8', 'Work Continuation & Resumption', 4, 'Buddy/mentor pairing for support', ''],
+  ['D8', 'Work Continuation & Resumption', 5, 'Structured progress reviews', ''],
+  ['D8', 'Work Continuation & Resumption', 6, 'Contingency planning for treatment schedules', ''],
+  ['D8', 'Work Continuation & Resumption', 7, 'Long-term success tracking', ''],
+  ['D8', 'Work Continuation & Resumption', 8, 'Access to occupational therapy/vocational rehabilitation', ''],
+  ['D8', 'Work Continuation & Resumption', 9, 'Online peer support forums', ''],
+  ['D8', 'Work Continuation & Resumption', 10, 'Access to specialized work resumption professionals', ''],
+  ['D8', 'Work Continuation & Resumption', 11, 'Manager training on supporting team members during treatment/return', ''],
+  ['D8', 'Work Continuation & Resumption', '-', 'Flexible work arrangements during treatment', 'REMOVED (overlaps D1 + other D8)'],
   ['D9', 'Executive Commitment & Resources', 1, 'Executive accountability metrics', ''],
   ['D9', 'Executive Commitment & Resources', 2, 'Public success story celebrations', ''],
   ['D9', 'Executive Commitment & Resources', 3, 'Compensation tied to support outcomes', ''],
@@ -161,95 +162,95 @@ const rows = [
   ['D13', 'Communication & Awareness', 10, 'Cancer awareness month campaigns with resources', ''],
 ];
 
-const mappings = [
-  ['Currently offer / Implemented / Measuring and reporting / Currently use', 'In Place', '5', 'Direct equivalent - program exists and is active'],
-  ['Plan to offer within 12 months / In active planning / Planning measurement', 'In Development', '3', 'Both indicate committed plans with allocated resources'],
-  ['Assessing feasibility / Measuring (early)', 'Under Review', '2', 'Both indicate active evaluation without firm commitment'],
-  ['(No old equivalent)', 'Open to Exploring [NEW]', 'TBD (recommend 1)', 'New option - no 2026 responses map here. Rewards openness without implying active evaluation'],
-  ['Not able to offer / Not in place / Not measured / Not able to utilize', 'Not Planned', '0', 'Both indicate a considered decision not to proceed'],
-  ['Unsure (all dimensions)', 'Unsure (currently hidden)', 'TBD (was 0)', 'Hidden for launch - needs scoring decision before re-enabling'],
+const wb = XLSX.utils.book_new();
+
+// ===== Sheet 1: Elements =====
+const elemHeader = ['Dimension', 'Dimension Name', '#', 'Element', 'Status', 'Rebecca Notes / Edits'];
+const elemData = [elemHeader, ...rows.map(r => [r[0], r[1], r[2], r[3], r[4], ''])];
+const ws1 = XLSX.utils.aoa_to_sheet(elemData);
+ws1['!cols'] = [
+  { wch: 10 },  // Dimension
+  { wch: 38 },  // Dimension Name
+  { wch: 4 },   // #
+  { wch: 80 },  // Element
+  { wch: 28 },  // Status
+  { wch: 40 },  // Rebecca Notes
 ];
+XLSX.utils.book_append_sheet(wb, ws1, 'Elements');
 
-const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// ===== Sheet 2: Scale Mapping =====
+const scaleData = [
+  ['Response Scale Mapping: 2026 to 2027'],
+  [],
+  ['2027 Response Option', 'Definition', 'Points'],
+  ['In Place', 'This program, policy, or practice is currently active and available to employees.', '5'],
+  ['In Development', 'A formal plan exists and resources have been allocated to implement this within the next 12-18 months.', '3'],
+  ['Under Review', 'Actively evaluating the feasibility, cost, or design of this program. No implementation timeline yet, but it is on leadership\'s radar.', '2'],
+  ['Open to Exploring (NEW)', 'Had not considered this, but learning about it has sparked interest. Open to reviewing whether this could work for your organization.', 'TBD (recommend 1)'],
+  ['Not Planned', 'Considered this and determined it is not feasible or appropriate for your organization at this time.', '0'],
+  ['Unsure (currently hidden)', 'Don\'t have enough information to answer this accurately. Flags the item for internal follow-up.', 'TBD (was 0)'],
+  [],
+  ['2026 to 2027 Mapping'],
+  [],
+  ['Old Response (2026)', 'Maps To (2027)', 'Rationale'],
+  ['Currently offer / Implemented / Measuring and reporting / Currently use', 'In Place', 'Direct equivalent - program exists and is active'],
+  ['Plan to offer within 12 months / In active planning / Planning measurement', 'In Development', 'Both indicate committed plans with allocated resources'],
+  ['Assessing feasibility / Measuring (early)', 'Under Review', 'Both indicate active evaluation without firm commitment'],
+  ['(No old equivalent)', 'Open to Exploring [NEW]', 'New option - no 2026 responses map here. Rewards openness without implying active evaluation'],
+  ['Not able to offer / Not in place / Not measured / Not able to utilize', 'Not Planned', 'Both indicate a considered decision not to proceed'],
+  ['Unsure (all dimensions)', 'Unsure (currently hidden)', 'Hidden for launch - needs scoring decision before re-enabling'],
+];
+const ws2 = XLSX.utils.aoa_to_sheet(scaleData);
+ws2['!cols'] = [
+  { wch: 60 },
+  { wch: 70 },
+  { wch: 50 },
+];
+XLSX.utils.book_append_sheet(wb, ws2, 'Scale Mapping');
 
-let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="utf-8">
-<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets>
-<x:ExcelWorksheet><x:Name>Elements</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-<x:ExcelWorksheet><x:Name>Scale Mapping</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>
-</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
-</head><body>`;
+// ===== Sheet 3: Change Summary =====
+const changeData = [
+  ['2027 Change Summary'],
+  [],
+  ['NEW Elements Added'],
+  ['Dimension', 'Element', 'Details'],
+  ['D1', 'Guaranteed full salary and health insurance continuation for a defined period', 'With conditional follow-up question on duration (up to 3 months through no defined limit)'],
+  ['D1', 'Guaranteed job protection for a defined period', 'With conditional follow-up question on duration (same scale as above)'],
+  [],
+  ['Elements REMOVED'],
+  ['Dimension', 'Element', 'Reason'],
+  ['D4', 'Nutrition coaching', 'Removed per client request'],
+  ['D5', 'Priority parking', 'Removed per client request'],
+  ['D5', 'Remote work capability', 'Duplicate of D1 "Remote work options for on-site employees"'],
+  ['D5', 'Flexible scheduling options', 'Similar to D8 flexible work arrangements'],
+  ['D8', 'Flexible work arrangements during treatment', 'Overlaps with D1 flexible hours + other D8 elements'],
+  [],
+  ['Response Scale Changes (2026 to 2027)'],
+  ['Change', 'Details', 'Status'],
+  ['Unified to 6 options', 'In Place, In Development, Under Review, Open to Exploring (new), Not Planned, Unsure', 'Active (Unsure hidden for launch)'],
+  ['"Open to Exploring" added', 'New option - rewards openness without implying active evaluation', 'Active'],
+  ['"Unsure" hidden', 'Hidden for launch pending scoring decision with Rebecca', 'Temporarily hidden'],
+  [],
+  ['Other Updates'],
+  ['Area', 'Change', 'Details'],
+  ['Landing page', 'New headline', '"The 2027 Survey is Now Open"'],
+  ['Completion email', 'Updated timeline', 'Survey close: Oct 1, 2026 | Index: Jan 2027 | Reports: Feb 2027'],
+  ['Completion email', 'Employee survey wording', '"optional employee survey, $500"'],
+  ['Invoice email', 'Year references', 'Updated from 2026 to 2027'],
+  ['D1 wording', 'Clarified insurance type', '"health insurance" (not just "insurance") per Rebecca'],
+  [],
+  ['Flexible Work Elements (Kept - Different Contexts)'],
+  ['Element', 'Dimension', 'Context'],
+  ['Flexible work hours during treatment', 'D1 - Medical Leave & Flexibility', 'Hours/scheduling during active treatment'],
+  ['Flexible work arrangements for caregivers', 'D10 - Caregiver & Family Support', 'Caregiver-specific flexibility'],
+];
+const ws3 = XLSX.utils.aoa_to_sheet(changeData);
+ws3['!cols'] = [
+  { wch: 45 },
+  { wch: 65 },
+  { wch: 55 },
+];
+XLSX.utils.book_append_sheet(wb, ws3, 'Change Summary');
 
-// Sheet 1: Elements
-html += `<table border="1" cellpadding="5" style="border-collapse:collapse;font-family:Calibri;font-size:11pt;">`;
-html += `<tr style="background:#1B3A5C;color:white;font-weight:bold;"><td>Dimension</td><td>Dimension Name</td><td>#</td><td>Element</td><td>Status</td><td style="width:300px;">Rebecca Notes / Edits</td></tr>`;
-rows.forEach(r => {
-  const isNew = r[4] === 'NEW';
-  const isRemoved = String(r[4]).startsWith('REMOVED');
-  const bg = isNew ? ' style="background:#DCFCE7;"' : isRemoved ? ' style="background:#FEE2E2;color:#991B1B;text-decoration:line-through;"' : '';
-  const tdStyle = isRemoved ? '' : '';
-  html += `<tr${bg}><td>${esc(r[0])}</td><td>${esc(r[1])}</td><td>${r[2]}</td><td>${esc(r[3])}</td><td>${r[4]}</td><td></td></tr>`;
-});
-html += `</table>`;
-
-// Page break between sheets
-html += `<br style="page-break-before:always">`;
-
-// Sheet 2: Scale Mapping
-html += `<table border="1" cellpadding="5" style="border-collapse:collapse;font-family:Calibri;font-size:11pt;">`;
-html += `<tr style="background:#1B3A5C;color:white;font-weight:bold;font-size:14pt;"><td colspan="4">Response Scale Mapping: 2026 to 2027</td></tr>`;
-html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Old Response (2026)</td><td>Maps To (2027)</td><td>Points</td><td>Rationale</td></tr>`;
-mappings.forEach(m => {
-  const bg = m[1].includes('NEW') ? ' style="background:#FFF7ED;"' : '';
-  html += `<tr${bg}><td>${esc(m[0])}</td><td>${esc(m[1])}</td><td>${esc(m[2])}</td><td>${esc(m[3])}</td></tr>`;
-});
-html += `</table>`;
-
-// Duplicate elements note
-html += `<br/><br/>`;
-html += `<table border="1" cellpadding="5" style="border-collapse:collapse;font-family:Calibri;font-size:11pt;">`;
-html += `<tr style="background:#1B3A5C;color:white;font-weight:bold;font-size:12pt;"><td colspan="3">Flexible Work Elements (Kept - Different Contexts)</td></tr>`;
-html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Element</td><td>Dimension</td><td>Context</td></tr>`;
-html += `<tr><td>Flexible work hours during treatment</td><td>D1 - Medical Leave &amp; Flexibility</td><td>Hours/scheduling during active treatment</td></tr>`;
-html += `<tr style="background:#FEE2E2;text-decoration:line-through;"><td>Flexible scheduling options</td><td>D5 - Workplace Accommodations</td><td>Removed — similar to D8 flexible work arrangements</td></tr>`;
-html += `<tr style="background:#FEE2E2;text-decoration:line-through;"><td>Flexible work arrangements during treatment</td><td>D8 - Work Continuation &amp; Resumption</td><td>Removed — overlaps with D1 flexible hours + other D8 elements</td></tr>`;
-html += `<tr><td>Flexible work arrangements for caregivers</td><td>D10 - Caregiver &amp; Family Support</td><td>Caregiver-specific flexibility</td></tr>`;
-html += `</table>`;
-
-// Change summary
-html += `<br style="page-break-before:always">`;
-html += `<table border="1" cellpadding="5" style="border-collapse:collapse;font-family:Calibri;font-size:11pt;">`;
-html += `<tr style="background:#1B3A5C;color:white;font-weight:bold;font-size:14pt;"><td colspan="3">2027 Change Summary</td></tr>`;
-
-html += `<tr style="background:#059669;color:white;font-weight:bold;"><td colspan="3">NEW Elements Added</td></tr>`;
-html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Dimension</td><td>Element</td><td>Details</td></tr>`;
-html += `<tr style="background:#DCFCE7;"><td>D1</td><td>Guaranteed full salary and health insurance continuation for a defined period</td><td>With conditional follow-up question on duration (up to 3 months through no defined limit)</td></tr>`;
-html += `<tr style="background:#DCFCE7;"><td>D1</td><td>Guaranteed job protection for a defined period</td><td>With conditional follow-up question on duration (same scale as above)</td></tr>`;
-
-html += `<tr style="background:#DC2626;color:white;font-weight:bold;"><td colspan="3">Elements REMOVED</td></tr>`;
-html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Dimension</td><td>Element</td><td>Reason</td></tr>`;
-html += `<tr style="background:#FEE2E2;"><td>D4</td><td>Nutrition coaching</td><td>Removed per client request</td></tr>`;
-html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Priority parking</td><td>Removed per client request</td></tr>`;
-html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Remote work capability</td><td>Duplicate of D1 "Remote work options for on-site employees"</td></tr>`;
-html += `<tr style="background:#FEE2E2;"><td>D5</td><td>Flexible scheduling options</td><td>Similar to D8 flexible work arrangements</td></tr>`;
-html += `<tr style="background:#FEE2E2;"><td>D8</td><td>Flexible work arrangements during treatment</td><td>Overlaps with D1 flexible hours + other D8 elements</td></tr>`;
-
-html += `<tr style="background:#2563EB;color:white;font-weight:bold;"><td colspan="3">Response Scale Changes (2026 → 2027)</td></tr>`;
-html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Change</td><td>Details</td><td>Status</td></tr>`;
-html += `<tr><td>Unified to 6 options</td><td>In Place, In Development, Under Review, Open to Exploring (new), Not Planned, Unsure</td><td>Active (Unsure hidden for launch)</td></tr>`;
-html += `<tr><td>"Open to Exploring" added</td><td>New option - rewards openness without implying active evaluation</td><td>Active</td></tr>`;
-html += `<tr><td>"Unsure" hidden</td><td>Hidden for launch pending scoring decision with Rebecca</td><td>Temporarily hidden</td></tr>`;
-
-html += `<tr style="background:#7C3AED;color:white;font-weight:bold;"><td colspan="3">Other Updates</td></tr>`;
-html += `<tr style="background:#374151;color:white;font-weight:bold;"><td>Area</td><td>Change</td><td>Details</td></tr>`;
-html += `<tr><td>Landing page</td><td>New headline</td><td>"The 2027 Survey is Now Open"</td></tr>`;
-html += `<tr><td>Completion email</td><td>Updated timeline</td><td>Survey close: Oct 1, 2026 | Index: Jan 2027 | Reports: Feb 2027</td></tr>`;
-html += `<tr><td>Completion email</td><td>Employee survey wording</td><td>"optional employee survey, $500"</td></tr>`;
-html += `<tr><td>Invoice email</td><td>Year references</td><td>Updated from 2026 to 2027</td></tr>`;
-html += `<tr><td>D1 wording</td><td>Clarified insurance type</td><td>"health insurance" (not just "insurance") per Rebecca</td></tr>`;
-html += `</table>`;
-
-html += `</body></html>`;
-
-fs.writeFileSync('C:/Users/JohnB/Downloads/CAC-Elements-and-Scale-Mapping.xls', html);
-console.log('Created: C:/Users/JohnB/Downloads/CAC-Elements-and-Scale-Mapping.xls');
+XLSX.writeFile(wb, 'C:/Users/JohnB/Downloads/CAC-Elements-and-Scale-Mapping.xlsx');
+console.log('Created: C:/Users/JohnB/Downloads/CAC-Elements-and-Scale-Mapping.xlsx');
