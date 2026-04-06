@@ -663,15 +663,6 @@ const D5_ITEMS: InstrumentItem[] = [
     gridItem: true,
   },
   {
-    id: "D5.a4",
-    section: "D5",
-    text: "Flexible scheduling options",
-    route: "/survey/dimensions/5",
-    type: "likert-4",
-    fieldName: "d5a",
-    gridItem: true,
-  },
-  {
     id: "D5.a5",
     section: "D5",
     text: "Rest areas / quiet spaces",

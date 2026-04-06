@@ -152,7 +152,6 @@ const D5_QUESTIONS: Record<string, string> = {
   "Physical workspace modifications": "Physical workspace modifications",
   "Cognitive / fatigue support tools": "Cognitive/fatigue support tools",
   "Ergonomic equipment funding": "Ergonomic equipment funding",
-  "Flexible scheduling options": "Flexible scheduling",
   "Rest areas / quiet spaces": "Rest areas/quiet spaces",
   "Temporary role redesigns": "Temporary role redesigns",
   "Assistive technology catalog": "Assistive technology",
