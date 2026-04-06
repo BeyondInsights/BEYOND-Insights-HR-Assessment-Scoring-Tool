@@ -1092,13 +1092,13 @@ export default function Dimension1Page() {
   </div>
 )}
 
-        {/* D1.7 - Guaranteed full salary and insurance duration */}
+        {/* D1.7 - Guaranteed full salary and health insurance duration */}
         {step === 10 && showD1_7 && (
           <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Guaranteed Full Salary & Insurance</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Guaranteed Full Salary & Health Insurance</h3>
 
             <p className="text-gray-700 mb-2">
-              What is the total duration of the <strong>guaranteed full salary and benefits</strong> from the point of diagnosis disclosure?
+              What is the total duration of the <strong>guaranteed full salary and health insurance</strong> from the point of diagnosis disclosure?
             </p>
             <p className="text-sm text-gray-600 mb-6">(Select ONE)</p>
 
@@ -1200,8 +1200,8 @@ export default function Dimension1Page() {
           </div>
         )}
 
-        {/* Navigation Buttons (for steps 2-9) */}
-        {step > 1 && step < 10 && (
+        {/* Navigation Buttons (for steps 2-11) */}
+        {step > 1 && step < 12 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 
