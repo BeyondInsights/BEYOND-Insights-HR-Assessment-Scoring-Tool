@@ -15,7 +15,7 @@ const geistMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://beyond-insights-hr-assessment-scoring-tool.netlify.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://effervescent-concha-95d2df.netlify.app"),
   title: "Best Companies for Working with Cancer | 2027 Survey",
   description:
     "Assess how your company supports employees affected by cancer. A Cancer and Careers workplace support survey.",
