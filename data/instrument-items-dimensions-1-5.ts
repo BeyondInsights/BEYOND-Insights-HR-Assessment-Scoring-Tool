@@ -17,10 +17,12 @@ export interface InstrumentItem {
 
 // Standard Likert-4 response options for all dimension grids
 const LIKERT_4_OPTIONS = [
-  "Currently offer",
-  "Plan to offer within the next 12 months",
-  "Assessing feasibility",
-  "Not able to offer in foreseeable future"
+  "In Place",
+  "In Development",
+  "Under Review",
+  "Open to Exploring",
+  "Not Planned",
+  "Unsure"
 ];
 
 // ============================================

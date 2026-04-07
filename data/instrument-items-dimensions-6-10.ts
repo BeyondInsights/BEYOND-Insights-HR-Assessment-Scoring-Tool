@@ -1157,10 +1157,12 @@ export const DIMENSIONS_6_10_SUMMARY = {
 // ============================================
 
 export const LIKERT_4_OPTIONS = [
-  "Not able to offer in foreseeable future",
-  "Assessing feasibility",
-  "In active planning / development",
-  "Currently offer"
+  "In Place",
+  "In Development",
+  "Under Review",
+  "Open to Exploring",
+  "Not Planned",
+  "Unsure"
 ];
 
 export const MULTI_COUNTRY_OPTIONS = [

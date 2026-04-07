@@ -24,32 +24,39 @@ export const DIM_COLORS: string[] = [
 /* ===== Scales ===== */
 // Generic “status” scale for D1–D12 unless overridden
 export const SCALE_DX = [
-  'Not able to offer in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently offer',
-];
-// D13 has “use” + Unsure
-export const SCALE_D13 = [
-  'Not able to utilize in foreseeable future',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Currently use',
+  'In Place',
+  'In Development',
+  'Under Review',
+  'Open to Exploring',
+  'Not Planned',
   'Unsure',
 ];
-// D3 (Manager Preparedness) — availability framing
-export const SCALE_D3 = [
-  'Not in place',
-  'Assessing feasibility',
-  'In active planning / development',
-  'Implemented (available to managers)',
+// D13 — now uses the same standard 2027 scale
+export const SCALE_D13 = [
+  'In Place',
+  'In Development',
+  'Under Review',
+  'Open to Exploring',
+  'Not Planned',
+  'Unsure',
 ];
-// D12 (Measurement & Outcomes) — measurement maturity
+// D3 (Manager Preparedness) — now uses standard 2027 scale
+export const SCALE_D3 = [
+  'In Place',
+  'In Development',
+  'Under Review',
+  'Open to Exploring',
+  'Not Planned',
+  'Unsure',
+];
+// D12 (Measurement & Outcomes) — now uses standard 2027 scale
 export const SCALE_D12 = [
-  'Not measured',
-  'Planning measurement',
-  'Measuring (early)',
-  'Measuring and reporting',
+  'In Place',
+  'In Development',
+  'Under Review',
+  'Open to Exploring',
+  'Not Planned',
+  'Unsure',
 ];
 
 /* ===== Types ===== */

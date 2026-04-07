@@ -151,59 +151,71 @@ function formatMainGrid(gridData: any): string {
   if (!gridData || typeof gridData !== 'object') return '';
   
   const groups: Record<string, string[]> = {
+    'In Place': [],
+    'In Development': [],
+    'Under Review': [],
+    'Open to Exploring': [],
+    'Not Planned': [],
+    'Unsure': [],
+    // 2026 compat
     'Currently offer': [],
     'Currently provide to managers': [],
     'Currently measure / track': [],
     'Currently use': [],
-    'In active planning / development': [],
-    'Assessing feasibility': [],
-    'Not able to offer in foreseeable future': [],
-    'Not able to provide in foreseeable future': [],
-    'Not able to measure / track in foreseeable future': [],
-    'Not able to utilize in foreseeable future': [],
-    'Unsure': []
   };
-  
+
   Object.entries(gridData).forEach(([program, status]) => {
     if (typeof status === 'string') {
-      // Normalize to match group keys
-      if (status.startsWith('Currently')) {
-        if (status.includes('provide to managers')) {
-          groups['Currently provide to managers'].push(program);
-        } else if (status.includes('measure') || status.includes('track')) {
-          groups['Currently measure / track'].push(program);
-        } else if (status.includes('use')) {
-          groups['Currently use'].push(program);
-        } else {
-          groups['Currently offer'].push(program);
-        }
-      } else if (groups[status]) {
-        groups[status].push(program);
+      const s = status.toLowerCase().trim();
+      // 2027 scale
+      if (s === 'in place') groups['In Place'].push(program);
+      else if (s === 'in development') groups['In Development'].push(program);
+      else if (s === 'under review') groups['Under Review'].push(program);
+      else if (s === 'open to exploring') groups['Open to Exploring'].push(program);
+      else if (s === 'not planned') groups['Not Planned'].push(program);
+      else if (s === 'unsure') groups['Unsure'].push(program);
+      // 2026 scale
+      else if (status.startsWith('Currently')) {
+        if (status.includes('provide to managers')) groups['Currently provide to managers'].push(program);
+        else if (status.includes('measure') || status.includes('track')) groups['Currently measure / track'].push(program);
+        else if (status.includes('use')) groups['Currently use'].push(program);
+        else groups['Currently offer'].push(program);
       }
+      else if (status.startsWith('Not able')) groups['Not Planned'].push(program);
+      else if (status === 'In active planning / development') groups['In Development'].push(program);
+      else if (status === 'Assessing feasibility') groups['Under Review'].push(program);
     }
   });
-  
+
   let output = '';
-  
-  // Currently categories
+
+  // In Place (2027) + Currently categories (2026)
+  if (groups['In Place'].length > 0) {
+    output += `\n**✅ In Place** (${groups['In Place'].length} elements)\n`;
+    groups['In Place'].forEach(item => output += `  • ${item}\n`);
+  }
   const currentlyKeys = ['Currently offer', 'Currently provide to managers', 'Currently measure / track', 'Currently use'];
   currentlyKeys.forEach(key => {
     if (groups[key].length > 0) {
-      output += `\n**✅ ${key}** (${groups[key].length} items)\n`;
+      output += `\n**✅ ${key}** (${groups[key].length} elements)\n`;
       groups[key].forEach(item => output += `  • ${item}\n`);
     }
   });
-  
-  // In development
-  if (groups['In active planning / development'].length > 0) {
-    output += `\n**🔄 In active planning / development** (${groups['In active planning / development'].length} items)\n`;
-    groups['In active planning / development'].forEach(item => output += `  • ${item}\n`);
+
+  // In Development
+  if (groups['In Development'].length > 0) {
+    output += `\n**🔄 In Development** (${groups['In Development'].length} elements)\n`;
+    groups['In Development'].forEach(item => output += `  • ${item}\n`);
   }
-  
-  // Assessing
-  if (groups['Assessing feasibility'].length > 0) {
-    output += `\n**🤔 Assessing feasibility** (${groups['Assessing feasibility'].length} items)\n`;
-    groups['Assessing feasibility'].forEach(item => output += `  • ${item}\n`);
+
+  // Under Review + Open to Exploring
+  if (groups['Under Review'].length > 0) {
+    output += `\n**🤔 Under Review** (${groups['Under Review'].length} elements)\n`;
+    groups['Under Review'].forEach(item => output += `  • ${item}\n`);
+  }
+  if (groups['Open to Exploring'].length > 0) {
+    output += `\n**💡 Open to Exploring** (${groups['Open to Exploring'].length} elements)\n`;
+    groups['Open to Exploring'].forEach(item => output += `  • ${item}\n`);
   }
   
   // Not able
@@ -404,10 +416,17 @@ function generateExecutiveSummary(assessment: any): string {
     if (gridData && typeof gridData === 'object') {
       Object.values(gridData).forEach(status => {
         if (typeof status === 'string') {
-          if (status.startsWith('Currently')) totalCurrently++;
-          else if (status === 'In active planning / development') totalPlanning++;
-          else if (status === 'Assessing feasibility') totalAssessing++;
-          else if (status.startsWith('Not able')) totalNotAble++;
+          const s = status.toLowerCase().trim();
+          // 2027 scale
+          if (s === 'in place') totalCurrently++;
+          else if (s === 'in development') totalPlanning++;
+          else if (s === 'under review' || s === 'open to exploring') totalAssessing++;
+          else if (s === 'not planned') totalNotAble++;
+          // 2026 scale
+          else if (s.startsWith('currently')) totalCurrently++;
+          else if (s === 'in active planning / development') totalPlanning++;
+          else if (s === 'assessing feasibility') totalAssessing++;
+          else if (s.startsWith('not able')) totalNotAble++;
         }
       });
     }
