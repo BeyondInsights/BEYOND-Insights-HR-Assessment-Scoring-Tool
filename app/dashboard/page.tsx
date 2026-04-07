@@ -241,15 +241,17 @@ export default function DashboardPage() {
 
   const all13DimensionsDone = dimensionProgress.every(p => p === 100)
 
+  const isPaid = paymentCompleted || ctx.paymentCompleted || isFoundingPartnerUser
+
   const handleSectionClick = (sectionId: string) => {
-    if (!paymentCompleted && !bypassPayment) {
+    if (!isPaid && !bypassPayment) {
       return;
     }
     router.push(`/survey/${sectionId}`)
   }
 
   const handleDimensionClick = (idx: number) => {
-    if (!paymentCompleted && !bypassPayment) {
+    if (!isPaid && !bypassPayment) {
       return;
     }
     if (allCoreDone || bypassPayment) {
@@ -288,7 +290,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Payment Status Banner */}
-        {!paymentCompleted && !bypassPayment && (
+        {!isPaid && !bypassPayment && (
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 mb-8 rounded-lg">
             <div className="flex items-start">
               <Lock className="w-6 h-6 text-yellow-600 mr-3 mt-1" />
@@ -519,7 +521,7 @@ export default function DashboardPage() {
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {dimensions.map((dim, idx) => {
-            const isLocked = !paymentCompleted || !allCoreDone;
+            const isLocked = !isPaid || !allCoreDone;
             const isClickable = !isLocked;
             
             return (

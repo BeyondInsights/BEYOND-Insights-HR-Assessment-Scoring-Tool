@@ -432,6 +432,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       }
 
       setFullRecordFromDB(data)
+      setLastSaveError(null)
       return true
     } catch (err) {
       console.error('[AssessmentContext] Load error:', err)
