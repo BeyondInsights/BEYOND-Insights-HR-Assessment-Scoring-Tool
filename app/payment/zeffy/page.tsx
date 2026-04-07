@@ -47,7 +47,14 @@ export default function ZeffyPaymentPage() {
     }
     
     setIsLoading(true);
-    
+
+    // Store surveyId in localStorage so the popup success page can read it
+    // (sessionStorage is per-tab and won't be available in the popup)
+    const sid = ctx.surveyId;
+    if (sid) {
+      localStorage.setItem('payment_survey_id', sid);
+    }
+
     // Open Zeffy in a new window
     const paymentWindow = window.open(
       zeffyUrl,
@@ -62,31 +69,41 @@ export default function ZeffyPaymentPage() {
       return;
     }
     
-    // Monitor when payment window closes
+    // Monitor when payment window closes, then poll Supabase for payment confirmation
     const checkWindow = setInterval(async () => {
       if (paymentWindow.closed) {
         clearInterval(checkWindow);
-        console.log('Payment window closed - checking Supabase for payment status');
+        console.log('Payment window closed - polling Supabase for payment status');
 
-        // Check Supabase directly for payment status (ctx state won't update until re-render)
         const sid = ctx.surveyId;
-        if (sid) {
-          const normalized = sid.replace(/-/g, '').toUpperCase();
-          const { data } = await (await import('@/lib/supabase/client')).supabase
+        if (!sid) {
+          console.log('No surveyId in context - cannot check payment');
+          return;
+        }
+
+        const normalized = sid.replace(/-/g, '').toUpperCase();
+        const { supabase: sb } = await import('@/lib/supabase/client');
+
+        // Poll up to 10 times (10 seconds) to give success page time to write
+        for (let attempt = 0; attempt < 10; attempt++) {
+          const { data } = await sb
             .from('assessments')
             .select('payment_completed')
             .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
             .maybeSingle();
 
           if (data?.payment_completed) {
-            console.log('Payment confirmed in Supabase - reloading context and redirecting');
+            console.log(`Payment confirmed in Supabase (attempt ${attempt + 1}) - redirecting`);
             await ctx.loadFromSupabase(sid);
             router.push('/dashboard');
             return;
           }
+
+          // Wait 1 second before next check
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        console.log('Payment not found in Supabase - staying on payment page');
+        console.log('Payment not found after 10 attempts - staying on payment page');
       }
     }, 1000);
 }

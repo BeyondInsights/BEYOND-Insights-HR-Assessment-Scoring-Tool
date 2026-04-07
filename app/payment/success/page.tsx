@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Award, ArrowRight, FileText } from 'lucide-react';
+import { supabase } from '@/lib/supabase/client';
 import { useAssessmentContext } from '@/lib/assessment-context';
 
 export default function PaymentSuccessPage() {
@@ -15,46 +16,73 @@ export default function PaymentSuccessPage() {
   });
 
 useEffect(() => {
-  // CHECK IF COMING FROM ZEFFY
   const urlParams = new URLSearchParams(window.location.search);
   const fromZeffy = urlParams.get('payment') === 'completed';
-  
-  // If coming from Zeffy, MARK PAYMENT AS COMPLETE
+
   if (fromZeffy) {
+    // Mark payment in context (works if context has surveyId)
     ctx.setPaymentCompleted(true);
     ctx.setPaymentMethod('card');
     ctx.setPaymentDate(new Date().toISOString());
 
-    // Save to Supabase via context
+    // Save payment directly to Supabase — don't rely on context which may be empty in popup
     (async () => {
-      try {
-        await ctx.saveToSupabase();
-        console.log('Payment saved to Supabase via context');
-      } catch (err) {
-        console.error('Error saving payment to Supabase:', err);
+      // Try multiple sources for surveyId (popup has separate sessionStorage)
+      const sid = ctx.surveyId
+        || sessionStorage.getItem('current_survey_id')
+        || localStorage.getItem('payment_survey_id')
+        || urlParams.get('survey_id')
+        || '';
+
+      if (sid) {
+        const normalized = sid.replace(/-/g, '').toUpperCase();
+        try {
+          const { error } = await supabase
+            .from('assessments')
+            .update({
+              payment_completed: true,
+              payment_method: 'card',
+              payment_date: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`);
+
+          if (error) {
+            console.error('Direct Supabase payment save failed:', error);
+          } else {
+            console.log('Payment saved directly to Supabase for:', sid);
+          }
+        } catch (err) {
+          console.error('Error saving payment to Supabase:', err);
+        }
+      } else {
+        console.error('No surveyId available to save payment — trying context save as fallback');
+        try {
+          await ctx.saveToSupabase();
+        } catch (err) {
+          console.error('Context save also failed:', err);
+        }
       }
     })();
   }
-  
-  // Break out of Zeffy iframe/platform with error handling
+
+  // Break out of Zeffy iframe/popup
   const isInIframe = window.self !== window.top;
   const isPopup = window.opener !== null;
 
   if (isPopup) {
+    // Don't redirect opener — just close the popup.
+    // The parent zeffy page polls Supabase and handles the redirect.
     try {
-      window.opener.location.href = window.opener.location.origin + '/dashboard';
       window.close();
     } catch (e) {
-      console.log('Popup redirect blocked, using fallback');
-      window.location.href = '/dashboard';
+      console.log('Could not close popup');
     }
   } else if (isInIframe) {
     try {
-      // Try to break out of iframe
-      window.top.location.href = window.location.origin + '/dashboard';
+      window.top!.location.href = window.location.origin + '/dashboard';
     } catch (e) {
-      // Cross-origin restriction - just redirect the iframe itself
-      console.log('Iframe breakout blocked (cross-origin), redirecting normally');
+      console.log('Iframe breakout blocked, redirecting normally');
       window.location.href = '/dashboard';
     }
   } else {
@@ -63,12 +91,12 @@ useEffect(() => {
       router.push('/dashboard');
     }, 3000);
   }
-  
+
   // Set payment info display
   const method = ctx.paymentMethod || 'card';
   const date = ctx.paymentDate || new Date().toISOString();
   const txnId = `TXN-${Date.now()}`;
-  
+
   let methodDisplay = 'Credit Card';
   if (method === 'ach') {
     methodDisplay = 'ACH Transfer';
@@ -77,7 +105,7 @@ useEffect(() => {
   } else if (method === 'card') {
     methodDisplay = 'Credit Card';
   }
-  
+
   setPaymentInfo({
     method: methodDisplay,
     date: new Date(date).toLocaleDateString(),
@@ -193,10 +221,10 @@ useEffect(() => {
     <h3>What's Next?</h3>
     <p><strong>1. Complete Your Survey</strong><br>
     All survey sections are now unlocked and ready for completion.</p>
-    
+
     <p><strong>2. Review & Submit</strong><br>
     Your progress saves automatically - complete sections at your own pace.</p>
-    
+
     <p><strong>3. Receive Certification</strong><br>
     After review (5-7 business days), receive your official certification and materials.</p>
   </div>
@@ -221,7 +249,7 @@ useEffect(() => {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50 to-white flex items-center justify-center p-4">
       <div className="max-w-2xl w-full">
@@ -229,15 +257,15 @@ useEffect(() => {
           <div className="inline-flex items-center justify-center w-24 h-24 bg-green-100 rounded-full mb-6 animate-bounce">
             <CheckCircle className="w-16 h-16 text-green-600" />
           </div>
-          
+
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Payment Successful!
           </h1>
-          
+
           <p className="text-xl text-gray-600 mb-2">
             Your certification application payment has been processed
           </p>
-          
+
           <div className="inline-flex items-center gap-2 bg-green-100 px-4 py-2 rounded-full">
             <Award className="w-5 h-5 text-green-600" />
             <span className="font-semibold text-green-700">You can now begin your survey</span>
@@ -246,7 +274,7 @@ useEffect(() => {
 
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Confirmation</h2>
-          
+
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
               <p className="text-sm text-gray-500 mb-1">Transaction ID</p>
@@ -281,7 +309,7 @@ useEffect(() => {
           </button>
 
           <div className="border-t pt-6">
-            <h3 className="font-bold text-gray-900 mb-4">What's Next?</h3>
+            <h3 className="font-bold text-gray-900 mb-4">What&apos;s Next?</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -292,7 +320,7 @@ useEffect(() => {
                   <p className="text-sm text-gray-600">All survey sections are now unlocked and ready for you to complete</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 font-bold text-sm">2</span>
@@ -302,7 +330,7 @@ useEffect(() => {
                   <p className="text-sm text-gray-600">Your progress saves automatically - complete sections at your own pace</p>
                 </div>
               </div>
-              
+
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                   <span className="text-blue-600 font-bold text-sm">3</span>
