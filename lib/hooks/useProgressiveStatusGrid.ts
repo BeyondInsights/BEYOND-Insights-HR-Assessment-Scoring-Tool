@@ -115,23 +115,19 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
       const currentIdx = currentIndexRef.current;
       const grid = latest?.[gridKey] || {};
 
-      // Next unanswered after current position
+      // Next unanswered after current position — only advance FORWARD
       const nextAfter = items.findIndex((itm, idx) => idx > currentIdx && !grid[itm]);
 
       if (nextAfter !== -1) {
+        // Found unanswered item ahead — go there
         setCurrentItemIndex(nextAfter);
-      } else {
-        // First unanswered anywhere
-        const firstUnanswered = items.findIndex((itm) => !grid[itm]);
-        if (firstUnanswered !== -1) {
-          setCurrentItemIndex(firstUnanswered);
-        } else {
-          // All answered - go to next item sequentially
-          if (currentIdx < items.length - 1) {
-            setCurrentItemIndex(currentIdx + 1);
-          }
-        }
+      } else if (currentIdx < items.length - 1) {
+        // No unanswered ahead, but not at the end — advance to next item
+        setCurrentItemIndex(currentIdx + 1);
       }
+      // If at the end with no unanswered ahead: stay put.
+      // User can see unanswered dots and click them, or the page
+      // will show the summary/continue button if all items are rated.
 
       setTimeout(() => setIsTransitioning(false), transitionMs);
     }, autoAdvanceDelayMs);
