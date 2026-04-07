@@ -132,7 +132,7 @@ export default function LetterPage() {
           {/* Header Banner with badge on right side */}
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-t-xl px-8 py-6 flex items-center justify-between gap-6">
             <h1 className="text-2xl md:text-3xl font-bold text-white text-left">
-              2026 Best Companies for<br />Working with Cancer Initiative
+              2027 Best Companies for<br />Working with Cancer Initiative
             </h1>
             <img
               src="/best-companies-2027-logo.png"
@@ -149,7 +149,7 @@ export default function LetterPage() {
               </p>
 
               <p className="text-base leading-relaxed mb-6 text-gray-900">
-                By participating, your organization will gain <strong>valuable proprietary benchmarking insights</strong> to guide internal strategies and strengthen support for employees facing serious health conditions. Your input will contribute to establishing the first-ever <strong>Best Companies for Working with Cancer Initiative</strong> – a groundbreaking new resource that helps organizations understand how their programs compare within and across industries and identify best practices to initiate or expand.
+                By participating, your company will gain valuable customized and proprietary benchmarking data to guide your internal strategies and strengthen support for employees, as well as the opportunity to be recognized in a research-backed list of companies leading the way in employee support.
               </p>
               
               <p className="text-base leading-relaxed mb-6 text-gray-900">

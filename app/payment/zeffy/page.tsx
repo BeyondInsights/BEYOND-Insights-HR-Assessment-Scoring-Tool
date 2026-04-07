@@ -62,24 +62,26 @@ export default function ZeffyPaymentPage() {
       return;
     }
     
-    /// Monitor when payment window closes
-  const checkWindow = setInterval(() => {
-  if (paymentWindow.closed) {
-    clearInterval(checkWindow);
-    console.log('Payment window closed - checking payment status');
-    
-    // Check if payment was completed
-    const paymentCompleted = ctx.paymentCompleted;
+    // Monitor when payment window closes
+    const checkWindow = setInterval(async () => {
+      if (paymentWindow.closed) {
+        clearInterval(checkWindow);
+        console.log('Payment window closed - checking Supabase for payment status');
 
-    if (paymentCompleted) {
-      console.log('Payment detected - redirecting to dashboard');
-      router.push('/dashboard');  // ✅ Go to dashboard
-    } else {
-      console.log('Payment not detected - staying on payment page');
-      // User closed window without completing - stay here
-    }
-  }
-}, 1000);
+        // Reload from Supabase to get payment status saved by the success page
+        const sid = ctx.surveyId;
+        if (sid) {
+          await ctx.loadFromSupabase(sid);
+        }
+
+        if (ctx.paymentCompleted) {
+          console.log('Payment confirmed in Supabase - redirecting to dashboard');
+          router.push('/dashboard');
+        } else {
+          console.log('Payment not found in Supabase - staying on payment page');
+        }
+      }
+    }, 1000);
 }
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
