@@ -355,6 +355,13 @@ function parseStatus(status: any): { points: number; isUnsure: boolean } {
   }
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
+    // 2027 scale (exact matches first)
+    if (s === 'in place') return { points: 5, isUnsure: false };
+    if (s === 'in development') return { points: 3, isUnsure: false };
+    if (s === 'under review') return { points: 2, isUnsure: false };
+    if (s === 'open to exploring') return { points: 2, isUnsure: false };
+    if (s === 'not planned') return { points: 0, isUnsure: false };
+    // 2026 scale (fuzzy matching for backward compat)
     if (s.includes('not able')) return { points: 0, isUnsure: false };
     if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: 0, isUnsure: true };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {

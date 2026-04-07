@@ -61,6 +61,13 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   }
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
+    // 2027 scale (exact matches first)
+    if (s === 'in place') return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+    if (s === 'in development') return { points: POINTS.PLANNING, isUnsure: false };
+    if (s === 'under review') return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s === 'open to exploring') return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s === 'not planned') return { points: POINTS.NOT_ABLE, isUnsure: false };
+    // 2026 scale (fuzzy matching for backward compat)
     if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
     // Handle both "Unsure" and "Unknown (5)" as unsure responses
     if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };

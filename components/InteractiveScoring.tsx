@@ -88,7 +88,14 @@ const TIER_INFO: Record<number, { tier: number; name: string; color: string }> =
 function statusToPoints(status: string | undefined | null): number | null {
   if (!status) return null;
   const s = String(status).toLowerCase().trim();
-  
+
+  // 2027 scale (exact matches first)
+  if (s === 'in place') return POINTS.CURRENTLY_OFFER;
+  if (s === 'in development') return POINTS.PLANNING;
+  if (s === 'under review') return POINTS.ASSESSING;
+  if (s === 'open to exploring') return POINTS.ASSESSING;
+  if (s === 'not planned') return POINTS.NOT_ABLE;
+  // 2026 scale (fuzzy matching for backward compat)
   if (s.includes('currently') || s.includes('offer') || s === 'yes' || s === 'true') {
     return POINTS.CURRENTLY_OFFER;
   }
@@ -393,7 +400,7 @@ export default function ScoringSection({ assessment }: ScoringProps) {
                 <th className="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wide w-20">Weighted</th>
                 <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wide">
                   Breakdown
-                  <span className="ml-2 text-gray-400 font-normal normal-case" title="✓=Currently Offer, ●=Planning, ○=Assessing, ✗=Not Able, ?=Unsure">
+                  <span className="ml-2 text-gray-400 font-normal normal-case" title="✓=In Place, ●=Planning, ○=Assessing, ✗=Not Able, ?=Unsure">
                     (hover for legend)
                   </span>
                 </th>
@@ -461,7 +468,7 @@ export default function ScoringSection({ assessment }: ScoringProps) {
                     {score.answeredItems > 0 ? (
                       <div className="flex items-center gap-3 text-sm">
                         {/* Currently Offer */}
-                        <span className="inline-flex items-center gap-1" title="Currently Offer (5 pts)">
+                        <span className="inline-flex items-center gap-1" title="In Place (5 pts)">
                           <span className="text-green-600 font-bold">✓</span>
                           <span className="font-semibold text-green-700">{score.currentlyOffer}</span>
                         </span>
@@ -539,7 +546,7 @@ export default function ScoringSection({ assessment }: ScoringProps) {
           <div className="flex flex-wrap items-center gap-6">
             <span className="text-gray-600 font-medium">Breakdown Legend:</span>
             <span className="inline-flex items-center gap-1">
-              <span className="text-green-600 font-bold">✓</span> Currently Offer (5 pts)
+              <span className="text-green-600 font-bold">✓</span> In Place (5 pts)
             </span>
             <span className="inline-flex items-center gap-1">
               <span className="text-blue-600 font-bold">●</span> Planning (3 pts)
