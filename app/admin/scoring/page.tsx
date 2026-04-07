@@ -1608,18 +1608,20 @@ function ReliabilityDiagnosticsModal({
     const v = String(value).toLowerCase();
     // Handle Unsure and Unknown (5) - exclude from reliability
     if (v === 'unsure' || v.includes('unsure') || v.includes('unknown')) return null;
-    // Currently implemented/offered = 5 points
-    if (v.includes('currently offer') || v.includes('currently use') || 
+    // 2027 scale (exact matches)
+    if (v === 'in place') return 5;
+    if (v === 'in development') return 3;
+    if (v === 'under review' || v === 'open to exploring') return 2;
+    if (v === 'not planned') return 0;
+    // 2026 scale (fuzzy matching)
+    if (v.includes('currently offer') || v.includes('currently use') ||
         v.includes('currently measure') || v.includes('currently track') ||
         v.includes('currently provide') || v === 'yes') return 5;
-    // In development/planning = 3 points
-    if (v.includes('active planning') || v.includes('in active') || 
-        v.includes('in development') || v.includes('planning to')) return 3;
-    // Assessing/considering = 2 points
-    if (v.includes('assessing feasibility') || v.includes('assessing') || 
+    if (v.includes('active planning') || v.includes('in active') ||
+        v.includes('planning to')) return 3;
+    if (v.includes('assessing feasibility') || v.includes('assessing') ||
         v.includes('considering')) return 2;
-    // Not able/not offered = 0 points
-    if (v.includes('not able') || v.includes('not offer') || 
+    if (v.includes('not able') || v.includes('not offer') ||
         v.includes('do not') || v === 'no') return 0;
     return null;
   };

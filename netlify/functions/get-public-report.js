@@ -26,6 +26,14 @@ function statusToPoints(status) {
   }
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
+    // 2027 scale
+    if (s === 'in place') return { points: POINTS.CURRENTLY_OFFER, category: 'currently_offer' };
+    if (s === 'in development') return { points: POINTS.PLANNING, category: 'planning' };
+    if (s === 'under review') return { points: POINTS.ASSESSING, category: 'assessing' };
+    if (s === 'open to exploring') return { points: POINTS.ASSESSING, category: 'assessing' };
+    if (s === 'not planned') return { points: POINTS.NOT_ABLE, category: 'not_able' };
+    if (s === 'unsure') return { points: null, category: 'unsure' };
+    // 2026 scale
     if (s.includes('not able')) return { points: POINTS.NOT_ABLE, category: 'not_able' };
     if (s.includes('unsure')) return { points: null, category: 'unsure' };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide')) return { points: POINTS.CURRENTLY_OFFER, category: 'currently_offer' };
