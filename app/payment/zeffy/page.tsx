@@ -10,6 +10,7 @@ export default function ZeffyPaymentPage() {
   const router = useRouter()
   const ctx = useAssessmentContext()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPaymentConfirm, setShowPaymentConfirm] = useState(false)
   const [companyData, setCompanyData] = useState({
     name: '',
     contactName: ''
@@ -103,10 +104,63 @@ export default function ZeffyPaymentPage() {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        console.log('Payment not found after 10 attempts - staying on payment page');
+        // Payment not auto-detected — ask user to confirm
+        console.log('Payment not found after 10 attempts - asking user');
+        setShowPaymentConfirm(true);
       }
     }, 1000);
 }
+  const handleConfirmPayment = async () => {
+    const sid = ctx.surveyId
+    if (!sid) return
+    const normalized = sid.replace(/-/g, '').toUpperCase()
+    const { supabase: sb } = await import('@/lib/supabase/client')
+    await sb
+      .from('assessments')
+      .update({
+        payment_completed: true,
+        payment_method: 'card',
+        payment_date: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+    ctx.setPaymentCompleted(true)
+    ctx.setPaymentMethod('card')
+    ctx.setPaymentDate(new Date().toISOString())
+    await ctx.loadFromSupabase(sid)
+    router.push('/dashboard')
+  }
+
+  if (showPaymentConfirm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <Header />
+        <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <CheckCircle className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Did you complete your payment?</h2>
+            <p className="text-gray-600 mb-8">We weren&apos;t able to automatically detect your payment. If you completed payment in the Zeffy window, click below to continue.</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmPayment}
+                className="px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition"
+              >
+                Yes, I completed payment
+              </button>
+              <button
+                onClick={() => setShowPaymentConfirm(false)}
+                className="px-8 py-4 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
+              >
+                No, I need to try again
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       <Header />
