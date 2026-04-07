@@ -91,7 +91,9 @@ const DIMENSION_CONFIG = {
       'Leave donation bank (employees can donate PTO to colleagues)',
       'Disability pay top-up (employer adds to disability insurance)',
       'PTO accrual during leave',
-      'Paid micro-breaks for side effects'
+      'Paid micro-breaks for medical-related side effects',
+      'Full salary (100%) continuation during cancer-related short-term disability leave',
+      'Full salary and health insurance continuation, beyond legal requirements'
     ]
   },
   d2: {
@@ -107,14 +109,12 @@ const DIMENSION_CONFIG = {
       'Financial counseling services',
       'Voluntary supplemental illness insurance (with employer contribution)',
       'Real-time cost estimator tools',
-      'Insurance advocacy/pre-authorization support',
       '$0 copay for specialty drugs',
       'Hardship grants program funded by employer',
       'Tax/estate planning assistance',
       'Short-term disability covering 60%+ of salary',
       'Long-term disability covering 60%+ of salary',
       'Employer-paid disability insurance supplements',
-      'Guaranteed job protection',
       'Accelerated life insurance benefits (partial payout for terminal / critical illness)'
     ]
   },
@@ -147,7 +147,6 @@ const DIMENSION_CONFIG = {
       'Care coordination concierge',
       'Online tools, apps, or portals for health/benefits support',
       'Survivorship planning assistance',
-      'Nutrition coaching',
       'Physical rehabilitation support',
       'Occupational therapy/vocational rehabilitation'
     ]
@@ -160,10 +159,7 @@ const DIMENSION_CONFIG = {
       'Physical workspace modifications',
       'Cognitive / fatigue support tools',
       'Ergonomic equipment funding',
-      'Flexible scheduling options',
-      'Remote work capability',
       'Rest areas / quiet spaces',
-      'Priority parking',
       'Temporary role redesigns',
       'Assistive technology catalog',
       'Transportation reimbursement',
@@ -209,7 +205,6 @@ const DIMENSION_CONFIG = {
     dataKey: 'dimension8_data',
     gridField: 'd8a',
     items: [
-      'Flexible work arrangements during treatment',
       'Phased return-to-work plans',
       'Workload adjustments during treatment',
       'Flexibility for medical setbacks',
@@ -237,7 +232,8 @@ const DIMENSION_CONFIG = {
       'C-suite executive serves as program champion/sponsor',
       'Support programs included in investor/stakeholder communications',
       'Cross-functional executive steering committee for workplace support programs',
-      'Support metrics included in annual report/sustainability reporting'
+      'Support metrics included in annual report/sustainability reporting',
+      'Executive-led town halls focused on health benefits and employee support'
     ]
   },
   d10: {
@@ -298,7 +294,8 @@ const DIMENSION_CONFIG = {
       'External benchmarking',
       'Innovation pilots',
       'Employee confidence in employer support',
-      'Program utilization analytics'
+      'Program utilization analytics',
+      'Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)'
     ]
   },
   d13: {
