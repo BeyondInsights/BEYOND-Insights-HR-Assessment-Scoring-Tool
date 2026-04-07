@@ -218,7 +218,6 @@ export default function Dimension1Page() {
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
       else if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 4) {
       if (showD1_2) setStep(5);
@@ -227,7 +226,6 @@ export default function Dimension1Page() {
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
       else if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 5) {
       if (showD1_4a) setStep(6);
@@ -235,29 +233,24 @@ export default function Dimension1Page() {
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
       else if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 6) {
       if (showD1_4b) setStep(7);
       else if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
       else if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 7) {
       if (showD1_5) setStep(8);
       else if (showD1_6) setStep(9);
       else if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 8) {
       if (showD1_6) setStep(9);
       else if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 9) {
       if (showD1_7) setStep(10);
-      else if (showD1_8) setStep(11);
       else setStep(12);
     } else if (step === 10) {
       setStep(11);

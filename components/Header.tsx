@@ -128,8 +128,8 @@ export default function Header() {
                 </div>
               )}
               {ctx.lastSaveError && !ctx.isSaving && (
-                <div className="border-l border-gray-300 pl-3 ml-1 text-xs text-amber-600" title={ctx.lastSaveError}>
-                  Save failed — {ctx.lastSaveError}
+                <div className="border-l border-gray-300 pl-3 ml-1 text-xs text-amber-600 cursor-help" title={ctx.lastSaveError}>
+                  Save issue — retrying
                 </div>
               )}
             </div>
