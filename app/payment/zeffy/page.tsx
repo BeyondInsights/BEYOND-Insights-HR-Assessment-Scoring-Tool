@@ -48,11 +48,11 @@ export default function ZeffyPaymentPage() {
     
     setIsLoading(true);
 
-    // Store surveyId in localStorage so the popup success page can read it
-    // (sessionStorage is per-tab and won't be available in the popup)
+    // Store surveyId in a cookie so the popup success page can read it
+    // (sessionStorage is per-tab, cookies are shared across windows on same origin)
     const sid = ctx.surveyId;
     if (sid) {
-      localStorage.setItem('payment_survey_id', sid);
+      document.cookie = `payment_survey_id=${encodeURIComponent(sid)}; path=/; max-age=3600; SameSite=Lax`;
     }
 
     // Open Zeffy in a new window

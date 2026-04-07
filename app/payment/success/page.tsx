@@ -28,9 +28,11 @@ useEffect(() => {
     // Save payment directly to Supabase — don't rely on context which may be empty in popup
     (async () => {
       // Try multiple sources for surveyId (popup has separate sessionStorage)
+      const cookieMatch = document.cookie.match(/payment_survey_id=([^;]+)/)
+      const cookieSid = cookieMatch ? decodeURIComponent(cookieMatch[1]) : ''
       const sid = ctx.surveyId
         || sessionStorage.getItem('current_survey_id')
-        || localStorage.getItem('payment_survey_id')
+        || cookieSid
         || urlParams.get('survey_id')
         || '';
 
