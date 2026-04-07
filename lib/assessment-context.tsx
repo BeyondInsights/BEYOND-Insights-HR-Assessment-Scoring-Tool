@@ -355,6 +355,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           return saveToSupabase(section)
         }
         console.error('[AssessmentContext] Max retries for missing version')
+        setLastSaveError('Save failed — please refresh and try again')
         retryCountRef.current = 0
         return false
       }
@@ -370,6 +371,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           return saveToSupabase(section)
         }
         console.error('[AssessmentContext] Max retries for version conflict')
+        setLastSaveError('Save failed — please refresh and try again')
         retryCountRef.current = 0
         return false
       }

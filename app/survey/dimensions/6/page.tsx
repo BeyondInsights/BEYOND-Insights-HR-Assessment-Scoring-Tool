@@ -59,7 +59,7 @@ export default function Dimension6Page() {
     ans,
     setAns,
     markTouched,
-    shuffle: true,
+    shuffle: false,
   });
   
   useEffect(() => {

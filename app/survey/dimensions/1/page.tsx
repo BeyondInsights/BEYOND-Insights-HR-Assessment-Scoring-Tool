@@ -62,7 +62,7 @@ export default function Dimension1Page() {
     ans,
     setAns,
     markTouched,
-    shuffle: true,
+    shuffle: false,
   });
   
   // Load saved answers on mount

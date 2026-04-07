@@ -60,7 +60,7 @@ export default function Dimension9Page() {
     ans,
     setAns,
     markTouched,
-    shuffle: true,
+    shuffle: false,
   });
   
   useEffect(() => {
