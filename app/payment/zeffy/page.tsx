@@ -42,27 +42,15 @@ export default function ZeffyPaymentPage() {
   }, [])
 
   const markPaymentComplete = async () => {
-    const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id') || ''
-    if (!sid) return false
-    const normalized = sid.replace(/-/g, '').toUpperCase()
-    const { supabase: sb } = await import('@/lib/supabase/client')
-    const { error } = await sb
-      .from('assessments')
-      .update({
-        payment_completed: true,
-        payment_method: 'card',
-        payment_date: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
-      .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-    if (error) {
-      console.error('Error marking payment:', error)
-      return false
-    }
     ctx.setPaymentCompleted(true)
     ctx.setPaymentMethod('card')
     ctx.setPaymentDate(new Date().toISOString())
-    return true
+    // Save via sync function (uses service role key, bypasses RLS)
+    const saved = await ctx.saveToSupabase()
+    if (!saved) {
+      console.error('Failed to save payment via sync function')
+    }
+    return saved
   }
 
   const handleOpenPayment = () => {
