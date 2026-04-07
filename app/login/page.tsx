@@ -194,8 +194,14 @@ export default function LoginPage() {
         ctx.setSurveyId(trimmedSurveyId)
 
         if (result.authCompleted) {
-          setSuccessMessage('Welcome back! Redirecting to dashboard...')
-          setTimeout(() => router.push('/dashboard'), 1500)
+          const paid = result.record?.payment_completed || ctx.paymentCompleted
+          if (!paid) {
+            setSuccessMessage('Welcome back! Completing payment setup...')
+            setTimeout(() => router.push('/payment'), 1500)
+          } else {
+            setSuccessMessage('Welcome back! Redirecting to dashboard...')
+            setTimeout(() => router.push('/dashboard'), 1500)
+          }
         } else {
           setSuccessMessage('Found your progress! Redirecting...')
           setTimeout(() => router.push('/letter'), 1500)
@@ -312,7 +318,8 @@ export default function LoginPage() {
       } catch (err) {
         console.error('Error handling FP login:', err)
         setSuccessMessage('Founding Partner access confirmed! Redirecting...')
-        setTimeout(() => router.push(ctx.authCompleted ? '/dashboard' : '/letter'), 1500)
+        const dest = !ctx.authCompleted ? '/letter' : (!ctx.paymentCompleted ? '/payment' : '/dashboard')
+        setTimeout(() => router.push(dest), 1500)
       }
 
       setLoading(false)
@@ -356,7 +363,8 @@ export default function LoginPage() {
             setTimeout(() => {
               const dbAuthCompleted = assessment?.auth_completed === true
               if (dbAuthCompleted || ctx.authCompleted) {
-                router.push('/dashboard')
+                const paid = assessment?.payment_completed || ctx.paymentCompleted
+                router.push(paid ? '/dashboard' : '/payment')
               } else {
                 router.push('/letter')
               }
@@ -395,7 +403,13 @@ export default function LoginPage() {
   }
 
   const handleProceedToSurvey = () => {
-    router.push(ctx.authCompleted ? '/dashboard' : '/letter')
+    if (!ctx.authCompleted) {
+      router.push('/letter')
+    } else if (!ctx.paymentCompleted) {
+      router.push('/payment')
+    } else {
+      router.push('/dashboard')
+    }
   }
 
   // ============================================

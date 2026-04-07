@@ -73,6 +73,13 @@ export default function DashboardPage() {
       return
     }
 
+    // If auth done but not paid, send to payment (unless founding partner)
+    const sid = ctx.surveyId || ''
+    if (!ctx.paymentCompleted && !isFoundingPartner(sid)) {
+      router.push('/payment')
+      return
+    }
+
     const calculateProgress = () => {
       try {
         const firmRequired = ['s1','s2','s3','s4a','s4b','s5','s6','s7','s8','s9','s9a','c2','c3','c4','c5','c6']
