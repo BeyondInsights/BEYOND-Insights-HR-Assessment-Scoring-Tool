@@ -498,7 +498,7 @@ export default function DashboardPage() {
             <ul className="list-disc ml-5 space-y-1 text-sm text-gray-600">
               <li>No organization excels in all areas</li>
               <li>Resource constraints mean making strategic choices</li>
-              <li>"Open to Exploring" and "Not Planned" are valid and common responses</li>
+              <li>"Not Planned" and "Open to Exploring" are valid and common responses</li>
               <li>Some items represent aspirational best practices few have achieved</li>
             </ul>
           </div>
