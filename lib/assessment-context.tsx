@@ -443,6 +443,36 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       if (!response.ok || result.success === false) {
         const errMsg = result.error || result.message || `Save failed (HTTP ${response.status})`
         console.error('[AssessmentContext] Save failed:', errMsg, 'Full result:', JSON.stringify(result))
+
+        // Self-healing: if record doesn't exist, create it and retry
+        if ((errMsg.includes('No matching record') || errMsg.includes('Record not found')) && retryCountRef.current < 1) {
+          console.log('[AssessmentContext] Record not found — attempting to create it')
+          try {
+            const createResp = await fetch('/.netlify/functions/sync-assessment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create-record',
+                survey_id: sid,
+                user_id: '',
+                email: emailRef.current || '',
+                survey_year: 2027
+              })
+            })
+            const createResult = await createResp.json()
+            if (createResult.success) {
+              console.log('[AssessmentContext] Record created — retrying save')
+              versionRef.current = 1
+              savingRef.current = false
+              setIsSaving(false)
+              retryCountRef.current++
+              return saveToSupabase(section)
+            }
+          } catch (createErr) {
+            console.error('[AssessmentContext] Create record failed:', createErr)
+          }
+        }
+
         setLastSaveError(errMsg)
         savingRef.current = false
         setIsSaving(false)
