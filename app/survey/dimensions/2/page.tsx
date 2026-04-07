@@ -86,7 +86,7 @@ export default function Dimension2Page() {
     if (firmData) {
       setIsMultiCountry(firmData.s9a !== "No other countries - headquarters only");
     }
-  }, []);
+  }, [ctx.isLoaded]);
 
   // Save answers when they change
   useEffect(() => {

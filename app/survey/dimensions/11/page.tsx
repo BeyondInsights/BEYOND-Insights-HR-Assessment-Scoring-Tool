@@ -83,7 +83,7 @@ export default function Dimension11Page() {
     if (firmData) {
       setIsMultiCountry(firmData.s9a !== "No other countries - headquarters only");
     }
-  }, []);
+  }, [ctx.isLoaded]);
 
   useEffect(() => {
     if (Object.keys(ans).length > 0) {
