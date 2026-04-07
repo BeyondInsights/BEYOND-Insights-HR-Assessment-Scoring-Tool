@@ -75,7 +75,7 @@ const D1_ITEMS: InstrumentItem[] = [
   {
     id: "D1.a4",
     section: "D1",
-    text: "Remote work options with full benefits",
+    text: "Remote work options for on-site employees",
     route: "/survey/dimensions/1",
     type: "likert-4",
     fieldName: "d1a",
