@@ -147,13 +147,16 @@ export default function DimensionSummaryView({
 
       {/* Status Summary Bar */}
       {(() => {
+        const STATUS_ORDER = ['In Place', 'In Development', 'Under Review', 'Open to Exploring', 'Not Planned', 'Unsure'];
         const counts: Record<string, { count: number; color: string; label: string }> = {};
         elements.forEach(([, s]) => {
           const label = shortStatus(s);
           if (!counts[label]) counts[label] = { count: 0, color: getStatusColor(s), label };
           counts[label].count++;
         });
-        const groups = Object.values(counts).filter(g => g.count > 0);
+        const groups = STATUS_ORDER
+          .filter(label => counts[label] && counts[label].count > 0)
+          .map(label => counts[label]);
         return (
           <div className="mb-5 flex items-center gap-4 text-xs text-slate-600">
             {groups.map(g => (
