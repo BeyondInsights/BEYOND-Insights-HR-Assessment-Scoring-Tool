@@ -117,9 +117,15 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   }
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim();
-    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
-    // Handle both "Unsure" and "Unknown (5)" as unsure responses
+    // 2027 scale (exact matches first)
+    if (s === 'in place') return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
+    if (s === 'in development') return { points: POINTS.PLANNING, isUnsure: false };
+    if (s === 'under review') return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s === 'open to exploring') return { points: POINTS.ASSESSING, isUnsure: false };
+    if (s === 'not planned') return { points: POINTS.NOT_ABLE, isUnsure: false };
     if (s === 'unsure' || s.includes('unsure') || s.includes('unknown')) return { points: null, isUnsure: true };
+    // 2026 scale (backward compat)
+    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false };
     if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) return { points: POINTS.CURRENTLY_OFFER, isUnsure: false };
     if (s.includes('planning') || s.includes('development')) return { points: POINTS.PLANNING, isUnsure: false };
     if (s.includes('assessing') || s.includes('feasibility')) return { points: POINTS.ASSESSING, isUnsure: false };
@@ -542,33 +548,31 @@ function getStatusStyle(status: string | number): { bg: string; text: string; la
   const numStatus = typeof status === 'number' ? status : parseInt(String(status));
   if (!isNaN(numStatus)) {
     switch (numStatus) {
-      case 4: return { ...STATUS_COLORS.current, label: 'Currently Offering' };
+      case 4: return { ...STATUS_COLORS.current, label: 'In Place' };
       case 3: return { ...STATUS_COLORS.planning, label: 'In Development' };
-      case 2: return { ...STATUS_COLORS.assessing, label: 'Assessing' };
-      case 1: return { ...STATUS_COLORS.notOffered, label: 'Not Feasible' };
+      case 2: return { ...STATUS_COLORS.assessing, label: 'Under Review' };
+      case 1: return { ...STATUS_COLORS.notOffered, label: 'Not Planned' };
       case 5: return { ...STATUS_COLORS.unsure, label: 'Unsure' };
     }
   }
   
   // Handle text-based statuses (from survey UI)
-  const s = String(status).toLowerCase();
-  
-  // CHECK "NOT ABLE" FIRST - before "offer" check (since "Not able to offer" contains "offer")
-  if (s.includes('not able')) {
-    return { ...STATUS_COLORS.notOffered, label: 'Not Feasible' };
-  }
-  if (s.includes('unsure')) {
-    return { ...STATUS_COLORS.unsure, label: 'Unsure' };
-  }
-  if (s.includes('assessing') || s.includes('feasibility')) {
-    return { ...STATUS_COLORS.assessing, label: 'Assessing' };
-  }
-  if (s.includes('planning') || s.includes('development')) {
-    return { ...STATUS_COLORS.planning, label: 'In Development' };
-  }
-  // NOW safe to check for "offer" since "not able" already handled
+  const s = String(status).toLowerCase().trim();
+
+  // 2027 scale (exact matches first)
+  if (s === 'in place') return { ...STATUS_COLORS.current, label: 'In Place' };
+  if (s === 'in development') return { ...STATUS_COLORS.planning, label: 'In Development' };
+  if (s === 'under review') return { ...STATUS_COLORS.assessing, label: 'Under Review' };
+  if (s === 'open to exploring') return { ...STATUS_COLORS.assessing, label: 'Open to Exploring' };
+  if (s === 'not planned') return { ...STATUS_COLORS.notOffered, label: 'Not Planned' };
+  if (s === 'unsure') return { ...STATUS_COLORS.unsure, label: 'Unsure' };
+  // 2026 scale (backward compat)
+  if (s.includes('not able')) return { ...STATUS_COLORS.notOffered, label: 'Not Planned' };
+  if (s.includes('unsure')) return { ...STATUS_COLORS.unsure, label: 'Unsure' };
+  if (s.includes('assessing') || s.includes('feasibility')) return { ...STATUS_COLORS.assessing, label: 'Under Review' };
+  if (s.includes('planning') || s.includes('development')) return { ...STATUS_COLORS.planning, label: 'In Development' };
   if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) {
-    return { ...STATUS_COLORS.current, label: 'Currently Offering' };
+    return { ...STATUS_COLORS.current, label: 'In Place' };
   }
   
   return { bg: BRAND.gray[400], text: '#FFFFFF', label: String(status) };
@@ -997,7 +1001,7 @@ export default function ProfilePage() {
 
       // Status colors (hex only)
       const STATUS = {
-        current: { bg: '#166534', text: '#FFFFFF', label: 'Currently Offering' },
+        current: { bg: '#166534', text: '#FFFFFF', label: 'In Place' },
         planning: { bg: '#B45309', text: '#FFFFFF', label: 'In Development' },
         assessing: { bg: '#1E40AF', text: '#FFFFFF', label: 'Assessing' },
         notFeasible: { bg: '#991B1B', text: '#FFFFFF', label: 'Not Feasible' },
@@ -1125,9 +1129,9 @@ export default function ProfilePage() {
         <div class="stat-sub">${totalCurrently} of ${totalAnswered} answered</div>
       </div>
       <div class="stat-box" style="border-top:4px solid #166534;">
-        <div class="stat-label">Currently Offering</div>
+        <div class="stat-label">In Place</div>
         <div class="stat-value" style="color:#166534;">${totalCurrently}</div>
-        <div class="stat-sub">programs in place</div>
+        <div class="stat-sub">elements in place</div>
       </div>
       <div class="stat-box" style="border-top:4px solid #B45309;">
         <div class="stat-label">In Development</div>
@@ -1237,7 +1241,7 @@ export default function ProfilePage() {
     <div class="section-title">Benefits Landscape</div>
   </div>
   <div class="section-body">
-    <p style="font-size:12px;font-weight:700;color:#166534;margin-bottom:12px;">● CURRENTLY OFFERED (${cb1Array.length})</p>
+    <p style="font-size:12px;font-weight:700;color:#166534;margin-bottom:12px;">● IN PLACE (${cb1Array.length})</p>
     <div style="background:#F9FAFB;border-radius:8px;padding:16px;">
       ${cb1Array.map((b: string) => `<div class="check-item"><span style="color:#166534;font-size:14px;">✓</span><span style="font-size:11px;color:#374151;">${b}</span></div>`).join('')}
     </div>
@@ -1310,7 +1314,7 @@ export default function ProfilePage() {
         let counts = { current: 0, planning: 0, assessing: 0, notFeasible: 0, unsure: 0 };
         Object.values(mainGrid).forEach((status: any) => {
           const st = getStatusPDF(status);
-          if (st.label === 'Currently Offering') counts.current++;
+          if (st.label === 'In Place') counts.current++;
           else if (st.label === 'In Development') counts.planning++;
           else if (st.label === 'Assessing') counts.assessing++;
           else if (st.label === 'Not Feasible') counts.notFeasible++;
@@ -1682,7 +1686,7 @@ export default function ProfilePage() {
   
   // Total answered = all responses INCLUDING Unsure
   const totalAnswered = totalCurrently + totalPlanning + totalAssessing + totalNotFeasible + totalUnsure;
-  // Total programs = responses excluding Unsure (for "programs in place" count)
+  // Total programs = responses excluding Unsure (for "elements in place" count)
   const totalPrograms = totalCurrently + totalPlanning + totalAssessing + totalNotFeasible;
   // Maturity score = Currently offer / Total answered (including Unsure in denominator)
   const maturityScore = totalAnswered > 0 ? Math.round((totalCurrently / totalAnswered) * 100) : 0;
@@ -1827,10 +1831,10 @@ export default function ProfilePage() {
             <h2 className="text-xl font-bold mb-4" style={{ color: BRAND.gray[900] }}>Executive Summary</h2>
             <div className="grid grid-cols-3 gap-4">
               <StatCard 
-                label="Currently Offering" 
+                label="In Place" 
                 value={totalCurrently}
                 color={STATUS_COLORS.current.bg}
-                subtext="programs in place"
+                subtext="elements in place"
               />
               <StatCard 
                 label="In Development" 
