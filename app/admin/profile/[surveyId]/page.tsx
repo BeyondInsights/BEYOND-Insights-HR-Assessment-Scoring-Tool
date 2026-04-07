@@ -719,10 +719,14 @@ function DimensionSection({
       else if (numStatus === 2) assessingCount++;
       else if (numStatus === 1) notFeasibleCount++;
     } else if (typeof status === 'string') {
-      // Handle text-based statuses (from survey UI)
-      // CHECK "NOT ABLE" FIRST since "Not able to offer" contains "offer"
-      const s = status.toLowerCase();
-      if (s.includes('not able')) notFeasibleCount++;
+      const s = status.toLowerCase().trim();
+      // 2027 scale (exact matches first)
+      if (s === 'in place') currentCount++;
+      else if (s === 'in development') planningCount++;
+      else if (s === 'under review' || s === 'open to exploring') assessingCount++;
+      else if (s === 'not planned') notFeasibleCount++;
+      // 2026 scale (backward compat)
+      else if (s.includes('not able')) notFeasibleCount++;
       else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) currentCount++;
       else if (s.includes('planning') || s.includes('development')) planningCount++;
       else if (s.includes('assessing')) assessingCount++;
@@ -1003,8 +1007,8 @@ export default function ProfilePage() {
       const STATUS = {
         current: { bg: '#166534', text: '#FFFFFF', label: 'In Place' },
         planning: { bg: '#B45309', text: '#FFFFFF', label: 'In Development' },
-        assessing: { bg: '#1E40AF', text: '#FFFFFF', label: 'Assessing' },
-        notFeasible: { bg: '#991B1B', text: '#FFFFFF', label: 'Not Feasible' },
+        assessing: { bg: '#1E40AF', text: '#FFFFFF', label: 'Under Review' },
+        notFeasible: { bg: '#991B1B', text: '#FFFFFF', label: 'Not Planned' },
         unsure: { bg: '#4B5563', text: '#FFFFFF', label: 'Unsure' },
       };
 
@@ -1021,7 +1025,15 @@ export default function ProfilePage() {
           if (num === 1) return STATUS.notFeasible;
           if (num === 5) return STATUS.unsure;
         }
-        const s = String(status).toLowerCase();
+        const s = String(status).toLowerCase().trim();
+        // 2027 scale
+        if (s === 'in place') return STATUS.current;
+        if (s === 'in development') return STATUS.planning;
+        if (s === 'under review') return STATUS.assessing;
+        if (s === 'open to exploring') return STATUS.assessing;
+        if (s === 'not planned') return STATUS.notFeasible;
+        if (s === 'unsure') return STATUS.unsure;
+        // 2026 scale
         if (s.includes('not able')) return STATUS.notFeasible;
         if (s.includes('unsure')) return STATUS.unsure;
         if (s.includes('assessing')) return STATUS.assessing;
@@ -1136,7 +1148,7 @@ export default function ProfilePage() {
       <div class="stat-box" style="border-top:4px solid #B45309;">
         <div class="stat-label">In Development</div>
         <div class="stat-value" style="color:#B45309;">${totalPlanning}</div>
-        <div class="stat-sub">programs planned</div>
+        <div class="stat-sub">elements in development</div>
       </div>
       <div class="stat-box" style="border-top:4px solid #2D5016;">
         <div class="stat-label">Global Consistency</div>
@@ -1316,8 +1328,8 @@ export default function ProfilePage() {
           const st = getStatusPDF(status);
           if (st.label === 'In Place') counts.current++;
           else if (st.label === 'In Development') counts.planning++;
-          else if (st.label === 'Assessing') counts.assessing++;
-          else if (st.label === 'Not Feasible') counts.notFeasible++;
+          else if (st.label === 'Under Review' || st.label === 'Open to Exploring') counts.assessing++;
+          else if (st.label === 'Not Planned') counts.notFeasible++;
           else if (st.label === 'Unsure') counts.unsure++;
         });
 
@@ -1671,11 +1683,15 @@ export default function ProfilePage() {
           else if (numStatus === 1) totalNotFeasible++;
           else if (numStatus === 5) totalUnsure++;
         } else if (typeof status === 'string') {
-          // Handle text-based statuses (from survey UI)
-          // CHECK "NOT ABLE" FIRST since "Not able to offer" contains "offer"
-          const s = status.toLowerCase();
-          if (s.includes('not able')) totalNotFeasible++;
+          const s = status.toLowerCase().trim();
+          // 2027 scale
+          if (s === 'in place') totalCurrently++;
+          else if (s === 'in development') totalPlanning++;
+          else if (s === 'under review' || s === 'open to exploring') totalAssessing++;
+          else if (s === 'not planned') totalNotFeasible++;
           else if (s === 'unsure') totalUnsure++;
+          // 2026 scale
+          else if (s.includes('not able')) totalNotFeasible++;
           else if (s.includes('currently') || s.includes('offer') || s.includes('provide') || s.includes('use') || s.includes('track') || s.includes('measure')) totalCurrently++;
           else if (s.includes('planning') || s.includes('development')) totalPlanning++;
           else if (s.includes('assessing')) totalAssessing++;
@@ -1836,11 +1852,11 @@ export default function ProfilePage() {
                 color={STATUS_COLORS.current.bg}
                 subtext="elements in place"
               />
-              <StatCard 
-                label="In Development" 
+              <StatCard
+                label="In Development"
                 value={totalPlanning}
                 color={STATUS_COLORS.planning.bg}
-                subtext="programs planned"
+                subtext="elements in development"
               />
               <StatCard 
                 label="Global Consistency" 
