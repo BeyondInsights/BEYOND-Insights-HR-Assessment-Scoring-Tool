@@ -68,18 +68,25 @@ export default function ZeffyPaymentPage() {
         clearInterval(checkWindow);
         console.log('Payment window closed - checking Supabase for payment status');
 
-        // Reload from Supabase to get payment status saved by the success page
+        // Check Supabase directly for payment status (ctx state won't update until re-render)
         const sid = ctx.surveyId;
         if (sid) {
-          await ctx.loadFromSupabase(sid);
+          const normalized = sid.replace(/-/g, '').toUpperCase();
+          const { data } = await (await import('@/lib/supabase/client')).supabase
+            .from('assessments')
+            .select('payment_completed')
+            .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+            .maybeSingle();
+
+          if (data?.payment_completed) {
+            console.log('Payment confirmed in Supabase - reloading context and redirecting');
+            await ctx.loadFromSupabase(sid);
+            router.push('/dashboard');
+            return;
+          }
         }
 
-        if (ctx.paymentCompleted) {
-          console.log('Payment confirmed in Supabase - redirecting to dashboard');
-          router.push('/dashboard');
-        } else {
-          console.log('Payment not found in Supabase - staying on payment page');
-        }
+        console.log('Payment not found in Supabase - staying on payment page');
       }
     }, 1000);
 }
