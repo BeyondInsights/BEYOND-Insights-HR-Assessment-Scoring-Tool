@@ -11,6 +11,7 @@ export default function ZeffyPaymentPage() {
   const ctx = useAssessmentContext()
   const [isLoading, setIsLoading] = useState(false)
   const [showPaymentConfirm, setShowPaymentConfirm] = useState(false)
+  const [confirmingPayment, setConfirmingPayment] = useState(false)
   const [companyData, setCompanyData] = useState({
     name: '',
     contactName: ''
@@ -110,25 +111,56 @@ export default function ZeffyPaymentPage() {
       }
     }, 1000);
 }
+  const handleConfirmPayment = async () => {
+    setConfirmingPayment(true)
+    try {
+      const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id') || ''
+      if (sid) {
+        const normalized = sid.replace(/-/g, '').toUpperCase()
+        const { supabase: sb } = await import('@/lib/supabase/client')
+        await sb
+          .from('assessments')
+          .update({
+            payment_completed: true,
+            payment_method: 'card',
+            payment_date: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+      }
+      ctx.setPaymentCompleted(true)
+      ctx.setPaymentMethod('card')
+      ctx.setPaymentDate(new Date().toISOString())
+      await ctx.saveToSupabase()
+      router.push('/dashboard')
+    } catch (err) {
+      console.error('Error confirming payment:', err)
+      setConfirmingPayment(false)
+    }
+  }
+
   if (showPaymentConfirm) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
         <Header />
         <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
           <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-            <Info className="w-16 h-16 text-blue-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">Payment Verification</h2>
-            <p className="text-gray-600 mb-6">We weren&apos;t able to automatically confirm your payment. This can happen if the payment window was closed early or your browser blocked the connection.</p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6 text-left">
-              <p className="text-sm text-blue-800 mb-2"><strong>If you completed payment:</strong> Please allow a few minutes for processing, then log back in. Your payment will be verified automatically.</p>
-              <p className="text-sm text-blue-800"><strong>If you did not complete payment:</strong> Click below to try again.</p>
-            </div>
+            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Did you complete your payment?</h2>
+            <p className="text-gray-600 mb-6">We weren&apos;t able to automatically detect your payment. Please confirm below.</p>
             <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmPayment}
+                disabled={confirmingPayment}
+                className="px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
+              >
+                {confirmingPayment ? 'Confirming...' : 'Yes, I Completed Payment'}
+              </button>
               <button
                 onClick={() => setShowPaymentConfirm(false)}
                 className="px-8 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
               >
-                Try Payment Again
+                No, Try Payment Again
               </button>
               <button
                 onClick={() => router.push('/payment')}
