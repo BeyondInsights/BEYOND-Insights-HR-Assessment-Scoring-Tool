@@ -202,6 +202,8 @@ export default function ZeffyPaymentPage() {
         setShowPaymentConfirm(true)
       }
     }, 1000);
+    // Safety: clear interval after 5 minutes max
+    setTimeout(() => clearInterval(checkWindow), 300000);
 }
 
   const handleRecheckPayment = async () => {

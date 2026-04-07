@@ -37,7 +37,7 @@ export default function CertificationPage() {
     if (method === 'invoice') {
       router.push('/payment/invoice');
     } else {
-      router.push('/payment/stripe');
+      router.push('/payment/zeffy');
     }
   };
 

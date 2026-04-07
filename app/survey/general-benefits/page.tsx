@@ -270,7 +270,7 @@ export default function GeneralBenefitsPage() {
  {/* Progress indicator */}
  <div className="mb-6">
  <div className="flex items-center justify-between mb-2">
- <span className="text-sm text-gray-600">Step {step} of 9</span>
+ <span className="text-sm text-gray-600">Step {step} of {isUSAOnly ? 8 : 9}</span>
  <button 
  onClick={async () => { await ctx.saveToSupabase('general_benefits'); router.push("/dashboard"); }}
  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
@@ -281,7 +281,7 @@ export default function GeneralBenefitsPage() {
  <div className="w-full bg-gray-200 rounded-full h-2">
  <div 
  className="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full transition-all"
- style={{ width: `${(step / 9) * 100}%` }}
+ style={{ width: `${(step / (isUSAOnly ? 8 : 9)) * 100}%` }}
  />
  </div>
  </div>
