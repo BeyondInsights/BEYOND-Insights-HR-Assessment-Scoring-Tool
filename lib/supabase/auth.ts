@@ -108,10 +108,30 @@ export async function authenticateUser(
       // END FP CHECK - Continue with normal new user flow
       // ============================================
 
+      // Check if email already has an assessment (returning user without survey ID)
+      const { data: existingAssessment } = await supabase
+        .from('assessments')
+        .select('app_id, survey_id')
+        .eq('email', normalizedEmail)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (existingAssessment) {
+        const existingSurveyId = existingAssessment.app_id || existingAssessment.survey_id
+        console.log('[AUTH] Email already has an assessment - directing to returning user flow')
+        return {
+          mode: 'error',
+          needsVerification: false,
+          message: `This email already has a survey in progress. Please use "Returning User" with your Survey ID: ${existingSurveyId}`,
+          error: 'Email already registered'
+        }
+      }
+
       const appId = generateAppId()
 
       console.log('[AUTH] Creating new user account...')
-      
+
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: normalizedEmail,
         password: appId,  // USE SURVEY ID AS PASSWORD
