@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Award, Building2, CreditCard, Loader2, Info } from 'lucide-react'
+import { Award, Building2, CreditCard, Loader2, Info, CheckCircle } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { useAssessmentContext } from '@/lib/assessment-context'
