@@ -174,7 +174,6 @@ export async function authenticateUser(
             email: normalizedEmail,
             app_id: appId,
             survey_id: appId,
-            survey_year: 2027,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -191,8 +190,7 @@ export async function authenticateUser(
                 action: 'create-record',
                 survey_id: appId,
                 user_id: authData.user.id,
-                email: normalizedEmail,
-                survey_year: 2027
+                email: normalizedEmail
               })
             })
             const result = await resp.json()

@@ -179,7 +179,6 @@ exports.handler = async (event) => {
           email: payload.email || null,
           app_id: normalizedAppId,
           survey_id: survey_id,
-          survey_year: payload.survey_year || 2027,
           version: 1,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()

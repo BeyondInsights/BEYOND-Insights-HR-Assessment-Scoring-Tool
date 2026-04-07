@@ -455,8 +455,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
                 action: 'create-record',
                 survey_id: sid,
                 user_id: '',
-                email: emailRef.current || '',
-                survey_year: 2027
+                email: emailRef.current || ''
               })
             })
             const createResult = await createResp.json()
