@@ -178,16 +178,46 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   const [lastSaveError, setLastSaveError] = useState<string | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
 
-  // Refs for auto-save interval
+  // Refs for saveToSupabase — these are updated SYNCHRONOUSLY so the
+  // save function always reads current values, not stale React closure state.
+  // Without these, calling setState then saveToSupabase sends empty/stale payloads.
   const dirtyRef = useRef(false)
   const savingRef = useRef(false)
   const surveyIdRef = useRef<string | null>(null)
   const versionRef = useRef<number>(0)
+  const sectionDataRef = useRef<Record<string, Record<string, any> | null>>({})
+  const sectionCompleteRef = useRef<Record<string, boolean>>({})
+  const companyNameRef = useRef<string | null>(null)
+  const emailRef = useRef<string | null>(null)
+  const authCompletedRef = useRef(false)
+  const paymentCompletedRef = useRef(false)
+  const paymentMethodRef = useRef<string | null>(null)
+  const paymentDateRef = useRef<string | null>(null)
+  const userTypeRef = useRef<'fp' | 'regular' | 'compd' | null>(null)
+  const surveySubmittedRef = useRef(false)
+  const employeeSurveyOptInRef = useRef<boolean | null>(null)
+  const employeeSurveyOptInDateRef = useRef<string | null>(null)
+  const loginFirstNameRef = useRef<string | null>(null)
+  const loginLastNameRef = useRef<string | null>(null)
+  const loginTitleRef = useRef<string | null>(null)
 
-  // Keep refs in sync
+  // Keep refs in sync (fallback for state set directly, e.g. setFullRecordFromDB)
   useEffect(() => { dirtyRef.current = isDirty }, [isDirty])
   useEffect(() => { surveyIdRef.current = surveyId }, [surveyId])
   useEffect(() => { versionRef.current = version }, [version])
+  useEffect(() => { sectionDataRef.current = sectionData }, [sectionData])
+  useEffect(() => { sectionCompleteRef.current = sectionComplete }, [sectionComplete])
+  useEffect(() => { companyNameRef.current = companyName }, [companyName])
+  useEffect(() => { emailRef.current = email }, [email])
+  useEffect(() => { authCompletedRef.current = authCompleted }, [authCompleted])
+  useEffect(() => { paymentCompletedRef.current = paymentCompleted }, [paymentCompleted])
+  useEffect(() => { paymentMethodRef.current = paymentMethod }, [paymentMethod])
+  useEffect(() => { paymentDateRef.current = paymentDate }, [paymentDate])
+  useEffect(() => { userTypeRef.current = userType }, [userType])
+  useEffect(() => { surveySubmittedRef.current = surveySubmitted }, [surveySubmitted])
+  useEffect(() => { loginFirstNameRef.current = loginFirstName }, [loginFirstName])
+  useEffect(() => { loginLastNameRef.current = loginLastName }, [loginLastName])
+  useEffect(() => { loginTitleRef.current = loginTitle }, [loginTitle])
 
   // ============================================
   // SECTION DATA ACCESS
@@ -209,6 +239,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   const setSectionData = useCallback((section: string, data: Record<string, any>) => {
     const resolved = resolveSection(section)
+    sectionDataRef.current = { ...sectionDataRef.current, [resolved]: data }
     setSectionDataMap(prev => ({ ...prev, [resolved]: data }))
     setIsDirty(true)
     dirtyRef.current = true
@@ -216,6 +247,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
   const setSectionComplete = useCallback((section: string, complete: boolean) => {
     const resolved = resolveSection(section)
+    sectionCompleteRef.current = { ...sectionCompleteRef.current, [resolved]: complete }
     setSectionCompleteMap(prev => ({ ...prev, [resolved]: complete }))
     setIsDirty(true)
     dirtyRef.current = true
@@ -244,7 +276,25 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     setLastSaveError(null)
 
     try {
-      // Build the data payload from current state
+      // Read from REFS (not React state) to avoid stale closure values.
+      // React batches setState calls, so if a setter was just called,
+      // the state in this callback's closure is stale. Refs are synchronous.
+      const curSectionData = sectionDataRef.current
+      const curSectionComplete = sectionCompleteRef.current
+      const curCompanyName = companyNameRef.current
+      const curEmail = emailRef.current
+      const curAuthCompleted = authCompletedRef.current
+      const curPaymentCompleted = paymentCompletedRef.current
+      const curPaymentMethod = paymentMethodRef.current
+      const curPaymentDate = paymentDateRef.current
+      const curSurveySubmitted = surveySubmittedRef.current
+      const curEmployeeSurveyOptIn = employeeSurveyOptInRef.current
+      const curEmployeeSurveyOptInDate = employeeSurveyOptInDateRef.current
+      const curLoginFirstName = loginFirstNameRef.current
+      const curLoginLastName = loginLastNameRef.current
+      const curLoginTitle = loginTitleRef.current
+
+      // Build the data payload
       const payload: Record<string, any> = {}
 
       if (section) {
@@ -252,10 +302,10 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         const resolved = resolveSection(section)
         const dbDataKey = SECTION_TO_DB_DATA[resolved]
         const dbCompleteKey = SECTION_TO_DB_COMPLETE[resolved]
-        if (dbDataKey && sectionData[resolved]) {
-          payload[dbDataKey] = sectionData[resolved]
+        if (dbDataKey && curSectionData[resolved]) {
+          payload[dbDataKey] = curSectionData[resolved]
         }
-        if (dbCompleteKey && sectionComplete[resolved]) {
+        if (dbCompleteKey && curSectionComplete[resolved]) {
           payload[dbCompleteKey] = true
         }
       } else {
@@ -263,34 +313,34 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
         for (const key of SECTION_KEYS) {
           const dbDataKey = SECTION_TO_DB_DATA[key]
           const dbCompleteKey = SECTION_TO_DB_COMPLETE[key]
-          if (dbDataKey && sectionData[key]) {
-            payload[dbDataKey] = sectionData[key]
+          if (dbDataKey && curSectionData[key]) {
+            payload[dbDataKey] = curSectionData[key]
           }
-          if (dbCompleteKey && sectionComplete[key]) {
+          if (dbCompleteKey && curSectionComplete[key]) {
             payload[dbCompleteKey] = true
           }
         }
       }
 
       // Add metadata
-      if (companyName) payload.company_name = companyName
-      if (email) payload.email = email.toLowerCase().trim()
-      if (authCompleted) payload.auth_completed = true
-      if (paymentCompleted) payload.payment_completed = true
-      if (paymentMethod) payload.payment_method = paymentMethod
-      if (paymentDate) payload.payment_date = paymentDate
-      if (surveySubmitted) payload.survey_submitted = true
-      if (employeeSurveyOptIn !== null) payload.employee_survey_opt_in = employeeSurveyOptIn
-      if (employeeSurveyOptInDate) payload.employee_survey_opt_in_date = employeeSurveyOptInDate
+      if (curCompanyName) payload.company_name = curCompanyName
+      if (curEmail) payload.email = curEmail.toLowerCase().trim()
+      if (curAuthCompleted) payload.auth_completed = true
+      if (curPaymentCompleted) payload.payment_completed = true
+      if (curPaymentMethod) payload.payment_method = curPaymentMethod
+      if (curPaymentDate) payload.payment_date = curPaymentDate
+      if (curSurveySubmitted) payload.survey_submitted = true
+      if (curEmployeeSurveyOptIn !== null) payload.employee_survey_opt_in = curEmployeeSurveyOptIn
+      if (curEmployeeSurveyOptInDate) payload.employee_survey_opt_in_date = curEmployeeSurveyOptInDate
 
       // Add first name, last name, title to firmographics_data if present
-      if (loginFirstName || loginLastName || loginTitle) {
+      if (curLoginFirstName || curLoginLastName || curLoginTitle) {
         if (!payload.firmographics_data) {
-          payload.firmographics_data = sectionData['firmographics'] || {}
+          payload.firmographics_data = curSectionData['firmographics'] || {}
         }
-        if (loginFirstName) payload.firmographics_data.firstName = loginFirstName
-        if (loginLastName) payload.firmographics_data.lastName = loginLastName
-        if (loginTitle) payload.firmographics_data.title = loginTitle
+        if (curLoginFirstName) payload.firmographics_data.firstName = curLoginFirstName
+        if (curLoginLastName) payload.firmographics_data.lastName = curLoginLastName
+        if (curLoginTitle) payload.firmographics_data.title = curLoginTitle
       }
 
       // Extract company name from firmographics if not set
@@ -307,7 +357,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       }
 
       // Determine user type for sync
-      const currentUserType = userType || 'compd'
+      const currentUserType = userTypeRef.current || 'compd'
       const normalizedId = sid.replace(/-/g, '').toUpperCase()
 
       // Get session for regular users
@@ -408,9 +458,8 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       setIsSaving(false)
       return false
     }
-  }, [sectionData, sectionComplete, companyName, email, authCompleted, paymentCompleted,
-      paymentMethod, paymentDate, userType, surveySubmitted, employeeSurveyOptIn,
-      employeeSurveyOptInDate, loginFirstName, loginLastName, loginTitle])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ============================================
   // LOAD FROM SUPABASE
@@ -448,7 +497,9 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   const setFullRecordFromDB = useCallback((record: any) => {
     // Identity
     setSurveyId(record.survey_id || record.app_id || null)
+    emailRef.current = record.email || null
     setEmail(record.email || null)
+    companyNameRef.current = record.company_name || null
     setCompanyName(record.company_name || null)
     setVersion(record.version || 1)
     versionRef.current = record.version || 1
@@ -458,31 +509,44 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       record.survey_submitted ||
       (record.firmographics_complete && record.general_benefits_complete &&
        record.current_support_complete && record.dimension1_complete)
+    authCompletedRef.current = !!inferredAuthComplete
     setAuthCompleted(!!inferredAuthComplete)
+    paymentCompletedRef.current = !!record.payment_completed
     setPaymentCompleted(!!record.payment_completed)
+    paymentMethodRef.current = record.payment_method || null
     setPaymentMethod(record.payment_method || null)
+    paymentDateRef.current = record.payment_date || null
     setPaymentDate(record.payment_date || null)
+    surveySubmittedRef.current = !!record.survey_submitted
     setSurveySubmitted(!!record.survey_submitted)
     if (record.employee_survey_opt_in !== null && record.employee_survey_opt_in !== undefined) {
+      employeeSurveyOptInRef.current = record.employee_survey_opt_in
       setEmployeeSurveyOptIn(record.employee_survey_opt_in)
     }
     if (record.employee_survey_opt_in_date) {
+      employeeSurveyOptInDateRef.current = record.employee_survey_opt_in_date
       setEmployeeSurveyOptInDate(record.employee_survey_opt_in_date)
     }
 
     // Determine user type
     if (record.survey_id?.startsWith('FP-')) {
+      userTypeRef.current = 'fp'
       setUserType('fp')
     } else if (record.user_id) {
+      userTypeRef.current = 'regular'
       setUserType('regular')
     } else {
+      userTypeRef.current = 'compd'
       setUserType('compd')
     }
 
     // Login metadata from firmographics
     if (record.firmographics_data) {
+      loginFirstNameRef.current = record.firmographics_data.firstName || null
       setLoginFirstName(record.firmographics_data.firstName || null)
+      loginLastNameRef.current = record.firmographics_data.lastName || null
       setLoginLastName(record.firmographics_data.lastName || null)
+      loginTitleRef.current = record.firmographics_data.title || null
       setLoginTitle(record.firmographics_data.title || null)
     }
 
@@ -507,7 +571,9 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       newComplete[`dimension${i}`] = !!record[`dimension${i}_complete`]
     }
 
+    sectionDataRef.current = newData
     setSectionDataMap(newData)
+    sectionCompleteRef.current = newComplete
     setSectionCompleteMap(newComplete)
     setIsLoaded(true)
     setIsDirty(false)
