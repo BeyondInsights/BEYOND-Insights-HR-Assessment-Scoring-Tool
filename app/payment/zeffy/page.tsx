@@ -147,19 +147,74 @@ export default function ZeffyPaymentPage() {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
-        // Last resort: parent writes payment directly
-        // The popup was on the success page (payment=completed in URL),
-        // so Zeffy confirmed the payment even if our DB write failed
-        console.log('Polling failed - writing payment directly from parent page');
+        // Neither postMessage nor polling confirmed payment
+        console.log('Payment not confirmed after 10 attempts');
         window.removeEventListener('message', messageHandler)
-        await markPaymentComplete()
-        router.push('/dashboard')
+        setShowPaymentConfirm(true)
       }
     }, 1000);
 }
-  // showPaymentConfirm is no longer used — the parent page now writes
-  // payment directly after polling fails, so user always proceeds.
-  // Keeping the state variable to avoid breaking the component.
+
+  const handleRecheckPayment = async () => {
+    setIsLoading(true)
+    const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id') || ''
+    if (!sid) { setIsLoading(false); return }
+    const normalized = sid.replace(/-/g, '').toUpperCase()
+    const { supabase: sb } = await import('@/lib/supabase/client')
+    const { data } = await sb
+      .from('assessments')
+      .select('payment_completed')
+      .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+      .maybeSingle()
+    if (data?.payment_completed) {
+      await ctx.loadFromSupabase(sid)
+      router.push('/dashboard')
+      return
+    }
+    setIsLoading(false)
+    alert('Payment not yet detected. If you just completed payment, please wait a moment and try again.')
+  }
+
+  if (showPaymentConfirm) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <Header />
+        <main className="max-w-2xl mx-auto px-6 py-16 flex-1">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <Info className="w-16 h-16 text-blue-600 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">Payment Verification</h2>
+            <p className="text-gray-600 mb-6">We weren&apos;t able to automatically confirm your payment status.</p>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-5 mb-6 text-left">
+              <p className="text-sm text-blue-800 mb-2"><strong>If you completed payment:</strong> Click &ldquo;Check Payment Status&rdquo; below. It may take a moment for your payment to be processed.</p>
+              <p className="text-sm text-blue-800"><strong>If you did not complete payment:</strong> Click &ldquo;Try Payment Again&rdquo; to return to the payment window.</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleRecheckPayment}
+                disabled={isLoading}
+                className="px-8 py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition disabled:opacity-50"
+              >
+                {isLoading ? 'Checking...' : 'Check Payment Status'}
+              </button>
+              <button
+                onClick={() => setShowPaymentConfirm(false)}
+                className="px-8 py-4 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition"
+              >
+                Try Payment Again
+              </button>
+              <button
+                onClick={() => router.push('/payment')}
+                className="px-8 py-4 border border-gray-300 rounded-lg font-semibold hover:bg-gray-50 transition"
+              >
+                Back to Payment Options
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
