@@ -77,52 +77,25 @@ function safeNumber(value: any, fallback: number = 0): number {
 // SCORE CIRCLE COMPONENT
 // ============================================
 
-function ScoreCircle({ 
-  score, 
+function ScoreDisplay({
+  score,
   size = 'large',
-}: { 
-  score: number; 
+}: {
+  score: number;
   size?: 'large' | 'medium' | 'small';
 }) {
   const safeScore = safeNumber(score, 0);
   const color = getScoreColor(safeScore);
-  
-  const dimensions = {
-    large: { width: 140, strokeWidth: 10, radius: 58, fontSize: 'text-4xl' },
-    medium: { width: 90, strokeWidth: 7, radius: 36, fontSize: 'text-2xl' },
-    small: { width: 70, strokeWidth: 6, radius: 27, fontSize: 'text-xl' },
+  const sizes = {
+    large: 'text-5xl',
+    medium: 'text-3xl',
+    small: 'text-2xl',
   };
-  
-  const d = dimensions[size];
-  const circumference = 2 * Math.PI * d.radius;
-  const strokeDashoffset = circumference - (safeScore / 100) * circumference;
-  
   return (
-    <div className="relative" style={{ width: d.width, height: d.width }}>
-      <svg width={d.width} height={d.width} className="transform -rotate-90">
-        <circle
-          cx={d.width / 2}
-          cy={d.width / 2}
-          r={d.radius}
-          fill="none"
-          stroke="#E5E7EB"
-          strokeWidth={d.strokeWidth}
-        />
-        <circle
-          cx={d.width / 2}
-          cy={d.width / 2}
-          r={d.radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={d.strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          className="transition-all duration-700"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`${d.fontSize} font-bold`} style={{ color }}>{safeScore}</span>
+    <div className="text-center">
+      <span className={`${sizes[size]} font-bold`} style={{ color }}>{safeScore}</span>
+      <div className="mt-2 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${safeScore}%`, backgroundColor: color }} />
       </div>
     </div>
   );
@@ -241,7 +214,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
 
   if (enhancedScore.completedDimensions === 0) {
     return (
-      <div className="bg-gray-50 rounded-xl p-6 text-center">
+      <div className="bg-gray-50 rounded-lg p-6 text-center">
         <p className="text-gray-500">No dimension data available for scoring</p>
       </div>
     );
@@ -288,7 +261,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
   const tier = getPerformanceTier(compositeScore, isProvisional);
   
   return (
-    <section className="mb-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-200">
+    <section className="mb-8 bg-white rounded-lg p-6 border border-slate-200 shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -297,58 +270,57 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
         </div>
         {tier && (
           <div className="text-right">
-            <span 
-              className="px-4 py-2 rounded-lg text-sm font-bold shadow-sm"
-              style={{ backgroundColor: tier.bg, color: tier.color }}
-            >
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Classification</p>
+            <p className="text-lg font-bold mt-0.5" style={{ color: tier.color }}>
               {tier.name}{tier.isProvisional && ' *'}
-            </span>
+            </p>
             {tier.isProvisional && (
-              <p className="text-xs text-amber-600 mt-1">* Provisional</p>
+              <p className="text-xs text-amber-600 mt-0.5">* Provisional</p>
             )}
           </div>
         )}
       </div>
       
-      {/* Main Scores Display - Two Columns */}
-      <div className="bg-white rounded-xl p-6 mb-6 shadow-sm">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Left: Weighted Dimension Score */}
-          <div className="flex flex-col items-center p-5 bg-blue-50 rounded-xl border-2 border-blue-200">
-            <p className="text-sm font-bold text-blue-800 mb-1">WEIGHTED DIMENSION SCORE</p>
-            <p className="text-xs text-blue-600 mb-4">(Grid + Depth Blend for D1,D3,D12,D13)</p>
-            <ScoreCircle score={safeBaseScore} size="large" />
-            <p className="text-xs text-gray-500 mt-4">{completedDimensions}/13 dimensions completed</p>
-            <p className="text-xs text-blue-600 mt-1 font-medium">90% of Composite</p>
+      {/* Main Scores */}
+      <div className="bg-white rounded-lg p-6 mb-6 border border-slate-200">
+        <div className="grid grid-cols-2 gap-8">
+          {/* Weighted Dimension Score */}
+          <div className="border-r border-slate-200 pr-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Weighted Dimension Score</p>
+            <p className="text-xs text-slate-400 mb-3">Grid + Depth Blend for D1, D3, D12, D13</p>
+            <ScoreDisplay score={safeBaseScore} size="large" />
+            <div className="mt-3 flex justify-between text-xs text-slate-500">
+              <span>{completedDimensions}/13 dimensions</span>
+              <span>90% of composite</span>
+            </div>
           </div>
-          
-          {/* Right: Composite Score */}
-          <div className="flex flex-col items-center p-5 bg-purple-50 rounded-xl border-2 border-purple-200">
-            <p className="text-sm font-bold text-purple-800 mb-1">COMPOSITE SCORE</p>
-            <p className="text-xs text-purple-600 mb-4">(Dimension 90% + Maturity 5% + Breadth 5%)</p>
-            <ScoreCircle score={compositeScore} size="large" />
-            <p className="text-xs text-gray-500 mt-4">Final weighted score</p>
-            <p className="text-xs text-purple-600 mt-1 font-medium">Index Ranking Score</p>
+          {/* Composite Score */}
+          <div className="pl-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Composite Score</p>
+            <p className="text-xs text-slate-400 mb-3">Dimension 90% + Maturity 5% + Breadth 5%</p>
+            <ScoreDisplay score={compositeScore} size="large" />
+            <div className="mt-3 flex justify-between text-xs text-slate-500">
+              <span>Index ranking score</span>
+              <span>Final weighted</span>
+            </div>
           </div>
         </div>
-        
-        {/* Maturity & Breadth Row */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-sm font-semibold text-gray-700 mb-4 text-center">Additional Components</p>
-          <div className="grid grid-cols-2 gap-6 max-w-md mx-auto">
-            <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-              <ScoreCircle score={safeMaturityScore} size="small" />
-              <p className="text-sm font-semibold text-gray-700 mt-3">Maturity</p>
-              <p className="text-xs text-gray-500 text-center">Support Approach</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">5% weight</p>
+
+        {/* Maturity & Breadth */}
+        <div className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-2 gap-8">
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Maturity</p>
+              <p className="text-xs text-slate-400">Support Approach (5% weight)</p>
             </div>
-            <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-              <ScoreCircle score={safeBreadthScore} size="small" />
-              <p className="text-sm font-semibold text-gray-700 mt-3">Breadth</p>
-              <p className="text-xs text-gray-500 text-center">Coverage Scope</p>
-              <p className="text-xs text-indigo-600 font-medium mt-1">5% weight</p>
+            <span className="text-2xl font-bold" style={{ color: getScoreColor(safeMaturityScore) }}>{safeMaturityScore}</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Breadth</p>
+              <p className="text-xs text-slate-400">Coverage Scope (5% weight)</p>
             </div>
+            <span className="text-2xl font-bold" style={{ color: getScoreColor(safeBreadthScore) }}>{safeBreadthScore}</span>
           </div>
         </div>
       </div>
@@ -367,7 +339,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
       
       {/* Score Composition Details */}
       {showDetails && (
-        <div className="bg-white rounded-xl p-5 shadow-sm">
+        <div className="bg-white rounded-lg p-5 border border-slate-200">
           <h3 className="font-bold text-gray-900 mb-4">Score Composition Breakdown</h3>
           
           <ComponentBar 
@@ -427,7 +399,7 @@ export default function EnhancedScoringSection({ assessment, showDetails = true 
         </button>
         
         {showDimensionDetails && (
-          <div className="mt-4 bg-white rounded-xl overflow-hidden border border-indigo-200">
+          <div className="mt-4 bg-white rounded-lg overflow-hidden border border-slate-200">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-indigo-800 text-white">
