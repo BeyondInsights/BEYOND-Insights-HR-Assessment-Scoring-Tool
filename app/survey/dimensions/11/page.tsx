@@ -61,6 +61,7 @@ export default function Dimension11Page() {
     ans,
     setAns,
     markTouched,
+    shuffleSeed: ctx.surveyId || "",
     shuffle: true,
   });
   

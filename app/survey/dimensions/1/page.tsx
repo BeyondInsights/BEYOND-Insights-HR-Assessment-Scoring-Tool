@@ -61,6 +61,7 @@ export default function Dimension1Page() {
     ans,
     setAns,
     markTouched,
+    shuffleSeed: ctx.surveyId || "",
     shuffle: true,
   });
   
@@ -1160,7 +1161,7 @@ export default function Dimension1Page() {
         )}
 
         {/* Navigation Buttons (for steps 2-11) */}
-        {step > 1 && step < 12 && (
+        {step > 1 && step < 11 && (
           <div className="flex justify-between mt-8">
             <button 
               onClick={back} 

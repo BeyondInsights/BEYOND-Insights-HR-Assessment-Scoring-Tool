@@ -58,6 +58,7 @@ export default function Dimension3Page() {
     ans,
     setAns,
     markTouched,
+    shuffleSeed: ctx.surveyId || "",
     shuffle: true,
   });
   

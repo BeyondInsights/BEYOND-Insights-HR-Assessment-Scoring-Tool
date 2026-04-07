@@ -3,10 +3,30 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 
-function shuffleArray<T>(array: T[]): T[] {
+// Seeded PRNG (mulberry32) — produces the same sequence for the same seed
+function seededRandom(seed: number): () => number {
+  let s = seed | 0;
+  return () => {
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashString(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return hash;
+}
+
+function shuffleArray<T>(array: T[], seed?: string): T[] {
   const shuffled = [...array];
+  const rand = seed ? seededRandom(hashString(seed)) : Math.random;
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   return shuffled;
@@ -23,6 +43,7 @@ type UseProgressiveStatusGridArgs<TAns extends Record<string, any>> = {
   markTouched?: (fieldName: string) => void;
   // optional behaviors
   shuffle?: boolean;
+  shuffleSeed?: string; // stable seed for consistent shuffle order (e.g. surveyId + gridKey)
   autoAdvanceDelayMs?: number;
   transitionMs?: number;
   enableLabelDriftWarn?: boolean;
@@ -35,6 +56,7 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
   setAns,
   markTouched,
   shuffle = true,
+  shuffleSeed,
   autoAdvanceDelayMs = 500,
   transitionMs = 250,
   enableLabelDriftWarn = true,
@@ -55,10 +77,11 @@ export function useProgressiveStatusGrid<TAns extends Record<string, any>>({
     currentIndexRef.current = currentItemIndex;
   }, [currentItemIndex]);
 
-  // Shuffle items once on mount (stable across re-renders)
+  // Shuffle items once on mount (stable across re-renders AND page reloads when seeded)
   const items = useMemo(
-    () => (shuffle ? shuffleArray(itemsBase) : [...itemsBase]),
-    [shuffle, itemsBase]
+    () => (shuffle ? shuffleArray(itemsBase, shuffleSeed) : [...itemsBase]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [shuffle, itemsBase, shuffleSeed]
   );
 
   // On mount: if returning user has partial answers, start at the first unanswered item
