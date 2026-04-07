@@ -719,10 +719,10 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
                           <td className="px-3 py-2">
                             {hasData ? (
                               <div className="flex items-center gap-2 text-xs">
-                                <span className="text-green-600 font-medium" title="Currently Offer (5 pts)">✓{score.breakdown.currentlyOffer}</span>
-                                <span className="text-blue-600 font-medium" title="Planning (3 pts)">◆{score.breakdown.planning}</span>
-                                <span className="text-orange-500 font-medium" title="Assessing (2 pts)">○{score.breakdown.assessing}</span>
-                                <span className="text-red-500 font-medium" title="Not Able (0 pts)">✗{score.breakdown.notAble}</span>
+                                <span className="text-green-600 font-medium" title="In Place (5 pts)">✓{score.breakdown.currentlyOffer}</span>
+                                <span className="text-blue-600 font-medium" title="In Development (3 pts)">◆{score.breakdown.planning}</span>
+                                <span className="text-orange-500 font-medium" title="Under Review (2 pts)">○{score.breakdown.assessing}</span>
+                                <span className="text-red-500 font-medium" title="Not Planned (0 pts)">✗{score.breakdown.notAble}</span>
                                 {score.breakdown.unsure > 0 && (
                                   <span className="text-gray-400 font-medium" title="Unsure (0 pts, in denominator)">?{score.breakdown.unsure}</span>
                                 )}
@@ -781,10 +781,10 @@ export default function DetailedResponseView({ assessment, onClose }: DetailedVi
               {/* Legend */}
               <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-gray-600">
                 <span className="font-semibold">Legend:</span>
-                <span><span className="text-green-600 font-bold">✓</span> Currently Offer (5pts)</span>
-                <span><span className="text-blue-600 font-bold">◆</span> Planning (3pts)</span>
-                <span><span className="text-orange-500 font-bold">○</span> Assessing (2pts)</span>
-                <span><span className="text-red-500 font-bold">✗</span> Not Able (0pts)</span>
+                <span><span className="text-green-600 font-bold">✓</span> In Place (5pts)</span>
+                <span><span className="text-blue-600 font-bold">◆</span> In Development (3pts)</span>
+                <span><span className="text-orange-500 font-bold">○</span> Under Review (2pts)</span>
+                <span><span className="text-red-500 font-bold">✗</span> Not Planned (0pts)</span>
                 <span><span className="text-gray-400 font-bold">?</span> Unsure (0pts, in denominator)</span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">

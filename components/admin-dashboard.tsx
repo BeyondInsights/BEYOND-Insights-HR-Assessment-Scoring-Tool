@@ -1293,43 +1293,49 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
   const results: Record<string, Record<string, number>> = {}
   
   const responseOptions = [
-    'Currently offer',
-    'In active planning / development',
-    'Assessing feasibility',
-    'Not able to offer in foreseeable future',
+    'In Place',
+    'In Development',
+    'Under Review',
+    'Open to Exploring',
+    'Not Planned',
     'Unsure',
     'No response'
   ]
   
-  // Aliases for response options (e.g., "Currently use" → "Currently offer")
+  // Aliases for response options — maps old 2026 labels + variants to new 2027 canonical labels
   const responseAliases: Record<string, string> = {
-    // "Currently offer" variants (lowercase normalized)
-    'currently use': 'Currently offer',
-    'currently utilize': 'Currently offer',
-    'currently measure / track': 'Currently offer',
-    'currently measure/track': 'Currently offer',
-    'currently provide to managers': 'Currently offer',
-    'currently provide': 'Currently offer',
-    'currently track': 'Currently offer',
-    'currently offer': 'Currently offer',  // Explicit lowercase match
-    // "In active planning / development" variants
-    'in active planning / development': 'In active planning / development',
-    'in active planning/development': 'In active planning / development',
-    'planning': 'In active planning / development',
-    'in planning': 'In active planning / development',
-    'in development': 'In active planning / development',
-    // "Assessing feasibility" variants
-    'assessing feasibility': 'Assessing feasibility',
-    'assessing': 'Assessing feasibility',
-    // "Not able to offer" variants
-    'not able to offer': 'Not able to offer in foreseeable future',
-    'not able': 'Not able to offer in foreseeable future',
-    'not able to offer in foreseeable future': 'Not able to offer in foreseeable future',
-    'not able to measure / track in foreseeable future': 'Not able to offer in foreseeable future',
-    'not able to measure/track in foreseeable future': 'Not able to offer in foreseeable future',
-    'not able to provide in foreseeable future': 'Not able to offer in foreseeable future',
-    'not able to utilize in foreseeable future': 'Not able to offer in foreseeable future',
-    'not able to track in foreseeable future': 'Not able to offer in foreseeable future',
+    // "In Place" variants + old "In Place" labels (2026 backward compat)
+    'in place': 'In Place',
+    'currently offer': 'In Place',
+    'currently use': 'In Place',
+    'currently utilize': 'In Place',
+    'currently measure / track': 'In Place',
+    'currently measure/track': 'In Place',
+    'currently provide to managers': 'In Place',
+    'currently provide': 'In Place',
+    'currently track': 'In Place',
+    // "In Development" variants + old "In active planning / development" labels
+    'in development': 'In Development',
+    'in active planning / development': 'In Development',
+    'in active planning/development': 'In Development',
+    'planning': 'In Development',
+    'in planning': 'In Development',
+    // "Under Review" variants + old "Assessing feasibility" labels
+    'under review': 'Under Review',
+    'assessing feasibility': 'Under Review',
+    'assessing': 'Under Review',
+    // "Open to Exploring" variants
+    'open to exploring': 'Open to Exploring',
+    // "Not Planned" variants + old "Not able to offer" labels
+    'not planned': 'Not Planned',
+    'not able to offer': 'Not Planned',
+    'not able': 'Not Planned',
+    'not able to offer in foreseeable future': 'Not Planned',
+    'not able to measure / track in foreseeable future': 'Not Planned',
+    'not able to measure/track in foreseeable future': 'Not Planned',
+    'not able to provide in foreseeable future': 'Not Planned',
+    'not able to utilize in foreseeable future': 'Not Planned',
+    'not able to track in foreseeable future': 'Not Planned',
     // Unknown/Unsure variants
     'unknown (5)': 'Unsure',
     'unknown': 'Unsure',
@@ -1384,7 +1390,7 @@ function countDimensionResponses(assessments: ProcessedAssessment[], config: typ
       } else {
         const responseNorm = normalizeForMatch(String(response))
         
-        // Check aliases first (e.g., "Currently use" → "Currently offer")
+        // Check aliases first (e.g., "Currently use" → "In Place")
         const aliasMatch = responseAliases[responseNorm]
         if (aliasMatch) {
           results[item][aliasMatch]++
@@ -2060,12 +2066,13 @@ function DimensionSection({
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="text-left p-3 font-semibold text-gray-700 w-1/3">Program/Item</th>
-                <th className="text-center p-3 font-semibold text-green-700 w-1/9">Currently Offer</th>
-                <th className="text-center p-3 font-semibold text-blue-700 w-1/9">Planning/Dev</th>
-                <th className="text-center p-3 font-semibold text-yellow-700 w-1/9">Assessing</th>
-                <th className="text-center p-3 font-semibold text-red-700 w-1/9">Not Able</th>
-                <th className="text-center p-3 font-semibold text-purple-700 w-1/9">Unsure</th>
-                <th className="text-center p-3 font-semibold text-gray-500 w-1/9">No Response</th>
+                <th className="text-center p-3 font-semibold text-green-700">In Place</th>
+                <th className="text-center p-3 font-semibold text-blue-700">In Development</th>
+                <th className="text-center p-3 font-semibold text-yellow-700">Under Review</th>
+                <th className="text-center p-3 font-semibold text-teal-700">Open to Exploring</th>
+                <th className="text-center p-3 font-semibold text-red-700">Not Planned</th>
+                <th className="text-center p-3 font-semibold text-purple-700">Unsure</th>
+                <th className="text-center p-3 font-semibold text-gray-500">No Response</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -2074,10 +2081,11 @@ function DimensionSection({
                 return (
                   <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="p-3 text-gray-800">{item}</td>
-                    <CellWithPct count={data['Currently offer']} total={totalRespondents} color="green" />
-                    <CellWithPct count={data['In active planning / development']} total={totalRespondents} color="blue" />
-                    <CellWithPct count={data['Assessing feasibility']} total={totalRespondents} color="yellow" />
-                    <CellWithPct count={data['Not able to offer in foreseeable future']} total={totalRespondents} color="red" />
+                    <CellWithPct count={data['In Place']} total={totalRespondents} color="green" />
+                    <CellWithPct count={data['In Development']} total={totalRespondents} color="blue" />
+                    <CellWithPct count={data['Under Review']} total={totalRespondents} color="yellow" />
+                    <CellWithPct count={data['Open to Exploring']} total={totalRespondents} color="teal" />
+                    <CellWithPct count={data['Not Planned']} total={totalRespondents} color="red" />
                     <CellWithPct count={data['Unsure']} total={totalRespondents} color="purple" />
                     <CellWithPct count={data['No response']} total={totalRespondents} color="gray" />
                   </tr>
@@ -2120,7 +2128,7 @@ function DimensionSection({
                   total={followupData['d1_1_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.paidLeaveDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Paid medical leave"
+                  filterNote="Asked if D1.a = In Place Paid medical leave"
                 />
               )}
               {followupData['d1_1_non_usa']?.respondentCount > 0 && (
@@ -2130,7 +2138,7 @@ function DimensionSection({
                   total={followupData['d1_1_non_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.paidLeaveDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Paid medical leave"
+                  filterNote="Asked if D1.a = In Place Paid medical leave"
                 />
               )}
               {followupData['d1_2_usa']?.respondentCount > 0 && (
@@ -2140,7 +2148,7 @@ function DimensionSection({
                   total={followupData['d1_2_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.intermittentLeaveDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Intermittent leave"
+                  filterNote="Asked if D1.a = In Place Intermittent leave"
                 />
               )}
               {followupData['d1_2_non_usa']?.respondentCount > 0 && (
@@ -2150,7 +2158,7 @@ function DimensionSection({
                   total={followupData['d1_2_non_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.intermittentLeaveDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Intermittent leave"
+                  filterNote="Asked if D1.a = In Place Intermittent leave"
                 />
               )}
               {followupData['d1_4b']?.respondentCount > 0 && (
@@ -2160,7 +2168,7 @@ function DimensionSection({
                   total={followupData['d1_4b'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.partTimeDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Reduced schedule/part-time"
+                  filterNote="Asked if D1.a = In Place Reduced schedule/part-time"
                 />
               )}
               {followupData['d1_5_usa']?.respondentCount > 0 && (
@@ -2170,7 +2178,7 @@ function DimensionSection({
                   total={followupData['d1_5_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.jobProtectionDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Job protection"
+                  filterNote="Asked if D1.a = In Place Job protection"
                 />
               )}
               {followupData['d1_5_non_usa']?.respondentCount > 0 && (
@@ -2180,7 +2188,7 @@ function DimensionSection({
                   total={followupData['d1_5_non_usa'].respondentCount}
                   orderedOptions={ORDINAL_OPTIONS.jobProtectionDuration}
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Job protection"
+                  filterNote="Asked if D1.a = In Place Job protection"
                 />
               )}
               {followupData['d1_6']?.respondentCount > 0 && (
@@ -2190,7 +2198,7 @@ function DimensionSection({
                   total={followupData['d1_6'].respondentCount}
                   isMultiSelect
                   excludeNoResponse
-                  filterNote="Asked if D1.a = Currently offer Disability pay top-up"
+                  filterNote="Asked if D1.a = In Place Disability pay top-up"
                 />
               )}
             </div>
@@ -2231,7 +2239,7 @@ function DimensionSection({
                   total={followupData['d4_1a'].respondentCount}
                   isMultiSelect
                   excludeNoResponse
-                  filterNote="Asked if D4.a = Currently offer Navigation support"
+                  filterNote="Asked if D4.a = In Place Navigation support"
                 />
               )}
               {followupData['d4_1b']?.respondentCount > 0 && (
@@ -2241,7 +2249,7 @@ function DimensionSection({
                   total={followupData['d4_1b'].respondentCount}
                   isMultiSelect
                   excludeNoResponse
-                  filterNote="Asked if D4.a = Currently offer Navigation support"
+                  filterNote="Asked if D4.a = In Place Navigation support"
                 />
               )}
             </div>
@@ -2272,7 +2280,7 @@ function DimensionSection({
               total={followupData['d11_1'].respondentCount}
               isMultiSelect
               excludeNoResponse
-              filterNote="Asked if D11.a = Currently offer 70%+ coverage for screenings"
+              filterNote="Asked if D11.a = In Place 70%+ coverage for screenings"
             />
           )}
           {dimKey === 'd11' && (!followupData['d11_1'] || followupData['d11_1'].respondentCount === 0) && (
