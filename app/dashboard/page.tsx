@@ -32,6 +32,25 @@ export default function DashboardPage() {
   })
 
   const ctx = useAssessmentContext()
+  const [hasRefreshed, setHasRefreshed] = useState(false)
+
+  // Force a fresh reload from Supabase when the dashboard mounts
+  // so completion percentages are never stale
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (hasRefreshed) return
+
+    const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id')
+    if (!sid) return
+
+    // If context is already loaded, refresh in the background
+    // If not loaded yet, the sessionStorage recovery in context will handle it
+    if (ctx.isLoaded) {
+      ctx.loadFromSupabase(sid).then(() => {
+        setHasRefreshed(true)
+      })
+    }
+  }, [ctx.isLoaded, ctx.surveyId, hasRefreshed])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -479,7 +498,7 @@ export default function DashboardPage() {
             <ul className="list-disc ml-5 space-y-1 text-sm text-gray-600">
               <li>No organization excels in all areas</li>
               <li>Resource constraints mean making strategic choices</li>
-              <li>"Not able to offer" is a common response</li>
+              <li>"Open to Exploring" and "Not Planned" are valid and common responses</li>
               <li>Some items represent aspirational best practices few have achieved</li>
             </ul>
           </div>

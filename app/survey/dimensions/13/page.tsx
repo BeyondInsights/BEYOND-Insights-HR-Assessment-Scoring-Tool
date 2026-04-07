@@ -106,7 +106,7 @@ export default function Dimension13Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
 
   const hasAnyOffered = Object.values(ans.d13a || {}).some(
@@ -449,7 +449,7 @@ export default function Dimension13Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous approach
+                  ← View previous element
                 </button>
 
                 {Object.keys(ans.d13a || {}).length === D13A_ITEMS.length && !isTransitioning && (

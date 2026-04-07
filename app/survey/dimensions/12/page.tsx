@@ -108,7 +108,7 @@ export default function Dimension12Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
  
   const hasAnyOffered = Object.values(ans.d12a || {}).some(
@@ -459,7 +459,7 @@ export default function Dimension12Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous measurement
+                  ← View previous element
                 </button>
 
                 {Object.keys(ans.d12a || {}).length === D12A_ITEMS.length && !isTransitioning && (

@@ -118,7 +118,7 @@ export default function Dimension2Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
   
   // D2aa should show if multi-country AND at least one "In Place"
@@ -463,7 +463,7 @@ export default function Dimension2Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ← View previous element
                 </button>
 
                 {/* Show Finish button only when all items rated */}

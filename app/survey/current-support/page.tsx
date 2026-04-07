@@ -405,7 +405,7 @@ export default function CurrentSupportPage() {
                   </ul>
                 </div>
                 
-                <p className="italic">"Not currently available" is a valid and common response. Most organizations are still developing these capabilities, and an accurate picture is more valuable than an aspirational one.</p>
+                <p className="italic">"Open to Exploring" and "Not Planned" are valid and common responses. Most organizations are still developing these capabilities, and an accurate picture is more valuable than an aspirational one.</p>
               </div>
             </div>
           </div>

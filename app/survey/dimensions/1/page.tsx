@@ -129,7 +129,7 @@ export default function Dimension1Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
 
   // Check which conditional questions should be shown
@@ -558,7 +558,7 @@ export default function Dimension1Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ← View previous element
                 </button>
 
                 {Object.keys(ans.d1a || {}).length === D1A_ITEMS.length && !isTransitioning && (

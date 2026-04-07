@@ -121,7 +121,7 @@ export default function Dimension6Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
 
   const hasAnyOffered = Object.values(ans.d6a || {}).some(
@@ -476,7 +476,7 @@ export default function Dimension6Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ← View previous element
                 </button>
 
                 {/* Show Finish button only when all items rated */}

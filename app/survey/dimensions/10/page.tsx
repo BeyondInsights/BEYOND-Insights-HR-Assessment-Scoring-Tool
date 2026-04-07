@@ -118,7 +118,7 @@ export default function Dimension10Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
 
   const hasAnyOffered = Object.values(ans.d10a || {}).some(
@@ -455,7 +455,7 @@ export default function Dimension10Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ← View previous element
                 </button>
 
                 {Object.keys(ans.d10a || {}).length === D10A_ITEMS.length && !isTransitioning && (

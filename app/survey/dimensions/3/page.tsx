@@ -111,7 +111,7 @@ export default function Dimension3Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
 
   
@@ -491,7 +491,7 @@ export default function Dimension3Page() {
                       : "text-gray-600 hover:text-gray-800"
                   }`}
                 >
-                  ← View previous option
+                  ← View previous element
                 </button>
 
                 {/* Show Finish button only when all items rated */}
@@ -645,7 +645,7 @@ export default function Dimension3Page() {
                 "50 to less than 75%",
                 "75 to less than 100%",
                 "100%",
-                // "Unsure" // Hidden for launch - revisiting with Rebecca,
+                "Unsure",
                 "Do not track this information",
                 "Not able to provide this information"
               ].map(opt => (

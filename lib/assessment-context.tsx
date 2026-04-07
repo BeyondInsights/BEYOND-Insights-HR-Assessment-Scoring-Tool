@@ -552,13 +552,41 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
   }, [])
 
   // ============================================
-  // AUTO-SAVE TIMER (every 30 seconds if dirty)
+  // DEBOUNCED AUTO-SAVE (3 seconds after last change)
+  // ============================================
+
+  const debounceSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (isDirty && surveyIdRef.current && !savingRef.current) {
+      // Clear any existing debounce timer
+      if (debounceSaveTimerRef.current) {
+        clearTimeout(debounceSaveTimerRef.current)
+      }
+      // Set a new 3-second debounce
+      debounceSaveTimerRef.current = setTimeout(() => {
+        if (dirtyRef.current && !savingRef.current && surveyIdRef.current) {
+          console.log('[AssessmentContext] Debounced auto-save triggered')
+          saveToSupabase()
+        }
+      }, 3000)
+    }
+
+    return () => {
+      if (debounceSaveTimerRef.current) {
+        clearTimeout(debounceSaveTimerRef.current)
+      }
+    }
+  }, [isDirty, sectionData, sectionComplete, saveToSupabase])
+
+  // ============================================
+  // FALLBACK AUTO-SAVE TIMER (every 30 seconds if still dirty)
   // ============================================
 
   useEffect(() => {
     const interval = setInterval(() => {
       if (dirtyRef.current && !savingRef.current && surveyIdRef.current) {
-        console.log('[AssessmentContext] Auto-save triggered')
+        console.log('[AssessmentContext] Fallback auto-save triggered')
         saveToSupabase()
       }
     }, 30000)

@@ -110,7 +110,7 @@ export default function Dimension9Page() {
     "Under Review",
     "Open to Exploring",
     "Not Planned",
-    // "Unsure" // Hidden for launch - revisiting with Rebecca
+    "Unsure"
   ];
 
 const hasAnyOffered = Object.values(ans.d9a || {}).some(
