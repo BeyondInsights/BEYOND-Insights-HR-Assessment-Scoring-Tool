@@ -149,24 +149,38 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
       sessionStorage.removeItem('current_survey_id')
     }
   }, [])
-  const [email, setEmail] = useState<string | null>(null)
-  const [companyName, setCompanyName] = useState<string | null>(null)
+  const [email, _setEmail] = useState<string | null>(null)
+  const setEmail = useCallback((v: string | null) => { emailRef.current = v; _setEmail(v) }, [])
+  const [companyName, _setCompanyName] = useState<string | null>(null)
+  const setCompanyName = useCallback((v: string | null) => { companyNameRef.current = v; _setCompanyName(v) }, [])
   const [version, setVersion] = useState<number>(0)
-  const [userType, setUserType] = useState<'fp' | 'regular' | 'compd' | null>(null)
+  const [userType, _setUserType] = useState<'fp' | 'regular' | 'compd' | null>(null)
+  const setUserType = useCallback((v: 'fp' | 'regular' | 'compd' | null) => { userTypeRef.current = v; _setUserType(v) }, [])
 
-  // Auth/flow
-  const [authCompleted, setAuthCompleted] = useState(false)
-  const [paymentCompleted, setPaymentCompleted] = useState(false)
-  const [paymentMethod, setPaymentMethod] = useState<string | null>(null)
-  const [paymentDate, setPaymentDate] = useState<string | null>(null)
-  const [surveySubmitted, setSurveySubmitted] = useState(false)
-  const [employeeSurveyOptIn, setEmployeeSurveyOptIn] = useState<boolean | null>(null)
-  const [employeeSurveyOptInDate, setEmployeeSurveyOptInDate] = useState<string | null>(null)
+  // Auth/flow — wrapped setters update refs synchronously for saveToSupabase
+  const [authCompleted, _setAuthCompleted] = useState(false)
+  const setAuthCompleted = useCallback((v: boolean) => { authCompletedRef.current = v; _setAuthCompleted(v) }, [])
+  const [paymentCompleted, _setPaymentCompleted] = useState(false)
+  const setPaymentCompleted = useCallback((v: boolean) => { paymentCompletedRef.current = v; _setPaymentCompleted(v) }, [])
+  const [paymentMethod, _setPaymentMethod] = useState<string | null>(null)
+  const setPaymentMethod = useCallback((v: string | null) => { paymentMethodRef.current = v; _setPaymentMethod(v) }, [])
+  const [paymentDate, _setPaymentDate] = useState<string | null>(null)
+  const setPaymentDate = useCallback((v: string | null) => { paymentDateRef.current = v; _setPaymentDate(v) }, [])
+  const [surveySubmitted, _setSurveySubmitted] = useState(false)
+  const setSurveySubmitted = useCallback((v: boolean) => { surveySubmittedRef.current = v; _setSurveySubmitted(v) }, [])
+  const [employeeSurveyOptIn, _setEmployeeSurveyOptIn] = useState<boolean | null>(null)
+  const setEmployeeSurveyOptIn = useCallback((v: boolean | null) => { employeeSurveyOptInRef.current = v; _setEmployeeSurveyOptIn(v) }, [])
+  const [employeeSurveyOptInDate, _setEmployeeSurveyOptInDate] = useState<string | null>(null)
+  const setEmployeeSurveyOptInDate = useCallback((v: string | null) => { employeeSurveyOptInDateRef.current = v; _setEmployeeSurveyOptInDate(v) }, [])
 
-  // Login metadata
-  const [loginFirstName, setLoginFirstName] = useState<string | null>(null)
-  const [loginLastName, setLoginLastName] = useState<string | null>(null)
-  const [loginTitle, setLoginTitle] = useState<string | null>(null)
+  // Login metadata — wrapped setters update refs synchronously
+  const [loginFirstName, _setLoginFirstName] = useState<string | null>(null)
+  const setLoginFirstName = useCallback((v: string | null) => { loginFirstNameRef.current = v; _setLoginFirstName(v) }, [])
+  const [loginLastName, _setLoginLastName] = useState<string | null>(null)
+  const setLoginLastName = useCallback((v: string | null) => { loginLastNameRef.current = v; _setLoginLastName(v) }, [])
+  const [loginTitle, _setLoginTitle] = useState<string | null>(null)
+  const setLoginTitle = useCallback((v: string | null) => { loginTitleRef.current = v; _setLoginTitle(v) }, [])
+
 
   // Section data — stored in a single map for simplicity
   const [sectionData, setSectionDataMap] = useState<Record<string, Record<string, any> | null>>({})

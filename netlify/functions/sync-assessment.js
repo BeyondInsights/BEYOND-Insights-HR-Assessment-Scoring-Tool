@@ -143,6 +143,66 @@ exports.handler = async (event) => {
     }
 
     // ============================================
+    // ACTION: create-record (fallback when RLS blocks client-side insert)
+    // ============================================
+    if (action === 'create-record') {
+      const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+      if (!survey_id) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ error: 'No survey_id provided' })
+        }
+      }
+
+      // Check if record already exists
+      const normalizedAppId = survey_id.replace(/-/g, '').toUpperCase()
+      const { data: existing } = await supabase
+        .from('assessments')
+        .select('id')
+        .or(`survey_id.eq.${survey_id},app_id.eq.${normalizedAppId}`)
+        .maybeSingle()
+
+      if (existing) {
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ success: true, message: 'Record already exists' })
+        }
+      }
+
+      const { error: insertError } = await supabase
+        .from('assessments')
+        .insert({
+          user_id: payload.user_id || null,
+          email: payload.email || null,
+          app_id: normalizedAppId,
+          survey_id: survey_id,
+          survey_year: payload.survey_year || 2027,
+          version: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+      if (insertError) {
+        console.error('[sync-assessment] create-record error:', insertError)
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ success: false, error: insertError.message })
+        }
+      }
+
+      console.log('[sync-assessment] Record created for:', survey_id)
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ success: true })
+      }
+    }
+
+    // ============================================
     // ACTION: get-full-record (return entire assessment for conflict resolution)
     // ============================================
     if (action === 'get-full-record') {

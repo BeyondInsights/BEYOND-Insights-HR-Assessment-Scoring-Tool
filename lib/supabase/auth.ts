@@ -153,13 +153,27 @@ export async function authenticateUser(
       }
 
       if (authData.user) {
+        // Sign in FIRST to establish session — insert needs auth for RLS
+        console.log('[AUTH] Signing in new user to establish session...')
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password: appId
+        })
+
+        if (signInError) {
+          console.error('[AUTH] Auto sign-in error:', signInError)
+        } else {
+          console.log('[AUTH] Session established successfully!')
+        }
+
+        // Now insert with active auth session (RLS allows authenticated inserts)
         const { error: insertError } = await supabase
           .from('assessments')
           .insert({
             user_id: authData.user.id,
             email: normalizedEmail,
             app_id: appId,
-            survey_id: appId,  // SET BOTH survey_id AND app_id
+            survey_id: appId,
             survey_year: 2027,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
@@ -167,19 +181,29 @@ export async function authenticateUser(
 
         if (insertError) {
           console.error('[AUTH] Assessment insert error:', insertError)
-        }
-
-        console.log('[AUTH] Signing in new user to establish session...')
-        
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password: appId  // USE SURVEY ID AS PASSWORD
-        })
-
-        if (signInError) {
-          console.error('[AUTH] Auto sign-in error:', signInError)
-        } else {
-          console.log('[AUTH] Session established successfully!')
+          // Fallback: try creating via sync function (uses service role key)
+          console.log('[AUTH] Trying insert via sync function as fallback...')
+          try {
+            const resp = await fetch('/.netlify/functions/sync-assessment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'create-record',
+                survey_id: appId,
+                user_id: authData.user.id,
+                email: normalizedEmail,
+                survey_year: 2027
+              })
+            })
+            const result = await resp.json()
+            if (result.success) {
+              console.log('[AUTH] Record created via sync function')
+            } else {
+              console.error('[AUTH] Sync function create failed:', result.error)
+            }
+          } catch (e) {
+            console.error('[AUTH] Sync function fallback error:', e)
+          }
         }
 
         return {
