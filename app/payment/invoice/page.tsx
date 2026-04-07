@@ -162,10 +162,48 @@ export default function InvoicePaymentPage() {
       ctx.setPaymentCompleted(true)
       ctx.setPaymentDate(new Date().toISOString())
 
-      // Save to database via context
+      // Call sync function DIRECTLY — ctx.saveToSupabase() has stale closure
+      // (React batches setState, so paymentCompleted is still false in the callback)
       try {
-        await ctx.saveToSupabase()
-        console.log('Payment saved to Supabase via context')
+        const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id') || ''
+        if (sid) {
+          const normalized = sid.replace(/-/g, '').toUpperCase()
+          const response = await fetch('/.netlify/functions/sync-assessment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              survey_id: sid,
+              fallbackSurveyId: sid,
+              fallbackAppId: normalized,
+              userType: ctx.userType || 'regular',
+              source: 'autosync',
+              expectedVersion: ctx.version || undefined,
+              data: {
+                payment_completed: true,
+                payment_method: 'invoice',
+                payment_date: new Date().toISOString()
+              }
+            })
+          })
+          const result = await response.json()
+          if (result.success) {
+            console.log('Payment saved to Supabase via sync function')
+          } else if (result.actualVersion || result.currentVersion) {
+            // Version mismatch — retry with correct version
+            const retryVersion = result.actualVersion || result.currentVersion
+            await fetch('/.netlify/functions/sync-assessment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                survey_id: sid, fallbackSurveyId: sid, fallbackAppId: normalized,
+                userType: ctx.userType || 'regular', source: 'autosync',
+                expectedVersion: retryVersion,
+                data: { payment_completed: true, payment_method: 'invoice', payment_date: new Date().toISOString() }
+              })
+            })
+          }
+          await ctx.loadFromSupabase(sid)
+        }
       } catch (error) {
         console.error('Error saving payment to database:', error)
       }

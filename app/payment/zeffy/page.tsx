@@ -42,15 +42,76 @@ export default function ZeffyPaymentPage() {
   }, [])
 
   const markPaymentComplete = async () => {
+    // Update context state (for UI)
     ctx.setPaymentCompleted(true)
     ctx.setPaymentMethod('card')
     ctx.setPaymentDate(new Date().toISOString())
-    // Save via sync function (uses service role key, bypasses RLS)
-    const saved = await ctx.saveToSupabase()
-    if (!saved) {
-      console.error('Failed to save payment via sync function')
+
+    // Call sync function DIRECTLY with payment data.
+    // Can't use ctx.saveToSupabase() because React batches the setState calls
+    // above — the callback's closure still has paymentCompleted=false and
+    // won't include payment_completed in the payload.
+    const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id') || ''
+    if (!sid) return false
+    const normalized = sid.replace(/-/g, '').toUpperCase()
+
+    try {
+      const response = await fetch('/.netlify/functions/sync-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          survey_id: sid,
+          fallbackSurveyId: sid,
+          fallbackAppId: normalized,
+          userType: ctx.userType || 'regular',
+          source: 'autosync',
+          expectedVersion: ctx.version || undefined,
+          data: {
+            payment_completed: true,
+            payment_method: 'card',
+            payment_date: new Date().toISOString()
+          }
+        })
+      })
+      const result = await response.json()
+      if (!result.success) {
+        console.error('Payment sync failed:', result.error)
+        // Retry with corrected version if version mismatch
+        if (result.actualVersion || result.currentVersion) {
+          const retryVersion = result.actualVersion || result.currentVersion
+          const retry = await fetch('/.netlify/functions/sync-assessment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              survey_id: sid,
+              fallbackSurveyId: sid,
+              fallbackAppId: normalized,
+              userType: ctx.userType || 'regular',
+              source: 'autosync',
+              expectedVersion: retryVersion,
+              data: {
+                payment_completed: true,
+                payment_method: 'card',
+                payment_date: new Date().toISOString()
+              }
+            })
+          })
+          const retryResult = await retry.json()
+          if (!retryResult.success) {
+            console.error('Payment sync retry failed:', retryResult.error)
+            return false
+          }
+        } else {
+          return false
+        }
+      }
+      // Reload from Supabase to get correct version + all data
+      await ctx.loadFromSupabase(sid)
+      return true
+    } catch (err) {
+      console.error('Error saving payment:', err)
+      return false
     }
-    return saved
   }
 
   const handleOpenPayment = () => {
