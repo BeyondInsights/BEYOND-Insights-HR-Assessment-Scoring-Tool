@@ -90,7 +90,8 @@ export default function PaymentPage() {
   }
 
   checkPaymentStatus()
-}, [ctx])
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [])
 
 
   // Show loading state while checking payment status
