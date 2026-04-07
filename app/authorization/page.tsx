@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { isAuthenticated, getUserAssessment } from '@/lib/supabase/auth'
 import { isFoundingPartner } from '@/lib/founding-partners'
@@ -48,7 +48,8 @@ function AuthorizationContent() {
   const ctx = useAssessmentContext()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/dashboard'
-  
+  const isNavigatingRef = useRef(false)
+
   const [loading, setLoading] = useState(true)
   const [companyInfo, setCompanyInfo] = useState({
     companyName: '',
@@ -83,6 +84,9 @@ function AuthorizationContent() {
     }
 
     const checkAuth = async () => {
+      // If handleContinue is navigating, don't interfere
+      if (isNavigatingRef.current) return
+
       // ============================================
       // FOUNDING PARTNER CHECK
       // ============================================
@@ -243,6 +247,7 @@ function AuthorizationContent() {
     isAu2Valid
 
   const handleContinue = async () => {
+    isNavigatingRef.current = true
     setTouched({
       companyName: true,
       firstName: true,
@@ -255,30 +260,37 @@ function AuthorizationContent() {
     
     if (!isCompanyNameValid) {
       setErrors('Please enter your company name')
+      isNavigatingRef.current = false
       return
     }
     if (!isFirstNameValid) {
       setErrors('Please enter your first name')
+      isNavigatingRef.current = false
       return
     }
     if (!isLastNameValid) {
       setErrors('Please enter your last name')
+      isNavigatingRef.current = false
       return
     }
     if (!isTitleValid) {
       setErrors('Please select your title')
+      isNavigatingRef.current = false
       return
     }
     if (!isTitleOtherValid) {
       setErrors('Please specify your title')
+      isNavigatingRef.current = false
       return
     }
     if (!isAu1Valid) {
       setErrors('You must be authorized to complete this survey')
+      isNavigatingRef.current = false
       return
     }
     if (!isAu2Valid) {
       setErrors('Please select at least one authorization description')
+      isNavigatingRef.current = false
       return
     }
 
@@ -400,6 +412,7 @@ function AuthorizationContent() {
         if (!saved) {
           console.error('Error saving via context')
           setErrors('Failed to save. Please try again.')
+          isNavigatingRef.current = false
           return
         }
 
@@ -432,6 +445,7 @@ function AuthorizationContent() {
       } catch (error) {
         console.error('Error:', error)
         setErrors('An error occurred. Please try again.')
+        isNavigatingRef.current = false
       }
     }
   }
