@@ -56,7 +56,7 @@ export default function Dimension5Page() {
     ans,
     setAns,
     markTouched,
-    shuffle: false,
+    shuffle: true,
   });
   
   useEffect(() => {

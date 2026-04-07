@@ -58,7 +58,7 @@ export default function Dimension3Page() {
     ans,
     setAns,
     markTouched,
-    shuffle: false,
+    shuffle: true,
   });
   
   // Load saved answers on mount

@@ -58,7 +58,7 @@ export default function Dimension8Page() {
     ans,
     setAns,
     markTouched,
-    shuffle: false,
+    shuffle: true,
   });
   
   useEffect(() => {
