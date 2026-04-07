@@ -74,7 +74,6 @@ const D2_QUESTIONS: Record<string, string> = {
   "Short-term disability covering 60%+ of salary": "Short-term disability (60%+)",
   "Long-term disability covering 60%+ of salary": "Long-term disability (60%+)",
   "Employer-paid disability insurance supplements": "Disability insurance supplements",
-  "Guaranteed job protection": "Guaranteed job protection",
   "Accelerated life insurance benefits (partial payout for terminal / critical illness)": "Accelerated life insurance",
   
   // D2.aa Multi-Country

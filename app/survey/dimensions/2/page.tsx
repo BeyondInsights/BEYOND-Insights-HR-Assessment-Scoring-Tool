@@ -26,7 +26,6 @@ const D2A_ITEMS_BASE = [
   "Short-term disability covering 60%+ of salary",
   "Long-term disability covering 60%+ of salary",
   "Employer-paid disability insurance supplements",
-  "Guaranteed job protection",
   "Accelerated life insurance benefits (partial payout for terminal / critical illness)"
 ];
 

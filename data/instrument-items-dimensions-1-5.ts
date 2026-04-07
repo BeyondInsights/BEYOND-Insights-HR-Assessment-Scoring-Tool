@@ -324,15 +324,6 @@ const D2_ITEMS: InstrumentItem[] = [
     gridItem: true,
   },
   {
-    id: "D2.a16",
-    section: "D2",
-    text: "Guaranteed job protection",
-    route: "/survey/dimensions/2",
-    type: "likert-4",
-    fieldName: "d2a",
-    gridItem: true,
-  },
-  {
     id: "D2.a17",
     section: "D2",
     text: "Accelerated life insurance benefits (partial payout for terminal / critical illness)",
