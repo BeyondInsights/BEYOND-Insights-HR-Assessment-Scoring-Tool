@@ -55,15 +55,17 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return
 
-    // If context not loaded yet, wait for sessionStorage recovery
-    if (!ctx.isLoaded && !ctx.surveyId) {
-      // Check if there's a session to recover — if not, redirect to login
-      const savedId = sessionStorage.getItem('current_survey_id')
-      if (!savedId) {
-        router.push('/login')
-        return
+    // If context not loaded yet, wait for it before making any redirect decisions
+    if (!ctx.isLoaded) {
+      if (!ctx.surveyId) {
+        // Check if there's a session to recover — if not, redirect to login
+        const savedId = sessionStorage.getItem('current_survey_id')
+        if (!savedId) {
+          router.push('/login')
+          return
+        }
       }
-      // Context will auto-recover from sessionStorage — wait for it
+      // Context is still loading from Supabase — wait for it
       return
     }
 
