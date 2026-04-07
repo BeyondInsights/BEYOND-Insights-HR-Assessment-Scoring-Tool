@@ -150,10 +150,16 @@ function AuthorizationContent() {
           if (data) assessment = data
         }
         if (assessment) {
-          // CRITICAL CHECK: If auth already completed, go to dashboard
+          // If auth already completed, check payment before deciding where to go
           if (assessment.auth_completed || ctx.authCompleted) {
-            console.log('Authorization already completed - redirecting to dashboard')
-            router.push('/dashboard')
+            const paid = assessment.payment_completed || ctx.paymentCompleted
+            if (!paid) {
+              console.log('Authorization completed but not paid - redirecting to payment')
+              router.push('/payment')
+            } else {
+              console.log('Authorization and payment completed - redirecting to dashboard')
+              router.push('/dashboard')
+            }
             return
           }
 
@@ -170,9 +176,14 @@ function AuthorizationContent() {
             if (authData.other) setOther(authData.other)
           }
         } else if (ctx.authCompleted) {
-          // No Supabase record but context says completed (founding partner case)
-          console.log('Authorization completed (context) - redirecting to dashboard')
-          router.push('/dashboard')
+          // No Supabase record but context says completed
+          if (!ctx.paymentCompleted) {
+            console.log('Authorization completed (context) but not paid - redirecting to payment')
+            router.push('/payment')
+          } else {
+            console.log('Authorization completed (context) - redirecting to dashboard')
+            router.push('/dashboard')
+          }
           return
         } else {
           // ============================================
