@@ -46,14 +46,32 @@ export default function PaymentPage() {
         return
       }
 
-      // Then check Supabase
+      // Check Supabase via auth session
       const assessment = await getUserAssessment()
 
       if (assessment?.payment_completed) {
-        console.log('Payment found in Supabase - redirecting')
+        console.log('Payment found in Supabase via auth - redirecting')
         ctx.setPaymentCompleted(true)
         window.location.replace('/dashboard')
         return
+      }
+
+      // Fallback: check Supabase directly by surveyId (in case auth session is missing)
+      const sid = ctx.surveyId
+      if (sid && !assessment) {
+        const normalized = sid.replace(/-/g, '').toUpperCase()
+        const { data } = await supabase
+          .from('assessments')
+          .select('payment_completed')
+          .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+          .maybeSingle()
+
+        if (data?.payment_completed) {
+          console.log('Payment found in Supabase via surveyId fallback - redirecting')
+          ctx.setPaymentCompleted(true)
+          window.location.replace('/dashboard')
+          return
+        }
       }
 
       // No payment found - show payment page

@@ -133,7 +133,18 @@ function AuthorizationContent() {
 
       // Load existing data if any
       try {
-        const assessment = await getUserAssessment()
+        let assessment = await getUserAssessment()
+        // Fallback: if no auth session, try loading by surveyId directly
+        if (!assessment && ctx.surveyId) {
+          const sid = ctx.surveyId
+          const normalized = sid.replace(/-/g, '').toUpperCase()
+          const { data } = await supabase
+            .from('assessments')
+            .select('*')
+            .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+            .maybeSingle()
+          if (data) assessment = data
+        }
         if (assessment) {
           // CRITICAL CHECK: If auth already completed, go to dashboard
           if (assessment.auth_completed || ctx.authCompleted) {
@@ -393,10 +404,26 @@ function AuthorizationContent() {
         }
 
         // Check payment status from context or Supabase
-        const assessment = await getUserAssessment()
+        let paymentDone = ctx.paymentCompleted
+        if (!paymentDone) {
+          const assessment = await getUserAssessment()
+          paymentDone = !!assessment?.payment_completed
+        }
+        // Fallback: check Supabase directly by surveyId if auth session missing
+        if (!paymentDone && ctx.surveyId) {
+          const sid = ctx.surveyId
+          const normalized = sid.replace(/-/g, '').toUpperCase()
+          const { data } = await supabase
+            .from('assessments')
+            .select('payment_completed')
+            .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
+            .maybeSingle()
+          paymentDone = !!data?.payment_completed
+        }
 
-        if (assessment?.payment_completed || ctx.paymentCompleted) {
+        if (paymentDone) {
           console.log('Payment confirmed - redirecting to dashboard')
+          ctx.setPaymentCompleted(true)
           router.push('/dashboard')
         } else {
           console.log('Payment not found - redirecting to payment page')

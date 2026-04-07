@@ -176,6 +176,18 @@ export default function LoginPage() {
       if (result.found && result.record) {
         console.log('[Login] Found existing user in database!')
 
+        // Establish Supabase auth session so getUserAssessment() works on subsequent pages
+        const cleanId = trimmedSurveyId.replace(/-/g, '')
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: currentEmail,
+          password: cleanId
+        })
+        if (signInError) {
+          console.warn('[Login] Auth session not established (non-blocking):', signInError.message)
+        } else {
+          console.log('[Login] Auth session established for returning user')
+        }
+
         ctx.setFullRecord(result.record)
         ctx.setEmail(currentEmail)
         ctx.setSurveyId(trimmedSurveyId)
