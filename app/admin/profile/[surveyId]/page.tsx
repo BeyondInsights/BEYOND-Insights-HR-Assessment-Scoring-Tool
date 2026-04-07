@@ -582,33 +582,32 @@ function getStatusStyle(status: string | number): { bg: string; text: string; la
 // COMPONENTS
 // ============================================
 
-function StatCard({ label, value, color, icon, subtext }: { 
-  label: string; 
-  value: string | number; 
+function StatCard({ label, value, color, subtext }: {
+  label: string;
+  value: string | number;
   color: string;
   icon?: React.ReactNode;
   subtext?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden">
-      <div className="h-2" style={{ backgroundColor: color }} />
-      <div className="p-5 text-center">
-        {icon && <div className="mb-2">{icon}</div>}
-        <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>{label}</p>
-        <p className="text-4xl font-black" style={{ color }}>{value}</p>
-        {subtext && <p className="text-xs mt-1" style={{ color: BRAND.gray[600] }}>{subtext}</p>}
+    <div className="bg-white border border-slate-200 rounded-lg overflow-hidden flex">
+      <div className="w-1 shrink-0" style={{ backgroundColor: color }} />
+      <div className="p-4">
+        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{label}</p>
+        <p className="text-2xl font-bold mt-1" style={{ color }}>{value}</p>
+        {subtext && <p className="text-xs text-slate-500 mt-0.5">{subtext}</p>}
       </div>
     </div>
   );
 }
 
-function SectionCard({ title, children, color = BRAND.primary }: { 
-  title: string; 
+function SectionCard({ title, children, color = BRAND.primary }: {
+  title: string;
   children: React.ReactNode;
   color?: string;
 }) {
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden mb-6">
       <div className="px-6 py-4 border-b flex items-center gap-3" style={{ borderColor: BRAND.gray[200], backgroundColor: BRAND.gray[50] }}>
         <div className="w-1 h-6 rounded-full" style={{ backgroundColor: color }} />
         <h2 className="text-lg font-bold" style={{ color: BRAND.gray[900] }}>{title}</h2>
@@ -633,7 +632,7 @@ function DataField({ label, value, fullWidth = false, showNA = false }: {
   
   return (
     <div className={fullWidth ? 'col-span-full' : ''}>
-      <p className="text-xs font-bold uppercase tracking-wide mb-1" style={{ color: BRAND.gray[500] }}>{label}</p>
+      <p className="text-xs font-bold uppercase tracking-wide mb-1 text-slate-500">{label}</p>
       {Array.isArray(displayValue) ? (
         <ul className="space-y-1">
           {displayValue.map((v, i) => (
@@ -1799,14 +1798,14 @@ export default function ProfilePage() {
             </div>
             
             {/* Company Banner - KEEP PURPLE since user liked it */}
-            <div 
-              className="rounded-2xl p-8 text-white shadow-xl"
+            <div
+              className="rounded-lg p-8 text-white shadow-sm"
               style={{ background: 'linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)' }}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-sm font-medium opacity-80 mb-1">Best Companies for Working with Cancer Index</p>
-                  <h1 className="text-3xl md:text-4xl font-black mb-4">
+                  <h1 className="text-3xl md:text-4xl font-bold mb-4">
                     {assessment.company_name || 'Company Profile'}
                   </h1>
                   <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -1828,12 +1827,12 @@ export default function ProfilePage() {
                   const completedSections = sectionKeys.filter(key => assessment[key] === true).length;
                   const completionPct = Math.round((completedSections / sectionKeys.length) * 100);
                   const isComplete = assessment.survey_completed || completionPct >= 100;
-                  
+
                   return (
-                    <div className={`backdrop-blur rounded-lg px-4 py-2 text-center ${isComplete ? 'bg-white/20' : 'bg-amber-500/30'}`}>
+                    <div className="rounded-md px-4 py-2 text-center bg-white/15">
                       <p className="text-xs opacity-80">Status</p>
-                      <p className="font-bold">
-                        {isComplete ? '✓ Completed' : `In Progress (${completionPct}%)`}
+                      <p className="font-semibold text-sm">
+                        {isComplete ? 'Completed' : `In Progress (${completionPct}%)`}
                       </p>
                     </div>
                   );
@@ -1866,9 +1865,12 @@ export default function ProfilePage() {
               />
             </div>
             {totalUnsure > 0 && (
-              <p className="text-sm text-amber-600 mt-2">
-                ⚠️ {totalUnsure} items marked as "Unsure" - respondent may not have complete visibility into all programs
-              </p>
+              <div className="flex items-center gap-2 mt-3 px-3 py-2 rounded-md border border-amber-200 bg-amber-50">
+                <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                <p className="text-sm text-amber-700">
+                  {totalUnsure} items marked as &quot;Unsure&quot; — respondent may not have complete visibility into all programs
+                </p>
+              </div>
             )}
           </section>
 
@@ -1908,13 +1910,9 @@ export default function ProfilePage() {
 
           {/* PAYMENT INFO */}
           {assessment.payment_completed && (
-            <div className="bg-white rounded-xl shadow-md p-5 mb-8 flex items-center justify-between">
+            <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 mb-8 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#D1FAE5' }}>
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
+                <div className="w-3 h-3 rounded-full bg-green-500 shrink-0" />
                 <div>
                   <p className="font-bold" style={{ color: BRAND.gray[900] }}>
                     Payment: {assessment.payment_method === 'invoice' ? 'Invoice' : 'Paid Online'}
@@ -1929,7 +1927,7 @@ export default function ProfilePage() {
               {assessment.payment_method === 'invoice' && (
                 <button
                   onClick={() => setShowInvoiceModal(true)}
-                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 no-print shadow-md"
+                  className="px-5 py-2.5 text-white rounded-lg font-medium flex items-center gap-2 no-print"
                   style={{ backgroundColor: BRAND.primary }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1949,15 +1947,15 @@ export default function ProfilePage() {
                 {currentBenefits.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.current.bg }} />
-                      <p className="text-sm font-bold uppercase tracking-wide" style={{ color: BRAND.gray[600] }}>
-                        Currently Offered ({currentBenefits.length})
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS.current.bg }} />
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        In Place ({currentBenefits.length})
                       </p>
                     </div>
-                    <ul className="space-y-1 bg-green-50 rounded-lg p-4">
+                    <ul className="space-y-1.5 rounded-lg p-4 border border-slate-100 bg-slate-50">
                       {currentBenefits.map((benefit: string, i: number) => (
                         <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
-                          <span className="mr-2 text-green-600">✓</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 mt-1.5 mr-2.5" />
                           {benefit}
                         </li>
                       ))}
@@ -1969,15 +1967,15 @@ export default function ProfilePage() {
                 {plannedBenefits.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: STATUS_COLORS.planning.bg }} />
-                      <p className="text-sm font-bold uppercase tracking-wide" style={{ color: BRAND.gray[600] }}>
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS.planning.bg }} />
+                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                         Planned for Next 2 Years ({plannedBenefits.length})
                       </p>
                     </div>
-                    <ul className="space-y-1 bg-amber-50 rounded-lg p-4">
+                    <ul className="space-y-1.5 rounded-lg p-4 border border-slate-100 bg-slate-50">
                       {plannedBenefits.map((benefit: string, i: number) => (
                         <li key={i} className="text-sm flex items-start" style={{ color: BRAND.gray[800] }}>
-                          <span className="mr-2 text-amber-600">○</span>
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0 mt-1.5 mr-2.5" />
                           {benefit}
                         </li>
                       ))}
