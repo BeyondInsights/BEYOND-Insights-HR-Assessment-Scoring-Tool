@@ -22,6 +22,7 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
   'https://effervescent-concha-95d2df.netlify.app',
+  'https://cac-survey.beyondinsights.com',
   'https://bestcompaniesforworkingwithcancer.com',
   'https://www.bestcompaniesforworkingwithcancer.com',
   'http://localhost:3000',
@@ -414,59 +415,62 @@ exports.handler = async (event) => {
     
     // ============================================
     // REGULAR USER SYNC (with fallback chain + version enforcement)
+    // Also handles regular users whose auth session expired (normalizedUserId is null)
     // ============================================
-    else if (normalizedUserId) {
-      console.log('[sync-assessment] Regular user sync for:', normalizedUserId)
-      
-      // ATTEMPT 1: user_id
-      const { data: userIdRow } = await supabase
-        .from('assessments')
-        .select('id')
-        .eq('user_id', normalizedUserId)
-        .single()
-      
-      if (userIdRow) {
-        result = await updateWithVersionCheck('user_id', normalizedUserId)
-        matchedVia = 'user_id'
+    else if (normalizedUserId || userType === 'regular') {
+      console.log('[sync-assessment] Regular user sync for:', normalizedUserId || '(no auth session)')
+
+      // ATTEMPT 1: user_id (only if we have one)
+      if (normalizedUserId) {
+        const { data: userIdRow } = await supabase
+          .from('assessments')
+          .select('id')
+          .eq('user_id', normalizedUserId)
+          .single()
+
+        if (userIdRow) {
+          result = await updateWithVersionCheck('user_id', normalizedUserId)
+          matchedVia = 'user_id'
+        }
       }
-      
+
       // ATTEMPT 2: survey_id fallback (with user_id linking in SAME update)
       if ((!result || result.rowsAffected === 0) && !result?.missingExpected && fallbackSurveyId) {
         console.log('[sync-assessment] Trying survey_id fallback:', fallbackSurveyId)
-        
+
         const { data: surveyIdRow } = await supabase
           .from('assessments')
           .select('id')
           .eq('survey_id', fallbackSurveyId)
           .single()
-        
+
         if (surveyIdRow) {
-          // Pass user_id to link in same atomic update
+          // Pass user_id to link in same atomic update (null is fine if no session)
           result = await updateWithVersionCheck('survey_id', fallbackSurveyId, normalizedUserId)
           matchedVia = 'survey_id'
           if (result?.success) {
-            console.log('[sync-assessment] Linked user_id via survey_id (atomic)')
+            console.log('[sync-assessment] Matched via survey_id' + (normalizedUserId ? ', linked user_id (atomic)' : ''))
           }
         }
       }
-      
+
       // ATTEMPT 3: app_id fallback (with user_id linking in SAME update)
       if ((!result || result.rowsAffected === 0) && !result?.missingExpected && fallbackAppId) {
         const normalizedAppId = fallbackAppId.replace(/-/g, '').toUpperCase()
         console.log('[sync-assessment] Trying app_id fallback:', normalizedAppId)
-        
+
         const { data: appIdRow } = await supabase
           .from('assessments')
           .select('id')
           .eq('app_id', normalizedAppId)
           .single()
-        
+
         if (appIdRow) {
-          // Pass user_id to link in same atomic update
+          // Pass user_id to link in same atomic update (null is fine if no session)
           result = await updateWithVersionCheck('app_id', normalizedAppId, normalizedUserId)
           matchedVia = 'app_id'
           if (result?.success) {
-            console.log('[sync-assessment] Linked user_id via app_id (atomic)')
+            console.log('[sync-assessment] Matched via app_id' + (normalizedUserId ? ', linked user_id (atomic)' : ''))
           }
         }
       }
