@@ -330,12 +330,12 @@ const getTotalSteps = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-blue-900">
-                      Progress: {Object.keys(ans.d9a || {}).length} of {D9A_ITEMS.length} items rated
+                      Progress: {Object.keys(ans.d9a || {}).length} of {D9A_ITEMS.length} elements rated
                     </p>
                     <p className="text-xs text-blue-700 mt-1">
                       {Object.keys(ans.d9a || {}).length === D9A_ITEMS.length 
-                        ? '✓ All items completed!' 
-                        : `${D9A_ITEMS.length - Object.keys(ans.d9a || {}).length} items remaining`}
+                        ? '✓ All elements completed!' 
+                        : `${D9A_ITEMS.length - Object.keys(ans.d9a || {}).length} elements remaining`}
                     </p>
                   </div>
                   <div className="text-2xl font-bold text-blue-900">
@@ -353,7 +353,7 @@ const getTotalSteps = () => {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Element {currentItemIndex + 1} of {D9A_ITEMS.length}
+                    
                   </span>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-sm text-gray-600 mb-1 pointer-events-none">

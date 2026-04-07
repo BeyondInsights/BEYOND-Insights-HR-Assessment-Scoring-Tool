@@ -340,12 +340,12 @@ export default function Dimension2Page() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold text-blue-900">
-                      Progress: {Object.keys(ans.d2a || {}).length} of {D2A_ITEMS.length} items rated
+                      Progress: {Object.keys(ans.d2a || {}).length} of {D2A_ITEMS.length} elements rated
                     </p>
                     <p className="text-xs text-blue-700 mt-1">
                       {Object.keys(ans.d2a || {}).length === D2A_ITEMS.length 
-                        ? '✓ All items completed!' 
-                        : `${D2A_ITEMS.length - Object.keys(ans.d2a || {}).length} items remaining`}
+                        ? '✓ All elements completed!' 
+                        : `${D2A_ITEMS.length - Object.keys(ans.d2a || {}).length} elements remaining`}
                     </p>
                   </div>
                   <div className="text-2xl font-bold text-blue-900">
@@ -363,7 +363,7 @@ export default function Dimension2Page() {
               <div className="mb-6">
                 <div className="flex items-center justify-between">
                   <span className="text-lg font-bold text-gray-800">
-                    Element {currentItemIndex + 1} of {D2A_ITEMS.length}
+                    
                   </span>
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-sm text-gray-600 mb-1 pointer-events-none">
@@ -465,7 +465,7 @@ export default function Dimension2Page() {
                   ← View previous element
                 </button>
 
-                {/* Show Finish button only when all items rated */}
+                {/* Show Finish button only when all elements rated */}
                 {Object.keys(ans.d2a || {}).length === D2A_ITEMS.length && !isTransitioning && (
                   <div className="flex flex-col items-end gap-1">
                     <button
