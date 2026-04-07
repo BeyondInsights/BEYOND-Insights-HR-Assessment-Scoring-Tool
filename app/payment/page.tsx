@@ -39,26 +39,16 @@ export default function PaymentPage() {
   useEffect(() => {
   const checkPaymentStatus = async () => {
     try {
-      // First check context (faster)
+      // Check context first
       if (ctx.paymentCompleted) {
-        console.log('Payment found in context - redirecting immediately')
+        console.log('Payment found in context - redirecting')
         window.location.replace('/dashboard')
         return
       }
 
-      // Check Supabase via auth session
-      const assessment = await getUserAssessment()
-
-      if (assessment?.payment_completed) {
-        console.log('Payment found in Supabase via auth - redirecting')
-        ctx.setPaymentCompleted(true)
-        window.location.replace('/dashboard')
-        return
-      }
-
-      // Fallback: check Supabase directly by surveyId (in case auth session is missing)
+      // Check Supabase by surveyId (reliable — tied to current survey, not auth session)
       const sid = ctx.surveyId
-      if (sid && !assessment) {
+      if (sid) {
         const normalized = sid.replace(/-/g, '').toUpperCase()
         const { data } = await supabase
           .from('assessments')
@@ -67,7 +57,7 @@ export default function PaymentPage() {
           .maybeSingle()
 
         if (data?.payment_completed) {
-          console.log('Payment found in Supabase via surveyId fallback - redirecting')
+          console.log('Payment found in Supabase - redirecting')
           ctx.setPaymentCompleted(true)
           window.location.replace('/dashboard')
           return
@@ -76,15 +66,12 @@ export default function PaymentPage() {
 
       // No payment found - show payment page
       console.log('No payment found - showing payment options')
-      const name = ctx.companyName || 'Your Organization'
-      setCompanyName(name)
+      setCompanyName(ctx.companyName || 'Your Organization')
       setLoading(false)
 
     } catch (error) {
       console.error('Error checking payment status:', error)
-      // On error, still show payment page
-      const name = ctx.companyName || 'Your Organization'
-      setCompanyName(name)
+      setCompanyName(ctx.companyName || 'Your Organization')
       setLoading(false)
     }
   }
