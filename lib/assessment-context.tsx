@@ -405,7 +405,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           return saveToSupabase(section)
         }
         console.error('[AssessmentContext] Max retries for missing version')
-        setLastSaveError('Save failed — please refresh and try again')
+        setLastSaveError('Version sync failed — please refresh')
         retryCountRef.current = 0
         return false
       }
@@ -421,14 +421,14 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
           return saveToSupabase(section)
         }
         console.error('[AssessmentContext] Max retries for version conflict')
-        setLastSaveError('Save failed — please refresh and try again')
+        setLastSaveError('Version conflict — please refresh')
         retryCountRef.current = 0
         return false
       }
 
       if (!response.ok || result.success === false) {
-        const errMsg = result.error || 'Save failed'
-        console.error('[AssessmentContext] Save failed:', errMsg)
+        const errMsg = result.error || result.message || `Save failed (HTTP ${response.status})`
+        console.error('[AssessmentContext] Save failed:', errMsg, 'Full result:', JSON.stringify(result))
         setLastSaveError(errMsg)
         savingRef.current = false
         setIsSaving(false)
