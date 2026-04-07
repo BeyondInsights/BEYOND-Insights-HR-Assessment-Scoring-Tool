@@ -428,6 +428,7 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
 
       if (error || !data) {
         console.log('[AssessmentContext] No record found for:', sid)
+        setIsLoaded(true)
         return false
       }
 

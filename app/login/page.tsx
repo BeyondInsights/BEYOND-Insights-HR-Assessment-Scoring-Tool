@@ -227,8 +227,9 @@ export default function LoginPage() {
       await ctx.loadFromSupabase(trimmedSurveyId)
 
       if (ctx.authCompleted) {
-        setSuccessMessage('Welcome back! Redirecting to dashboard...')
-        setTimeout(() => router.push('/dashboard'), 1500)
+        const paid = ctx.paymentCompleted
+        setSuccessMessage(paid ? 'Welcome back! Redirecting to dashboard...' : 'Welcome back! Completing payment setup...')
+        setTimeout(() => router.push(paid ? '/dashboard' : '/payment'), 1500)
       } else {
         setSuccessMessage('Found existing progress! Redirecting...')
         setTimeout(() => router.push('/letter'), 1500)
@@ -277,8 +278,9 @@ export default function LoginPage() {
           ctx.setFullRecord(existing)
 
           if (existing.auth_completed) {
-            setSuccessMessage('Welcome back! Redirecting to dashboard...')
-            setTimeout(() => router.push('/dashboard'), 1500)
+            const paid = existing.payment_completed
+            setSuccessMessage(paid ? 'Welcome back! Redirecting to dashboard...' : 'Welcome back! Completing payment setup...')
+            setTimeout(() => router.push(paid ? '/dashboard' : '/payment'), 1500)
           } else {
             setSuccessMessage('Found your progress! Redirecting...')
             setTimeout(() => router.push('/letter'), 1500)

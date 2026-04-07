@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, Award, ArrowRight, FileText } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
 import { useAssessmentContext } from '@/lib/assessment-context';
 
 export default function PaymentSuccessPage() {
@@ -25,47 +24,9 @@ useEffect(() => {
     ctx.setPaymentMethod('card');
     ctx.setPaymentDate(new Date().toISOString());
 
-    // Save payment directly to Supabase — don't rely on context which may be empty in popup
-    (async () => {
-      // Try multiple sources for surveyId (popup has separate sessionStorage)
-      const cookieMatch = document.cookie.match(/payment_survey_id=([^;]+)/)
-      const cookieSid = cookieMatch ? decodeURIComponent(cookieMatch[1]) : ''
-      const sid = ctx.surveyId
-        || sessionStorage.getItem('current_survey_id')
-        || cookieSid
-        || urlParams.get('survey_id')
-        || '';
-
-      if (sid) {
-        const normalized = sid.replace(/-/g, '').toUpperCase();
-        try {
-          const { error } = await supabase
-            .from('assessments')
-            .update({
-              payment_completed: true,
-              payment_method: 'card',
-              payment_date: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`);
-
-          if (error) {
-            console.error('Direct Supabase payment save failed:', error);
-          } else {
-            console.log('Payment saved directly to Supabase for:', sid);
-          }
-        } catch (err) {
-          console.error('Error saving payment to Supabase:', err);
-        }
-      } else {
-        console.error('No surveyId available to save payment — trying context save as fallback');
-        try {
-          await ctx.saveToSupabase();
-        } catch (err) {
-          console.error('Context save also failed:', err);
-        }
-      }
-    })();
+    // Payment is saved by the parent page via postMessage → markPaymentComplete
+    // Direct writes from the popup fail due to RLS (anon key) and cross-domain issues
+    console.log('Payment success page loaded - parent page handles DB write via postMessage')
   }
 
   // Break out of Zeffy iframe/popup

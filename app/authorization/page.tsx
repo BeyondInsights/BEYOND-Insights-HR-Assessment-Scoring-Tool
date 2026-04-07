@@ -218,6 +218,7 @@ function AuthorizationContent() {
         }
       } catch (error) {
         console.error('Error loading data:', error)
+        isNavigatingRef.current = false
       }
       // ============================================
 
