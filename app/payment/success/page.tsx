@@ -73,8 +73,13 @@ useEffect(() => {
   const isPopup = window.opener !== null;
 
   if (isPopup) {
-    // Don't redirect opener — just close the popup.
-    // The parent zeffy page polls Supabase and handles the redirect.
+    // Signal the parent page that payment is complete (works cross-origin)
+    try {
+      window.opener.postMessage({ type: 'payment-completed' }, '*');
+    } catch (e) {
+      console.log('Could not postMessage to opener');
+    }
+    // Close the popup — parent handles the DB write and redirect
     try {
       window.close();
     } catch (e) {
