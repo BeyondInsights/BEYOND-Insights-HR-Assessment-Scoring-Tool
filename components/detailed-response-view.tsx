@@ -91,9 +91,16 @@ function statusToPoints(status: string | number): { points: number | null; isUns
   
   if (typeof status === 'string') {
     const s = status.toLowerCase().trim()
-    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false }
+    // 2027 scale
+    if (s === 'in place') return { points: POINTS.CURRENTLY_OFFER, isUnsure: false }
+    if (s === 'in development') return { points: POINTS.PLANNING, isUnsure: false }
+    if (s === 'under review') return { points: POINTS.ASSESSING, isUnsure: false }
+    if (s === 'open to exploring') return { points: POINTS.ASSESSING, isUnsure: false }
+    if (s === 'not planned') return { points: POINTS.NOT_ABLE, isUnsure: false }
     if (s === 'unsure' || s.includes('unsure')) return { points: null, isUnsure: true }
-    if (s.includes('currently') || s.includes('offer') || s.includes('provide') || 
+    // 2026 scale (backward compat)
+    if (s.includes('not able')) return { points: POINTS.NOT_ABLE, isUnsure: false }
+    if (s.includes('currently') || s.includes('offer') || s.includes('provide') ||
         s.includes('use') || s.includes('track') || s.includes('measure')) {
       return { points: POINTS.CURRENTLY_OFFER, isUnsure: false }
     }
