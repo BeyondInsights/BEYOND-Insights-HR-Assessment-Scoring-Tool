@@ -39,15 +39,8 @@ export default function PaymentPage() {
   useEffect(() => {
   const checkPaymentStatus = async () => {
     try {
-      // Check context first
-      if (ctx.paymentCompleted) {
-        console.log('Payment found in context - redirecting')
-        window.location.replace('/dashboard')
-        return
-      }
-
-      // Check Supabase by surveyId (reliable — tied to current survey, not auth session)
-      const sid = ctx.surveyId
+      // Only check Supabase by surveyId — don't trust context on mount (may be stale)
+      const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id')
       if (sid) {
         const normalized = sid.replace(/-/g, '').toUpperCase()
         const { data } = await supabase

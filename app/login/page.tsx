@@ -161,8 +161,9 @@ export default function LoginPage() {
     const trimmedSurveyId = surveyId.trim().toUpperCase()
     const currentEmail = (email || '').toLowerCase().trim()
 
-    // Clear context for any new login
+    // Clear context and sign out any stale Supabase session
     ctx.clearAll()
+    await supabase.auth.signOut()
 
     // ============================================
     // CHECK FOR ANY RETURNING USER BY APP_ID
