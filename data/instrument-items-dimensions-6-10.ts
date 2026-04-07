@@ -275,15 +275,6 @@ const D7A_ITEMS: InstrumentItem[] = [
     randomize: true
   },
   {
-    id: "D7.a3",
-    section: "D7",
-    text: "Peer mentorship program (employees who had similar condition mentoring current employees)",
-    route: "/survey/dimensions/7",
-    type: "likert-4",
-    fieldName: "d7a",
-    randomize: true
-  },
-  {
     id: "D7.a4",
     section: "D7",
     text: "Professional coach/mentor for employees managing cancer or other serious health conditions",
@@ -444,7 +435,7 @@ const D8A_ITEMS: InstrumentItem[] = [
   {
     id: "D8.a9",
     section: "D8",
-    text: "Access to occupational therapy/vocational rehabilitation",
+    text: "Online peer support forums",
     route: "/survey/dimensions/8",
     type: "likert-4",
     fieldName: "d8a",
@@ -453,15 +444,6 @@ const D8A_ITEMS: InstrumentItem[] = [
   {
     id: "D8.a10",
     section: "D8",
-    text: "Online peer support forums",
-    route: "/survey/dimensions/8",
-    type: "likert-4",
-    fieldName: "d8a",
-    randomize: true
-  },
-  {
-    id: "D8.a11",
-    section: "D8",
     text: "Access to specialized work resumption professionals",
     route: "/survey/dimensions/8",
     type: "likert-4",
@@ -469,7 +451,7 @@ const D8A_ITEMS: InstrumentItem[] = [
     randomize: true
   },
   {
-    id: "D8.a12",
+    id: "D8.a11",
     section: "D8",
     text: "Manager training on supporting team members during treatment/return",
     route: "/survey/dimensions/8",
@@ -884,7 +866,7 @@ const D10A_ITEMS: InstrumentItem[] = [
   {
     id: "D10.a13",
     section: "D10",
-    text: "Caregiver resource navigator/concierge",
+    text: "Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)",
     route: "/survey/dimensions/10",
     type: "likert-4",
     fieldName: "d10a",

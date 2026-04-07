@@ -7,9 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
+const D10_EXCLUDED_ITEMS: string[] = [];
 
 const OLD_DIMENSION_WEIGHTS: Record<number, number> = {
   4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,

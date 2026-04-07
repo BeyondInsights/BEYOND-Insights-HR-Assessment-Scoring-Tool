@@ -12,7 +12,6 @@ import ELEMENT_TOOLTIPS from "@/data/element-tooltips";
 const D7A_ITEMS_BASE = [
   "Continued access to training/development",
   "Structured reintegration programs",
-  "Peer mentorship program (employees who had similar condition mentoring current employees)",
   "Professional coach/mentor for employees managing cancer or other serious health conditions",
   "Adjusted performance goals/deliverables during treatment and recovery",
   "Career coaching for employees managing cancer or other serious health conditions",

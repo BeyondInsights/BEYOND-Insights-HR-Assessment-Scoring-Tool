@@ -33,7 +33,7 @@ import { calculateElementWeightedDimScore } from '@/lib/wsi-scoring';
 const APP_ONLY_EXCLUDED_ITEMS: Record<number, string[]> = {
   1: ['Full salary (100%) continuation during cancer-related short-term disability leave'],
   9: ['Executive-led town halls focused on health benefits and employee support'],
-  10: ['Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'],
+  10: [],
   12: ['Measure screening campaign ROI (e.g. participation rates, inquiries about access, etc.)'],
   13: ['Cancer awareness month campaigns with resources'],
 };

@@ -58,9 +58,7 @@ export const GRID_POINTS = {
 };
 
 // D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
+const D10_EXCLUDED_ITEMS: string[] = [];
 
 // ============================================
 // DIMENSION NAMES

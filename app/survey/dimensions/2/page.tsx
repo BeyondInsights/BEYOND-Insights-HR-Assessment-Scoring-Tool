@@ -19,7 +19,6 @@ const D2A_ITEMS_BASE = [
   "Financial counseling services",
   "Voluntary supplemental illness insurance (with employer contribution)",
   "Real-time cost estimator tools",
-  "Insurance advocacy/pre-authorization support",
   "$0 copay for specialty drugs",
   "Hardship grants program funded by employer",
   "Tax/estate planning assistance",

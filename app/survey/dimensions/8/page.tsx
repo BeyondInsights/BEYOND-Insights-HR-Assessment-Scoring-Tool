@@ -18,7 +18,6 @@ const D8A_ITEMS_BASE = [
   "Structured progress reviews",
   "Contingency planning for treatment schedules",
   "Long-term success tracking",
-  "Access to occupational therapy/vocational rehabilitation",
   "Online peer support forums",
   "Access to specialized work resumption professionals",
   "Manager training on supporting team members during treatment/return"

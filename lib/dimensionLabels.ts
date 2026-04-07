@@ -67,7 +67,6 @@ const D2_QUESTIONS: Record<string, string> = {
   "Financial counseling services": "Financial counseling",
   "Voluntary supplemental illness insurance (with employer contribution)": "Supplemental illness insurance",
   "Real-time cost estimator tools": "Cost estimator tools",
-  "Insurance advocacy/pre-authorization support": "Insurance advocacy",
   "$0 copay for specialty drugs": "$0 specialty drug copays",
   "Hardship grants program funded by employer": "Hardship grants",
   "Tax/estate planning assistance": "Tax/estate planning",
@@ -198,10 +197,9 @@ const D6_QUESTIONS: Record<string, string> = {
 // DIMENSION 7: CAREER CONTINUITY & ADVANCEMENT
 // ============================================
 const D7_QUESTIONS: Record<string, string> = {
-  // D7.a Grid Items (9 programs)
+  // D7.a Grid Items (8 programs)
   "Continued access to training/development": "Continued training/development access",
   "Structured reintegration programs": "Structured reintegration programs",
-  "Peer mentorship program (employees who had similar condition mentoring current employees)": "Peer mentorship program",
   "Professional coach/mentor for employees managing cancer or other serious health conditions": "Professional coach/mentor",
   "Adjusted performance goals/deliverables during treatment and recovery": "Adjusted performance goals",
   "Career coaching for employees managing cancer or other serious health conditions": "Career coaching",
@@ -229,7 +227,6 @@ const D8_QUESTIONS: Record<string, string> = {
   "Structured progress reviews": "Structured progress reviews",
   "Contingency planning for treatment schedules": "Contingency planning",
   "Long-term success tracking": "Long-term success tracking",
-  "Access to occupational therapy/vocational rehabilitation": "Occupational therapy access",
   "Online peer support forums": "Online peer support forums",
   "Access to specialized work resumption professionals": "Work resumption professionals",
   "Manager training on supporting team members during treatment/return": "Manager training on treatment/return support",
@@ -284,7 +281,7 @@ const D10_QUESTIONS: Record<string, string> = {
   "Practical support for managing caregiving and work": "Practical caregiving/work support",
   "Emergency dependent care when regular arrangements unavailable": "Emergency dependent care",
   "Respite care funding/reimbursement": "Respite care funding",
-  "Caregiver resource navigator/concierge": "Caregiver resource navigator",
+  "Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)": "Caregiver concierge/navigator",
   "Legal/financial planning assistance for caregivers": "Legal/financial planning for caregivers",
   "Modified job duties during peak caregiving periods": "Modified job duties for caregivers",
   "Unpaid leave job protection beyond local / legal requirements": "Unpaid leave job protection (expanded)",

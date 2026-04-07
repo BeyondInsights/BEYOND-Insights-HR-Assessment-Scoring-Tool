@@ -261,15 +261,6 @@ const D2_ITEMS: InstrumentItem[] = [
     gridItem: true,
   },
   {
-    id: "D2.a9",
-    section: "D2",
-    text: "Insurance advocacy/pre-authorization support",
-    route: "/survey/dimensions/2",
-    type: "likert-4",
-    fieldName: "d2a",
-    gridItem: true,
-  },
-  {
     id: "D2.a10",
     section: "D2",
     text: "$0 copay for specialty drugs",

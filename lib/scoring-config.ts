@@ -45,9 +45,7 @@ export const DIMENSION_NAMES: Record<number, string> = {
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
+const D10_EXCLUDED_ITEMS: string[] = [];
 
 // ============================================
 // HELPER FUNCTIONS

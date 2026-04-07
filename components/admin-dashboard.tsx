@@ -195,7 +195,6 @@ const DIMENSION_CONFIG = {
     items: [
       'Continued access to training/development',
       'Structured reintegration programs',
-      'Peer mentorship program (employees who had similar condition mentoring current employees)',
       'Professional coach/mentor for employees managing cancer or other serious health conditions',
       'Adjusted performance goals/deliverables during treatment and recovery',
       'Career coaching for employees managing cancer or other serious health conditions',
@@ -217,7 +216,6 @@ const DIMENSION_CONFIG = {
       'Structured progress reviews',
       'Contingency planning for treatment schedules',
       'Long-term success tracking',
-      'Access to occupational therapy/vocational rehabilitation',
       'Online peer support forums',
       'Access to specialized work resumption professionals',
       'Manager training on supporting team members during treatment/return'
@@ -258,7 +256,7 @@ const DIMENSION_CONFIG = {
       'Practical support for managing caregiving and work',
       'Emergency dependent care when regular arrangements unavailable',
       'Respite care funding/reimbursement',
-      'Caregiver resource navigator/concierge',
+      'Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)',
       'Legal/financial planning assistance for caregivers',
       'Modified job duties during peak caregiving periods',
       'Unpaid leave job protection beyond local / legal requirements',

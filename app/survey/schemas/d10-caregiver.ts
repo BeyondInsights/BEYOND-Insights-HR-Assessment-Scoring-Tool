@@ -23,7 +23,7 @@ export const d10Schema = {
       'Practical support for managing caregiving and work',
       'Emergency dependent care when regular arrangements unavailable',
       'Respite care funding/reimbursement',
-      'Caregiver resource navigator/concierge',
+      'Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)',
       'Legal/financial planning assistance for caregivers',
       'Modified job duties during peak caregiving periods',
       'Unpaid leave job protection beyond local / legal requirements',

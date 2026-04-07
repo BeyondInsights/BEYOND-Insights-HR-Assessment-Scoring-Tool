@@ -451,12 +451,6 @@
   ],
   "7": [
     {
-      "e": "Peer mentorship program (employees who had similar condition mentoring current employees)",
-      "w": 0.2000326881429042,
-      "eq": 0.1111111111111111,
-      "s": 0.99
-    },
-    {
       "e": "Continued access to training/development",
       "w": 0.1434856093901353,
       "eq": 0.1111111111111111,
@@ -679,16 +673,10 @@
       "s": 1.0
     },
     {
-      "e": "Caregiver resource navigator/concierge",
-      "w": 0.05211853040241135,
+      "e": "Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)",
+      "w": 0.10026669364282045,
       "eq": 0.05,
       "s": 0.99
-    },
-    {
-      "e": "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)",
-      "w": 0.0481481632404091,
-      "eq": 0.05,
-      "s": 0.975
     },
     {
       "e": "Paid caregiver leave with expanded eligibility (beyond local legal requirements)",

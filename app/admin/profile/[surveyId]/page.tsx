@@ -101,10 +101,8 @@ const DEFAULT_WEIGHTS: Record<number, number> = {
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
-// D10 item exclusion - added after initial survey launch, excluded for Year 1 fairness
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
+// D10 item exclusion - merged into main item for 2027
+const D10_EXCLUDED_ITEMS: string[] = [];
 
 function statusToPoints(status: string | number): { points: number | null; isUnsure: boolean } {
   if (typeof status === 'number') {

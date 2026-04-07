@@ -13,7 +13,6 @@ export const d7Schema = {
     programs: [
       'Continued access to training/development',
       'Structured reintegration programs',
-      'Peer mentorship program (employees who had similar condition mentoring current employees)',
       'Professional coach/mentor for employees managing cancer or other serious health conditions',
       'Adjusted performance goals/deliverables during treatment and recovery',
       'Career coaching for employees managing cancer or other serious health conditions',

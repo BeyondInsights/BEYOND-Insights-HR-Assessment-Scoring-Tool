@@ -22,14 +22,13 @@ const D10A_ITEMS_BASE = [
   "Practical support for managing caregiving and work",
   "Emergency dependent care when regular arrangements unavailable",
   "Respite care funding/reimbursement",
-  "Caregiver resource navigator/concierge",
+  "Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)",
   "Legal/financial planning assistance for caregivers",
   "Modified job duties during peak caregiving periods",
   "Unpaid leave job protection beyond local / legal requirements",
   "Eldercare consultation and referral services",
   "Paid time off for care coordination appointments",
-  "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)", 
-  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)"
+  "Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)"
 ];
 
 export default function Dimension10Page() {

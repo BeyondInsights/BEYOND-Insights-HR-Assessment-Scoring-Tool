@@ -18,9 +18,7 @@ interface DimensionData { name: string; weight: number; elements: number; cvR2: 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 const INSUFFICIENT_DATA_THRESHOLD = 0.40;
 
-const D10_EXCLUDED_ITEMS = [
-  'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)'
-];
+const D10_EXCLUDED_ITEMS: string[] = [];
 
 const OLD_DIMENSION_WEIGHTS: Record<number, number> = {
   4: 14, 8: 13, 3: 12, 2: 11, 13: 10, 6: 8, 1: 7, 5: 7, 7: 4, 9: 4, 10: 4, 11: 3, 12: 3,
@@ -954,7 +952,6 @@ const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
     'Optional open health dialogue forums': 0.052165,
   },
   7: {
-    'Peer mentorship program (employees who had similar condition mentoring current employees)': 0.200033,
     'Continued access to training/development': 0.143486,
     'Adjusted performance goals/deliverables during treatment and recovery': 0.105850,
     'Succession planning protections': 0.104257,
@@ -997,8 +994,7 @@ const ELEMENT_WEIGHTS: Record<number, Record<string, number>> = {
     'Family navigation support': 0.080451,
     'Eldercare consultation and referral services': 0.080031,
     'Expanded caregiver leave eligibility beyond legal definitions (e.g., siblings, in-laws, chosen family)': 0.057402,
-    'Caregiver resource navigator/concierge': 0.052119,
-    'Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)': 0.048148,
+    'Caregiver concierge/navigator services (e.g., coordinating logistics, scheduling, transportation, home care)': 0.100267,
     'Paid caregiver leave with expanded eligibility (beyond local legal requirements)': 0.046638,
     'Flexible work arrangements for caregivers': 0.045747,
     'Paid time off for care coordination appointments': 0.043873,
@@ -1221,25 +1217,24 @@ const DIMENSIONS: Record<number, DimensionData> = {
   7: {
     name: "Career Continuity & Advancement",
     weight: 5,
-    elements: 9,
+    elements: 8,
     cvR2: 0.33,
     alpha: 0.5,
     n: 34,
     topElements: [
-      "Peer mentorship program (employees who had similar",
       "Continued access to training/development",
       "Adjusted performance goals/deliverables during tre",
+      "Succession planning protections",
     ],
     items: [
-      { rank: 1, name: "Peer mentorship program (employees who had similar condition mentor...", weight: 0.200033, equal: 0.111111, delta: 0.088922 },
-      { rank: 2, name: "Continued access to training/development", weight: 0.143486, equal: 0.111111, delta: 0.032374 },
-      { rank: 3, name: "Adjusted performance goals/deliverables during treatment and recovery", weight: 0.105850, equal: 0.111111, delta: -0.005261 },
-      { rank: 4, name: "Succession planning protections", weight: 0.104257, equal: 0.111111, delta: -0.006854 },
-      { rank: 5, name: "Structured reintegration programs", weight: 0.101907, equal: 0.111111, delta: -0.009205 },
-      { rank: 6, name: "Optional stay-connected program", weight: 0.101429, equal: 0.111111, delta: -0.009682 },
-      { rank: 7, name: "Career coaching for employees managing cancer or other serious heal...", weight: 0.084242, equal: 0.111111, delta: -0.026869 },
-      { rank: 8, name: "Professional coach/mentor for employees managing cancer or other se...", weight: 0.081518, equal: 0.111111, delta: -0.029594 },
-      { rank: 9, name: "Project continuity protocols", weight: 0.077280, equal: 0.111111, delta: -0.033831 },
+      { rank: 1, name: "Continued access to training/development", weight: 0.143486, equal: 0.125000, delta: 0.018486 },
+      { rank: 2, name: "Adjusted performance goals/deliverables during treatment and recovery", weight: 0.105850, equal: 0.125000, delta: -0.019150 },
+      { rank: 3, name: "Succession planning protections", weight: 0.104257, equal: 0.125000, delta: -0.020743 },
+      { rank: 4, name: "Structured reintegration programs", weight: 0.101907, equal: 0.125000, delta: -0.023093 },
+      { rank: 5, name: "Optional stay-connected program", weight: 0.101429, equal: 0.125000, delta: -0.023571 },
+      { rank: 6, name: "Career coaching for employees managing cancer or other serious heal...", weight: 0.084242, equal: 0.125000, delta: -0.040758 },
+      { rank: 7, name: "Professional coach/mentor for employees managing cancer or other se...", weight: 0.081518, equal: 0.125000, delta: -0.043482 },
+      { rank: 8, name: "Project continuity protocols", weight: 0.077280, equal: 0.125000, delta: -0.047720 },
     ]
   },
   8: {
@@ -1313,9 +1308,8 @@ const DIMENSIONS: Record<number, DimensionData> = {
       { rank: 2, name: "Family navigation support", weight: 0.080451, equal: 0.050000, delta: 0.030451 },
       { rank: 3, name: "Eldercare consultation and referral services", weight: 0.080031, equal: 0.050000, delta: 0.030031 },
       { rank: 4, name: "Expanded caregiver leave eligibility beyond legal definitions (e.g....", weight: 0.057402, equal: 0.050000, delta: 0.007402 },
-      { rank: 5, name: "Caregiver resource navigator/concierge", weight: 0.052119, equal: 0.050000, delta: 0.002119 },
-      { rank: 6, name: "Concierge services to coordinate caregiving logistics (e.g., schedu...", weight: 0.048148, equal: 0.050000, delta: -0.001852 },
-      { rank: 7, name: "Paid caregiver leave with expanded eligibility (beyond local legal ...", weight: 0.046638, equal: 0.050000, delta: -0.003362 },
+      { rank: 5, name: "Caregiver concierge/navigator services (e.g., coordinating logistic...", weight: 0.100267, equal: 0.050000, delta: 0.050267 },
+      { rank: 6, name: "Paid caregiver leave with expanded eligibility (beyond local legal ...", weight: 0.046638, equal: 0.050000, delta: -0.003362 },
       { rank: 8, name: "Flexible work arrangements for caregivers", weight: 0.045747, equal: 0.050000, delta: -0.004253 },
       { rank: 9, name: "Paid time off for care coordination appointments", weight: 0.043873, equal: 0.050000, delta: -0.006127 },
       { rank: 10, name: "Respite care funding/reimbursement", weight: 0.043040, equal: 0.050000, delta: -0.006960 },
