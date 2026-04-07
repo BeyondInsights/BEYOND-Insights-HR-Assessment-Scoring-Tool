@@ -59,6 +59,7 @@ interface Assessment {
   dimension13_complete: boolean
   cross_dimensional_complete: boolean
   employee_impact_complete: boolean
+  survey_year?: number | null
 }
 
 interface ProcessedAssessment extends Assessment {
@@ -2994,6 +2995,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [yearFilter, setYearFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState({ fp: true, standard: true, panel: true })
   const [selectedAssessment, setSelectedAssessment] = useState<ProcessedAssessment | null>(null)
   const [activeTab, setActiveTab] = useState<'responses' | 'analytics' | 'verbatim'>('responses')
@@ -3177,12 +3179,17 @@ export default function AdminDashboard() {
       (statusFilter === 'in-progress' && a.status === 'In Progress') ||
       (statusFilter === 'not-started' && a.status === 'Not Started')
 
+    const matchesYear =
+      yearFilter === 'all' ||
+      (yearFilter === '2027' && a.survey_year === 2027) ||
+      (yearFilter === '2026' && (a.survey_year === 2026 || a.survey_year == null))
+
     const matchesType =
       (a.isFoundingPartner && !a.isPanel && typeFilter.fp) ||
       (!a.isFoundingPartner && !a.isPanel && typeFilter.standard) ||
       (a.isPanel && typeFilter.panel)
 
-   return matchesSearch && matchesStatus && matchesType
+   return matchesSearch && matchesStatus && matchesYear && matchesType
   }).sort((a, b) => {
     // Sort: FP first, then Standard, then Panel at end
     if (a.isPanel && !b.isPanel) return 1;
@@ -3193,28 +3200,33 @@ export default function AdminDashboard() {
     return bTime - aTime;
   })
 
+  // Year-filtered assessments for stats (stats reflect year selection but not search/status/type)
+  const yearFilteredAssessments = yearFilter === 'all' ? assessments : assessments.filter(a =>
+    yearFilter === '2027' ? a.survey_year === 2027 : (a.survey_year === 2026 || a.survey_year == null)
+  )
+
   const stats = {
-    foundingStarted: assessments.filter((a) => a.isFoundingPartner && !a.isPanel).length,
-    foundingCompleted: assessments.filter((a) => a.isFoundingPartner && !a.isPanel && a.completionPercentage >= 100).length,
-    standardStarted: assessments.filter((a) => !a.isFoundingPartner && !a.isPanel).length,
-    standardCompleted: assessments.filter((a) => !a.isFoundingPartner && !a.isPanel && a.completionPercentage >= 100).length,
-    panelStarted: assessments.filter((a) => a.isPanel).length,
-    panelCompleted: assessments.filter((a) => a.isPanel && a.completionPercentage >= 100).length,
-    totalRevenue: assessments.reduce((sum, a) => {
+    foundingStarted: yearFilteredAssessments.filter((a) => a.isFoundingPartner && !a.isPanel).length,
+    foundingCompleted: yearFilteredAssessments.filter((a) => a.isFoundingPartner && !a.isPanel && a.completionPercentage >= 100).length,
+    standardStarted: yearFilteredAssessments.filter((a) => !a.isFoundingPartner && !a.isPanel).length,
+    standardCompleted: yearFilteredAssessments.filter((a) => !a.isFoundingPartner && !a.isPanel && a.completionPercentage >= 100).length,
+    panelStarted: yearFilteredAssessments.filter((a) => a.isPanel).length,
+    panelCompleted: yearFilteredAssessments.filter((a) => a.isPanel && a.completionPercentage >= 100).length,
+    totalRevenue: yearFilteredAssessments.reduce((sum, a) => {
       if (a.isPanel) return sum // Panel doesn't contribute to revenue
       if (a.isFoundingPartner) return sum + 1250
       if (a.payment_completed) return sum + 1250
       return sum
     }, 0),
-    paidSurveys: assessments.filter((a) => !a.isFoundingPartner && !a.isPanel && a.payment_completed).length,
-    fpSponsored: assessments.filter((a) => a.isFoundingPartner && !a.isPanel).length,
+    paidSurveys: yearFilteredAssessments.filter((a) => !a.isFoundingPartner && !a.isPanel && a.payment_completed).length,
+    fpSponsored: yearFilteredAssessments.filter((a) => a.isFoundingPartner && !a.isPanel).length,
     avgCompletion: Math.round(
-      assessments.reduce((sum, a) => sum + a.completionPercentage, 0) / (assessments.length || 1)
+      yearFilteredAssessments.reduce((sum, a) => sum + a.completionPercentage, 0) / (yearFilteredAssessments.length || 1)
     ),
     avgDays: Math.round(
-      assessments.filter((a) => a.completionPercentage >= 100)
+      yearFilteredAssessments.filter((a) => a.completionPercentage >= 100)
         .reduce((sum, a) => sum + a.daysInProgress, 0) /
-        (assessments.filter((a) => a.completionPercentage >= 100).length || 1)
+        (yearFilteredAssessments.filter((a) => a.completionPercentage >= 100).length || 1)
     ),
   }
 
@@ -3243,7 +3255,7 @@ export default function AdminDashboard() {
               <div className="h-8 w-px bg-slate-200"></div>
               <div>
                 <h1 className="text-lg font-semibold text-slate-800">Survey Administration Dashboard</h1>
-                <p className="text-xs text-slate-500">Best Companies for Working with Cancer • 2026</p>
+                <p className="text-xs text-slate-500">Best Companies for Working with Cancer • {yearFilter === 'all' ? 'All Years' : yearFilter}</p>
               </div>
             </div>
             <a
@@ -3381,7 +3393,7 @@ export default function AdminDashboard() {
           <>
             {/* Filters */}
             <div className="bg-white rounded-lg border border-slate-200 p-4 mb-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">SEARCH</label>
                   <input
@@ -3391,6 +3403,18 @@ export default function AdminDashboard() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-slate-400 focus:border-slate-400"
                   />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1">SURVEY YEAR</label>
+                  <select
+                    value={yearFilter}
+                    onChange={(e) => setYearFilter(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Years</option>
+                    <option value="2027">2027</option>
+                    <option value="2026">2026</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-slate-500 mb-1">STATUS</label>
@@ -3484,7 +3508,14 @@ export default function AdminDashboard() {
                             {(assessment.company_name || 'N')[0].toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-semibold text-slate-900 truncate">{assessment.company_name || 'N/A'}</p>
+                            <p className="text-sm font-semibold text-slate-900 truncate">
+                              {assessment.company_name || 'N/A'}
+                              <span className={`ml-1.5 inline-flex items-center px-1.5 py-0 rounded text-[10px] font-medium ${
+                                assessment.survey_year === 2027 ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                              }`}>
+                                {assessment.survey_year || 2026}
+                              </span>
+                            </p>
                             <p className="text-xs text-slate-600 truncate">
                               {assessment.firmographics_data?.firstName} {assessment.firmographics_data?.lastName}
                               {(assessment.firmographics_data?.title || assessment.firmographics_data?.s5) && (

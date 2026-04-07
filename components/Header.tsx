@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { FileText, Download, Receipt, AlertCircle, List, Bell } from 'lucide-react'
+import { FileText, Download, Receipt, AlertCircle, List } from 'lucide-react'
 import { useAssessmentContext } from '@/lib/assessment-context'
 
 const SCALE_DEFINITIONS = [
@@ -75,6 +75,7 @@ export default function Header() {
                 Response Scale
               </button>
 
+              {/* Temporarily hidden — will re-enable when review flow is needed
               {unsureCount > 0 && pathname !== '/survey/review-unsure' && (
                 <button
                   onClick={() => router.push('/survey/review-unsure')}
@@ -85,15 +86,8 @@ export default function Header() {
                   Items to Review ({unsureCount})
                 </button>
               )}
+              */}
 
-              <button
-                onClick={() => router.push('/updates')}
-                className="flex items-center gap-1.5 bg-black text-white px-3 py-2 rounded-lg font-medium shadow-sm hover:bg-gray-800 transition text-xs whitespace-nowrap"
-                title="View recent app updates and proposed changes"
-              >
-                <Bell className="w-3.5 h-3.5" />
-                App Updates
-              </button>
 
               {!onPrintPage && (
                 <button
