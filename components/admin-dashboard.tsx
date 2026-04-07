@@ -3109,8 +3109,15 @@ export default function AdminDashboard() {
           (new Date().getTime() - new Date(assessment.created_at).getTime()) / (1000 * 60 * 60 * 24)
         )
 
+        // Determine survey year: trust DB if set, otherwise infer from created_at
+        // Records created on or after 2026-03-31 are 2027 survey year
+        const YEAR_2027_CUTOFF = '2026-03-31T00:00:00Z'
+        const effectiveYear = assessment.survey_year
+          || (assessment.created_at >= YEAR_2027_CUTOFF ? 2027 : 2026)
+
         return {
           ...assessment,
+          survey_year: effectiveYear,
           isFoundingPartner: isFP,
           isPanel: isPanel,
           status,
@@ -3181,8 +3188,8 @@ export default function AdminDashboard() {
 
     const matchesYear =
       yearFilter === 'all' ||
-      (yearFilter === '2027' && a.survey_year === 2027) ||
-      (yearFilter === '2026' && (a.survey_year === 2026 || a.survey_year == null))
+      (yearFilter === '2027' && Number(a.survey_year) === 2027) ||
+      (yearFilter === '2026' && (Number(a.survey_year) === 2026 || a.survey_year == null))
 
     const matchesType =
       (a.isFoundingPartner && !a.isPanel && typeFilter.fp) ||
@@ -3202,7 +3209,7 @@ export default function AdminDashboard() {
 
   // Year-filtered assessments for stats (stats reflect year selection but not search/status/type)
   const yearFilteredAssessments = yearFilter === 'all' ? assessments : assessments.filter(a =>
-    yearFilter === '2027' ? a.survey_year === 2027 : (a.survey_year === 2026 || a.survey_year == null)
+    yearFilter === '2027' ? Number(a.survey_year) === 2027 : (Number(a.survey_year) === 2026 || a.survey_year == null)
   )
 
   const stats = {
@@ -3511,7 +3518,7 @@ export default function AdminDashboard() {
                             <p className="text-sm font-semibold text-slate-900 truncate">
                               {assessment.company_name || 'N/A'}
                               <span className={`ml-1.5 inline-flex items-center px-1.5 py-0 rounded text-[10px] font-medium ${
-                                assessment.survey_year === 2027 ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
+                                Number(assessment.survey_year) === 2027 ? 'bg-teal-50 text-teal-700' : 'bg-slate-100 text-slate-500'
                               }`}>
                                 {assessment.survey_year || 2026}
                               </span>
