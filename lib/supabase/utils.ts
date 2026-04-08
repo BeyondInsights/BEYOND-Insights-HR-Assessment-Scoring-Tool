@@ -1,6 +1,9 @@
+// Survey cycle year: the CAC prefix uses the survey index year, not calendar year.
+// e.g. the 2027 survey cycle (which runs during calendar year 2026-2027) uses CAC27.
+const SURVEY_CYCLE_YEAR = 27
+
 export function generateAppId(): string {
   const date = new Date()
-  const yy = date.getFullYear().toString().slice(-2)
   const mm = String(date.getMonth() + 1).padStart(2, '0')
   const dd = String(date.getDate()).padStart(2, '0')
   
@@ -10,7 +13,7 @@ export function generateAppId(): string {
   const random = chars.charAt(Math.floor(Math.random() * chars.length)) +
                  chars.charAt(Math.floor(Math.random() * chars.length))
   
-  return `CAC${yy}${mm}${dd}${sequence}${random}`
+  return `CAC${SURVEY_CYCLE_YEAR}${mm}${dd}${sequence}${random}`
 }
 
 export function formatAppId(appId: string): string {
