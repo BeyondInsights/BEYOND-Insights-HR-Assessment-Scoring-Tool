@@ -174,6 +174,7 @@ export async function authenticateUser(
             email: normalizedEmail,
             app_id: appId,
             survey_id: appId,
+            survey_year: 2027,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
