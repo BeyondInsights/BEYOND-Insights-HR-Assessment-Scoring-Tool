@@ -3205,13 +3205,12 @@ export default function AdminDashboard() {
 
    return matchesSearch && matchesStatus && matchesYear && matchesType
   }).sort((a, b) => {
-    // Sort: FP first, then Standard, then Panel at end
-    if (a.isPanel && !b.isPanel) return 1;
-    if (!a.isPanel && b.isPanel) return -1;
-    // Within same category, sort by last_survey_edit_at (most recent first)
-    const bTime = b.last_survey_edit_at ? new Date(b.last_survey_edit_at).getTime() : 0;
-    const aTime = a.last_survey_edit_at ? new Date(a.last_survey_edit_at).getTime() : 0;
-    return bTime - aTime;
+    // Primary sort: last_survey_edit_at descending — no edits fall to bottom
+    const aTime = a.last_survey_edit_at ? new Date(a.last_survey_edit_at).getTime() : -1;
+    const bTime = b.last_survey_edit_at ? new Date(b.last_survey_edit_at).getTime() : -1;
+    if (aTime !== bTime) return bTime - aTime;
+    // Tiebreaker: company name
+    return (a.company_name || '').localeCompare(b.company_name || '');
   })
 
   // Year-filtered assessments for stats (stats reflect year selection but not search/status/type)
