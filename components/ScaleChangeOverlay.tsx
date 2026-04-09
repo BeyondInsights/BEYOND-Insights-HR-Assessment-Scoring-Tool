@@ -77,10 +77,46 @@ export default function ScaleChangeOverlay({ hasExistingData }: { hasExistingDat
             </table>
           </div>
 
+          {/* 2027 scale definitions */}
+          <h3 className="text-sm font-semibold text-slate-700 mb-2">2027 Response Definitions</h3>
+          <div className="border border-slate-200 rounded-lg overflow-hidden mb-5">
+            <table className="w-full text-sm">
+              <tbody>
+                <tr className="border-b border-slate-100">
+                  <td className="px-4 py-2 font-medium text-emerald-700 whitespace-nowrap border-r border-slate-100 w-40">In Place</td>
+                  <td className="px-4 py-2 text-slate-600">This program, policy, or practice is currently active and available to employees.</td>
+                </tr>
+                <tr className="border-b border-slate-100 bg-slate-50/50">
+                  <td className="px-4 py-2 font-medium text-blue-700 whitespace-nowrap border-r border-slate-100">In Development</td>
+                  <td className="px-4 py-2 text-slate-600">A formal plan exists and resources have been allocated to implement this within the next 12-18 months.</td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="px-4 py-2 font-medium text-amber-700 whitespace-nowrap border-r border-slate-100">Under Review</td>
+                  <td className="px-4 py-2 text-slate-600">Actively evaluating the feasibility, cost, or design of this program. No implementation timeline yet, but it is on leadership's radar.</td>
+                </tr>
+                <tr className="border-b border-slate-100 bg-amber-50/50">
+                  <td className="px-4 py-2 font-medium text-orange-600 whitespace-nowrap border-r border-slate-100">Open to Exploring</td>
+                  <td className="px-4 py-2 text-slate-600">Had not considered this, but learning about it has sparked interest. Open to reviewing whether this could work for your organization.</td>
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="px-4 py-2 font-medium text-slate-600 whitespace-nowrap border-r border-slate-100">Not Planned</td>
+                  <td className="px-4 py-2 text-slate-600">Considered this and determined it is not feasible or appropriate for your organization at this time.</td>
+                </tr>
+                <tr>
+                  <td className="px-4 py-2 font-medium text-slate-500 whitespace-nowrap border-r border-slate-100">Unsure</td>
+                  <td className="px-4 py-2 text-slate-600">Not sure about the current status of this program at your organization.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
           {/* Note about new option */}
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-800 mb-3">
+              <span className="font-semibold">Please note:</span> We added a new response option in 2027 — <span className="font-semibold">Open to Exploring</span> — for programs your organization had not previously considered but may be open to reviewing.
+            </p>
             <p className="text-sm text-blue-800">
-              <span className="font-semibold">Please note:</span> We added a new response option in 2027 — <span className="font-semibold">Open to Exploring</span> — for programs your organization had not previously considered but may be open to reviewing. Please adjust any element responses based on changes your organization may have introduced since you completed the 2026 survey, or if you feel a different scale point may be more appropriate.
+              Please adjust any element responses based on changes your organization may have introduced since you completed the 2026 survey, or if you feel a different scale point may be more appropriate.
             </p>
           </div>
 
