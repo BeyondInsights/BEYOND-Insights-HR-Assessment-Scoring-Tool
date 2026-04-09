@@ -3098,10 +3098,12 @@ export default function AdminDashboard() {
           hasData(assessment.employee_impact_data),
         ];
         
-        // Use the higher of flag-based or data-based completion (covers both scenarios)
+        // For 2027+ records, trust flags only (rolled-over records have data but flags reset)
+        // For legacy 2026 records, use data-based fallback (flags may not have been set)
         const flagBasedCount = completionFlags.filter(Boolean).length;
         const dataBasedCount = dataBasedCompletion.filter(Boolean).length;
-        const sectionsCompleted = Math.max(flagBasedCount, dataBasedCount);
+        const effectiveYearNum = Number(assessment.survey_year) || 2026;
+        const sectionsCompleted = effectiveYearNum >= 2027 ? flagBasedCount : Math.max(flagBasedCount, dataBasedCount);
         
         const totalSections = 19
         const completionPercentage = Math.round((sectionsCompleted / totalSections) * 100)
