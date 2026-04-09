@@ -424,6 +424,7 @@ interface CompanyScores {
   isComplete: boolean;
   isFoundingPartner: boolean;
   isPanel: boolean;
+  surveyYear: number;
   completedDimCount: number;
   compositeScore: number;
   depthScore: number;
@@ -549,7 +550,9 @@ function calculateCompanyScores(
     companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
     surveyId: assessment.app_id || assessment.survey_id || 'N/A',
     dimensions, unweightedScore, weightedScore, insufficientDataCount,
-    isProvisional, isComplete, isFoundingPartner, isPanel, completedDimCount,
+    isProvisional, isComplete, isFoundingPartner, isPanel,
+    surveyYear: Number(assessment.survey_year) || 2026,
+    completedDimCount,
     compositeScore,
     depthScore: 0,
     maturityScore,
@@ -2984,6 +2987,7 @@ export default function AggregateScoringReport() {
   const [filterComplete, setFilterComplete] = useState(false);
   const [viewMode, setViewMode] = useState<'score' | 'index'>('score');
   const [includePanel, setIncludePanel] = useState(true);
+  const [yearTab, setYearTab] = useState<'2026' | '2027'>('2027');
   
   const weightsSum = Object.values(weights).reduce((a, b) => a + b, 0);
   const weightsValid = weightsSum === 100;
@@ -3028,9 +3032,14 @@ export default function AggregateScoringReport() {
     return assessments.map(a => calculateCompanyScores(a, weights, compositeWeights, blendWeights));
   }, [assessments, weights, compositeWeights, blendWeights]);
 
+  // Filter by year tab first — all downstream logic uses this
+  const yearFilteredScores = useMemo(() => {
+    return companyScores.filter(c => c.surveyYear === Number(yearTab));
+  }, [companyScores, yearTab]);
+
   const sortedCompanies = useMemo(() => {
-    let filtered = companyScores;
-    
+    let filtered = yearFilteredScores;
+
     if (!includePanel) {
       filtered = filtered.filter(c => !c.isPanel);
     }
@@ -3054,10 +3063,10 @@ export default function AggregateScoringReport() {
       }
       return sortDir === 'desc' ? -comparison : comparison;
     });
-  }, [companyScores, sortBy, sortDir, filterType, filterComplete, includePanel]);
+  }, [yearFilteredScores, sortBy, sortDir, filterType, filterComplete, includePanel]);
 
   const averages = useMemo(() => {
-    const baseComplete = companyScores.filter(c => c.isComplete);
+    const baseComplete = yearFilteredScores.filter(c => c.isComplete);
     const complete = includePanel ? baseComplete : baseComplete.filter(c => !c.isPanel);
     const fp = complete.filter(c => c.isFoundingPartner && !c.isPanel);
     const std = complete.filter(c => !c.isFoundingPartner && !c.isPanel);
@@ -3090,7 +3099,7 @@ export default function AggregateScoringReport() {
       composite: { total: calcAvg(complete, 'compositeScore'), fp: calcAvg(fp, 'compositeScore'), std: calcAvg(std, 'compositeScore'), panel: calcAvg(panel, 'compositeScore'), single: calcAvg(single, 'compositeScore'), regional: calcAvg(regional, 'compositeScore'), global: calcAvg(global, 'compositeScore') },
       counts: { total: complete.length, fp: fp.length, std: std.length, panel: panel.length, single: single.length, regional: regional.length, global: global.length },
     };
-  }, [companyScores, includePanel]);
+  }, [yearFilteredScores, includePanel]);
 
   const handleSort = (column: 'name' | 'weighted' | 'composite' | `dim${number}`) => {
     if (sortBy === column) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -3139,13 +3148,13 @@ export default function AggregateScoringReport() {
     <div className="min-h-screen bg-gray-50">
       {showDimensionModal && <DimensionScoringModal onClose={() => setShowDimensionModal(false)} defaultWeights={DEFAULT_DIMENSION_WEIGHTS} />}
       {showCompositeModal && <CompositeModal onClose={() => setShowCompositeModal(false)} compositeWeights={compositeWeights} />}
-      {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={companyScores} includePanel={includePanel} />}
-      {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={companyScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
-      {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={companyScores} assessments={assessments} includePanel={includePanel} />}
+      {showTierStatsModal && <TierStatsModal onClose={() => setShowTierStatsModal(false)} companyScores={yearFilteredScores} includePanel={includePanel} />}
+      {showSensitivityModal && <SensitivityAnalysisModal onClose={() => setShowSensitivityModal(false)} companyScores={yearFilteredScores} weights={weights} includePanel={includePanel} assessments={assessments} />}
+      {showReliabilityModal && <ReliabilityDiagnosticsModal onClose={() => setShowReliabilityModal(false)} companyScores={yearFilteredScores} assessments={assessments} includePanel={includePanel} />}
       {showMethodologyModal && <TechnicalMethodologyModal onClose={() => setShowMethodologyModal(false)} />}
       {showBenchmarkModal && (
         <BenchmarkComparisonChart 
-          companyScores={companyScores} 
+          companyScores={yearFilteredScores} 
           averages={averages}
           includePanel={includePanel}
           onClose={() => setShowBenchmarkModal(false)} 
@@ -3324,9 +3333,25 @@ export default function AggregateScoringReport() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
-                Best Companies Scoring Report
+                {yearTab === '2026' ? '2026' : '2027'} Best Companies Scoring Report
               </h1>
-              <p className="text-indigo-200 text-xs lg:text-sm mt-1">Workplace Support Excellence Index</p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <div className="flex bg-white/10 rounded-lg p-0.5">
+                  <button
+                    onClick={() => setYearTab('2026')}
+                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${yearTab === '2026' ? 'bg-white text-indigo-900' : 'text-indigo-200 hover:text-white'}`}
+                  >
+                    2026
+                  </button>
+                  <button
+                    onClick={() => setYearTab('2027')}
+                    className={`px-3 py-1 rounded-md text-xs font-semibold transition-colors ${yearTab === '2027' ? 'bg-white text-indigo-900' : 'text-indigo-200 hover:text-white'}`}
+                  >
+                    2027
+                  </button>
+                </div>
+                <p className="text-indigo-200 text-xs lg:text-sm">Workplace Support Excellence Index</p>
+              </div>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
@@ -3355,23 +3380,23 @@ export default function AggregateScoringReport() {
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 bg-white/5 rounded-xl px-4 py-2.5 text-xs lg:text-sm">
             <div className="flex items-center gap-2">
               <span className="text-indigo-300">Total:</span>
-              <span className="font-bold text-lg lg:text-xl">{companyScores.filter(c => includePanel || !c.isPanel).length}</span>
+              <span className="font-bold text-lg lg:text-xl">{yearFilteredScores.filter(c => includePanel || !c.isPanel).length}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-full bg-violet-500/30 border border-violet-400/50 text-violet-200 text-xs font-bold">FP</span>
-              <span className="font-bold">{companyScores.filter(c => c.isFoundingPartner && !c.isPanel).length}</span>
+              <span className="font-bold">{yearFilteredScores.filter(c => c.isFoundingPartner && !c.isPanel).length}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-full bg-slate-500/30 border border-slate-400/50 text-slate-200 text-xs font-bold">STD</span>
-              <span className="font-bold">{companyScores.filter(c => !c.isFoundingPartner && !c.isPanel).length}</span>
+              <span className="font-bold">{yearFilteredScores.filter(c => !c.isFoundingPartner && !c.isPanel).length}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2 py-0.5 rounded-full bg-amber-500/30 border border-amber-400/50 text-amber-200 text-xs font-bold">PANEL</span>
-              <span className="font-bold">{companyScores.filter(c => c.isPanel).length}</span>
+              <span className="font-bold">{yearFilteredScores.filter(c => c.isPanel).length}</span>
             </div>
             <div className="border-l border-white/20 pl-3 flex items-center gap-2">
               <span className="text-green-300">Complete:</span>
-              <span className="font-bold">{companyScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
+              <span className="font-bold">{yearFilteredScores.filter(c => c.isComplete && (includePanel || !c.isPanel)).length}</span>
             </div>
             <div className="border-l border-white/20 pl-3 flex items-center gap-2 text-xs">
               <span className="text-gray-400">Footprint:</span>
