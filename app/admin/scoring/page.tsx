@@ -3033,8 +3033,13 @@ export default function AggregateScoringReport() {
   }, [assessments, weights, compositeWeights, blendWeights]);
 
   // Filter by year tab first — all downstream logic uses this
+  // 2027 tab includes panel companies from 2026 (frozen data, still count in benchmarks)
   const yearFilteredScores = useMemo(() => {
-    return companyScores.filter(c => c.surveyYear === Number(yearTab));
+    const year = Number(yearTab);
+    if (year === 2027) {
+      return companyScores.filter(c => c.surveyYear === 2027 || (c.surveyYear === 2026 && c.isPanel));
+    }
+    return companyScores.filter(c => c.surveyYear === year);
   }, [companyScores, yearTab]);
 
   const sortedCompanies = useMemo(() => {
