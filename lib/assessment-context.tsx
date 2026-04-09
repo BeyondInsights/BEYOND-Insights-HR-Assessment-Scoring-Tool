@@ -512,11 +512,14 @@ export function AssessmentProvider({ children }: { children: React.ReactNode }) 
     const normalized = sid.replace(/-/g, '').toUpperCase()
 
     try {
-      const { data, error } = await supabase
+      // Pick latest survey_year row (handles 2026→2027 rollover — same ID, multiple rows)
+      const { data: rows, error } = await supabase
         .from('assessments')
         .select('*')
         .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-        .maybeSingle()
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+      const data = rows?.[0] || null
 
       if (error || !data) {
         console.log('[AssessmentContext] No record found for:', sid)

@@ -23,11 +23,14 @@ async function checkAndLoadUserByAppId(surveyId: string, email: string): Promise
   try {
     console.log('[Login] Checking for existing user by app_id:', exact, 'or', normalized)
 
-    const { data, error } = await supabase
+    // Pick latest survey_year row (handles 2026→2027 rollover)
+    const { data: rows, error } = await supabase
       .from('assessments')
       .select('*')
       .or(`app_id.eq.${exact},app_id.eq.${normalized},survey_id.eq.${exact},survey_id.eq.${normalized}`)
-      .maybeSingle()
+      .order('survey_year', { ascending: false, nullsFirst: false })
+      .limit(1)
+    const data = rows?.[0] || null
 
     if (error) {
       console.error('Error checking user by app_id:', error)
@@ -257,21 +260,24 @@ export default function LoginPage() {
 
         const normalizedId = trimmedSurveyId.replace(/-/g, '').toUpperCase()
         let existing = null
-        const { data: exactMatch } = await supabase
+        // Pick latest survey_year row (handles 2026→2027 rollover)
+        const { data: exactRows } = await supabase
           .from('assessments')
           .select('*')
           .eq('survey_id', trimmedSurveyId)
-          .maybeSingle()
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
 
-        if (exactMatch) {
-          existing = exactMatch
+        if (exactRows?.[0]) {
+          existing = exactRows[0]
         } else {
-          const { data: normalizedMatch } = await supabase
+          const { data: normalizedRows } = await supabase
             .from('assessments')
             .select('*')
             .eq('app_id', normalizedId)
-            .maybeSingle()
-          if (normalizedMatch) existing = normalizedMatch
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1)
+          if (normalizedRows?.[0]) existing = normalizedRows[0]
         }
 
         if (existing) {
@@ -351,11 +357,14 @@ export default function LoginPage() {
           if (user) {
             console.log('[Login] Loading returning user data from Supabase...')
 
-            const { data: assessment } = await supabase
+            // Pick latest survey_year row (handles rollover)
+            const { data: assessmentRows } = await supabase
               .from('assessments')
               .select('*')
               .eq('user_id', user.id)
-              .single()
+              .order('survey_year', { ascending: false, nullsFirst: false })
+              .limit(1)
+            const assessment = assessmentRows?.[0] || null
 
             if (assessment) {
               ctx.setFullRecord(assessment)
@@ -380,11 +389,13 @@ export default function LoginPage() {
             // Load the full record so context has version, user_id, etc.
             const user = await getCurrentUser()
             if (user) {
-              const { data: newAssessment } = await supabase
+              const { data: newAssessmentRows } = await supabase
                 .from('assessments')
                 .select('*')
                 .eq('user_id', user.id)
-                .single()
+                .order('survey_year', { ascending: false, nullsFirst: false })
+                .limit(1)
+              const newAssessment = newAssessmentRows?.[0] || null
               if (newAssessment) {
                 ctx.setFullRecord(newAssessment)
                 console.log('[Login] Loaded full record for new user, version:', newAssessment.version)

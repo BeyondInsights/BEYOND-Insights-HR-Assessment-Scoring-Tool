@@ -178,13 +178,14 @@ export default function ZeffyPaymentPage() {
         for (let attempt = 0; attempt < 10; attempt++) {
           if (paymentConfirmed) return; // postMessage came in during polling
 
-          const { data } = await sb
+          const { data: pollRows } = await sb
             .from('assessments')
             .select('payment_completed')
             .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-            .maybeSingle();
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1);
 
-          if (data?.payment_completed) {
+          if (pollRows?.[0]?.payment_completed) {
             console.log(`Payment confirmed in Supabase (attempt ${attempt + 1}) - redirecting`);
             paymentConfirmed = true
             window.removeEventListener('message', messageHandler)
@@ -212,12 +213,13 @@ export default function ZeffyPaymentPage() {
     if (!sid) { setIsLoading(false); return }
     const normalized = sid.replace(/-/g, '').toUpperCase()
     const { supabase: sb } = await import('@/lib/supabase/client')
-    const { data } = await sb
+    const { data: recheckRows } = await sb
       .from('assessments')
       .select('payment_completed')
       .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-      .maybeSingle()
-    if (data?.payment_completed) {
+      .order('survey_year', { ascending: false, nullsFirst: false })
+      .limit(1)
+    if (recheckRows?.[0]?.payment_completed) {
       await ctx.loadFromSupabase(sid)
       router.push('/dashboard')
       return

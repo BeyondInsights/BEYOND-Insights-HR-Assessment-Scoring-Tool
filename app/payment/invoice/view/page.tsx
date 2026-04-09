@@ -112,23 +112,25 @@ export default function InvoiceViewPage() {
           // Strategy 1: By user_id
           const { data: { user } } = await supabase.auth.getUser()
           if (user) {
-            const { data } = await supabase
+            const { data: userRows } = await supabase
               .from('assessments')
               .select('invoice_data, invoice_number, company_name, email')
               .eq('user_id', user.id)
-              .single()
-            if (data) assessment = data
+              .order('survey_year', { ascending: false, nullsFirst: false })
+              .limit(1)
+            if (userRows?.[0]) assessment = userRows[0]
           }
-          
+
           // Strategy 2: By survey_id
           if (!assessment && surveyId) {
             const normalizedId = surveyId.replace(/-/g, '').toUpperCase()
-            const { data } = await supabase
+            const { data: sidRows } = await supabase
               .from('assessments')
               .select('invoice_data, invoice_number, company_name, email')
               .or(`survey_id.eq.${surveyId},app_id.eq.${normalizedId}`)
-              .single()
-            if (data) assessment = data
+              .order('survey_year', { ascending: false, nullsFirst: false })
+              .limit(1)
+            if (sidRows?.[0]) assessment = sidRows[0]
           }
           
           if (assessment?.invoice_data) {

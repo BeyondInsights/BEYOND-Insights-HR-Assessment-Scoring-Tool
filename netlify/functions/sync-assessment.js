@@ -113,20 +113,22 @@ exports.handler = async (event) => {
         .from('assessments')
         .select('version')
         .eq('survey_id', matchId)
-        .maybeSingle()
-      
-      if (bySurveyId) {
-        record = bySurveyId
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+
+      if (bySurveyId && bySurveyId[0]) {
+        record = bySurveyId[0]
       } else {
         const normalizedAppId = matchId.replace(/-/g, '').toUpperCase()
         const { data: byAppId } = await supabase
           .from('assessments')
           .select('version')
           .eq('app_id', normalizedAppId)
-          .maybeSingle()
-        record = byAppId
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
+        record = byAppId?.[0] || null
       }
-      
+
       if (!record) {
         return {
           statusCode: 404,
@@ -134,7 +136,7 @@ exports.handler = async (event) => {
           body: JSON.stringify({ error: 'Record not found' })
         }
       }
-      
+
       return {
         statusCode: 200,
         headers,
@@ -156,13 +158,15 @@ exports.handler = async (event) => {
         }
       }
 
-      // Check if record already exists
+      // Check if record already exists for current survey year
       const normalizedAppId = survey_id.replace(/-/g, '').toUpperCase()
-      const { data: existing } = await supabase
+      const { data: existingRows } = await supabase
         .from('assessments')
         .select('id')
         .or(`survey_id.eq.${survey_id},app_id.eq.${normalizedAppId}`)
-        .maybeSingle()
+        .eq('survey_year', 2027)
+        .limit(1)
+      const existing = existingRows?.[0] || null
 
       if (existing) {
         return {
@@ -217,26 +221,28 @@ exports.handler = async (event) => {
         }
       }
       
-      // Try survey_id first, then app_id
+      // Try survey_id first, then app_id — pick latest survey_year for rollover support
       let record = null
       const { data: bySurveyId } = await supabase
         .from('assessments')
         .select('*')
         .eq('survey_id', matchId)
-        .maybeSingle()
-      
-      if (bySurveyId) {
-        record = bySurveyId
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+
+      if (bySurveyId && bySurveyId[0]) {
+        record = bySurveyId[0]
       } else {
         const normalizedAppId = matchId.replace(/-/g, '').toUpperCase()
         const { data: byAppId } = await supabase
           .from('assessments')
           .select('*')
           .eq('app_id', normalizedAppId)
-          .maybeSingle()
-        record = byAppId
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
+        record = byAppId?.[0] || null
       }
-      
+
       if (!record) {
         return {
           statusCode: 404,
@@ -303,12 +309,14 @@ exports.handler = async (event) => {
     // HELPER: Update with REQUIRED version enforcement
     // ============================================
     async function updateWithVersionCheck(matchField, matchValue, linkUserId = null) {
-      // Step 1: Get current row INCLUDING last_snapshot_hash for change detection
-      const { data: currentRow, error: fetchError } = await supabase
+      // Step 1: Get current row — pick latest survey_year for rollover support
+      const { data: currentRows, error: fetchError } = await supabase
         .from('assessments')
         .select('id, version, last_snapshot_hash')
         .eq(matchField, matchValue)
-        .single()
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+      const currentRow = currentRows?.[0] || null
       
       if (fetchError || !currentRow) {
         return { success: false, rowsAffected: 0, error: 'Record not found' }
@@ -372,11 +380,11 @@ exports.handler = async (event) => {
         updatePayload.user_id = linkUserId
       }
       
-      // Step 5: Update with version check
+      // Step 5: Update by ID with version check (ID is precise — avoids hitting multiple rows with same survey_id)
       const { data: updateResult, error: updateError } = await supabase
         .from('assessments')
         .update(updatePayload)
-        .eq(matchField, matchValue)
+        .eq('id', currentRow.id)
         .eq('version', expectedVersion)
         .select('id, version, last_snapshot_hash')
       
@@ -427,14 +435,15 @@ exports.handler = async (event) => {
     if (userType === 'fp' && survey_id) {
       console.log('[sync-assessment] FP sync for:', survey_id)
       
-      // Check if record exists
-      const { data: existing } = await supabase
+      // Check if record exists — pick latest survey_year
+      const { data: existingRows } = await supabase
         .from('assessments')
         .select('id')
         .eq('survey_id', survey_id)
-        .single()
-      
-      if (existing) {
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+
+      if (existingRows && existingRows[0]) {
         result = await updateWithVersionCheck('survey_id', survey_id)
         matchedVia = 'survey_id'
       } else {
@@ -482,13 +491,14 @@ exports.handler = async (event) => {
 
       // ATTEMPT 1: user_id (only if we have one)
       if (normalizedUserId) {
-        const { data: userIdRow } = await supabase
+        const { data: userIdRows } = await supabase
           .from('assessments')
           .select('id')
           .eq('user_id', normalizedUserId)
-          .single()
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
 
-        if (userIdRow) {
+        if (userIdRows && userIdRows[0]) {
           result = await updateWithVersionCheck('user_id', normalizedUserId)
           matchedVia = 'user_id'
         }
@@ -498,13 +508,14 @@ exports.handler = async (event) => {
       if ((!result || result.rowsAffected === 0) && !result?.missingExpected && fallbackSurveyId) {
         console.log('[sync-assessment] Trying survey_id fallback:', fallbackSurveyId)
 
-        const { data: surveyIdRow } = await supabase
+        const { data: surveyIdRows } = await supabase
           .from('assessments')
           .select('id')
           .eq('survey_id', fallbackSurveyId)
-          .single()
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
 
-        if (surveyIdRow) {
+        if (surveyIdRows && surveyIdRows[0]) {
           // Pass user_id to link in same atomic update (null is fine if no session)
           result = await updateWithVersionCheck('survey_id', fallbackSurveyId, normalizedUserId)
           matchedVia = 'survey_id'
@@ -519,13 +530,14 @@ exports.handler = async (event) => {
         const normalizedAppId = fallbackAppId.replace(/-/g, '').toUpperCase()
         console.log('[sync-assessment] Trying app_id fallback:', normalizedAppId)
 
-        const { data: appIdRow } = await supabase
+        const { data: appIdRows } = await supabase
           .from('assessments')
           .select('id')
           .eq('app_id', normalizedAppId)
-          .single()
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
 
-        if (appIdRow) {
+        if (appIdRows && appIdRows[0]) {
           // Pass user_id to link in same atomic update (null is fine if no session)
           result = await updateWithVersionCheck('app_id', normalizedAppId, normalizedUserId)
           matchedVia = 'app_id'

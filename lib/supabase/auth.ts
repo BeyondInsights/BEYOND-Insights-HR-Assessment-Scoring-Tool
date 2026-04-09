@@ -31,13 +31,16 @@ export async function authenticateUser(
       // CHECK FOR EXISTING FP RECORD FIRST
       // ============================================
       console.log('[AUTH] Checking for existing FP record with email:', normalizedEmail)
-      
-      const { data: existingFP } = await supabase
+
+      // Pick the latest survey_year row (handles 2026→2027 rollover)
+      const { data: existingFPs } = await supabase
         .from('assessments')
         .select('*')
         .eq('email', normalizedEmail)
         .eq('is_founding_partner', true)
-        .single()
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+      const existingFP = existingFPs?.[0] || null
 
       if (existingFP) {
         console.log('[AUTH] Found existing FP record! Linking auth user to it...')
@@ -109,13 +112,14 @@ export async function authenticateUser(
       // ============================================
 
       // Check if email already has an assessment (returning user without survey ID)
-      const { data: existingAssessment } = await supabase
+      // Pick the latest survey_year row (handles rollover — multiple rows per email)
+      const { data: existingAssessments } = await supabase
         .from('assessments')
         .select('app_id, survey_id')
         .eq('email', normalizedEmail)
-        .order('created_at', { ascending: false })
+        .order('survey_year', { ascending: false, nullsFirst: false })
         .limit(1)
-        .single()
+      const existingAssessment = existingAssessments?.[0] || null
 
       if (existingAssessment) {
         const existingSurveyId = existingAssessment.app_id || existingAssessment.survey_id
@@ -239,12 +243,14 @@ if (surveyId) {
   if (signInData.user) {
     console.log('[AUTH] Sign-in successful!')
     
-    // NOW WE CAN QUERY (authenticated)
-    const { data: assessment, error: queryError } = await supabase
+    // NOW WE CAN QUERY (authenticated) — pick latest survey_year for rollover support
+    const { data: assessments, error: queryError } = await supabase
       .from('assessments')
       .select('app_id')
       .eq('user_id', signInData.user.id)
-      .single()
+      .order('survey_year', { ascending: false, nullsFirst: false })
+      .limit(1)
+    const assessment = assessments?.[0] || null
 
     if (queryError || assessment?.app_id !== cleanSurveyId) {
       console.error('[AUTH] Survey ID mismatch')
@@ -292,18 +298,20 @@ export async function getUserAssessment() {
   const user = await getCurrentUser()
   if (!user) return null
 
+  // Pick latest survey_year row (handles 2026→2027 rollover)
   const { data, error } = await supabase
     .from('assessments')
     .select('*')
     .eq('user_id', user.id)
-    .single()
+    .order('survey_year', { ascending: false, nullsFirst: false })
+    .limit(1)
 
   if (error) {
     console.error('[AUTH] Error fetching assessment:', error)
     return null
   }
 
-  return data
+  return data?.[0] || null
 }
 
 export async function isAuthenticated(): Promise<boolean> {

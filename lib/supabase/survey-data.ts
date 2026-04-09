@@ -40,11 +40,14 @@ export async function saveSurveySection(
     ...additionalFields
   }
   
+  // Scope to latest survey year to avoid updating old rollover rows
   const { error } = await supabase
     .from('assessments')
     .update(updateObject)
     .eq('user_id', userId)
-  
+    .order('survey_year', { ascending: false, nullsFirst: false })
+    .limit(1)
+
   if (error) {
     console.error(`❌ Error saving ${sectionName}:`, error)
     throw new Error(`Failed to save ${sectionName} data: ${error.message}`)
@@ -65,11 +68,14 @@ export async function loadSurveySection(
   userId: string,
   sectionName: string
 ) {
-  const { data, error } = await supabase
+  // Pick latest survey_year row (handles year-over-year rollover)
+  const { data: rows, error } = await supabase
     .from('assessments')
     .select(`${sectionName}_data, ${sectionName}_complete`)
     .eq('user_id', userId)
-    .single()
+    .order('survey_year', { ascending: false, nullsFirst: false })
+    .limit(1)
+  const data = rows?.[0] || null
   
   if (error) {
     console.error(`❌ Error loading ${sectionName}:`, error)
@@ -101,11 +107,14 @@ export async function updateProgress(
     updateData[`${sectionName}_time_seconds`] = timeSpent
   }
   
+  // Scope to latest survey year to avoid updating old rollover rows
   const { error } = await supabase
     .from('assessments')
     .update(updateData)
     .eq('user_id', userId)
-  
+    .order('survey_year', { ascending: false, nullsFirst: false })
+    .limit(1)
+
   if (error) {
     console.error('❌ Error updating progress:', error)
   }
@@ -115,18 +124,20 @@ export async function updateProgress(
  * Get complete assessment including all data
  */
 export async function getCompleteAssessment(userId: string) {
-  const { data, error } = await supabase
+  // Pick latest survey_year row (handles year-over-year rollover)
+  const { data: rows, error } = await supabase
     .from('assessments')
     .select('*')
     .eq('user_id', userId)
-    .single()
-  
+    .order('survey_year', { ascending: false, nullsFirst: false })
+    .limit(1)
+
   if (error) {
     console.error('❌ Error loading assessment:', error)
     return null
   }
-  
-  return data
+
+  return rows?.[0] || null
 }
 
 /**

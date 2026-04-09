@@ -43,13 +43,14 @@ export default function PaymentPage() {
       const sid = ctx.surveyId || sessionStorage.getItem('current_survey_id')
       if (sid) {
         const normalized = sid.replace(/-/g, '').toUpperCase()
-        const { data } = await supabase
+        const { data: payCheckRows } = await supabase
           .from('assessments')
           .select('payment_completed')
           .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-          .maybeSingle()
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
 
-        if (data?.payment_completed) {
+        if (payCheckRows?.[0]?.payment_completed) {
           console.log('Payment found in Supabase - redirecting')
           ctx.setPaymentCompleted(true)
           window.location.replace('/dashboard')

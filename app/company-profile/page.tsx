@@ -778,25 +778,28 @@ export default function CompanyProfilePage() {
         let assessment = null;
         
         // First try survey_id
-        const { data: bySurveyId } = await supabase
+        // Pick latest survey_year row (handles 2026→2027 rollover)
+        const { data: bySurveyIdRows } = await supabase
           .from('assessments')
           .select('*')
           .eq('survey_id', surveyId)
-          .maybeSingle();
-        
-        if (bySurveyId) {
-          assessment = bySurveyId;
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1);
+
+        if (bySurveyIdRows?.[0]) {
+          assessment = bySurveyIdRows[0];
           console.log('Found FP record by survey_id');
         } else {
           // Try app_id as fallback
-          const { data: byAppId } = await supabase
+          const { data: byAppIdRows } = await supabase
             .from('assessments')
             .select('*')
             .eq('app_id', surveyId)
-            .maybeSingle();
-          
-          if (byAppId) {
-            assessment = byAppId;
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1);
+
+          if (byAppIdRows?.[0]) {
+            assessment = byAppIdRows[0];
             console.log('Found FP record by app_id');
           }
         }
@@ -853,12 +856,14 @@ export default function CompanyProfilePage() {
           
           // Try to load by survey_id
           const normalizedId = storedSurveyId.replace(/-/g, '').toUpperCase();
-          const { data: assessment } = await supabase
+          const { data: assessmentRows } = await supabase
             .from('assessments')
             .select('*')
             .or(`survey_id.eq.${storedSurveyId},app_id.eq.${normalizedId}`)
-            .maybeSingle();
-          
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1);
+          const assessment = assessmentRows?.[0] || null;
+
           if (assessment) {
             const firmo = assessment.firmographics_data || {};
             const general = assessment.general_benefits_data || {};
@@ -897,11 +902,13 @@ export default function CompanyProfilePage() {
       console.log('Fetching assessment for:', user.email);
 
       // Fetch their assessment by EMAIL (more reliable than user_id)
-      const { data: assessment, error } = await supabase
+      const { data: emailRows, error } = await supabase
         .from('assessments')
         .select('*')
         .eq('email', user.email.toLowerCase())
-        .maybeSingle();
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1);
+      const assessment = emailRows?.[0] || null;
 
       console.log('Assessment result:', assessment, error);
 

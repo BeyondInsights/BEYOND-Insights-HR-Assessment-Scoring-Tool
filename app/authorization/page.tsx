@@ -142,12 +142,13 @@ function AuthorizationContent() {
         if (!assessment && ctx.surveyId) {
           const sid = ctx.surveyId
           const normalized = sid.replace(/-/g, '').toUpperCase()
-          const { data } = await supabase
+          const { data: fallbackRows } = await supabase
             .from('assessments')
             .select('*')
             .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-            .maybeSingle()
-          if (data) assessment = data
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1)
+          if (fallbackRows?.[0]) assessment = fallbackRows[0]
         }
         if (assessment) {
           // If auth already completed, check payment before deciding where to go
@@ -330,11 +331,13 @@ function AuthorizationContent() {
           // This preserves Excel-imported data: c2, s8, s9, s9a, etc.
           // Without this, we would OVERWRITE the imported data!
           // =====================================================
-          const { data: existingData, error: fetchError } = await supabase
+          const { data: existingRows, error: fetchError } = await supabase
             .from('assessments')
             .select('firmographics_data')
             .eq('survey_id', surveyId)
-            .single()
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1)
+          const existingData = existingRows?.[0] || null
 
           if (fetchError) {
             console.error('Error fetching existing FP data:', fetchError)
@@ -438,12 +441,13 @@ function AuthorizationContent() {
         if (!paymentDone && ctx.surveyId) {
           const sid = ctx.surveyId
           const normalized = sid.replace(/-/g, '').toUpperCase()
-          const { data } = await supabase
+          const { data: payRows } = await supabase
             .from('assessments')
             .select('payment_completed')
             .or(`app_id.eq.${sid},app_id.eq.${normalized},survey_id.eq.${sid},survey_id.eq.${normalized}`)
-            .maybeSingle()
-          paymentDone = !!data?.payment_completed
+            .order('survey_year', { ascending: false, nullsFirst: false })
+            .limit(1)
+          paymentDone = !!payRows?.[0]?.payment_completed
         }
 
         if (paymentDone) {

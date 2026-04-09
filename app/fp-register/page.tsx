@@ -63,11 +63,14 @@ function FPRegisterContent() {
       try {
         // Check if this FP code already has contact info registered
         // IMPORTANT: Fetch ALL survey data, not just email/firmographics
-        const { data: existing } = await supabase
+        // Pick latest survey_year row (handles 2026→2027 rollover)
+        const { data: existingRows } = await supabase
           .from('assessments')
           .select('*')  // Get ALL fields to restore full survey state
           .eq('survey_id', code)
-          .maybeSingle()
+          .order('survey_year', { ascending: false, nullsFirst: false })
+          .limit(1)
+        const existing = existingRows?.[0] || null
 
         if (existing?.email && existing?.firmographics_data?.firstName) {
           // Already registered - load full record into context and redirect
@@ -112,11 +115,14 @@ function FPRegisterContent() {
 
     try {
       // Check if this FP code already has a record (without contact info)
-      const { data: existing } = await supabase
+      // Pick latest survey_year row (handles 2026→2027 rollover)
+      const { data: existingRows2 } = await supabase
         .from('assessments')
         .select('id, firmographics_data')
         .eq('survey_id', code)
-        .maybeSingle()
+        .order('survey_year', { ascending: false, nullsFirst: false })
+        .limit(1)
+      const existing = existingRows2?.[0] || null
 
       const displayCompanyName = companyName || 'Founding Partner'
 
