@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 import { useAssessmentContext } from "@/lib/assessment-context";
 import DimensionSummaryView from "@/components/DimensionSummaryView";
+import ScaleChangeOverlay from "@/components/ScaleChangeOverlay";
 import ELEMENT_TOOLTIPS from "@/data/element-tooltips";
 
 
@@ -192,9 +193,12 @@ export default function Dimension13Page() {
   const gridComplete13 = ans['d13a'] && typeof ans['d13a'] === 'object' && Object.keys(ans['d13a']).length >= D13A_ITEMS_BASE.length;
   const showSummary13 = viewMode === 'summary';
 
+  const hasExistingGridData = ans['d13a'] && typeof ans['d13a'] === 'object' && Object.keys(ans['d13a']).length > 0;
+
   if (showSummary13 && viewMode !== 'step') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <ScaleChangeOverlay hasExistingData={hasExistingGridData} />
         <Header />
         <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
           <DimensionSummaryView

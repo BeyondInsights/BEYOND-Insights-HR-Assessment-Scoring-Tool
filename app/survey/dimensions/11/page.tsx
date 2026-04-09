@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { useProgressiveStatusGrid } from "@/lib/hooks/useProgressiveStatusGrid";
 import { useAssessmentContext } from "@/lib/assessment-context";
 import DimensionSummaryView from "@/components/DimensionSummaryView";
+import ScaleChangeOverlay from "@/components/ScaleChangeOverlay";
 import ELEMENT_TOOLTIPS from "@/data/element-tooltips";
 
 // Fisher-Yates shuffle algorithm
@@ -208,9 +209,12 @@ const next = async () => {
   const gridComplete11 = ans['d11a'] && typeof ans['d11a'] === 'object' && Object.keys(ans['d11a']).length >= D11A_ITEMS_BASE.length;
   const showSummary11 = viewMode === 'summary';
 
+  const hasExistingGridData = ans['d11a'] && typeof ans['d11a'] === 'object' && Object.keys(ans['d11a']).length > 0;
+
   if (showSummary11 && viewMode !== 'step') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+        <ScaleChangeOverlay hasExistingData={hasExistingGridData} />
         <Header />
         <main className="max-w-4xl mx-auto px-6 py-8 flex-1">
           <DimensionSummaryView
