@@ -67,7 +67,7 @@ export default function Dimension13Page() {
       const grid = saved['d13a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D13A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D13A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

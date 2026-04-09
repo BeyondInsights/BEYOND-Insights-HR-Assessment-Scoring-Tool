@@ -72,7 +72,7 @@ export default function Dimension9Page() {
       const grid = saved['d9a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D9A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D9A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

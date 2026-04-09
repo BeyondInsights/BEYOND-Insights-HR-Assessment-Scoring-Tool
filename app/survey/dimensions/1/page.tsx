@@ -74,7 +74,7 @@ export default function Dimension1Page() {
       const grid = saved['d1a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D1A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D1A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

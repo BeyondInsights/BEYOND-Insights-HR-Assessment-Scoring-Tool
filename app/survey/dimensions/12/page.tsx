@@ -69,7 +69,7 @@ export default function Dimension12Page() {
       const grid = saved['d12a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D12A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D12A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

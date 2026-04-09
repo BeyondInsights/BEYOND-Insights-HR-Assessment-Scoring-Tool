@@ -70,7 +70,7 @@ export default function Dimension8Page() {
       const grid = saved['d8a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D8A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D8A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

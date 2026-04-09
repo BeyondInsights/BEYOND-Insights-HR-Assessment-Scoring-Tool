@@ -71,7 +71,7 @@ export default function Dimension3Page() {
       const grid = saved['d3a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D3A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D3A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

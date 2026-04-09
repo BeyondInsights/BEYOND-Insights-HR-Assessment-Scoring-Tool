@@ -76,7 +76,7 @@ export default function Dimension2Page() {
       const grid = saved['d2a'];
       if (grid && typeof grid === 'object' && Object.keys(grid).length > 0) {
         setStep(1);
-        if (Object.keys(grid).length >= D2A_ITEMS_BASE.length) {
+        if (Object.keys(grid).length >= Math.ceil(D2A_ITEMS_BASE.length / 2)) {
           setViewMode('summary');
         }
       }

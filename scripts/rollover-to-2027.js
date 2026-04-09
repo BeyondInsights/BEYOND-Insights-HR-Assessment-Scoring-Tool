@@ -375,27 +375,22 @@ function transformAssessment(row) {
     // Reset submission state
     survey_submitted: false,
     employee_survey_opt_in: null,
-    employee_survey_opt_in_date: null,
 
-    // Copy firmographics as-is (company profile doesn't change)
+    // Copy unchanged sections as-is — keep complete flags (no instrument changes)
     firmographics_data: row.firmographics_data,
     firmographics_complete: row.firmographics_complete || false,
 
-    // Copy general benefits as-is
     general_benefits_data: row.general_benefits_data,
-    general_benefits_complete: false, // reset — they should review
+    general_benefits_complete: row.general_benefits_complete || false,
 
-    // Copy current support as-is
     current_support_data: row.current_support_data,
-    current_support_complete: false, // reset
+    current_support_complete: row.current_support_complete || false,
 
-    // Copy cross-dimensional as-is
     cross_dimensional_data: row.cross_dimensional_data,
-    cross_dimensional_complete: false, // reset
+    cross_dimensional_complete: row.cross_dimensional_complete || false,
 
-    // Copy employee impact as-is
     employee_impact_data: row.employee_impact_data,
-    employee_impact_complete: false, // reset
+    employee_impact_complete: row.employee_impact_complete || false,
 
     // Metadata
     version: 1,
