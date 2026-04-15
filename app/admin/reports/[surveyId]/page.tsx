@@ -4375,7 +4375,8 @@ export default function ExportReportPage() {
         
         // Try multiple formats: exact, normalized, FP format, and app_id
         // Companies may have rows for multiple years (2026 + 2027) with the same survey_id
-        const yearParam = searchParams?.get('year');
+        const urlYear = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('year') : null;
+        const yearParam = urlYear || searchParams?.get('year');
         const { data: matchingRows, error: assessmentError } = await supabase
           .from('assessments')
           .select('*')
