@@ -155,6 +155,15 @@ export const ELEMENT_MATURITY_LEVEL: Record<string, string> = {
   "Workplace safety assessments to minimize health risks": "core",
   "Written anti-retaliation policies for health disclosures": "core",
   "Year-over-year budget growth": "enhanced",
+  // 2026-era element names (removed or renamed for 2027, but still present in 2026 data)
+  "Guaranteed full salary and health insurance continuation for a defined period": "enhanced",
+  "Guaranteed job protection for a defined period": "core",
+  "Health benefits continuation at employee rates during leave": "core",
+  "Manager training on supporting employees with serious medical conditions and their teams": "enhanced",
+  "Caregiver resource navigator/concierge": "enhanced",
+  "Concierge services to coordinate caregiving logistics (e.g., scheduling, transportation, home care)": "enhanced",
+  "Access to occupational therapy/vocational rehabilitation": "enhanced",
+  "Peer mentorship program (employees who had similar condition mentoring current employees)": "enhanced",
 };
 
 // Per-tier population means (μ) for unsure substitution — from confirmed responses

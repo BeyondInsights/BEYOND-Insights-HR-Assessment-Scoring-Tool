@@ -4130,7 +4130,8 @@ export default function ExportReportPage() {
   const surveyYear = company.survey_year || '2026';
   const bestCompaniesLogo = surveyYear === '2027' ? '/best-companies-2027-logo.png' : '/best-companies-2026-logo.png';
   const indexYear = surveyYear === '2027' ? '2027' : '2026';
-  
+  const totalElementCount = Object.values(elementDetails || {}).flat().length;
+
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
       const dimNum = parseInt(dim);
@@ -9906,7 +9907,7 @@ export default function ExportReportPage() {
                       <div className="p-5">
                         <p className="text-sm text-slate-600 leading-relaxed mb-4">
                           Your Composite Score is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
-                          <span className="font-semibold text-slate-800"> 152 individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
+                          <span className="font-semibold text-slate-800"> {totalElementCount} individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
                         </p>
                         
                         {/* Dimensions Grid - 3x4 + 1 */}

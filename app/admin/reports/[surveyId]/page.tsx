@@ -4374,12 +4374,25 @@ export default function ExportReportPage() {
                         `FP-HR-${surveyId.replace(/^FPHR/i, '')}` : surveyId;
         
         // Try multiple formats: exact, normalized, FP format, and app_id
-        const { data: assessment, error: assessmentError } = await supabase
+        // Companies may have rows for multiple years (2026 + 2027) with the same survey_id
+        const yearParam = searchParams?.get('year');
+        const { data: matchingRows, error: assessmentError } = await supabase
           .from('assessments')
           .select('*')
-          .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`)
-          .limit(1)
-          .maybeSingle();
+          .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`);
+
+        // Pick the correct row: use year param if specified, otherwise prefer 2026
+        let assessment = null;
+        if (matchingRows && matchingRows.length > 0) {
+          if (yearParam) {
+            assessment = matchingRows.find((r: any) => r.survey_year === yearParam) || matchingRows[0];
+          } else if (matchingRows.length === 1) {
+            assessment = matchingRows[0];
+          } else {
+            // Multiple rows — prefer 2026 (completed year) over 2027 (in-progress)
+            assessment = matchingRows.find((r: any) => r.survey_year === '2026') || matchingRows[0];
+          }
+        }
         
         if (assessmentError || !assessment) {
           setError(`Company not found: ${assessmentError?.message || 'No data'}`);
@@ -4387,8 +4400,14 @@ export default function ExportReportPage() {
           return;
         }
         
-        const { data: allAssessments } = await supabase.from('assessments').select('*');
-        
+        // Load benchmarks from same survey year only
+        const benchmarkYear = assessment.survey_year || '2026';
+        let benchQuery = supabase.from('assessments').select('*');
+        if (benchmarkYear) {
+          benchQuery = benchQuery.eq('survey_year', benchmarkYear);
+        }
+        const { data: allAssessments } = await benchQuery;
+
         const { scores, elements } = calculateCompanyScores(assessment);
         setCompanyScores(scores);
         setElementDetails(elements);
@@ -5177,6 +5196,7 @@ export default function ExportReportPage() {
   const surveyYear = company.survey_year || '2026';
   const bestCompaniesLogo = surveyYear === '2027' ? '/best-companies-2027-logo.png' : '/best-companies-2026-logo.png';
   const indexYear = surveyYear === '2027' ? '2027' : '2026';
+  const totalElementCount = Object.values(elementDetails || {}).flat().length;
   
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
@@ -5898,7 +5918,7 @@ export default function ExportReportPage() {
                           {'What This Score Represents'}
                         </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                              Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions encompassing 152 elements including benefits and programs.
+                              Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions encompassing {totalElementCount} elements including benefits and programs.
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
                               <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
@@ -6142,7 +6162,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The Three Levels of Workplace Support</span>
-                    <span className="text-xs text-slate-500 block mt-0.5">How 152 program elements are classified — from core coverage to advanced practices</span>
+                    <span className="text-xs text-slate-500 block mt-0.5">How {totalElementCount} program elements are classified — from core coverage to advanced practices</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showLevelsOverview ? 'rotate-180' : ''}`}>
@@ -6153,7 +6173,7 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the 152 program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span> based on how widely it is offered among participating organizations — showing your support ecosystem from core coverage to advanced practices.
+                    Each of the {totalElementCount} program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span> based on how widely it is offered among participating organizations — showing your support ecosystem from core coverage to advanced practices.
                   </p>
 
                   <div className="grid grid-cols-3 gap-5 mb-5">
@@ -6930,7 +6950,7 @@ export default function ExportReportPage() {
                       <div className="mb-5">
                         <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                          Each of the 152 support elements is classified into one of three levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                          Each of the {totalElementCount} support elements is classified into one of three levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
                         </p>
                       </div>
                       <div className="grid grid-cols-3 gap-5">
@@ -12307,7 +12327,7 @@ export default function ExportReportPage() {
                       <div className="p-5">
                         <p className="text-sm text-slate-600 leading-relaxed mb-4">
                           Your {'Workplace Support Composite Score'} is built from <span className="font-semibold text-slate-800">13 distinct dimensions</span> comprising 
-                          <span className="font-semibold text-slate-800"> 152 individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
+                          <span className="font-semibold text-slate-800"> {totalElementCount} individual support elements</span>. Each dimension measures a different aspect of how organizations support employees managing cancer.
                         </p>
                         
                         {/* Dimensions Grid - 3x4 + 1 */}
