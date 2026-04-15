@@ -4060,7 +4060,7 @@ export default function ExportReportPage() {
           
           {/* Title */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800">Your 2026 Index Report</h1>
+            <h1 className="text-2xl font-bold text-slate-800">Your {company?.survey_year || '2026'} Index Report</h1>
             <p className="text-slate-500 mt-1">Best Companies for Working with Cancer</p>
           </div>
           
@@ -4127,6 +4127,9 @@ export default function ExportReportPage() {
   const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
+  const surveyYear = company.survey_year || '2026';
+  const bestCompaniesLogo = surveyYear === '2027' ? '/best-companies-2027-logo.png' : '/best-companies-2026-logo.png';
+  const indexYear = surveyYear === '2027' ? '2027' : '2026';
   
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
@@ -4345,7 +4348,7 @@ export default function ExportReportPage() {
               />
               <div className="h-8 w-px bg-slate-200"></div>
               <div>
-                <p className="text-sm text-slate-500">2026 Best Companies Index Report</p>
+                <p className="text-sm text-slate-500">{indexYear} Best Companies Index Report</p>
                 <p className="font-semibold text-slate-800">{company?.firmographics_data?.company_name || company?.company_name || 'Loading...'}</p>
               </div>
               
@@ -4422,12 +4425,12 @@ export default function ExportReportPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-10">
                   <div className="bg-white rounded-xl p-5 shadow-lg">
-                    <Image src="/best-companies-2027-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                    <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
                   </div>
                   <div>
                     <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
                     <h1 className="text-3xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                    <p className="text-slate-300 mt-1 text-lg">Index 2026</p>
+                    <p className="text-slate-300 mt-1 text-lg">Index {indexYear}</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -9191,7 +9194,7 @@ export default function ExportReportPage() {
             <div className="relative bg-white px-12 py-6 border-b border-slate-200">
               <div className="flex items-center justify-between">
                 <div className="p-2">
-                  <Image src="/best-companies-2027-logo.png" alt="Best Companies" width={100} height={100} className="object-contain" />
+                  <Image src={bestCompaniesLogo} alt="Best Companies" width={100} height={100} className="object-contain" />
                 </div>
                 <h2 className="text-4xl font-bold text-slate-800">Thank You</h2>
                 <div className="p-2">
@@ -9354,7 +9357,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm text-slate-400 text-center">2026 Best Companies for Working with Cancer Index™</p>
+                <p className="text-sm text-slate-400 text-center">{indexYear} Best Companies for Working with Cancer Index™</p>
               </div>
             </div>
           </div>
@@ -9630,12 +9633,12 @@ export default function ExportReportPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-10">
                           <div className="bg-white rounded-xl p-5 shadow-lg">
-                            <Image src="/best-companies-2027-logo.png" alt="Best Companies 2026" width={140} height={140} className="object-contain" />
+                            <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
                           </div>
                           <div>
                             <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
                             <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                            <p className="text-slate-300 mt-2 text-xl">Index 2026</p>
+                            <p className="text-slate-300 mt-2 text-xl">Index {indexYear}</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -12732,7 +12735,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-slate-400 text-xs">2026 Best Companies for Working with Cancer Index™</p>
+                        <p className="text-slate-400 text-xs">{indexYear} Best Companies for Working with Cancer Index™</p>
                       </div>
                     </div>
                   </div>
@@ -12745,7 +12748,7 @@ export default function ExportReportPage() {
                     <div className="bg-white px-12 py-8">
                       <div className="flex items-center justify-between">
                         <div className="p-2">
-                          <Image src="/best-companies-2027-logo.png" alt="Best Companies" width={120} height={120} className="object-contain" />
+                          <Image src={bestCompaniesLogo} alt="Best Companies" width={120} height={120} className="object-contain" />
                         </div>
                         <h2 className="text-5xl font-bold text-slate-800">Thank You</h2>
                         <div className="p-2">

@@ -11759,7 +11759,7 @@ export default function ExportReportPage() {
                 </div>
               </div>
               <div className="pt-3 border-t border-slate-100">
-                <p className="text-sm text-slate-500 text-center">2026 Best Companies for Working with Cancer Index™</p>
+                <p className="text-sm text-slate-500 text-center">{indexYear} Best Companies for Working with Cancer Index™</p>
               </div>
             </div>
           </div>
@@ -15358,7 +15358,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-slate-500 text-xs">2026 Best Companies for Working with Cancer Index™</p>
+                        <p className="text-slate-500 text-xs">{indexYear} Best Companies for Working with Cancer Index™</p>
                       </div>
                     </div>
                   </div>
