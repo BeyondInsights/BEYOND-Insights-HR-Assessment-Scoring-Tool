@@ -8595,9 +8595,9 @@ export default function ExportReportPage() {
 
           {/* ============ YOUR SUPPORT IN CONTEXT (full section) ============ */}
           <div id="your-support-in-context" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <div className="px-12 py-5 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="16.5" width="18" height="3.5" rx="0.75" />
                   <rect x="6" y="10.25" width="12" height="3.5" rx="0.75" />
                   <rect x="9" y="4" width="6" height="3.5" rx="0.75" />
@@ -8605,10 +8605,10 @@ export default function ExportReportPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Your Support in Context</h2>
-                <p className="text-white text-base mt-1 opacity-90">How your self-reported support compares to participating organizations across the three levels of workplace support.</p>
+                <p className="text-white text-sm mt-0.5 opacity-90">How your self-reported support compares to participating organizations across the three levels of workplace support.</p>
               </div>
             </div>
-            <div className="px-12 py-8">
+            <div className="px-12 py-6">
           {/* Workplace Support Composite Score, Tier Score Breakdown */}
           {(() => {
             // Compute tier-level scores from element data
@@ -8759,9 +8759,9 @@ export default function ExportReportPage() {
                   {/* 4-column score grid: Composite + 3 support levels */}
                   <div className="grid grid-cols-4 gap-4">
                     {/* Composite Score, primary, slightly emphasized */}
-                    <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
+                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
                       <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Composite</p>
-                      <p className="text-6xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
+                      <p className="text-5xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
                       <p className="text-base font-bold mt-2" style={{ color: rating.color }}>{rating.label}</p>
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
@@ -8778,9 +8778,9 @@ export default function ExportReportPage() {
                     </div>
 
                     {/* Core Support */}
-                    <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
+                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
                       <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
-                      <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
+                      <p className="text-5xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
                       {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
@@ -8791,9 +8791,9 @@ export default function ExportReportPage() {
                     </div>
 
                     {/* Enhanced Support */}
-                    <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
+                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
                       <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
-                      <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
+                      <p className="text-5xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
                       {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
@@ -8804,9 +8804,9 @@ export default function ExportReportPage() {
                     </div>
 
                     {/* Advanced Support */}
-                    <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
+                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
                       <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
-                      <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
+                      <p className="text-5xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
                       {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
@@ -8820,14 +8820,14 @@ export default function ExportReportPage() {
                 </div>
                     
                 {/* Support Level Details */}
-                <div className="px-8 py-6 border-t border-slate-200">
-                  <div className="mb-5">
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
-                    <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                      Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from the baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                <div className="px-8 pt-5 pb-5 border-t border-slate-200">
+                  <div className="mb-4">
+                    <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">What Each Support Level Includes</p>
+                    <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                      Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs.
                     </p>
                   </div>
-                  <div className="grid grid-cols-3 gap-5">
+                  <div className="grid grid-cols-3 gap-4">
                   {tiers.map((t) => {
                     const Icon = t.icon;
 
@@ -8994,10 +8994,10 @@ export default function ExportReportPage() {
                   ];
 
                   const tierDefs = [
-                    { key: 'leading', label: 'Leading', range: '80-100', color: '#047857' },
-                    { key: 'advancing', label: 'Advancing', range: '64-79', color: '#1D4ED8' },
-                    { key: 'accelerating', label: 'Accelerating', range: '50-63', color: '#B45309' },
-                    { key: 'building', label: 'Building', range: '0-49', color: '#B91C1C' },
+                    { key: 'leading', label: 'Leading', range: '80-100', color: '#0f172a' },
+                    { key: 'advancing', label: 'Advancing', range: '64-79', color: '#334155' },
+                    { key: 'accelerating', label: 'Accelerating', range: '50-63', color: '#64748b' },
+                    { key: 'building', label: 'Building', range: '0-49', color: '#94a3b8' },
                   ];
 
                   return (
@@ -9047,10 +9047,10 @@ export default function ExportReportPage() {
                               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Score</div>
                               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Your Tier</div>
                               {[
-                                { label: 'Leading', range: '80\u2013100', color: '#047857' },
-                                { label: 'Advancing', range: '64\u201379', color: '#1D4ED8' },
-                                { label: 'Accelerating', range: '50\u201363', color: '#B45309' },
-                                { label: 'Building', range: '0\u201349', color: '#B91C1C' },
+                                { label: 'Leading', range: '80\u2013100', color: '#0f172a' },
+                                { label: 'Advancing', range: '64\u201379', color: '#334155' },
+                                { label: 'Accelerating', range: '50\u201363', color: '#64748b' },
+                                { label: 'Building', range: '0\u201349', color: '#94a3b8' },
                               ].map((td, i) => (
                                 <div key={td.label} className={`text-center ${i === 0 ? 'border-l border-slate-200' : ''}`}>
                                   <p className="text-xs font-bold uppercase tracking-wider" style={{ color: td.color }}>{td.label}</p>
