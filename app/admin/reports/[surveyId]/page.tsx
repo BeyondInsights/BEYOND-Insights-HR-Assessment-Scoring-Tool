@@ -9069,9 +9069,18 @@ export default function ExportReportPage() {
 
           {/* ============ YOUR SUPPORT IN CONTEXT (full section) ============ */}
           <div id="your-support-in-context" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
-              <h2 className="text-2xl font-bold text-white">Your Support in Context</h2>
-              <p className="text-white text-base mt-1 opacity-90">How your self-reported support compares to participating organizations across the three levels of workplace support.</p>
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="16.5" width="18" height="3.5" rx="0.75" />
+                  <rect x="6" y="10.25" width="12" height="3.5" rx="0.75" />
+                  <rect x="9" y="4" width="6" height="3.5" rx="0.75" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Your Support in Context</h2>
+                <p className="text-white text-base mt-1 opacity-90">How your self-reported support compares to participating organizations across the three levels of workplace support.</p>
+              </div>
             </div>
             <div className="px-12 py-8">
           {/* Workplace Support Composite Score, Tier Score Breakdown */}
