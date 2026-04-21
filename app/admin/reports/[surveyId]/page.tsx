@@ -6804,7 +6804,7 @@ export default function ExportReportPage() {
                 return (
                   <>
                     <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
-                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you outperform the benchmark, where employee priorities signal room to grow, and where there&apos;s the greatest opportunity to improve.
+                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
@@ -7799,36 +7799,13 @@ export default function ExportReportPage() {
                           <stop offset="65%" stopColor="#1E40AF" />
                           <stop offset="100%" stopColor="#1E3A8A" />
                         </linearGradient>
-                        <linearGradient id="qGapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#DC2626" stopOpacity="0.18" />
-                          <stop offset="100%" stopColor="#DC2626" stopOpacity="0.02" />
-                        </linearGradient>
-                        <linearGradient id="qStrGrad" x1="100%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#059669" stopOpacity="0.18" />
-                          <stop offset="100%" stopColor="#059669" stopOpacity="0.02" />
-                        </linearGradient>
-                        <linearGradient id="qSecGapGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#DC2626" stopOpacity="0.06" />
-                          <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
-                        </linearGradient>
-                        <linearGradient id="qSecStrGrad" x1="100%" y1="100%" x2="0%" y2="0%">
-                          <stop offset="0%" stopColor="#059669" stopOpacity="0.06" />
-                          <stop offset="100%" stopColor="#059669" stopOpacity="0" />
-                        </linearGradient>
                       </defs>
                       
                       <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Priority Gaps (top-left), urgent amber gradient from corner */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qGapGrad)" />
-                        {/* Priority Strengths (top-right), celebratory emerald gradient from corner */}
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qStrGrad)" />
-                        {/* Secondary Gaps (bottom-left), very faint amber */}
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qSecGapGrad)" />
-                        {/* Secondary Strengths (bottom-right), very faint emerald */}
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qSecStrGrad)" />
+                        {/* Quadrant fills removed. Axes, divider lines, and corner labels carry the meaning cleanly. */}
 
                         {/* Quadrant labels, centered in each quadrant */}
                         <text x={PLOT_WIDTH/4} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
