@@ -8963,7 +8963,7 @@ export default function ExportReportPage() {
                 {/* Dark accent header */}
                 <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
                   <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure, across all {totalCovered} support elements.</p>
+                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure, across all {totalElementCount} support elements.</p>
                 </div>
 
                 {/* Tab header */}
@@ -11216,6 +11216,40 @@ export default function ExportReportPage() {
             </div>
           </div>
           )}
+
+          {/* What-If Scenarios - launches interactive modal */}
+          <div className="max-w-[1280px] mx-auto mb-8">
+            <button
+              onClick={() => setWhatIfModal(true)}
+              className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+            >
+              <div className="px-8 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-violet-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-xl">What-If Scenarios</h3>
+                  <p className="text-slate-300 text-sm mt-1">An interactive tool to model the impact of program changes</p>
+                </div>
+                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                </div>
+              </div>
+              <div className="bg-white px-8 py-5 border-b border-slate-100">
+                <p className="text-[14.5px] text-slate-700 leading-relaxed">
+                  An interactive tool to model the impact of program changes. Select a dimension and explore what happens to your score if you start offering a new support element or discontinue an existing one. Useful for stress-testing budget tradeoffs and building the business case for specific investments.
+                </p>
+              </div>
+              <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p className="text-[14px] text-slate-700 leading-relaxed">
+                  <span className="text-[15px] font-bold text-slate-900">Best explored with CAC.</span> Your 30-minute consultation call is where we help you identify which scenarios matter most for your organization&apos;s planning cycle.
+                </p>
+              </div>
+            </button>
+          </div>
 
           {/* ============ WORKING WITH CANCER PLEDGE (hidden - will likely bring back) ============ */}
           {false && (
