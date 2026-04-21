@@ -11043,7 +11043,7 @@ export default function ExportReportPage() {
                   <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
                   <div className="mt-3">
                   </div>
-                  <p className="text-slate-500 mt-1">Your phased approach to strengthen workplace cancer support</p>
+                  <p className="text-slate-300 mt-1">Your phased approach to strengthen workplace cancer support</p>
 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-8 h-1 bg-cyan-400 rounded"></div>
@@ -11638,17 +11638,17 @@ export default function ExportReportPage() {
                             borderLeft: '3px solid ' + item.color,
                           }}
                         >
-                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{item.label}</p>
+                          <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">{item.label}</p>
                           <div className="flex items-baseline gap-2 mt-2">
                             <span className="text-3xl font-bold" style={{ color: item.color }}>{item.score ?? '\u2014'}</span>
                             {diff !== null && (
-                              <span className={`text-sm font-semibold ${diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                              <span className={`text-sm font-bold tabular-nums ${diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                                 {diff >= 0 ? '+' : ''}{diff}
                               </span>
                             )}
                           </div>
                           {item.benchmark != null && (
-                            <p className="text-sm text-slate-400 mt-1">Benchmark: {item.benchmark}</p>
+                            <p className="text-xs text-slate-600 mt-1.5 font-medium">Benchmark <span className="font-bold text-slate-800 tabular-nums">{item.benchmark}</span></p>
                           )}
                         </div>
                       );
@@ -11692,9 +11692,12 @@ export default function ExportReportPage() {
                 </div>
 
                 {/* === PRIORITY DIMENSIONS === */}
-                <div className="px-10 pb-8 pt-2 border-t border-slate-100 mt-4">
-                  <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-6 pb-2 border-b border-slate-200">Priority Dimensions</h4>
-                  <div className="space-y-5">
+                <div className="px-10 pb-8 pt-6 border-t border-slate-200 mt-4">
+                  <div className="flex items-baseline justify-between mb-6 pb-3 border-b border-slate-200">
+                    <h4 className="text-[13px] font-bold text-slate-800 uppercase tracking-wider">Priority Dimensions</h4>
+                    <p className="text-[12.5px] text-slate-600">Ranked by projected impact on composite score</p>
+                  </div>
+                  <div className="space-y-4">
                     {strategicPriorityDims.slice(0, 3).map((d, idx) => {
                       const lookup = playsLookup[d.dim] || { play: 'Build out ' + d.name, firstStep: 'Conduct a gap analysis and identify quick wins.' };
                       const customPlay = customNextSteps.plays?.[d.dim];
@@ -11774,23 +11777,61 @@ export default function ExportReportPage() {
                                 }} className="text-[10px] text-slate-500 hover:text-slate-700 ml-10">{'\u21BA'} Reset</button>
                               )}
                             </div>
-                          ) : (
-                            <div className="flex gap-4 mb-6">
-                              <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold mt-0.5">{idx + 1}</span>
-                              <div>
-                                <div className="flex items-baseline gap-3">
-                                  <span className="text-lg font-bold text-slate-800">D{d.dim} {d.name}</span>
-                                  <span className="text-sm text-slate-700 font-medium">Score: {Math.round(d.score)}{d.benchmark != null ? ' (Benchmark: ' + d.benchmark + ')' : ''}</span>
+                          ) : (() => {
+                            const pg = getEmployeePriorityGroup(d.weight);
+                            const bench = d.benchmark != null ? Math.round(d.benchmark) : null;
+                            const delta = bench != null ? Math.round(d.score) - bench : null;
+                            return (
+                            <div className="relative flex gap-5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
+                              <span className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-white text-base font-bold mt-0.5" style={{ backgroundColor: pg.color }}>
+                                {idx + 1}
+                              </span>
+                              <div className="flex-1 min-w-0">
+                                {/* Title row: D# pill + name + score block */}
+                                <div className="flex items-start justify-between gap-4 flex-wrap">
+                                  <div className="flex items-center gap-2.5">
+                                    <span className="inline-flex items-center justify-center h-6 px-2 rounded-md text-white text-[11px] font-bold tracking-wide" style={{ backgroundColor: pg.color }}>
+                                      D{d.dim}
+                                    </span>
+                                    <span className="text-[17px] font-bold text-slate-900 leading-tight">{d.name}</span>
+                                  </div>
+                                  <div className="flex items-center gap-4 bg-slate-50 rounded-lg px-3.5 py-1.5 border border-slate-200">
+                                    <div className="flex items-baseline gap-1.5">
+                                      <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Score</span>
+                                      <span className="text-lg font-bold text-slate-900 tabular-nums">{Math.round(d.score)}</span>
+                                    </div>
+                                    {bench != null && (
+                                      <>
+                                        <span className="w-px h-5 bg-slate-300"></span>
+                                        <div className="flex items-baseline gap-1.5">
+                                          <span className="text-[11px] font-semibold text-slate-600 uppercase tracking-wide">Benchmark</span>
+                                          <span className="text-lg font-bold text-slate-900 tabular-nums">{bench}</span>
+                                          {delta != null && (
+                                            <span className={`text-[11px] font-bold tabular-nums ${delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                              {delta >= 0 ? '+' : ''}{delta}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                                <p className="text-base text-slate-700 mt-1.5">{crossContext}</p>
-                                <p className="text-base mt-2">
-                                  <strong className="text-amber-700">{playTitle}.</strong>
+                                {/* Context */}
+                                <p className="text-[14.5px] text-slate-700 mt-3 leading-relaxed">{crossContext}</p>
+                                {/* Play + first step */}
+                                <p className="text-[14.5px] mt-3 leading-relaxed">
+                                  <strong className="text-slate-900">{playTitle}.</strong>
                                   <span className="text-slate-700"> {firstStep}</span>
                                 </p>
-                                <p className="text-sm text-slate-700 mt-1 italic">{whyForEmployees}</p>
+                                {/* Why it matters for employees */}
+                                <div className="mt-3 pt-3 border-t border-slate-100 flex items-start gap-2.5">
+                                  <svg className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="1.75" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                  <p className="text-[13px] text-slate-600 italic leading-relaxed">{whyForEmployees}</p>
+                                </div>
                               </div>
                             </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       );
                     })}
@@ -11798,9 +11839,9 @@ export default function ExportReportPage() {
                 </div>
 
                 {/* === FOOTER === */}
-                <div className="px-10 py-5 border-t border-slate-100 bg-slate-50">
-                  <p className="text-base text-slate-500 text-center">
-                    These recommendations serve as a starting point. Cancer and Careers can work with your team to develop a detailed implementation plan aligned with your organizational priorities and capacity.
+                <div className="px-10 py-5 border-t border-slate-200 bg-slate-50">
+                  <p className="text-[14.5px] text-slate-700 text-center leading-relaxed">
+                    These recommendations serve as a starting point. <span className="font-semibold text-slate-900">Cancer and Careers</span> can work with your team to develop a detailed implementation plan aligned with your organizational priorities and capacity.
                   </p>
                 </div>
               </div>
@@ -15198,7 +15239,7 @@ export default function ExportReportPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="font-bold text-white text-xl">Implementation Roadmap</h3>
-                          <p className="text-slate-500 mt-1">Your phased approach to strengthen workplace cancer support</p>
+                          <p className="text-slate-300 mt-1">Your phased approach to strengthen workplace cancer support</p>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2 px-4 py-2 bg-violet-500 text-white text-sm font-medium rounded-lg">
