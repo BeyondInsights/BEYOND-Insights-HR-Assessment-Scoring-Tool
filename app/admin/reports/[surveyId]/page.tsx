@@ -7604,7 +7604,7 @@ export default function ExportReportPage() {
                 <div className="w-64 text-center">
                   <div>Your Score vs. Benchmark</div>
                   <div className="flex items-center justify-center gap-1.5 mt-1 font-normal normal-case tracking-normal">
-                    <span className="inline-block w-[3px] h-3 bg-[#6366F1] ring-1 ring-white" />
+                    <span className="inline-block w-[2px] h-3 bg-[#6366F1]" />
                     <span className="text-[10px] text-slate-500">= Benchmark</span>
                   </div>
                 </div>
@@ -7641,30 +7641,30 @@ export default function ExportReportPage() {
                       className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[72px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
                       <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
-                        <span className="inline-flex items-center justify-center px-3 h-8 rounded-full text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1E3A5F' }}>
+                        <span className="inline-flex items-center justify-center px-2.5 h-7 rounded-full text-white text-[11px] font-bold flex-shrink-0 tracking-wide" style={{ backgroundColor: '#475569' }}>
                           D{d.dim}
                         </span>
-                        <span className="text-[15px] font-semibold text-slate-800 leading-snug">{d.name}</span>
+                        <span className="text-[15px] font-semibold text-slate-700 leading-snug">{d.name}</span>
                       </div>
                       <div className="w-64 px-4">
                         {d.benchmark !== null ? (
-                          <div className="relative h-2.5 bg-slate-200 rounded-full overflow-visible">
+                          <div className="relative h-2 bg-slate-200 rounded-full overflow-visible">
                             <div
                               className="absolute left-0 top-0 h-full rounded-full"
-                              style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#1E3A5F' }}
+                              style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#64748B' }}
                             />
                             <div
                               className="absolute"
-                              style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-5px', transform: 'translateX(-50%)', height: '22px', width: '3px', backgroundColor: '#6366F1', boxShadow: '0 0 0 2px #ffffff' }}
+                              style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-6px', transform: 'translateX(-50%)', height: '20px', width: '2px', backgroundColor: '#6366F1', boxShadow: '0 0 0 2px #ffffff' }}
                               title={`Benchmark: ${d.benchmark}`}
                             />
                           </div>
                         ) : (
-                          <div className="h-2.5 bg-slate-200 rounded-full" />
+                          <div className="h-2 bg-slate-200 rounded-full" />
                         )}
                       </div>
                       <div className="w-24 text-right pr-2">
-                        <span className="text-[30px] font-bold tabular-nums text-slate-900 leading-none">{d.score}</span>
+                        <span className="text-[26px] font-semibold tabular-nums leading-none" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
                       <div className="w-32 flex justify-center">
                         {diff !== null ? (
