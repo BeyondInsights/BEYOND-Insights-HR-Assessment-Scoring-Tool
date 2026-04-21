@@ -3664,6 +3664,7 @@ export default function ExportReportPage() {
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
   const [openedDims, setOpenedDims] = useState<Set<number>>(new Set());
   const [dpInitialized, setDpInitialized] = useState(false);
+  const [activeDimTab, setActiveDimTab] = useState<'elements' | 'geo' | 'followup'>('elements');
   const dimDetailRef = useRef<HTMLDivElement | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
@@ -4353,6 +4354,11 @@ export default function ExportReportPage() {
       }
     }
   }, [company]);
+
+  // Reset dimension detail tab when switching dimensions
+  useEffect(() => {
+    setActiveDimTab('elements');
+  }, [dimensionDetailModal]);
 
   // Auto-expand top-priority dimension in DP accordion on first load
   useEffect(() => {
@@ -7817,24 +7823,58 @@ export default function ExportReportPage() {
                                 </div>
                               </div>
 
+                              {/* Tab Bar */}
+                              {(() => {
+                                const tabs = [
+                                  { key: 'elements' as const, label: 'Support Elements', count: d.elements?.length || 0, show: true },
+                                  { key: 'geo' as const, label: 'Geographic Consistency', count: null, show: !isSingleCountryCompany },
+                                  { key: 'followup' as const, label: 'Follow-Up Questions', count: FOLLOW_UP_QUESTIONS[d.dim]?.length ?? null, show: [1, 3, 12, 13].includes(d.dim) && !!FOLLOW_UP_QUESTIONS[d.dim] },
+                                ].filter(t => t.show);
+                                return (
+                                  <div className="border-b border-slate-200 flex items-end gap-6 px-6 mb-0">
+                                    {tabs.map(t => {
+                                      const isActive = activeDimTab === t.key;
+                                      return (
+                                        <button
+                                          key={t.key}
+                                          onClick={() => setActiveDimTab(t.key)}
+                                          className={`relative pb-3 text-sm font-semibold transition-colors ${isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                          <span className="inline-flex items-center gap-2">
+                                            {t.label}
+                                            {t.count !== null && (
+                                              <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600'}`}>{t.count}</span>
+                                            )}
+                                          </span>
+                                          {isActive && <span className="absolute bottom-0 left-0 right-0 h-[3px]" style={{ backgroundColor: '#1E3A5F' }} />}
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Tab content container */}
+                              <div className="flex-1 overflow-y-auto">
+                              {activeDimTab === 'elements' && (<>
                               {/* Table Header Row */}
                               <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
                                 <div className="col-span-4">Support Element</div>
                                 <div className="col-span-1 text-center">Your Status</div>
-                                <div className="col-span-4 text-center">
+                                <div className="col-span-5 text-center">
                                   <div>Benchmark Distribution</div>
                                   <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{'In Place'}</span></div>
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }}></span><span className="text-slate-500">{'In Place'}</span></div>
                                     <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">{'In Development'}</span></div>
-                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">{'Under Review'}</span></div>
-                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }}></span><span className="text-slate-500">{'Under Review'}</span></div>
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#9CA3AF' }}></span><span className="text-slate-500">Not Planned</span></div>
                                   </div>
                                 </div>
-                                <div className="col-span-3 pl-4">Observation</div>
+                                <div className="col-span-2 pl-4">Observation</div>
                               </div>
-                              
-                              {/* Table Body */}
-                              <div className="flex-1 overflow-y-auto">
+
+                              {/* Element Rows */}
+                              <div>
                                 {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).sort((a: any, b: any) => {
                                   const statusOrder: Record<string, number> = { currently: 0, planning: 1, assessing: 2, unsure: 3, notAble: 4 };
                                   return (statusOrder[getStatusInfo(a).key] ?? 5) - (statusOrder[getStatusInfo(b).key] ?? 5);
@@ -7849,55 +7889,40 @@ export default function ExportReportPage() {
                                   const observation = getDefaultObservation(elem, bench);
             
                                   return (
-                                    <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
+                                    <div key={i} className="px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-200">
                                       {/* Element Name */}
                                       <div className="col-span-4">
-                                        <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
+                                        <p className="text-[14px] text-slate-800 font-medium leading-snug">{elem.name}</p>
                                       </div>
-            
+
                                       {/* Your Status */}
                                       <div className="col-span-1 flex justify-center">
-                                        <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold leading-tight" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusInfo.bg }} />
                                           {statusInfo.label}
                                         </span>
                                       </div>
-                                      
+
                                       {/* Benchmark Distribution - Wide Stacked Bar */}
-                                      <div className="col-span-4">
-                                        <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
-                                          {/* Offering */}
-                                          <div 
-                                            className="flex items-center justify-center text-xs font-bold text-white"
-                                            style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '28px' : '0' }}
-                                          >
-                                            {pctCurrently}%
+                                      <div className="col-span-5">
+                                        <div className="h-[22px] rounded overflow-hidden flex bg-slate-100">
+                                          <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>
+                                            {pctCurrently >= 8 ? `${pctCurrently}%` : ''}
                                           </div>
-                                          {/* Planning */}
-                                          <div 
-                                            className="flex items-center justify-center text-xs font-bold text-white"
-                                            style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '28px' : '0' }}
-                                          >
-                                            {pctPlanning > 0 ? `${pctPlanning}%` : ''}
+                                          <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6' }}>
+                                            {pctPlanning >= 8 ? `${pctPlanning}%` : ''}
                                           </div>
-                                          {/* Assessing */}
-                                          <div 
-                                            className="flex items-center justify-center text-xs font-bold text-white"
-                                            style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '28px' : '0' }}
-                                          >
-                                            {pctAssessing > 0 ? `${pctAssessing}%` : ''}
+                                          <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#D97706' }}>
+                                            {pctAssessing >= 8 ? `${pctAssessing}%` : ''}
                                           </div>
-                                          {/* Not Currently Planned */}
-                                          <div 
-                                            className="flex items-center justify-center text-xs font-bold text-slate-600"
-                                            style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '28px' : '0' }}
-                                          >
-                                            {pctNotOffering}%
+                                          <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctNotOffering}%`, backgroundColor: '#9CA3AF' }}>
+                                            {pctNotOffering >= 8 ? `${pctNotOffering}%` : ''}
                                           </div>
                                         </div>
                                       </div>
-                                      
-                                      {/* Observation - Editable */}
-                                      <div className="col-span-3 pl-4">
+
+                                      {/* Observation - Editable (two-line) */}
+                                      <div className="col-span-2 pl-4">
                                         {editMode ? (
                                           <input
                                             type="text"
@@ -7912,21 +7937,31 @@ export default function ExportReportPage() {
                                             className="w-full text-xs text-slate-700 bg-amber-50 border border-amber-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
                                             placeholder="Custom observation..."
                                           />
+                                        ) : customObservations[`dim${d.dim}_${elem.name}`] ? (
+                                          <p className="text-xs text-slate-600 leading-snug">{customObservations[`dim${d.dim}_${elem.name}`]}</p>
                                         ) : (
-                                          <p className="text-xs text-slate-600 leading-snug">
-                                            {customObservations[`dim${d.dim}_${elem.name}`] || (
-                                              <><span className="font-bold" style={{ color: observation.color }}>{observation.prefix}</span> {observation.text}</>
-                                            )}
-                                          </p>
+                                          <>
+                                            <p className="text-[12px] font-bold leading-tight" style={{ color: observation.color }}>{observation.prefix.replace(':', '')}</p>
+                                            <p className="text-[11px] text-slate-600 leading-snug mt-0.5">{observation.text}</p>
+                                          </>
                                         )}
                                       </div>
                                     </div>
                                   );
                                 })}
-                                
+                                </div>
+
+                                {/* Reading-this-table callout */}
+                                <div className="mx-6 my-4 bg-white border-l-4 border-[#1E3A5F] rounded-r px-4 py-3">
+                                  <p className="text-[13px] text-slate-600 leading-relaxed">
+                                    <span className="font-semibold text-slate-800">Reading this table:</span> Your Status shows where your organization stands on each support element. The Benchmark Distribution shows how all participating organizations split across four states. Observation compares your position to the participating-organization average.
+                                  </p>
+                                </div>
+                                </>)}
+
                                 {/* Geographic Consistency */}
-                                {!isSingleCountryCompany && (
-                                  <div className="mx-4 mb-4 bg-indigo-50 rounded-lg border border-indigo-200 px-5 py-3">
+                                {activeDimTab === 'geo' && !isSingleCountryCompany && (
+                                  <div className="mx-4 mb-4 bg-indigo-50 rounded-lg border border-indigo-200 px-5 py-3 mt-4">
                                     <div className="flex items-center justify-between mb-2">
                                       <div>
                                         <h4 className="font-bold text-indigo-800 text-sm">Geographic Consistency</h4>
@@ -7974,8 +8009,8 @@ export default function ExportReportPage() {
                                 )}
             
                                 {/* Follow-Up Questions, only for D1, D3, D12, D13 */}
-                                {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
-                                  <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3">
+                                {activeDimTab === 'followup' && [1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
+                                  <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3 mt-4">
                                     <h4 className="font-bold text-blue-800 text-sm mb-3">Follow-Up Questions</h4>
                                     <div className="space-y-4">
                                       {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
