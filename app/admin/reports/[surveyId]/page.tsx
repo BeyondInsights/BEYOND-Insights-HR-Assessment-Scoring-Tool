@@ -6736,37 +6736,37 @@ export default function ExportReportPage() {
                   .slice(0, 3);
 
                 // Custom SVG icons (no exclamation-in-triangle)
-                const trendingUp = <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 17l6-6 4 4 8-8M15 7h6v6" /></svg>;
-                const tensionIcon = <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 8l-4 4 4 4M17 8l4 4-4 4M3 12h18" /></svg>;
-                const trendingDown = <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7l6 6 4-4 8 8M15 17h6v-6" /></svg>;
+                const trendingUp = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 17l6-6 4 4 8-8M15 7h6v6" /></svg>;
+                const tensionIcon = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 8l-4 4 4 4M17 8l4 4-4 4M3 12h18" /></svg>;
+                const trendingDown = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7l6 6 4-4 8 8M15 17h6v-6" /></svg>;
 
                 const renderCard = (title: string, subtitle: string, accent: string, accentSoft: string, icon: JSX.Element, dims: any[], showDelta: boolean) => (
-                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm flex flex-col">
-                    <div className="h-1.5" style={{ backgroundColor: accent }} />
-                    <div className="p-5 flex-1">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-md flex flex-col">
+                    <div className="h-2" style={{ backgroundColor: accent }} />
+                    <div className="p-7 flex-1">
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
                           {icon}
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-[15px] font-bold text-slate-900 leading-tight">{title}</h4>
-                          <p className="text-[11px] text-slate-500 leading-tight mt-0.5">{subtitle}</p>
+                          <h4 className="text-[18px] font-bold text-slate-900 leading-tight">{title}</h4>
+                          <p className="text-[13px] text-slate-500 leading-snug mt-1">{subtitle}</p>
                         </div>
                       </div>
-                      <ul className="space-y-2.5">
+                      <ul className="space-y-3.5">
                         {dims.length === 0 ? (
-                          <li className="text-[13px] text-slate-400 italic">No dimensions match this profile.</li>
+                          <li className="text-[14px] text-slate-400 italic">No dimensions match this profile.</li>
                         ) : dims.map((d: any) => {
                           const dimPg = getEmployeePriorityGroup(d.weight);
                           return (
-                          <li key={d.dim} className="flex items-center gap-2">
-                            <span className="inline-flex items-center justify-center px-2 h-5 rounded-full text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: dimPg.color }}>
+                          <li key={d.dim} className="flex items-center gap-3">
+                            <span className="inline-flex items-center justify-center px-2.5 h-6 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: dimPg.color }}>
                               D{d.dim}
                             </span>
-                            <span className="text-[13px] text-slate-700 font-medium flex-1 truncate">{d.name}</span>
-                            <span className="text-[15px] font-bold tabular-nums text-slate-900 text-right w-8 flex-shrink-0">{d.score}</span>
+                            <span className="text-[14px] text-slate-700 font-semibold flex-1 truncate leading-tight">{d.name}</span>
+                            <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none">{d.score}</span>
                             {showDelta ? (
-                              <span className={`text-[11px] font-bold tabular-nums text-right w-10 flex-shrink-0 ${d.delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 ${d.delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                 {d.delta >= 0 ? '+' : ''}{d.delta}
                               </span>
                             ) : null}
@@ -6778,7 +6778,7 @@ export default function ExportReportPage() {
                   </div>
                 );
                 return (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
                     {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', trendingUp, strongest, true)}
                     {renderCard('Key Tensions', 'High priority, uneven performance', '#B45309', '#FEF3C7', tensionIcon, tensions, false)}
                     {renderCard('Areas to Address', 'Greatest opportunity to improve', '#B91C1C', '#FEE2E2', trendingDown, areasToAddress, true)}
