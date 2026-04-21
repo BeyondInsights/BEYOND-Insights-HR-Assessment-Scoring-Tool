@@ -6735,10 +6735,13 @@ export default function ExportReportPage() {
                   .sort((a: any, b: any) => b.weight - a.weight)
                   .slice(0, 3);
 
-                // Custom SVG icons (no exclamation-in-triangle)
-                const trendingUp = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 17l6-6 4 4 8-8M15 7h6v6" /></svg>;
-                const tensionIcon = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 8l-4 4 4 4M17 8l4 4-4 4M3 12h18" /></svg>;
-                const trendingDown = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2.25} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7l6 6 4-4 8 8M15 17h6v-6" /></svg>;
+                // Positive, aspirational iconography
+                // Strongest -> Star (celebrate what's working)
+                // Key Tensions -> Scales (interplay / balance between priorities)
+                // Areas to Address -> Target (focus / aim / where to invest)
+                const iconStar = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 2.5l2.71 6.58 7.09.57-5.4 4.63 1.64 6.92L12 17.77 5.96 21.2l1.64-6.92-5.4-4.63 7.09-.57L12 2.5z" /></svg>;
+                const iconScales = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18M6 3h12M6 8l-3 6h6l-3-6zM18 8l-3 6h6l-3-6zM3 14a3 3 0 006 0M15 14a3 3 0 006 0" /></svg>;
+                const iconTarget = <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" /><circle cx="12" cy="12" r="5.5" /><circle cx="12" cy="12" r="1.8" fill="currentColor" /></svg>;
 
                 const renderCard = (title: string, subtitle: string, accent: string, accentSoft: string, icon: JSX.Element, dims: any[], showDelta: boolean) => (
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-md flex flex-col">
@@ -6760,7 +6763,7 @@ export default function ExportReportPage() {
                           const dimPg = getEmployeePriorityGroup(d.weight);
                           return (
                           <li key={d.dim} className="flex items-center gap-3">
-                            <span className="inline-flex items-center justify-center px-2.5 h-6 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: dimPg.color }}>
+                            <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: dimPg.color }}>
                               D{d.dim}
                             </span>
                             <span className="text-[14px] text-slate-700 font-semibold flex-1 truncate leading-tight">{d.name}</span>
@@ -6779,9 +6782,9 @@ export default function ExportReportPage() {
                 );
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-                    {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', trendingUp, strongest, true)}
-                    {renderCard('Key Tensions', 'High priority, uneven performance', '#B45309', '#FEF3C7', tensionIcon, tensions, false)}
-                    {renderCard('Areas to Address', 'Greatest opportunity to improve', '#B91C1C', '#FEE2E2', trendingDown, areasToAddress, true)}
+                    {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconStar, strongest, true)}
+                    {renderCard('Key Tensions', 'High priority, uneven performance', '#B45309', '#FEF3C7', iconScales, tensions, false)}
+                    {renderCard('Areas to Address', 'Greatest opportunity to improve', '#7C3AED', '#F3E8FF', iconTarget, areasToAddress, true)}
                   </div>
                 );
               })()}
@@ -7704,7 +7707,7 @@ export default function ExportReportPage() {
                       className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[72px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
                       <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
-                        <span className="inline-flex items-center justify-center px-2.5 h-7 rounded-full text-white text-[11px] font-bold flex-shrink-0 tracking-wide" style={{ backgroundColor: pg.color }}>
+                        <span className="inline-flex items-center justify-center h-7 min-w-[42px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0 tracking-wide" style={{ backgroundColor: pg.color }}>
                           D{d.dim}
                         </span>
                         <span className="text-[15px] font-semibold text-slate-700 leading-snug">{d.name}</span>
