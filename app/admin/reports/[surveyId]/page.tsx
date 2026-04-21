@@ -7894,14 +7894,14 @@ export default function ExportReportPage() {
                                   const observation = getDefaultObservation(elem, bench);
             
                                   return (
-                                    <div key={i} className="px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-200">
+                                    <div key={i} className="px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-200 min-h-[64px]">
                                       {/* Element Name */}
-                                      <div className="col-span-4">
+                                      <div className="col-span-4 flex items-center">
                                         <p className="text-[14px] text-slate-800 font-medium leading-snug">{elem.name}</p>
                                       </div>
 
                                       {/* Your Status */}
-                                      <div className="col-span-1 flex justify-center">
+                                      <div className="col-span-1 flex items-center justify-center">
                                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold leading-tight" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
                                           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusInfo.bg }} />
                                           {statusInfo.label}
@@ -7909,8 +7909,8 @@ export default function ExportReportPage() {
                                       </div>
 
                                       {/* Benchmark Distribution - Wide Stacked Bar */}
-                                      <div className="col-span-5">
-                                        <div className="h-[22px] rounded overflow-hidden flex bg-slate-100">
+                                      <div className="col-span-5 flex items-center">
+                                        <div className="w-full h-[22px] rounded overflow-hidden flex bg-slate-100">
                                           <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>
                                             {pctCurrently >= 8 ? `${pctCurrently}%` : ''}
                                           </div>
@@ -7927,7 +7927,7 @@ export default function ExportReportPage() {
                                       </div>
 
                                       {/* Observation - Editable (two-line) */}
-                                      <div className="col-span-2 pl-4">
+                                      <div className="col-span-2 pl-4 flex flex-col justify-center">
                                         {editMode ? (
                                           <input
                                             type="text"
