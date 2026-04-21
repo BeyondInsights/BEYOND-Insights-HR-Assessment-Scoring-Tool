@@ -6756,9 +6756,11 @@ export default function ExportReportPage() {
                       <ul className="space-y-2.5">
                         {dims.length === 0 ? (
                           <li className="text-[13px] text-slate-400 italic">No dimensions match this profile.</li>
-                        ) : dims.map((d: any) => (
+                        ) : dims.map((d: any) => {
+                          const dimPg = getEmployeePriorityGroup(d.weight);
+                          return (
                           <li key={d.dim} className="flex items-center gap-2">
-                            <span className="inline-flex items-center justify-center px-2 h-5 rounded-full text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: '#475569' }}>
+                            <span className="inline-flex items-center justify-center px-2 h-5 rounded-full text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: dimPg.color }}>
                               D{d.dim}
                             </span>
                             <span className="text-[13px] text-slate-700 font-medium flex-1 truncate">{d.name}</span>
@@ -6769,7 +6771,8 @@ export default function ExportReportPage() {
                               </span>
                             ) : null}
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     </div>
                   </div>
