@@ -11554,9 +11554,9 @@ export default function ExportReportPage() {
 
               {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
 
-              {/* Cancer and Careers' Services - flush-left list */}
-              <h3 className="text-xl font-bold text-[#F37021] mb-5">Cancer and Careers&apos; Services</h3>
-              <div className="space-y-5 mb-8">
+              {/* Cancer and Careers' Services - 2-column flush-left list */}
+              <h3 className="text-xl font-bold text-[#F37021] mb-6">Cancer and Careers&apos; Services</h3>
+              <div className="grid grid-cols-2 gap-x-12 gap-y-7 mb-10">
                 {[
                   { key: 'item1', defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'] },
                   { key: 'item2', defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'] },
@@ -11568,7 +11568,7 @@ export default function ExportReportPage() {
                   const bullets = custom?.bullets || item.defaultBullets;
 
                   return (
-                    <div key={item.key}>
+                    <div key={item.key} className="border-l-2 border-[#F37021] pl-4">
                       {editMode ? (
                         <input type="text" value={title} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: e.target.value, bullets: bullets } })); setHasUnsavedChanges(true); }} className="w-full font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 mb-2" />
                       ) : (
@@ -11577,7 +11577,7 @@ export default function ExportReportPage() {
                       {editMode ? (
                         <textarea value={bullets.join('\n')} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: title, bullets: e.target.value.split('\n') } })); setHasUnsavedChanges(true); }} className="w-full text-sm text-slate-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[90px] focus:outline-none focus:ring-2 focus:ring-amber-400" placeholder="One bullet per line..." />
                       ) : (
-                        <ul className="text-sm text-slate-700 space-y-1.5 ml-5">
+                        <ul className="text-sm text-slate-700 space-y-1.5 ml-4">
                           {bullets.map((b: string, i: number) => (
                             <li key={i} className="list-disc marker:text-[#F37021]">
                               <span>{b}</span>
@@ -11589,22 +11589,22 @@ export default function ExportReportPage() {
                   );
                 })}
               </div>
-              
-              {/* CTA Footer - enhanced */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-8 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-[#F37021]/20 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+
+              {/* CTA Footer - CAC orange (per spec: CAC callouts stay orange) */}
+              <div className="bg-gradient-to-br from-[#F37021] to-[#FF8C42] rounded-2xl p-8 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
                 <div className="relative flex items-center justify-between">
                   <div>
                     <p className="font-bold text-white text-xl">Ready to take the next step?</p>
-                    <p className="text-slate-500 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
+                    <p className="text-white/90 mt-2">Contact Cancer and Careers to discuss how we can support your organization.</p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <a href="https://cancerandcareers.org" target="_blank" rel="noopener noreferrer" className="font-bold text-[#F37021] text-lg hover:underline">cancerandcareers.org</a>
-                      <p className="text-slate-500 mt-1">cacbestcompanies@cew.org</p>
+                      <a href="https://cancerandcareers.org" target="_blank" rel="noopener noreferrer" className="font-bold text-white text-lg hover:underline">cancerandcareers.org</a>
+                      <p className="text-white/90 mt-1">cacbestcompanies@cew.org</p>
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-[#F37021] flex items-center justify-center">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
+                      <svg className="w-6 h-6 text-[#F37021]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </div>
                   </div>
                 </div>
