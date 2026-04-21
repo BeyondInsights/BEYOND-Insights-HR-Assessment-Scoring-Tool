@@ -5918,30 +5918,30 @@ export default function ExportReportPage() {
             
             {/* Understanding Your Workplace Support Composite Score / Composite Score, Collapsible */}
             <div id="score-composition-section" className="px-12 py-6 bg-white border-b border-slate-200">
-              <button 
+              <button
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-violet-50 to-purple-50 border border-violet-200 rounded-xl hover:from-violet-100 hover:to-purple-100 transition-all group"
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-violet-800 transition-colors">{'Understanding Your Workplace Support Composite Score'}</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">{'Understanding Your Workplace Support Composite Score'}</span>
                   </div>
                 </div>
-                <div className={`w-7 h-7 rounded-full bg-white border border-violet-200 flex items-center justify-center transition-transform duration-200 ${showCompositeScoreGuide ? 'rotate-180' : ''}`}>
-                  <svg className="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showCompositeScoreGuide ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </button>
               
               {showCompositeScoreGuide && (
                 <div className="mt-4 pb-1">
-                  <div className="bg-gradient-to-br from-violet-50/80 via-white to-slate-50 border border-violet-200 rounded-xl overflow-hidden shadow-sm">
+                  <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="p-6">
                       <div className="mb-6">
                         <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-                          <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                          <span className="w-1.5 h-6 bg-slate-600 rounded-full"></span>
                           {'What This Score Represents'}
                         </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
@@ -5951,19 +5951,19 @@ export default function ExportReportPage() {
                               <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
                               <ul className="space-y-1.5">
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
                                   The Index combines your Foundation, Expanded, and Signature scores using research-derived weights: Foundation (35%), Expanded (50%), and Signature (15%).
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
                                   These weights are not arbitrary, they derive directly from the element importance weights within each dimension, partitioned by support level.
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
                                   Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce.
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
                                   Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.
                                 </li>
                               </ul>
@@ -5978,7 +5978,7 @@ export default function ExportReportPage() {
                         {/* Left: Tier Distribution - Properly structured table */}
                         <div className="w-[480px] flex-shrink-0">
                           <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                            <span className="w-1.5 h-6 bg-slate-600 rounded-full"></span>
                             {'Workplace Support Composite Score Tiers'}
                           </h4>
                           
@@ -6026,9 +6026,9 @@ export default function ExportReportPage() {
                         
                         {/* Right: Journey message - Better balanced layout */}
                         <div className="flex-1 min-w-0">
-                          <div className="h-full p-6 bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-xl">
+                          <div className="h-full p-6 bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-slate-200 rounded-xl">
                             <div className="flex items-center gap-3 mb-4">
-                              <div className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center flex-shrink-0">
+                              <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
                                 <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                 </svg>
@@ -6036,11 +6036,11 @@ export default function ExportReportPage() {
                               <p className="text-lg font-bold text-slate-800">A shared purpose in creating a resilient workforce</p>
                             </div>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-violet-700">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
+                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-slate-800">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
                             </p>
-                            <div className="bg-white/60 rounded-lg p-4 border border-violet-100">
+                            <div className="bg-white/60 rounded-lg p-4 border border-slate-100">
                               <p className="text-sm text-slate-700 leading-relaxed">
-                                <strong className="text-violet-700">The goal is progress, not perfection.</strong> This isn&apos;t about achieving a perfect score. It&apos;s about continuous improvement, taking meaningful steps forward each year, and building support systems that grow alongside your workforce.
+                                <strong className="text-slate-800">The goal is progress, not perfection.</strong> This isn&apos;t about achieving a perfect score. It&apos;s about continuous improvement, taking meaningful steps forward each year, and building support systems that grow alongside your workforce.
                               </p>
                             </div>
                           </div>
@@ -6282,18 +6282,18 @@ export default function ExportReportPage() {
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowReportSections(!showReportSections)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-emerald-50 to-emerald-100/60 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-emerald-100 transition-all group"
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-base font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">Report Sections and What They Measure</span>
+                    <span className="text-base font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Report Sections and What They Measure</span>
                   </div>
                 </div>
-                <div className={`w-7 h-7 rounded-full bg-white border border-emerald-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
-                  <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </button>
               
@@ -6367,18 +6367,18 @@ export default function ExportReportPage() {
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowReportGuide(!showReportGuide)}
-                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-sky-50 to-sky-100/60 border border-sky-200 rounded-xl hover:from-sky-100 hover:to-sky-100 transition-all group"
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-sky-800 transition-colors">How to Use This Report</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">How to Use This Report</span>
                   </div>
                 </div>
-                <div className={`w-7 h-7 rounded-full bg-white border border-sky-200 flex items-center justify-center transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`}>
-                  <svg className="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </button>
 
@@ -7475,11 +7475,11 @@ export default function ExportReportPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <h3 className="text-2xl font-bold text-white">Support Breadth</h3>
-                            <p className="text-violet-100 mt-1">Contributes 5% of your composite score</p>
+                            <p className="text-slate-200 mt-1">Contributes 5% of your composite score</p>
                           </div>
                           <div className="text-center">
                             <p className="text-4xl font-bold text-white">{breadthScore ?? '-'}</p>
-                            <p className="text-sm text-violet-100">Your Score</p>
+                            <p className="text-sm text-slate-200">Your Score</p>
                           </div>
                         </div>
                       </div>
@@ -8844,9 +8844,9 @@ export default function ExportReportPage() {
                       <div className="px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
                         <div className="max-w-md mx-auto">
                           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-3 bg-gradient-to-r from-violet-700 to-purple-700 text-white text-center">
+                            <div className="px-5 py-3 bg-slate-800 text-white text-center">
                               <p className="text-base font-semibold">{dimInfo?.name}</p>
-                              <p className="text-xs text-violet-200 mt-0.5">{dimElements.length} elements in this dimension</p>
+                              <p className="text-xs text-slate-300 mt-0.5">{dimElements.length} elements in this dimension</p>
                             </div>
                             <div className="p-5">
                               <div className="flex items-center justify-center gap-8">
@@ -11001,7 +11001,7 @@ export default function ExportReportPage() {
                           {editMode ? (
                             <input type="text" value={customRoadmapTimeframes.phase3 || 'Phase 3'} onChange={(e) => { setCustomRoadmapTimeframes(prev => ({ ...prev, phase3: e.target.value })); setHasUnsavedChanges(true); }} className="text-sm bg-violet-400/50 text-white border border-violet-300 rounded px-2 py-0.5 w-28 focus:outline-none mt-1" />
                           ) : (
-                            <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || 'Phase 3'}</p>
+                            <p className="text-slate-200 text-sm">{customRoadmapTimeframes.phase3 || 'Phase 3'}</p>
                           )}
                         </div>
                       </div>
@@ -12389,11 +12389,11 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                       
-                      <div className="px-6 py-4 bg-gradient-to-r from-violet-700 to-purple-700 flex items-center gap-3">
+                      <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                         </div>
-                        <p className="text-sm text-violet-100">
+                        <p className="text-sm text-slate-200">
                           <span className="font-semibold text-white">This score is just the beginning.</span> The detailed analysis that follows lets you 
                           explore each dimension in depth, identifying specific strengths to leverage and opportunities to strengthen your 
                           support for employees managing cancer.
@@ -14149,7 +14149,7 @@ export default function ExportReportPage() {
                           </div>
                           <div>
                             <h3 className="font-bold text-white text-xl">Initiatives In Development or Under Review</h3>
-                            <p className="text-violet-200 mt-0.5">{quickWinOpportunities.length} programs currently in development or under review</p>
+                            <p className="text-slate-300 mt-0.5">{quickWinOpportunities.length} programs currently in development or under review</p>
                           </div>
                         </div>
                         <div className="bg-white/20 rounded-lg px-5 py-2.5 backdrop-blur">
@@ -15090,7 +15090,7 @@ export default function ExportReportPage() {
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-bold text-white text-lg">Excellence</h4>
-                                <p className="text-violet-100 text-sm">{customRoadmapTimeframes.phase3 || 'Phase 3'}</p>
+                                <p className="text-slate-200 text-sm">{customRoadmapTimeframes.phase3 || 'Phase 3'}</p>
                               </div>
                             </div>
                           </div>
