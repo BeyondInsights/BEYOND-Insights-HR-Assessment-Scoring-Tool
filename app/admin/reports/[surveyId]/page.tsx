@@ -6735,20 +6735,37 @@ export default function ExportReportPage() {
                   .sort((a: any, b: any) => b.weight - a.weight)
                   .slice(0, 3);
 
-                // Simple line icons
-                // Strongest -> check (what's working)
-                // Priority Gaps -> plus (room to grow)
-                // Areas to Address -> forward arrow (next step)
-                const iconCheck = <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>;
-                const iconPlus = <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14M5 12h14" /></svg>;
-                const iconArrow = <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>;
+                // Strongest -> trending line with peak marker (climbing past the bar)
+                const iconTrend = (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 18l6-6 4 3 7-9" />
+                    <circle cx="20" cy="6" r="1.8" fill="currentColor" stroke="none" />
+                  </svg>
+                );
+                // Priority Gaps -> two bars with dashed gap marker (literal gap)
+                const iconBars = (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+                    <rect x="4" y="13" width="5" height="8" rx="0.75" fill="currentColor" stroke="none" />
+                    <rect x="15" y="4" width="5" height="17" rx="0.75" fill="currentColor" stroke="none" />
+                    <line x1="4" y1="13" x2="15" y2="13" strokeDasharray="2,2" strokeLinecap="round" />
+                    <line x1="15" y1="13" x2="15" y2="4" strokeDasharray="2,2" strokeLinecap="round" opacity="0.6" />
+                  </svg>
+                );
+                // Areas to Address -> sprout with two leaves (potential / growth)
+                const iconSprout = (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14c-2 0-6-2-6-7 5 0 6 2 6 7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c2 0 6-2 6-7-5 0-6 2-6 7z" />
+                  </svg>
+                );
 
                 const renderCard = (title: string, subtitle: string, accent: string, accentSoft: string, icon: JSX.Element, dims: any[], showDelta: boolean) => (
                   <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-md flex flex-col">
                     <div className="h-2" style={{ backgroundColor: accent }} />
                     <div className="p-7 flex-1">
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
                           {icon}
                         </div>
                         <div className="min-w-0">
@@ -6782,9 +6799,9 @@ export default function ExportReportPage() {
                 );
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-                    {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconCheck, strongest, true)}
-                    {renderCard('Priority Gaps', 'High employee priority, room to grow', '#B45309', '#FEF3C7', iconPlus, tensions, false)}
-                    {renderCard('Areas to Address', 'Greatest opportunity to improve', '#7C3AED', '#F3E8FF', iconArrow, areasToAddress, true)}
+                    {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
+                    {renderCard('Priority Gaps', 'High employee priority, room to grow', '#B45309', '#FEF3C7', iconBars, tensions, false)}
+                    {renderCard('Areas to Address', 'Greatest opportunity to improve', '#7C3AED', '#F3E8FF', iconSprout, areasToAddress, true)}
                   </div>
                 );
               })()}
