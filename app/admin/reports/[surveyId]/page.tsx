@@ -8193,478 +8193,6 @@ export default function ExportReportPage() {
             </div>
           )}
           
-          {/* ============ WHAT-IF SCENARIO MODAL ============ */}
-          {whatIfModal && elementDetails && (
-            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }}>
-              <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[92vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
-                {/* Header - Slate color to match composite */}
-                <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
-                  <div className="relative flex items-start justify-between">
-                    <div>
-                      <h3 className="font-bold text-white text-2xl flex items-center gap-3">
-                        <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                        </span>
-                        What-If Scenario Builder
-                      </h3>
-                      <p className="text-slate-300 text-sm mt-2 ml-13 max-w-xl">
-                        Explore the impact of program changes. What happens if you <span className="text-emerald-400 font-medium">start offering</span> a new benefit? 
-                        Or <span className="text-red-400 font-medium">stop offering</span> an existing one?
-                      </p>
-                    </div>
-                    <button onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }} className="text-white/70 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </div>
-                </div>
-                
-                {(() => {
-                  // Show placeholder if no dimension selected
-                  if (whatIfDimension === null) {
-                    return (
-                      <>
-                        {/* Dimension Selector */}
-                        <div className="px-8 py-3 bg-slate-50 border-b border-slate-200">
-                          <div className="flex items-center gap-4">
-                            <label className="text-sm font-semibold text-slate-700">Dimension:</label>
-                            <select 
-                              value=""
-                              onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
-                              className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
-                            >
-                              <option value="" disabled>Select a dimension...</option>
-                              {dimensionAnalysis.map((d: any) => (
-                                <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                        
-                        {/* Empty State */}
-                        <div className="px-8 py-16 flex flex-col items-center justify-center text-center">
-                          <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                            <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                          </div>
-                          <h4 className="text-lg font-semibold text-slate-700 mb-2">Select a Dimension</h4>
-                          <p className="text-sm text-slate-500 max-w-sm">Choose a dimension from the dropdown above to explore how program changes would impact your dimension score.</p>
-                        </div>
-                        
-                        {/* Footer */}
-                        <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
-                          <button 
-                            onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }}
-                            className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
-                          >
-                            Close
-                          </button>
-                        </div>
-                      </>
-                    );
-                  }
-                  
-                  const dimElements = elementDetails?.[whatIfDimension] || [];
-                  const dimInfo = dimensionAnalysis.find((d: any) => d.dim === whatIfDimension);
-                  const dimWeight = DEFAULT_DIMENSION_WEIGHTS[whatIfDimension] || 0;
-                  const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
-                  const dimWeightPct = Math.round((dimWeight / totalWeight) * 100);
-                  
-                  // Use the ACTUAL dimension score as baseline (includes geo multipliers, follow-up blending, etc.)
-                  const actualDimScore = dimInfo?.score || 0;
-                  
-                  // Point values for each status
-                  const STATUS_POINTS: Record<string, number> = {
-                    'currently': 5,
-                    'planning': 3,
-                    'assessing': 2,
-                    'not_able': 0
-                  };
-                  
-                  const getStatusFromElement = (el: any) => {
-                    if (el.isStrength) return 'currently';
-                    if (el.isPlanning) return 'planning';
-                    if (el.isAssessing) return 'assessing';
-                    if (el.isUnsure) return 'unsure';
-                    return 'not_able';
-                  };
-                  
-                  const originalGeoMult = dimInfo?.geoMultiplier ?? 1.0;
-                  const projectedGeoMult = whatIfGeoOverride !== null ? whatIfGeoOverride : originalGeoMult;
-                  const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
-
-                  // Calculate projected points with changes (for display purposes)
-                  const getNewPoints = (el: any) => {
-                    const newStatus = whatIfChanges[el.name];
-                    if (newStatus) return STATUS_POINTS[newStatus];
-                    const currentStatus = getStatusFromElement(el);
-                    return STATUS_POINTS[currentStatus] ?? 0;
-                  };
-
-                  // Compute projected score FROM SCRATCH using element weights
-                  // (delta approach breaks for unsure elements which get partial credit in actual scoring)
-                  let wEarned = 0, wMax = 0;
-                  dimElements.forEach((el: any) => {
-                    const ew = ELEMENT_DIM_WEIGHTS[el.name];
-                    const elemWeight = ew ? ew[1] : (1 / dimElements.length);
-                    const newStatus = whatIfChanges[el.name];
-                    const finalPts = newStatus
-                      ? (STATUS_POINTS[newStatus] ?? 0)
-                      : (STATUS_POINTS[getStatusFromElement(el)] ?? 0);
-                    wEarned += finalPts * elemWeight;
-                    wMax += 5 * elemWeight;
-                  });
-                  const projectedRawScore = wMax > 0 ? (wEarned / wMax) * 100 : 0;
-
-                  // Apply geo multiplier and follow-up blending
-                  const projectedAdjusted = projectedRawScore * projectedGeoMult;
-                  let projectedDimScore: number;
-                  if (hasFollowUps) {
-                    let projectedFollowUpScore: number | null = null;
-                    if (whatIfDimension === 1) {
-                      const scores: number[] = [];
-                      const usaScore = whatIfFollowUps['d1_1_usa'] ?? dimInfo?.followUpRaw?.d1_1_usa_score;
-                      const nonUsaScore = !isSingleCountryCompany ? (whatIfFollowUps['d1_1_non_usa'] ?? dimInfo?.followUpRaw?.d1_1_non_usa_score) : null;
-                      if (usaScore !== null && usaScore !== undefined) scores.push(usaScore);
-                      if (nonUsaScore !== null && nonUsaScore !== undefined) scores.push(nonUsaScore);
-                      if (scores.length > 0) {
-                        projectedFollowUpScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-                      } else if (dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
-                        projectedFollowUpScore = dimInfo.followUpScore;
-                      }
-                    } else if (whatIfDimension === 3) {
-                      projectedFollowUpScore = whatIfFollowUps['d3_1'] ?? dimInfo?.followUpRaw?.d3_1_score ?? dimInfo?.followUpScore ?? null;
-                    } else if (whatIfDimension === 12) {
-                      const scores: number[] = [];
-                      const d121 = whatIfFollowUps['d12_1'] ?? dimInfo?.followUpRaw?.d12_1_score;
-                      const d122 = whatIfFollowUps['d12_2'] ?? dimInfo?.followUpRaw?.d12_2_score;
-                      if (d121 !== null && d121 !== undefined) scores.push(d121);
-                      if (d122 !== null && d122 !== undefined) scores.push(d122);
-                      projectedFollowUpScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : dimInfo?.followUpScore ?? null;
-                    } else if (whatIfDimension === 13) {
-                      projectedFollowUpScore = whatIfFollowUps['d13_1'] ?? dimInfo?.followUpRaw?.d13_1_score ?? dimInfo?.followUpScore ?? null;
-                    }
-                    if (projectedFollowUpScore !== null && projectedFollowUpScore !== undefined) {
-                      projectedDimScore = Math.round(projectedAdjusted * 0.85 + projectedFollowUpScore * 0.15);
-                    } else {
-                      projectedDimScore = Math.round(projectedAdjusted);
-                    }
-                  } else {
-                    projectedDimScore = Math.round(projectedAdjusted);
-                  }
-                  projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
-                  
-                  // Composite impact based on score change
-                  const actualScoreChange = projectedDimScore - actualDimScore;
-                  const compositeImpact = Math.round((actualScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
-                  const currentComposite = companyScores?.compositeScore || 0;
-                  const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
-                  
-                  const changesCount = Object.keys(whatIfChanges).length;
-                  const followUpChangesCount = Object.keys(whatIfFollowUps).length;
-                  const hasGeoChange = whatIfGeoOverride !== null;
-                  const hasChanges = changesCount > 0 || hasGeoChange || followUpChangesCount > 0;
-                  
-                  const statusOptions = [
-                    { value: 'currently', label: 'In Place', color: 'emerald' },
-                    { value: 'planning', label: 'In Development', color: 'blue' },
-                    { value: 'assessing', label: 'Under Review', color: 'amber' },
-                    { value: 'not_able', label: 'Not Planned', color: 'slate' }
-                  ];
-                  
-                  const getStatusLabel = (status: string) => {
-                    if (status === 'unsure') return 'Unsure';
-                    const opt = statusOptions.find(o => o.value === status);
-                    return opt?.label || 'Unknown';
-                  };
-                  
-                  const getScoreBgColor = (score: number) => {
-                    if (score >= 80) return 'from-emerald-500 to-emerald-600';
-                    if (score >= 64) return 'from-blue-500 to-blue-600';
-                    if (score >= 50) return 'from-amber-500 to-amber-600';
-                    return 'from-red-500 to-red-600';
-                  };
-                  
-                  return (
-                    <>
-                      {/* Dimension Selector */}
-                      <div className="px-8 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <label className="text-sm font-semibold text-slate-700">Dimension:</label>
-                          <select 
-                            value={whatIfDimension || ''} 
-                            onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
-                            className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
-                          >
-                            <option value="" disabled>Select a dimension...</option>
-                            {dimensionAnalysis.map((d: any) => (
-                              <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
-                            ))}
-                          </select>
-                        </div>
-                        {hasChanges && (
-                          <button 
-                            onClick={() => { setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
-                            className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg transition-colors"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                            Reset
-                          </button>
-                        )}
-                      </div>
-                      
-                      {/* Score Card - Dimension Only */}
-                      <div className="px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
-                        <div className="max-w-md mx-auto">
-                          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                            <div className="px-5 py-3 bg-slate-800 text-white text-center">
-                              <p className="text-base font-semibold">{dimInfo?.name}</p>
-                              <p className="text-xs text-slate-300 mt-0.5">{dimElements.length} elements in this dimension</p>
-                            </div>
-                            <div className="p-5">
-                              <div className="flex items-center justify-center gap-8">
-                                <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Current Score</p>
-                                  <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${getScoreBgColor(actualDimScore)} flex items-center justify-center shadow-md`}>
-                                    <span className="text-3xl font-bold text-white">{actualDimScore}</span>
-                                  </div>
-                                </div>
-                                
-                                <div className="flex flex-col items-center">
-                                  <svg className={`w-8 h-8 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                  </svg>
-                                  {hasChanges && (
-                                    <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-600' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-500'}`}>
-                                      {projectedDimScore > actualDimScore ? '+' : ''}{projectedDimScore - actualDimScore}
-                                    </span>
-                                  )}
-                                </div>
-                                
-                                <div className="text-center">
-                                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Projected Score</p>
-                                  <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : ', '}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Geographic Consistency Override */}
-                      {!isSingleCountryCompany && whatIfDimension !== null && (
-                        <div className="px-8 py-4 bg-indigo-50 border-b border-indigo-200">
-                          <div className="flex items-center justify-between mb-3">
-                            <div>
-                              <h4 className="text-sm font-bold text-indigo-800">Geographic Consistency</h4>
-                              <p className="text-xs text-indigo-600 mt-0.5">
-                                Current response: <strong>{
-                                  (dimInfo?.geoMultiplier ?? 1.0) <= 0.80 ? 'Select locations only' :
-                                  (dimInfo?.geoMultiplier ?? 1.0) <= 0.90 ? 'Varies by location' :
-                                  'Consistent across all'
-                                }</strong> (×{(dimInfo?.geoMultiplier ?? 1.0).toFixed(2)})
-                                {whatIfGeoOverride !== null && (
-                                  <span className="ml-2 text-violet-600">
-                                    → What if: <strong>{
-                                      whatIfGeoOverride <= 0.80 ? 'Select locations only' :
-                                      whatIfGeoOverride <= 0.90 ? 'Varies by location' :
-                                      'Consistent across all'
-                                    }</strong> (×{whatIfGeoOverride.toFixed(2)})
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                            {whatIfGeoOverride !== null && (
-                              <button
-                                onClick={() => setWhatIfGeoOverride(null)}
-                                className="text-xs text-indigo-600 hover:text-indigo-800 underline"
-                              >
-                                Reset to actual
-                              </button>
-                            )}
-                          </div>
-                          <div className="grid grid-cols-3 gap-3">
-                            {[
-                              { label: 'Consistent across all', value: 1.0, desc: 'No adjustment' },
-                              { label: 'Varies by location', value: 0.90, desc: '10% reduction' },
-                              { label: 'Select locations only', value: 0.80, desc: '20% reduction' },
-                            ].map(opt => {
-                              const currentGeo = whatIfGeoOverride !== null ? whatIfGeoOverride : (dimInfo?.geoMultiplier ?? 1.0);
-                              const isSelected = currentGeo === opt.value;
-                              const isOriginal = (dimInfo?.geoMultiplier ?? 1.0) === opt.value;
-                              return (
-                                <button
-                                  key={opt.value}
-                                  onClick={() => setWhatIfGeoOverride(opt.value === (dimInfo?.geoMultiplier ?? 1.0) ? null : opt.value)}
-                                  className={`text-left px-4 py-3 rounded-lg border-2 transition-all ${
-                                    isSelected
-                                      ? 'border-violet-500 bg-violet-50 shadow-sm'
-                                      : 'border-slate-200 bg-white hover:border-violet-300'
-                                  }`}
-                                >
-                                  <p className={`text-sm font-semibold ${isSelected ? 'text-violet-800' : 'text-slate-600'}`}>
-                                    {opt.label}
-                                    {isOriginal && <span className="ml-1.5 text-xs font-normal text-slate-500">(current)</span>}
-                                  </p>
-                                  <p className={`text-xs mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-500'}`}>
-                                    ×{opt.value.toFixed(2)}, {opt.desc}
-                                  </p>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Column Headers */}
-                      <div className="px-8 py-2 bg-slate-100 border-b border-slate-200 flex items-center">
-                        <div className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</div>
-                        <div className="w-32 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Currently</div>
-                        <div className="w-8"></div>
-                        <div className="w-40 text-center text-xs font-semibold text-violet-600 uppercase tracking-wider">What If?</div>
-                      </div>
-                      
-                      {/* Elements List - Compact */}
-                      <div className="px-8 flex-1 min-h-0 overflow-y-auto">
-                        <div className="divide-y divide-slate-100">
-                          {dimElements.map((el: any, idx: number) => {
-                            const currentStatus = getStatusFromElement(el);
-                            const simulatedStatus = whatIfChanges[el.name] || null;
-                            const hasChange = simulatedStatus !== null && simulatedStatus !== currentStatus;
-                            const currentPts = STATUS_POINTS[currentStatus];
-                            const newPts = simulatedStatus ? STATUS_POINTS[simulatedStatus] : currentPts;
-                            const isImprovement = newPts > currentPts;
-                            
-                            return (
-                              <div key={idx} className={`flex items-center py-2.5 transition-colors ${
-                                hasChange 
-                                  ? isImprovement 
-                                    ? 'bg-emerald-50' 
-                                    : 'bg-red-50'
-                                  : 'hover:bg-slate-50'
-                              }`}>
-                                <div className="flex-1 min-w-0 pr-4">
-                                  <p className="text-sm text-slate-700 truncate">{el.name}</p>
-                                </div>
-                                
-                                <div className={`w-32 text-center text-sm ${
-                                  currentStatus === 'currently' ? 'text-emerald-600 font-medium' :
-                                  currentStatus === 'planning' ? 'text-blue-600' :
-                                  currentStatus === 'assessing' ? 'text-amber-600' :
-                                  'text-slate-500'
-                                }`}>
-                                  {getStatusLabel(currentStatus)}
-                                </div>
-                                
-                                <div className="w-8 flex justify-center">
-                                  <svg className={`w-4 h-4 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                                  </svg>
-                                </div>
-                                
-                                <div className="w-40">
-                                  <select
-                                    value={simulatedStatus || ''}
-                                    onChange={(e) => {
-                                      const newVal = e.target.value;
-                                      if (newVal === '' || newVal === currentStatus) {
-                                        const { [el.name]: _, ...rest } = whatIfChanges;
-                                        setWhatIfChanges(rest);
-                                      } else {
-                                        setWhatIfChanges({ ...whatIfChanges, [el.name]: newVal });
-                                      }
-                                    }}
-                                    className={`w-full text-sm px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                                      hasChange 
-                                        ? 'border-violet-400 bg-violet-100 text-violet-800 font-medium' 
-                                        : 'border-slate-200 bg-white text-slate-600'
-                                    }`}
-                                  >
-                                    <option value="">-</option>
-                                    {statusOptions.map(opt => (
-                                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      
-                      {/* Follow-Up Questions (15% of score for D1, D3, D12, D13) */}
-                      {hasFollowUps && FOLLOW_UP_QUESTIONS[whatIfDimension] && (
-                        <div className="px-8 py-4 bg-blue-50 border-t border-blue-200">
-                          <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">
-                            Follow-Up Questions
-                          </h4>
-                          <div className="space-y-3">
-                            {FOLLOW_UP_QUESTIONS[whatIfDimension].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
-                              const currentScore = (() => {
-                                if (whatIfDimension === 1) {
-                                  if (fq.key === 'd1_1_usa') return dimInfo?.followUpRaw?.d1_1_usa_score ?? null;
-                                  if (fq.key === 'd1_1_non_usa') return dimInfo?.followUpRaw?.d1_1_non_usa_score ?? null;
-                                  return null;
-                                }
-                                if (whatIfDimension === 3) return dimInfo?.followUpRaw?.d3_1_score ?? null;
-                                if (whatIfDimension === 12) {
-                                  if (fq.key === 'd12_1') return dimInfo?.followUpRaw?.d12_1_score ?? null;
-                                  if (fq.key === 'd12_2') return dimInfo?.followUpRaw?.d12_2_score ?? null;
-                                }
-                                if (whatIfDimension === 13) return dimInfo?.followUpRaw?.d13_1_score ?? null;
-                                return null;
-                              })();
-                              const whatIfValue = whatIfFollowUps[fq.key];
-                              return (
-                                <div key={fq.key}>
-                                  <p className="text-xs text-slate-600 mb-1">{fq.question}</p>
-                                  <select
-                                    className="w-full text-sm border border-blue-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400"
-                                    value={whatIfValue !== undefined ? whatIfValue : (currentScore ?? '')}
-                                    onChange={(e) => {
-                                      const val = Number(e.target.value);
-                                      if (val === currentScore) {
-                                        setWhatIfFollowUps(prev => { const next = { ...prev }; delete next[fq.key]; return next; });
-                                      } else {
-                                        setWhatIfFollowUps(prev => ({ ...prev, [fq.key]: val }));
-                                      }
-                                    }}
-                                  >
-                                    {currentScore === null && <option value="">, not answered , </option>}
-                                    {fq.options.map((opt, i) => (
-                                      <option key={i} value={opt.score}>
-                                        {opt.label} ({opt.benchPct}% of orgs){currentScore === opt.score ? ' \u2190 current' : ''}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Footer */}
-                      <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-                        <p className="text-xs text-slate-500">
-                          {hasChanges ? `${changesCount + followUpChangesCount} change${(changesCount + followUpChangesCount) !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
-                        </p>
-                        <button
-                          onClick={() => { setWhatIfModal(false); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfDimension(null); setWhatIfFollowUps({}); }}
-                          className="px-5 py-2 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
           
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
@@ -11202,10 +10730,21 @@ export default function ExportReportPage() {
           </div>
           )}
 
-          {/* What-If Scenarios - launches interactive modal */}
+          {/* What-If Scenarios - collapsible consulting section */}
           <div className="max-w-[1280px] mx-auto mb-8">
             <button
-              onClick={() => setWhatIfModal(true)}
+              onClick={() => {
+                if (whatIfModal) {
+                  // Closing: reset state
+                  setWhatIfModal(false);
+                  setWhatIfChanges({});
+                  setWhatIfGeoOverride(null);
+                  setWhatIfDimension(null);
+                  setWhatIfFollowUps({});
+                } else {
+                  setWhatIfModal(true);
+                }
+              }}
               className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group"
             >
               <div className="px-8 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center gap-4">
@@ -11216,8 +10755,8 @@ export default function ExportReportPage() {
                   <h3 className="text-white font-bold text-xl">What-If Scenarios</h3>
                   <p className="text-slate-300 text-sm mt-1">An interactive tool to model the impact of program changes</p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${whatIfModal ? 'rotate-180' : ''}`}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </div>
               <div className="bg-white px-8 py-5 border-b border-slate-100">
@@ -11235,6 +10774,458 @@ export default function ExportReportPage() {
               </div>
             </button>
           </div>
+
+          {/* What-If Scenarios expanded content */}
+          {(whatIfModal || isPdf) && elementDetails && (
+            <div id="what-if-scenarios" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+            {/* Header - Slate color to match composite */}
+            <div className="px-8 py-5 bg-slate-700 relative overflow-hidden">
+              <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjEpIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-60"></div>
+              <div className="relative flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-white text-2xl flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </span>
+                    What-If Scenario Builder
+                  </h3>
+                  <p className="text-slate-300 text-sm mt-2 ml-13 max-w-xl">
+                    Explore the impact of program changes. What happens if you <span className="text-emerald-400 font-medium">start offering</span> a new benefit? 
+                    Or <span className="text-red-400 font-medium">stop offering</span> an existing one?
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            {(() => {
+              // Show placeholder if no dimension selected
+              if (whatIfDimension === null) {
+                return (
+                  <>
+                    {/* Dimension Selector */}
+                    <div className="px-8 py-3 bg-slate-50 border-b border-slate-200">
+                      <div className="flex items-center gap-4">
+                        <label className="text-sm font-semibold text-slate-700">Dimension:</label>
+                        <select 
+                          value=""
+                          onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
+                          className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
+                        >
+                          <option value="" disabled>Select a dimension...</option>
+                          {dimensionAnalysis.map((d: any) => (
+                            <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {/* Empty State */}
+                    <div className="px-8 py-16 flex flex-col items-center justify-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                        <svg className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-semibold text-slate-700 mb-2">Select a Dimension</h4>
+                      <p className="text-sm text-slate-500 max-w-sm">Choose a dimension from the dropdown above to explore how program changes would impact your dimension score.</p>
+                    </div>
+                  </>
+                );
+              }
+              
+              const dimElements = elementDetails?.[whatIfDimension] || [];
+              const dimInfo = dimensionAnalysis.find((d: any) => d.dim === whatIfDimension);
+              const dimWeight = DEFAULT_DIMENSION_WEIGHTS[whatIfDimension] || 0;
+              const totalWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a, b) => a + b, 0);
+              const dimWeightPct = Math.round((dimWeight / totalWeight) * 100);
+              
+              // Use the ACTUAL dimension score as baseline (includes geo multipliers, follow-up blending, etc.)
+              const actualDimScore = dimInfo?.score || 0;
+              
+              // Point values for each status
+              const STATUS_POINTS: Record<string, number> = {
+                'currently': 5,
+                'planning': 3,
+                'assessing': 2,
+                'not_able': 0
+              };
+              
+              const getStatusFromElement = (el: any) => {
+                if (el.isStrength) return 'currently';
+                if (el.isPlanning) return 'planning';
+                if (el.isAssessing) return 'assessing';
+                if (el.isUnsure) return 'unsure';
+                return 'not_able';
+              };
+              
+              const originalGeoMult = dimInfo?.geoMultiplier ?? 1.0;
+              const projectedGeoMult = whatIfGeoOverride !== null ? whatIfGeoOverride : originalGeoMult;
+              const hasFollowUps = [1, 3, 12, 13].includes(whatIfDimension);
+
+              // Calculate projected points with changes (for display purposes)
+              const getNewPoints = (el: any) => {
+                const newStatus = whatIfChanges[el.name];
+                if (newStatus) return STATUS_POINTS[newStatus];
+                const currentStatus = getStatusFromElement(el);
+                return STATUS_POINTS[currentStatus] ?? 0;
+              };
+
+              // Compute projected score FROM SCRATCH using element weights
+              // (delta approach breaks for unsure elements which get partial credit in actual scoring)
+              let wEarned = 0, wMax = 0;
+              dimElements.forEach((el: any) => {
+                const ew = ELEMENT_DIM_WEIGHTS[el.name];
+                const elemWeight = ew ? ew[1] : (1 / dimElements.length);
+                const newStatus = whatIfChanges[el.name];
+                const finalPts = newStatus
+                  ? (STATUS_POINTS[newStatus] ?? 0)
+                  : (STATUS_POINTS[getStatusFromElement(el)] ?? 0);
+                wEarned += finalPts * elemWeight;
+                wMax += 5 * elemWeight;
+              });
+              const projectedRawScore = wMax > 0 ? (wEarned / wMax) * 100 : 0;
+
+              // Apply geo multiplier and follow-up blending
+              const projectedAdjusted = projectedRawScore * projectedGeoMult;
+              let projectedDimScore: number;
+              if (hasFollowUps) {
+                let projectedFollowUpScore: number | null = null;
+                if (whatIfDimension === 1) {
+                  const scores: number[] = [];
+                  const usaScore = whatIfFollowUps['d1_1_usa'] ?? dimInfo?.followUpRaw?.d1_1_usa_score;
+                  const nonUsaScore = !isSingleCountryCompany ? (whatIfFollowUps['d1_1_non_usa'] ?? dimInfo?.followUpRaw?.d1_1_non_usa_score) : null;
+                  if (usaScore !== null && usaScore !== undefined) scores.push(usaScore);
+                  if (nonUsaScore !== null && nonUsaScore !== undefined) scores.push(nonUsaScore);
+                  if (scores.length > 0) {
+                    projectedFollowUpScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+                  } else if (dimInfo?.followUpScore !== null && dimInfo?.followUpScore !== undefined) {
+                    projectedFollowUpScore = dimInfo.followUpScore;
+                  }
+                } else if (whatIfDimension === 3) {
+                  projectedFollowUpScore = whatIfFollowUps['d3_1'] ?? dimInfo?.followUpRaw?.d3_1_score ?? dimInfo?.followUpScore ?? null;
+                } else if (whatIfDimension === 12) {
+                  const scores: number[] = [];
+                  const d121 = whatIfFollowUps['d12_1'] ?? dimInfo?.followUpRaw?.d12_1_score;
+                  const d122 = whatIfFollowUps['d12_2'] ?? dimInfo?.followUpRaw?.d12_2_score;
+                  if (d121 !== null && d121 !== undefined) scores.push(d121);
+                  if (d122 !== null && d122 !== undefined) scores.push(d122);
+                  projectedFollowUpScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : dimInfo?.followUpScore ?? null;
+                } else if (whatIfDimension === 13) {
+                  projectedFollowUpScore = whatIfFollowUps['d13_1'] ?? dimInfo?.followUpRaw?.d13_1_score ?? dimInfo?.followUpScore ?? null;
+                }
+                if (projectedFollowUpScore !== null && projectedFollowUpScore !== undefined) {
+                  projectedDimScore = Math.round(projectedAdjusted * 0.85 + projectedFollowUpScore * 0.15);
+                } else {
+                  projectedDimScore = Math.round(projectedAdjusted);
+                }
+              } else {
+                projectedDimScore = Math.round(projectedAdjusted);
+              }
+              projectedDimScore = Math.min(100, Math.max(0, projectedDimScore));
+              
+              // Composite impact based on score change
+              const actualScoreChange = projectedDimScore - actualDimScore;
+              const compositeImpact = Math.round((actualScoreChange * dimWeightPct / 100) * 0.9 * 10) / 10;
+              const currentComposite = companyScores?.compositeScore || 0;
+              const projectedComposite = Math.round((currentComposite + compositeImpact) * 10) / 10;
+              
+              const changesCount = Object.keys(whatIfChanges).length;
+              const followUpChangesCount = Object.keys(whatIfFollowUps).length;
+              const hasGeoChange = whatIfGeoOverride !== null;
+              const hasChanges = changesCount > 0 || hasGeoChange || followUpChangesCount > 0;
+              
+              const statusOptions = [
+                { value: 'currently', label: 'In Place', color: 'emerald' },
+                { value: 'planning', label: 'In Development', color: 'blue' },
+                { value: 'assessing', label: 'Under Review', color: 'amber' },
+                { value: 'not_able', label: 'Not Planned', color: 'slate' }
+              ];
+              
+              const getStatusLabel = (status: string) => {
+                if (status === 'unsure') return 'Unsure';
+                const opt = statusOptions.find(o => o.value === status);
+                return opt?.label || 'Unknown';
+              };
+              
+              const getScoreBgColor = (score: number) => {
+                if (score >= 80) return 'from-emerald-500 to-emerald-600';
+                if (score >= 64) return 'from-blue-500 to-blue-600';
+                if (score >= 50) return 'from-amber-500 to-amber-600';
+                return 'from-red-500 to-red-600';
+              };
+              
+              return (
+                <>
+                  {/* Dimension Selector */}
+                  <div className="px-8 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <label className="text-sm font-semibold text-slate-700">Dimension:</label>
+                      <select 
+                        value={whatIfDimension || ''} 
+                        onChange={(e) => { setWhatIfDimension(Number(e.target.value)); setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
+                        className="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white min-w-[320px]"
+                      >
+                        <option value="" disabled>Select a dimension...</option>
+                        {dimensionAnalysis.map((d: any) => (
+                          <option key={d.dim} value={d.dim}>D{d.dim}: {d.name} (Score: {d.score})</option>
+                        ))}
+                      </select>
+                    </div>
+                    {hasChanges && (
+                      <button 
+                        onClick={() => { setWhatIfChanges({}); setWhatIfGeoOverride(null); setWhatIfFollowUps({}); }}
+                        className="text-sm text-violet-600 hover:text-violet-800 flex items-center gap-2 px-3 py-1.5 hover:bg-violet-50 rounded-lg transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Score Card - Dimension Only */}
+                  <div className="px-8 py-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
+                    <div className="max-w-md mx-auto">
+                      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div className="px-5 py-3 bg-slate-800 text-white text-center">
+                          <p className="text-base font-semibold">{dimInfo?.name}</p>
+                          <p className="text-xs text-slate-300 mt-0.5">{dimElements.length} elements in this dimension</p>
+                        </div>
+                        <div className="p-5">
+                          <div className="flex items-center justify-center gap-8">
+                            <div className="text-center">
+                              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Current Score</p>
+                              <div className={`w-20 h-20 rounded-xl bg-gradient-to-br ${getScoreBgColor(actualDimScore)} flex items-center justify-center shadow-md`}>
+                                <span className="text-3xl font-bold text-white">{actualDimScore}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex flex-col items-center">
+                              <svg className={`w-8 h-8 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                              </svg>
+                              {hasChanges && (
+                                <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-600' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-500'}`}>
+                                  {projectedDimScore > actualDimScore ? '+' : ''}{projectedDimScore - actualDimScore}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div className="text-center">
+                              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Projected Score</p>
+                              <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
+                                <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : ', '}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Geographic Consistency Override */}
+                  {!isSingleCountryCompany && whatIfDimension !== null && (
+                    <div className="px-8 py-4 bg-indigo-50 border-b border-indigo-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <h4 className="text-sm font-bold text-indigo-800">Geographic Consistency</h4>
+                          <p className="text-xs text-indigo-600 mt-0.5">
+                            Current response: <strong>{
+                              (dimInfo?.geoMultiplier ?? 1.0) <= 0.80 ? 'Select locations only' :
+                              (dimInfo?.geoMultiplier ?? 1.0) <= 0.90 ? 'Varies by location' :
+                              'Consistent across all'
+                            }</strong> (×{(dimInfo?.geoMultiplier ?? 1.0).toFixed(2)})
+                            {whatIfGeoOverride !== null && (
+                              <span className="ml-2 text-violet-600">
+                                → What if: <strong>{
+                                  whatIfGeoOverride <= 0.80 ? 'Select locations only' :
+                                  whatIfGeoOverride <= 0.90 ? 'Varies by location' :
+                                  'Consistent across all'
+                                }</strong> (×{whatIfGeoOverride.toFixed(2)})
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                        {whatIfGeoOverride !== null && (
+                          <button
+                            onClick={() => setWhatIfGeoOverride(null)}
+                            className="text-xs text-indigo-600 hover:text-indigo-800 underline"
+                          >
+                            Reset to actual
+                          </button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { label: 'Consistent across all', value: 1.0, desc: 'No adjustment' },
+                          { label: 'Varies by location', value: 0.90, desc: '10% reduction' },
+                          { label: 'Select locations only', value: 0.80, desc: '20% reduction' },
+                        ].map(opt => {
+                          const currentGeo = whatIfGeoOverride !== null ? whatIfGeoOverride : (dimInfo?.geoMultiplier ?? 1.0);
+                          const isSelected = currentGeo === opt.value;
+                          const isOriginal = (dimInfo?.geoMultiplier ?? 1.0) === opt.value;
+                          return (
+                            <button
+                              key={opt.value}
+                              onClick={() => setWhatIfGeoOverride(opt.value === (dimInfo?.geoMultiplier ?? 1.0) ? null : opt.value)}
+                              className={`text-left px-4 py-3 rounded-lg border-2 transition-all ${
+                                isSelected
+                                  ? 'border-violet-500 bg-violet-50 shadow-sm'
+                                  : 'border-slate-200 bg-white hover:border-violet-300'
+                              }`}
+                            >
+                              <p className={`text-sm font-semibold ${isSelected ? 'text-violet-800' : 'text-slate-600'}`}>
+                                {opt.label}
+                                {isOriginal && <span className="ml-1.5 text-xs font-normal text-slate-500">(current)</span>}
+                              </p>
+                              <p className={`text-xs mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-500'}`}>
+                                ×{opt.value.toFixed(2)}, {opt.desc}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Column Headers */}
+                  <div className="px-8 py-2 bg-slate-100 border-b border-slate-200 flex items-center">
+                    <div className="flex-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</div>
+                    <div className="w-32 text-center text-xs font-semibold text-slate-500 uppercase tracking-wider">Currently</div>
+                    <div className="w-8"></div>
+                    <div className="w-40 text-center text-xs font-semibold text-violet-600 uppercase tracking-wider">What If?</div>
+                  </div>
+                  
+                  {/* Elements List - Compact */}
+                  <div className="px-8 flex-1 min-h-0 overflow-y-auto">
+                    <div className="divide-y divide-slate-100">
+                      {dimElements.map((el: any, idx: number) => {
+                        const currentStatus = getStatusFromElement(el);
+                        const simulatedStatus = whatIfChanges[el.name] || null;
+                        const hasChange = simulatedStatus !== null && simulatedStatus !== currentStatus;
+                        const currentPts = STATUS_POINTS[currentStatus];
+                        const newPts = simulatedStatus ? STATUS_POINTS[simulatedStatus] : currentPts;
+                        const isImprovement = newPts > currentPts;
+                        
+                        return (
+                          <div key={idx} className={`flex items-center py-2.5 transition-colors ${
+                            hasChange 
+                              ? isImprovement 
+                                ? 'bg-emerald-50' 
+                                : 'bg-red-50'
+                              : 'hover:bg-slate-50'
+                          }`}>
+                            <div className="flex-1 min-w-0 pr-4">
+                              <p className="text-sm text-slate-700 truncate">{el.name}</p>
+                            </div>
+                            
+                            <div className={`w-32 text-center text-sm ${
+                              currentStatus === 'currently' ? 'text-emerald-600 font-medium' :
+                              currentStatus === 'planning' ? 'text-blue-600' :
+                              currentStatus === 'assessing' ? 'text-amber-600' :
+                              'text-slate-500'
+                            }`}>
+                              {getStatusLabel(currentStatus)}
+                            </div>
+                            
+                            <div className="w-8 flex justify-center">
+                              <svg className={`w-4 h-4 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                              </svg>
+                            </div>
+                            
+                            <div className="w-40">
+                              <select
+                                value={simulatedStatus || ''}
+                                onChange={(e) => {
+                                  const newVal = e.target.value;
+                                  if (newVal === '' || newVal === currentStatus) {
+                                    const { [el.name]: _, ...rest } = whatIfChanges;
+                                    setWhatIfChanges(rest);
+                                  } else {
+                                    setWhatIfChanges({ ...whatIfChanges, [el.name]: newVal });
+                                  }
+                                }}
+                                className={`w-full text-sm px-3 py-1.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
+                                  hasChange 
+                                    ? 'border-violet-400 bg-violet-100 text-violet-800 font-medium' 
+                                    : 'border-slate-200 bg-white text-slate-600'
+                                }`}
+                              >
+                                <option value="">-</option>
+                                {statusOptions.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  
+                  {/* Follow-Up Questions (15% of score for D1, D3, D12, D13) */}
+                  {hasFollowUps && FOLLOW_UP_QUESTIONS[whatIfDimension] && (
+                    <div className="px-8 py-4 bg-blue-50 border-t border-blue-200">
+                      <h4 className="text-xs font-semibold text-blue-700 uppercase tracking-wide mb-3">
+                        Follow-Up Questions
+                      </h4>
+                      <div className="space-y-3">
+                        {FOLLOW_UP_QUESTIONS[whatIfDimension].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
+                          const currentScore = (() => {
+                            if (whatIfDimension === 1) {
+                              if (fq.key === 'd1_1_usa') return dimInfo?.followUpRaw?.d1_1_usa_score ?? null;
+                              if (fq.key === 'd1_1_non_usa') return dimInfo?.followUpRaw?.d1_1_non_usa_score ?? null;
+                              return null;
+                            }
+                            if (whatIfDimension === 3) return dimInfo?.followUpRaw?.d3_1_score ?? null;
+                            if (whatIfDimension === 12) {
+                              if (fq.key === 'd12_1') return dimInfo?.followUpRaw?.d12_1_score ?? null;
+                              if (fq.key === 'd12_2') return dimInfo?.followUpRaw?.d12_2_score ?? null;
+                            }
+                            if (whatIfDimension === 13) return dimInfo?.followUpRaw?.d13_1_score ?? null;
+                            return null;
+                          })();
+                          const whatIfValue = whatIfFollowUps[fq.key];
+                          return (
+                            <div key={fq.key}>
+                              <p className="text-xs text-slate-600 mb-1">{fq.question}</p>
+                              <select
+                                className="w-full text-sm border border-blue-300 rounded-lg px-3 py-2 bg-white focus:ring-2 focus:ring-blue-400"
+                                value={whatIfValue !== undefined ? whatIfValue : (currentScore ?? '')}
+                                onChange={(e) => {
+                                  const val = Number(e.target.value);
+                                  if (val === currentScore) {
+                                    setWhatIfFollowUps(prev => { const next = { ...prev }; delete next[fq.key]; return next; });
+                                  } else {
+                                    setWhatIfFollowUps(prev => ({ ...prev, [fq.key]: val }));
+                                  }
+                                }}
+                              >
+                                {currentScore === null && <option value="">, not answered , </option>}
+                                {fq.options.map((opt, i) => (
+                                  <option key={i} value={opt.score}>
+                                    {opt.label} ({opt.benchPct}% of orgs){currentScore === opt.score ? ' \u2190 current' : ''}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                    <p className="text-xs text-slate-500">
+                      {hasChanges ? `${changesCount + followUpChangesCount} change${(changesCount + followUpChangesCount) !== 1 ? 's' : ''} simulated` : 'Select elements above to simulate changes'}
+                    </p>
+                  </div>
+                </>
+              );
+            })()}
+            </div>
+          )}
 
           {/* ============ WORKING WITH CANCER PLEDGE (hidden - will likely bring back) ============ */}
           {false && (
