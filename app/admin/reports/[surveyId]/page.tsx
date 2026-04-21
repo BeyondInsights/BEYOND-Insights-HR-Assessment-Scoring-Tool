@@ -6762,14 +6762,14 @@ export default function ExportReportPage() {
                         ) : dims.map((d: any) => {
                           const dimPg = getEmployeePriorityGroup(d.weight);
                           return (
-                          <li key={d.dim} className="flex items-center gap-3">
-                            <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: dimPg.color }}>
+                          <li key={d.dim} className="flex items-start gap-3">
+                            <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: dimPg.color }}>
                               D{d.dim}
                             </span>
-                            <span className="text-[14px] text-slate-700 font-semibold flex-1 truncate leading-tight">{d.name}</span>
-                            <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none">{d.score}</span>
+                            <span className="text-[14px] text-slate-700 font-semibold flex-1 leading-snug">{d.name}</span>
+                            <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none mt-0.5">{d.score}</span>
                             {showDelta ? (
-                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 ${d.delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                                 {d.delta >= 0 ? '+' : ''}{d.delta}
                               </span>
                             ) : null}
