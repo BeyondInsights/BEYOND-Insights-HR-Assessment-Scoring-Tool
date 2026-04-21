@@ -7,6 +7,7 @@ import { createClient } from '@supabase/supabase-js';
 import Image from 'next/image';
 import { calculateEnhancedScore } from '@/lib/enhanced-scoring';
 import { exportHybridPptx } from '@/components/PptxExportHybrid';
+import { normalizeCompanyName } from '@/lib/founding-partners';
 
 // Create Supabase client directly
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -3233,14 +3234,14 @@ export default function ExportReportPage() {
       questions: ['What\'s our realistic path to the next tier?', 'Which dimensions contribute most to our overall score?', 'How do our planned elements compare to what others offer?', 'What projected score can we commit to for Year 1?']
     },
     excellence: {
-      title: 'Areas of Excellence',
+      title: 'Areas of Strength',
       what: 'Highlights your top-performing dimensions where you\'re delivering strong support and can leverage as competitive advantages.',
       how: 'Identifies dimensions with the highest scores, representing your strongest capabilities in supporting employees managing cancer.',
       when: 'Use these to identify best practices to share across the organization, build employer brand messaging, and understand what\'s working well.',
       questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
     },
     growth: {
-      title: 'Areas for Growth',
+      title: 'Areas of Opportunities',
       what: 'Identifies your lower-performing dimensions that represent the greatest opportunities for improvement.',
       how: 'Shows dimensions with the lowest scores, indicating where your cancer support programs need the most attention.',
       when: 'Use these to prioritize improvement initiatives and understand where you have the most room to grow.',
@@ -4124,7 +4125,7 @@ export default function ExportReportPage() {
   }
 
   const { compositeScore, weightedDimScore, maturityScore, breadthScore, dimensionScores, followUpScores, followUpRawResponses, geoMultipliers, geoResponses, isSingleCountryCompany, tier } = companyScores;
-  const companyName = company.firmographics_data?.company_name || company.company_name || 'Unknown Company';
+  const companyName = normalizeCompanyName(company.firmographics_data?.company_name || company.company_name) || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
   const surveyYear = company.survey_year || '2026';
@@ -4206,8 +4207,8 @@ export default function ExportReportPage() {
     { id: 'dimension-performance-table', label: 'Dimension Performance', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Strategic Priority Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
-    { id: 'areas-of-excellence', label: 'Areas of Excellence', iconKey: 'excellence' },
-    { id: 'growth-opportunities', label: 'Growth Opportunities', iconKey: 'growth' },
+    { id: 'areas-of-excellence', label: 'Areas of Strength', iconKey: 'excellence' },
+    { id: 'growth-opportunities', label: 'Areas of Opportunities', iconKey: 'growth' },
     { id: 'initiatives-in-progress', label: 'Initiatives in Progress', iconKey: 'progress' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
     { id: 'impact-ranked-priorities', label: 'Impact-Ranked Priorities', iconKey: 'impact' },
@@ -4247,7 +4248,7 @@ export default function ExportReportPage() {
   const strengthDimensions = dimensionAnalysis.filter(d => d.tier.name === 'Leading' || d.tier.name === 'Established');
   const strengthDimSet = new Set(strengthDimensions.map(d => d.dim));
   const allDimensionsByScore = [...dimensionAnalysis].sort((a, b) => a.score - b.score);
-  // Growth dimensions exclude those already shown in Areas of Excellence
+  // Growth dimensions exclude those already shown in Areas of Strength
   const growthDimensions = allDimensionsByScore.filter(d => !strengthDimSet.has(d.dim));
   
   // STRATEGIC PRIORITY DIMENSIONS: 2+2 Hybrid Selection with headroom threshold
@@ -4438,7 +4439,7 @@ export default function ExportReportPage() {
                   <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
                   <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                   <p className="text-slate-400 text-sm font-medium">Report Date</p>
-                  <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
             </div>
@@ -4851,7 +4852,7 @@ export default function ExportReportPage() {
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-base font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">Your Report at a Glance</span>
+                    <span className="text-base font-bold text-slate-800 group-hover:text-emerald-800 transition-colors">Summary and Next Steps</span>
                     <span className="text-sm text-slate-500 ml-3">From diagnosis to action plan</span>
                   </div>
                 </div>
@@ -4984,13 +4985,13 @@ export default function ExportReportPage() {
                                   <div className="w-5 h-5 rounded bg-emerald-600 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                                   </div>
-                                  <span className="text-xs text-slate-600">Areas of Excellence</span>
+                                  <span className="text-xs text-slate-600">Areas of Strength</span>
                                 </div>
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center flex-shrink-0">
                                     <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                                   </div>
-                                  <span className="text-xs text-slate-600">Areas for Growth</span>
+                                  <span className="text-xs text-slate-600">Areas of Opportunities</span>
                                 </div>
                                 <div className="flex items-center gap-2 h-6">
                                   <div className="w-5 h-5 rounded bg-sky-600 flex items-center justify-center flex-shrink-0">
@@ -5079,8 +5080,8 @@ export default function ExportReportPage() {
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
                           { id: 'impactranked', name: 'Impact-Ranked Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
-                          { id: 'excellence', name: 'Areas of Excellence', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
-                          { id: 'growth', name: 'Areas for Growth', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Priority Matrix clarifies which gaps are most consequential.' },
+                          { id: 'excellence', name: 'Areas of Strength', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
+                          { id: 'growth', name: 'Areas of Opportunities', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Strategic Priority Matrix clarifies which gaps are most consequential.' },
                           { id: 'inprogress', name: 'Initiatives In Progress', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
                           { id: 'whatif', name: 'What-If Scenario Builder', color: 'bg-teal-600', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'Projections of how advancing specific elements could shift future dimension and composite scores.', fits: 'Decision support. Compare investment paths, build internal alignment, and translate priorities into a realistic, staged roadmap.' },
                           { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-800', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Two to four integrated moves that synthesize the full story, anchored in your priority gaps, informed by cross-dimensional patterns, and sequenced with work already in motion.', fits: 'The sponsor-ready agenda. A coherent plan leadership can own, fund, and execute.' },
@@ -5461,9 +5462,9 @@ export default function ExportReportPage() {
                 );
               })()}
               
-              {/* Combined Key Findings Section */}
+              {/* Combined Summary Section */}
               <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Summary</h3>
                 
                 {/* Top Row - Stats */}
                 <div className="grid grid-cols-4 gap-4 mb-6">
@@ -7144,7 +7145,7 @@ export default function ExportReportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                    <h3 className="font-bold text-white text-xl">Areas of Strength</h3>
                     <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above</p>
                   </div>
                 </div>
@@ -7198,7 +7199,7 @@ export default function ExportReportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                    <h3 className="font-bold text-white text-xl">Areas of Opportunities</h3>
                     <p className="text-slate-300 mt-0.5 text-sm">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                   </div>
                 </div>
@@ -9646,7 +9647,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
                           <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                           <p className="text-slate-400 text-sm font-medium">Report Date</p>
-                          <p className="text-white font-semibold text-lg">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                          <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
                     </div>
@@ -9966,7 +9967,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 4: Executive Summary + Key Findings */}
+                {/* Slide 4: Executive Summary + Summary */}
                 {currentSlide === 4 && (
                   <div className="overflow-hidden">
                     {/* Top section - Prepared For header */}
@@ -10077,9 +10078,9 @@ export default function ExportReportPage() {
                         );
                       })()}
                       
-                      {/* Combined Key Findings Section */}
+                      {/* Combined Summary Section */}
                       <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Key Findings</h3>
+                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Summary</h3>
                         
                         {/* Top Row - Stats */}
                         <div className="grid grid-cols-4 gap-4 mb-6">
@@ -11313,7 +11314,7 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 23: Areas of Excellence - exact match to report */}
+                {/* Slide 23: Areas of Strength - exact match to report */}
                 {currentSlide === 22 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
@@ -11325,7 +11326,7 @@ export default function ExportReportPage() {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="font-bold text-white text-xl">Areas of Excellence</h3>
+                            <h3 className="font-bold text-white text-xl">Areas of Strength</h3>
                             <p className="text-teal-200 mt-0.5 text-sm">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Leading or above</p>
                           </div>
                         </div>
@@ -11364,7 +11365,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 24: Areas for Growth - exact match to report */}
+                {/* Slide 24: Areas of Opportunities - exact match to report */}
                 {currentSlide === 23 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
@@ -11376,7 +11377,7 @@ export default function ExportReportPage() {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="font-bold text-white text-xl">Areas for Growth</h3>
+                            <h3 className="font-bold text-white text-xl">Areas of Opportunities</h3>
                             <p className="text-slate-300 mt-0.5 text-sm">{Math.min(growthDimensions.length, 6)} {Math.min(growthDimensions.length, 6) === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                           </div>
                         </div>
@@ -13480,8 +13481,8 @@ export default function ExportReportPage() {
                            i === 19 ? 'Strategic Priority Matrix' :
                            i === 20 ? 'Benchmarks' :
                            i === 21 ? 'Cross-Dimensional Insights' :
-                           i === 22 ? 'Areas of Excellence' :
-                           i === 23 ? 'Areas for Growth' :
+                           i === 22 ? 'Areas of Strength' :
+                           i === 23 ? 'Areas of Opportunities' :
                            i === 24 ? 'Initiatives In Progress' :
                            i === 25 ? 'Strategic Recommendations' :
                            i === 26 ? 'From Insight to Action' :

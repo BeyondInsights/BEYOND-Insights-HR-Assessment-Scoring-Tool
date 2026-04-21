@@ -4,15 +4,15 @@
 
 // Map of FP codes to company names (empty string = unassigned)
 export const FP_COMPANY_MAP: Record<string, string> = {
-  'FP-HR-410734': 'Google (Alphabet)',
-  'FP-HR-554736': 'Haymarket',
+  'FP-HR-410734': 'Google',
+  'FP-HR-554736': 'Haymarket Media Group',
   'FP-HR-267233': 'ICBC-AXA Life',
-  'FP-HR-602569': 'Lloyds Bank (Group)',
-  'FP-HR-708691': 'Memorial Sloan Kettering',  // UPDATED from "Memorial"
+  'FP-HR-602569': 'Lloyds Banking Group',
+  'FP-HR-708691': 'Memorial Sloan Kettering Cancer Center',
   'FP-HR-982631': 'Merck',
   'FP-HR-405810': 'Nestlé',
-  'FP-HR-532408': 'Pfizer',
-  'FP-HR-087371': 'Publicis',
+  'FP-HR-532408': 'Pfizer, Inc.',
+  'FP-HR-087371': 'Publicis Groupe',
   'FP-HR-740095': 'Sanofi',
   'FP-HR-316326': 'Stellantis',
   'FP-HR-385190': "L'Oréal",
@@ -20,7 +20,7 @@ export const FP_COMPANY_MAP: Record<string, string> = {
   'FP-HR-847263': 'Citi',
   'FP-HR-519842': 'Haleon',
   'FP-HR-376491': 'Mars',
-  'FP-HR-628157': 'Renault',
+  'FP-HR-628157': 'Renault Group',
   'FP-HR-493582': 'Cancer@Work',
   'FP-748923': '',
   'FP-392847': 'Best Buy',
@@ -130,4 +130,25 @@ export function getFPCompanyName(surveyId: string): string {
  */
 export function getFoundingPartnerMessage(): string {
   return 'Founding Partner - Fee Waived';
+}
+
+// Historical/alternate company names stored in the DB that should display as the approved name.
+// Existing assessment rows have the old values in company_name; this layer normalizes them at render time.
+const COMPANY_NAME_ALIASES: Record<string, string> = {
+  'Google (Alphabet)': 'Google',
+  'Haymarket': 'Haymarket Media Group',
+  'Lloyds Bank (Group)': 'Lloyds Banking Group',
+  'Memorial Sloan Kettering': 'Memorial Sloan Kettering Cancer Center',
+  'Pfizer': 'Pfizer, Inc.',
+  'Publicis': 'Publicis Groupe',
+  'Renault': 'Renault Group',
+};
+
+/**
+ * Normalize a company name to its approved display form.
+ * Falls back to the original name if no alias is registered.
+ */
+export function normalizeCompanyName(name: string | null | undefined): string {
+  if (!name) return '';
+  return COMPANY_NAME_ALIASES[name] || name;
 }
