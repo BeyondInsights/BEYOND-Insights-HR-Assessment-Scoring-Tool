@@ -6136,7 +6136,7 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-                        {/* The Three Your Support in Context, Collapsible */}
+                        {/* Your Support in Context - Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowLevelsOverview(!showLevelsOverview)}
@@ -6173,7 +6173,7 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Your Support in Context</span>: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three levels: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
                   </p>
 
                   <div className="grid grid-cols-3 gap-4 mb-2">
