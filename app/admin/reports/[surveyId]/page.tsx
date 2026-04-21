@@ -5736,7 +5736,7 @@ export default function ExportReportPage() {
                     )}
                     {savingEdits ? 'Saving...' : 'Save'}
                     {hasUnsavedChanges && !savingEdits && (
-                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-500 rounded-full border-2 border-white"></span>
+                      <span className="absolute -top-1 -right-1 w-3 h-3 bg-amber-700rounded-full border-2 border-white"></span>
                     )}
                   </button>
                   <button
@@ -5768,12 +5768,12 @@ export default function ExportReportPage() {
                   </div>
                 ) : hasUnsavedChanges ? (
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span className="w-2 h-2 rounded-full bg-amber-700"></span>
                     <span className="font-medium">Unsaved changes</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-700"></span>
                     <span className="font-medium">Saved{lastSavedAt ? ` · ${new Date(lastSavedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}` : ''}</span>
                   </div>
                 )}
@@ -6308,7 +6308,7 @@ export default function ExportReportPage() {
                           { id: 'matrix', name: 'Interactive Performance Matrix', color: 'bg-violet-600', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'benchmarks', name: 'Benchmarks', color: 'bg-slate-600', icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', measures: 'How your scores compare to other organizations in the Index at both composite and dimension levels.', fits: 'Context and calibration. Understand whether a score reflects leadership or opportunity, and avoid over- or under-investing based on a number alone.' },
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
-                          { id: 'impactranked', name: 'Improvement Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
+                          { id: 'impactranked', name: 'Improvement Priorities', color: 'bg-amber-700', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
                           { id: 'excellence', name: 'Areas of Strength', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
                           { id: 'growth', name: 'Opportunities to Grow', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Interactive Performance Matrix clarifies which gaps are most consequential.' },
                           { id: 'inprogress', name: 'Initiatives In Development or Under Review', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
@@ -9168,8 +9168,8 @@ export default function ExportReportPage() {
             const dimColors = [
               { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600', bar: 'bg-indigo-500' },
               { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600', bar: 'bg-teal-500' },
-              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-500' },
-              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-700', bar: 'bg-amber-500' },
+              { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-700' },
+              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-700', bar: 'bg-amber-700' },
               { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-700', bar: 'bg-rose-500' },
             ];
             
@@ -9266,7 +9266,7 @@ export default function ExportReportPage() {
                     {/* Projected Impact Card */}
                     <div className="bg-white rounded-xl border border-slate-200 p-5">
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-amber-700flex items-center justify-center flex-shrink-0">
                           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                         </div>
                         <div className="flex-1">
@@ -9362,7 +9362,7 @@ export default function ExportReportPage() {
                                     return (
                                       <div key={i} className="flex items-start justify-between gap-2">
                                         <div className="flex items-start gap-2 flex-1 min-w-0">
-                                          <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
+                                          <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-700"></span>
                                           <span className="text-sm text-slate-600">{item.name}</span>
                                         </div>
                                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -10103,7 +10103,7 @@ export default function ExportReportPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
                               <h4 className="text-xl font-bold text-white">{d.name}</h4>
-                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-500 text-white">Additional Analysis</span>
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-700 text-white">Additional Analysis</span>
                             </div>
                             <div className="flex items-center gap-4 mt-1">
                               <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
@@ -11934,7 +11934,7 @@ export default function ExportReportPage() {
             {/* Background decorative elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-700/10 rounded-full blur-3xl"></div>
             </div>
             
             {/* Header with logos */}
@@ -12357,7 +12357,7 @@ export default function ExportReportPage() {
                   transition: 'left 0.02s, top 0.02s'
                 }}
               >
-                <div className="w-4 h-4 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-pulse"></div>
+                <div className="w-4 h-4 bg-red-700 rounded-full shadow-lg shadow-red-500/50 animate-pulse"></div>
                 <div className="absolute inset-0 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-75"></div>
               </div>
             )}
@@ -12505,7 +12505,7 @@ export default function ExportReportPage() {
                         {/* Tightened text section */}
                         <div className="mb-6">
                           <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-                            <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                            <span className="w-1.5 h-6 bg-violet-700 rounded-full"></span>
                             What This Score Represents
                           </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
@@ -12530,7 +12530,7 @@ export default function ExportReportPage() {
                           {/* Left: Tier Distribution */}
                           <div className="w-[480px] flex-shrink-0">
                             <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-                              <span className="w-1.5 h-6 bg-violet-500 rounded-full"></span>
+                              <span className="w-1.5 h-6 bg-violet-700 rounded-full"></span>
                               {'Workplace Support Composite Score Tiers'}
                             </h4>
                             
@@ -13913,7 +13913,7 @@ export default function ExportReportPage() {
                         {/* Projected Impact Card */}
                         <div className="bg-white rounded-lg border border-slate-200 p-4">
                           <div className="flex items-start gap-3 mb-3">
-                            <div className="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center flex-shrink-0">
+                            <div className="w-9 h-9 rounded-lg bg-amber-700flex items-center justify-center flex-shrink-0">
                               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                             </div>
                             <div className="flex-1">
@@ -13993,7 +13993,7 @@ export default function ExportReportPage() {
                                         return (
                                           <div key={i} className="flex items-start justify-between gap-2">
                                             <div className="flex items-start gap-2 flex-1 min-w-0">
-                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
+                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-700"></span>
                                               <span className="text-sm text-slate-600">{item.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
@@ -14172,7 +14172,7 @@ export default function ExportReportPage() {
                                         return (
                                           <div key={i} className="flex items-start justify-between gap-2">
                                             <div className="flex items-start gap-2 flex-1 min-w-0">
-                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-500"></span>
+                                              <span className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0 bg-amber-700"></span>
                                               <span className="text-sm text-slate-600">{item.name}</span>
                                             </div>
                                             <div className="flex items-center gap-2 flex-shrink-0">
@@ -14347,7 +14347,7 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
                                   <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
-                                    <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-500'}`}></span>
+                                    <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-700'}`}></span>
                                     <span>{e.name}</span>
                                   </li>
                                 ))}
@@ -14525,7 +14525,7 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-2 gap-5 mb-5">
                         {/* Foundation Focus Card */}
                         <div className="bg-gradient-to-br from-amber-50 to-white rounded-xl border-2 border-amber-200 overflow-hidden">
-                          <div className="px-4 py-3 bg-amber-500 flex items-center justify-between">
+                          <div className="px-4 py-3 bg-amber-700flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
                                 <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -14553,7 +14553,7 @@ export default function ExportReportPage() {
                                     <span className="font-semibold text-slate-900 text-sm">{d.name}</span>
                                   </div>
                                   <div className="grid grid-cols-2 gap-2">
-                                    <div className="bg-amber-500 rounded-md p-2">
+                                    <div className="bg-amber-700rounded-md p-2">
                                       <div className="text-xs text-amber-100 font-medium">Score</div>
                                       <div className="flex items-end gap-0.5">
                                         <span className="text-lg font-bold text-white">{d.score}</span>
@@ -14637,7 +14637,7 @@ export default function ExportReportPage() {
                         </div>
                         <div className="grid grid-cols-4 gap-3">
                           <div className="p-3 border border-slate-200 rounded-lg bg-white">
-                            <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center mb-2">
+                            <div className="w-7 h-7 rounded-lg bg-amber-700flex items-center justify-center mb-2">
                               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="12" cy="12" r="10" />
                                 <circle cx="12" cy="12" r="6" />
@@ -14710,7 +14710,7 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-3 gap-5 mb-6">
                         {/* Step 1: Validate */}
                         <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
-                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">1</div>
+                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-amber-700text-white text-sm font-bold flex items-center justify-center shadow-lg">1</div>
                           <div className="flex items-center gap-3 mb-3 pt-2">
                             <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
                               <svg className="w-5 h-5 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -14727,9 +14727,9 @@ export default function ExportReportPage() {
 
                         {/* Step 2: Assign Owners */}
                         <div className="bg-white/5 backdrop-blur border border-white/10 rounded-xl p-5 relative">
-                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-emerald-500 text-white text-sm font-bold flex items-center justify-center shadow-lg">2</div>
+                          <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-emerald-700 text-white text-sm font-bold flex items-center justify-center shadow-lg">2</div>
                           <div className="flex items-center gap-3 mb-3 pt-2">
-                            <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-lg bg-emerald-700/20 flex items-center justify-center">
                               <svg className="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <circle cx="9" cy="7" r="3" />
                                 <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" strokeLinecap="round" />
@@ -14764,7 +14764,7 @@ export default function ExportReportPage() {
                       {/* Analyze Another Dimension note */}
                       <div className="pt-5 border-t border-white/10">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-lg bg-violet-700/20 flex items-center justify-center">
                             <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <circle cx="12" cy="12" r="10" />
                               <path d="M12 8v8M8 12h8" strokeLinecap="round" />
@@ -14830,7 +14830,7 @@ export default function ExportReportPage() {
                         <div className="grid grid-cols-3 gap-5 mb-5">
                           {/* Improvement Opportunities */}
                           <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
-                            <div className="px-4 py-2 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
+                            <div className="px-4 py-2 bg-amber-700border-b border-amber-400 flex items-center gap-2">
                               <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
                                 <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <circle cx="12" cy="12" r="10" />
@@ -14846,7 +14846,7 @@ export default function ExportReportPage() {
                                   {d.needsAttention.slice(0, 6).map((item: any, i: number) => (
                                     <li key={i} className="text-xs text-slate-700 flex items-start gap-2">
                                       <span className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
-                                        item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'
+                                        item.isGap ? 'bg-amber-700' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'
                                       }`}></span>
                                       <span>{item.name}</span>
                                     </li>
@@ -14871,7 +14871,7 @@ export default function ExportReportPage() {
                                 <ul className="space-y-1">
                                   {d.planning.slice(0, 6).map((item: any, i: number) => (
                                     <li key={i} className="text-xs text-slate-700 flex items-start gap-2">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1.5 flex-shrink-0"></span>
+                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-700 mt-1.5 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
@@ -15027,7 +15027,7 @@ export default function ExportReportPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3">
                               <h4 className="text-xl font-bold text-white">{d.name}</h4>
-                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-500 text-white">Additional Analysis</span>
+                              <span className="text-xs font-medium px-2 py-1 rounded bg-violet-700 text-white">Additional Analysis</span>
                             </div>
                             <div className="flex items-center gap-4 mt-1">
                               <span className={`text-sm font-medium px-3 py-1 rounded ${d.tier.bgColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span>
@@ -15051,7 +15051,7 @@ export default function ExportReportPage() {
                         {/* 3-column layout for content */}
                         <div className="grid grid-cols-3 gap-4 mb-4">
                           <div className="border-2 border-amber-200 rounded-xl overflow-hidden bg-white">
-                            <div className="px-3 py-2 bg-amber-500 border-b border-amber-400 flex items-center gap-2">
+                            <div className="px-3 py-2 bg-amber-700border-b border-amber-400 flex items-center gap-2">
                               <div className="w-5 h-5 rounded bg-white/20 flex items-center justify-center flex-shrink-0">
                                 <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                   <circle cx="12" cy="12" r="10" />
@@ -15066,7 +15066,7 @@ export default function ExportReportPage() {
                                 <ul className="space-y-1">
                                   {d.needsAttention.slice(0, 5).map((item: any, i: number) => (
                                     <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
-                                      <span className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${item.isGap ? 'bg-amber-500' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'}`}></span>
+                                      <span className={`w-1.5 h-1.5 rounded-full mt-1 flex-shrink-0 ${item.isGap ? 'bg-amber-700' : item.isAssessing ? 'bg-slate-400' : 'bg-slate-400'}`}></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
@@ -15088,7 +15088,7 @@ export default function ExportReportPage() {
                                 <ul className="space-y-1">
                                   {d.planning.slice(0, 5).map((item: any, i: number) => (
                                     <li key={i} className="text-xs text-slate-700 flex items-start gap-1.5">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-1 flex-shrink-0"></span>
+                                      <span className="w-1.5 h-1.5 rounded-full bg-violet-700 mt-1 flex-shrink-0"></span>
                                       <span>{item.name}</span>
                                     </li>
                                   ))}
@@ -15226,7 +15226,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-300 mt-1">Your phased approach to strengthen workplace cancer support</p>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 px-4 py-2 bg-violet-500 text-white text-sm font-medium rounded-lg">
+                          <div className="flex items-center gap-2 px-4 py-2 bg-violet-700 text-white text-sm font-medium rounded-lg">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                             What-If Scenarios
                           </div>
@@ -15729,7 +15729,7 @@ export default function ExportReportPage() {
                       {/* Background decorative elements */}
                       <div className="absolute inset-0 overflow-hidden">
                         <div className="absolute top-0 right-0 w-96 h-96 bg-[#F37021]/10 rounded-full blur-3xl"></div>
-                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-700/10 rounded-full blur-3xl"></div>
                       </div>
                       
                       <div className="relative flex-1 flex flex-col items-center justify-center px-12 py-6">
@@ -15878,7 +15878,7 @@ export default function ExportReportPage() {
                 
                 <button
                   onClick={openPresenterNotesWindow}
-                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesOpen ? 'bg-amber-500 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                  className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${presenterNotesOpen ? 'bg-amber-700text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
                   title="Open Presenter Notes (separate window)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -16140,7 +16140,7 @@ export default function ExportReportPage() {
                           {/* Exit */}
                           <div className="flex items-center gap-4">
                             <div className="w-28 flex justify-center">
-                              <span className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-sm font-semibold">Exit</span>
+                              <span className="px-3 py-1.5 rounded-lg bg-red-700 text-white text-sm font-semibold">Exit</span>
                             </div>
                             <span className="text-sm text-slate-500">Exit presentation mode (press Esc)</span>
                           </div>
