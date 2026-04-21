@@ -14756,7 +14756,7 @@ export default function ExportReportPage() {
                             <h5 className="font-bold text-white text-base">Sequence & Track</h5>
                           </div>
                           <p className="text-slate-300 text-sm leading-relaxed">
-                            Prioritize <span className="text-blue-300 font-medium">quick wins</span> over foundation work. Set quarterly checkpoints to measure progress.
+                            Prioritize <span className="text-blue-300 font-medium">quick wins</span> over foundation work. Set regular checkpoints to measure progress.
                           </p>
                         </div>
                       </div>
