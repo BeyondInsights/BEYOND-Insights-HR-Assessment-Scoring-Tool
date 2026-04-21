@@ -9617,18 +9617,23 @@ export default function ExportReportPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-white font-bold text-xl">Your Improvement Priorities</h3>
-                  <p className="text-slate-300 text-sm mt-1">The 5 dimensions where focused investment will have the greatest impact on your overall score</p>
+                  <p className="text-slate-300 text-sm mt-1">Year 1 roadmap, ranked by projected score impact</p>
                 </div>
                 <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${showImpactRanked ? 'rotate-180' : ''}`}>
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </div>
+              </div>
+              <div className="bg-white px-8 py-5 border-b border-slate-100">
+                <p className="text-[14.5px] text-slate-700 leading-relaxed">
+                  Your Year 1 roadmap, ranked by projected score impact. Shows the top priority dimensions, the specific support elements to advance within each, how peers compare on those elements, and the projected score gain if the roadmap is delivered.
+                </p>
               </div>
               <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
                 <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 <p className="text-[14px] text-slate-700 leading-relaxed">
-                  <span className="text-[15px] font-bold text-slate-900">Explore this with CAC.</span> These recommendations are designed to spark a deeper conversation. Your 30-minute consultation call is the place to work through what matters most for your organization.
+                  <span className="text-[15px] font-bold text-slate-900">Best explored with CAC.</span> Your 30-minute consultation call is where we translate these priorities into an action plan grounded in what&apos;s realistic for your organization.
                 </p>
               </div>
             </button>
@@ -10010,18 +10015,23 @@ export default function ExportReportPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-white font-bold text-xl">Strategic Recommendations</h3>
-                  <p className="text-slate-300 text-sm mt-1">Deep-dive analysis with element-level actions for your priority dimensions</p>
+                  <p className="text-slate-300 text-sm mt-1">Element-level analysis for your priority dimensions</p>
                 </div>
                 <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${showStrategicRecs ? 'rotate-180' : ''}`}>
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </div>
+              </div>
+              <div className="bg-white px-8 py-5 border-b border-slate-100">
+                <p className="text-[14.5px] text-slate-700 leading-relaxed">
+                  Element-level analysis for your priority dimensions. For each priority dimension, includes an assessment of where you stand relative to peers, specific recommended actions grounded in benchmark data, and the projected impact on your score and employee experience. Explore two views: Improvement Priorities (top 5 dimensions by improvement potential) or Curated Focus (2 highest-opportunity plus 2 greatest-need dimensions).
+                </p>
               </div>
               <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
                 <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 <p className="text-[14px] text-slate-700 leading-relaxed">
-                  <span className="text-[15px] font-bold text-slate-900">Explore this with CAC.</span> These recommendations are designed to spark a deeper conversation. Your 30-minute consultation call is the place to work through what matters most for your organization.
+                  <span className="text-[15px] font-bold text-slate-900">Best explored with CAC.</span> Your 30-minute consultation call is where we align HR and leadership on the specific moves that will most improve the support experience for employees managing cancer.
                 </p>
               </div>
             </button>
@@ -11002,18 +11012,23 @@ export default function ExportReportPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-white font-bold text-xl">Implementation Roadmap</h3>
-                  <p className="text-slate-300 text-sm mt-1">A phased timeline sequencing quick wins, foundational capabilities, and longer-term initiatives</p>
+                  <p className="text-slate-300 text-sm mt-1">A phased timeline for advancing your highest-impact opportunities</p>
                 </div>
                 <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${showRoadmap ? 'rotate-180' : ''}`}>
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                 </div>
+              </div>
+              <div className="bg-white px-8 py-5 border-b border-slate-100">
+                <p className="text-[14.5px] text-slate-700 leading-relaxed">
+                  A phased timeline sequencing your recommendations into three stages: Quick Wins (items already in progress), Foundation Building (closing high-weight gaps), and Excellence (comprehensive coverage). Each phase shows the specific elements to advance and which dimensions they belong to. Includes a What-If Scenario Builder to model the impact of adding or removing specific programs.
+                </p>
               </div>
               <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
                 <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
                 <p className="text-[14px] text-slate-700 leading-relaxed">
-                  <span className="text-[15px] font-bold text-slate-900">Explore this with CAC.</span> These recommendations are designed to spark a deeper conversation. Your 30-minute consultation call is the place to work through what matters most for your organization.
+                  <span className="text-[15px] font-bold text-slate-900">Best explored with CAC.</span> Your 30-minute consultation call is where we pressure-test the sequencing and identify which phase to focus on first for your organization.
                 </p>
               </div>
             </button>
