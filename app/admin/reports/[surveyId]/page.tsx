@@ -5949,32 +5949,26 @@ export default function ExportReportPage() {
                           {'What This Score Represents'}
                         </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                              Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions encompassing {totalElementCount} elements including benefits and programs.
+                              Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions and {totalElementCount} elements of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
+                            </p>
+                            <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                              Each of the {totalElementCount} elements is also classified into one of three Levels of Workplace Support: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>. These levels provide context for how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. <span className="italic text-slate-600">(See Your Support in Context.)</span>
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
-                              <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
-                              <ul className="space-y-1.5">
-                                <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
-                                  The Index combines your Foundation, Expanded, and Signature scores using research-derived weights: Foundation (35%), Expanded (50%), and Signature (15%).
-                                </li>
-                                <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
-                                  These weights are not arbitrary, they derive directly from the element importance weights within each dimension, partitioned by support level.
-                                </li>
-                                <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
-                                  Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce.
-                                </li>
-                                <li className="text-sm text-slate-600 flex items-start gap-2">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 flex-shrink-0"></span>
-                                  Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.
-                                </li>
-                              </ul>
+                              <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
+                              <p className="text-sm text-slate-700 leading-relaxed mb-2">
+                                The Composite Score combines your Foundation, Expanded, and Signature scores using research-derived weights: <span className="font-semibold text-slate-900">Foundation (35%)</span>, <span className="font-semibold text-slate-900">Expanded (50%)</span>, <span className="font-semibold text-slate-900">Signature (15%)</span>. These weights reflect the importance employees and HR leaders place on each level of support, based on research with employees managing cancer, HR leaders, and the broader workforce.
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of care.
+                              </p>
                             </div>
-                            <p className="text-xs text-slate-500 italic">
-                              Tip: Use the three level scores to understand where your results are coming from. Core measures essential access, Enhanced measures consistent delivery, and Advanced captures deeper, less commonly offered practices.
-                            </p>
+                            <div className="flex items-start gap-2 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-md px-3 py-2.5">
+                              <svg className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              <p className="text-xs text-slate-700 leading-relaxed">
+                                <span className="font-bold text-slate-900">Tip:</span> Use the three level scores to understand where your results are coming from. <span className="font-semibold">Foundation</span> captures baseline practices most workplaces establish first. <span className="font-semibold">Expanded</span> captures mid-tier offerings that strengthen the employee experience. <span className="font-semibold">Signature</span> captures standout programs that go beyond the norm.
+                              </p>
+                            </div>
                       </div>
                       
                       {/* Two column: Tiers + Journey */}
@@ -12524,20 +12518,16 @@ export default function ExportReportPage() {
                             What This Score Represents
                           </h4>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                            Your <span className="font-semibold text-violet-700">{'Workplace Support Composite Score'}</span> is a baseline of your organization&apos;s cancer support readiness across <strong className="text-slate-800">13 dimensions</strong>. This score reflects the policies, programs, and resources you currently have in place to support employees managing cancer.
+                            Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across <strong className="text-slate-900">13 dimensions and {totalElementCount} elements</strong> of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
+                          </p>
+                          <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                            Each of the {totalElementCount} elements is also classified into one of three Levels of Workplace Support: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>.
                           </p>
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                            <p className="text-sm font-semibold text-slate-800 mb-2">How it&apos;s built:</p>
-                            <ul className="space-y-1.5">
-                              <li className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                {"Dimension contributions are based on research conducted among HR leaders, employees managing cancer, and the general population workforce."}
-                              </li>
-                              <li className="text-sm text-slate-600 flex items-start gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                {'Improvements in any dimension can strengthen overall support, especially when they expand access, consistency, and continuity.'}
-                              </li>
-                            </ul>
+                            <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
+                            <p className="text-sm text-slate-700 leading-relaxed">
+                              The Composite Score combines your Foundation, Expanded, and Signature scores using research-derived weights: <span className="font-semibold text-slate-900">Foundation (35%)</span>, <span className="font-semibold text-slate-900">Expanded (50%)</span>, <span className="font-semibold text-slate-900">Signature (15%)</span>. Improvements in any dimension strengthen overall support, particularly when they expand access, consistency, and continuity of care.
+                            </p>
                           </div>
                         </div>
                         
