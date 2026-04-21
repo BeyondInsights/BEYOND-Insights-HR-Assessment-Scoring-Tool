@@ -7595,8 +7595,15 @@ export default function ExportReportPage() {
               {/* Table Header */}
               <div className="flex items-center py-3 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 <div className="flex-1 pl-2">Dimension</div>
-                <div className="w-24 text-center">Your Score</div>
-                <div className="w-40 text-center" title="Delta vs. participating-company average">Delta vs. Benchmark</div>
+                <div className="w-64 text-center">
+                  <div>Your Score vs. Benchmark</div>
+                  <div className="flex items-center justify-center gap-1.5 mt-1 font-normal normal-case tracking-normal">
+                    <span className="inline-block w-[3px] h-3 bg-[#6366F1] ring-1 ring-white" />
+                    <span className="text-[10px] text-slate-500">= Benchmark</span>
+                  </div>
+                </div>
+                <div className="w-24 text-right pr-2">Your Score</div>
+                <div className="w-32 text-center" title="Delta vs. participating-company average">Delta</div>
                 <div className="w-40 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
                 <div className="w-12"></div>
               </div>
@@ -7625,34 +7632,48 @@ export default function ExportReportPage() {
                         }
                       }}
                       title={isOpen ? 'Collapse' : 'Click for details'}
-                      className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[68px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
+                      className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[72px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
                       <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
-                        <span className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        <span className="inline-flex items-center justify-center px-3 h-8 rounded-full text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: '#1E3A5F' }}>
                           D{d.dim}
                         </span>
-                        <span className="text-sm font-semibold text-slate-800 leading-snug">{d.name}</span>
+                        <span className="text-[15px] font-semibold text-slate-800 leading-snug">{d.name}</span>
                       </div>
-                      <div className="w-24 text-center">
-                        <span className="text-2xl font-bold tabular-nums text-slate-900">{d.score}</span>
-                      </div>
-                      <div className="w-40 flex justify-center">
-                        {diff !== null ? (
-                          <div className="flex flex-col items-center gap-0.5">
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold tabular-nums ${deltaStyles.bg} ${deltaStyles.text} ${deltaStyles.border}`}>
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d={deltaStyles.arrow} />
-                              </svg>
-                              {diff >= 0 ? '+' : ''}{diff}
-                            </span>
-                            <span className="text-[11px] text-slate-500 tabular-nums">vs. {d.benchmark}</span>
+                      <div className="w-64 px-4">
+                        {d.benchmark !== null ? (
+                          <div className="relative h-2.5 bg-slate-200 rounded-full overflow-visible">
+                            <div
+                              className="absolute left-0 top-0 h-full rounded-full"
+                              style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#1E3A5F' }}
+                            />
+                            <div
+                              className="absolute"
+                              style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-5px', transform: 'translateX(-50%)', height: '22px', width: '3px', backgroundColor: '#6366F1', boxShadow: '0 0 0 2px #ffffff' }}
+                              title={`Benchmark: ${d.benchmark}`}
+                            />
                           </div>
+                        ) : (
+                          <div className="h-2.5 bg-slate-200 rounded-full" />
+                        )}
+                      </div>
+                      <div className="w-24 text-right pr-2">
+                        <span className="text-[30px] font-bold tabular-nums text-slate-900 leading-none">{d.score}</span>
+                      </div>
+                      <div className="w-32 flex justify-center">
+                        {diff !== null ? (
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold tabular-nums ${deltaStyles.bg} ${deltaStyles.text} ${deltaStyles.border}`}>
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" d={deltaStyles.arrow} />
+                            </svg>
+                            {diff >= 0 ? '+' : ''}{diff}
+                          </span>
                         ) : (
                           <span className="text-sm text-slate-300">-</span>
                         )}
                       </div>
                       <div className="w-40 flex justify-center">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600">
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
                           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: pg.color }} />
                           <span>{pg.chip}</span>
                         </span>
@@ -7729,66 +7750,70 @@ export default function ExportReportPage() {
                         return (
                           <div ref={dimDetailRef} className="border-t border-slate-200 bg-slate-50/50">
                             <div className="px-6 py-6">
-                              {/* Benchmark comparison chart */}
-                              {d.benchmark !== null && (
-                                <div className="mb-6">
-                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Score vs. Benchmark</p>
-                                  <div className="relative h-10 bg-slate-200 rounded-lg overflow-visible">
-                                    <div
-                                      className="absolute left-0 top-0 h-full rounded-lg bg-slate-800 flex items-center justify-end pr-3"
-                                      style={{ width: `${Math.min(d.score, 100)}%` }}
-                                    >
-                                      <span className="text-xs font-bold text-white tabular-nums">{d.score}</span>
-                                    </div>
-                                    <div
-                                      className="absolute top-0 h-full w-0.5 bg-slate-500"
-                                      style={{ left: `${Math.min(d.benchmark, 100)}%` }}
-                                    >
-                                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
-                                        <span className="text-[11px] font-semibold text-slate-600 tabular-nums">Benchmark: {d.benchmark}</span>
+                              {/* Three summary cards */}
+                              <div className="grid grid-cols-7 gap-4 mb-6">
+                                {/* Card 1: Score vs Benchmark (1.5x = 3 of 7 cols) */}
+                                <div className="col-span-3 bg-white rounded-[10px] border border-slate-200 p-5">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Your Score vs. Benchmark</p>
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-3">
+                                      <span className="w-24 text-xs font-medium text-slate-600">Your score</span>
+                                      <div className="flex-1 relative h-6 bg-slate-100 rounded">
+                                        <div className="absolute left-0 top-0 h-full rounded" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: '#1E3A5F' }} />
                                       </div>
+                                      <span className="w-10 text-right text-sm font-bold tabular-nums text-slate-900">{d.score}</span>
                                     </div>
+                                    {d.benchmark !== null && (
+                                      <div className="flex items-center gap-3">
+                                        <span className="w-24 text-xs font-medium text-slate-600">Benchmark</span>
+                                        <div className="flex-1 relative h-6 bg-slate-100 rounded">
+                                          <div className="absolute left-0 top-0 h-full rounded" style={{ width: `${Math.min(d.benchmark, 100)}%`, backgroundColor: '#6366F1' }} />
+                                        </div>
+                                        <span className="w-10 text-right text-sm font-bold tabular-nums text-slate-900">{d.benchmark}</span>
+                                      </div>
+                                    )}
                                   </div>
-                                  <p className={`text-sm mt-4 font-medium ${diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                                    {diff >= 0 ? `+${diff} points above` : `${Math.abs(diff)} points below`} the participating-organization average.
-                                  </p>
+                                  {diff !== null && (
+                                    <p className={`text-sm mt-4 font-medium flex items-center gap-1.5 ${diff >= 5 ? 'text-emerald-700' : diff <= -5 ? 'text-rose-700' : 'text-slate-600'}`}>
+                                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d={diff >= 5 ? 'M5 15l7-7 7 7' : diff <= -5 ? 'M19 9l-7 7-7-7' : 'M5 12h14'} />
+                                      </svg>
+                                      {diff >= 0 ? `+${diff} points above` : `${Math.abs(diff)} points below`} the participating-organization average
+                                    </p>
+                                  )}
                                 </div>
-                              )}
 
-                              {/* Tier distribution + priority context */}
-                              <div className="grid grid-cols-2 gap-6 mb-6">
-                                <div className="bg-white rounded-lg border border-slate-200 p-4">
-                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Elements by Support Level</p>
-                                  <div className="space-y-2">
+                                {/* Card 2: Elements by Support Level (2 of 7 cols) */}
+                                <div className="col-span-2 bg-white rounded-[10px] border border-slate-200 p-5">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Elements by Support Level</p>
+                                  <div className="space-y-2.5">
                                     {[
-                                      { key: 'core', label: 'Foundation', count: tierCounts.core, color: SUPPORT_LEVELS.core.color },
-                                      { key: 'enhanced', label: 'Expanded', count: tierCounts.enhanced, color: SUPPORT_LEVELS.enhanced.color },
-                                      { key: 'advanced', label: 'Signature', count: tierCounts.advanced, color: SUPPORT_LEVELS.advanced.color },
+                                      { key: 'core', label: 'Foundation', count: tierCounts.core, color: '#059669' },
+                                      { key: 'enhanced', label: 'Expanded', count: tierCounts.enhanced, color: '#C2410C' },
+                                      { key: 'advanced', label: 'Signature', count: tierCounts.advanced, color: '#7C3AED' },
                                     ].map(t => {
                                       const pct = totalElemsInDim > 0 ? Math.round((t.count / totalElemsInDim) * 100) : 0;
                                       return (
-                                        <div key={t.key} className="flex items-center gap-3">
+                                        <div key={t.key} className="flex items-center gap-2.5">
                                           <span className="w-20 text-xs font-semibold" style={{ color: t.color }}>{t.label}</span>
                                           <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                                             <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: t.color }} />
                                           </div>
-                                          <span className="text-xs text-slate-600 tabular-nums w-16 text-right">{t.count} of {totalElemsInDim}</span>
+                                          <span className="text-xs text-slate-600 tabular-nums w-14 text-right">{t.count} of {totalElemsInDim}</span>
                                         </div>
                                       );
                                     })}
                                   </div>
                                 </div>
-                                <div className="bg-white rounded-lg border border-slate-200 p-4">
-                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Employee Priority</p>
-                                  <div className="flex items-start gap-3">
-                                    <span className="w-3 h-3 rounded-full mt-1 flex-shrink-0" style={{ backgroundColor: pg.color }} />
-                                    <div>
-                                      <p className="text-sm font-semibold" style={{ color: pg.color }}>{pg.label}</p>
-                                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                                        Contributes <span className="font-semibold text-slate-800 tabular-nums">{dimWeightPct}%</span> to the Composite Score, based on research with employees managing cancer and HR leaders.
-                                      </p>
-                                    </div>
-                                  </div>
+
+                                {/* Card 3: Employee Priority (2 of 7 cols) */}
+                                <div className="col-span-2 bg-white rounded-[10px] border border-slate-200 p-5">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Employee Priority</p>
+                                  <p className="text-4xl font-bold tabular-nums leading-none" style={{ color: pg.color }}>{dimWeightPct}%</p>
+                                  <p className="text-sm font-bold mt-2" style={{ color: pg.color }}>{pg.label}</p>
+                                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                    Contributes {dimWeightPct}% to the Composite Score based on research with employees managing cancer and HR leaders.
+                                  </p>
                                 </div>
                               </div>
 
