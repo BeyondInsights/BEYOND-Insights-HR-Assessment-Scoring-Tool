@@ -7440,8 +7440,8 @@ export default function ExportReportPage() {
                               {activeDimTab === 'elements' && (<>
                               {/* Table Header Row */}
                               <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                                <div className="col-span-4">Support Element</div>
-                                <div className="col-span-1 text-center">Your Status</div>
+                                <div className="col-span-3">Support Element</div>
+                                <div className="col-span-2 text-center">Your Status</div>
                                 <div className="col-span-5 text-center">
                                   <div>Benchmark Distribution</div>
                                   <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
@@ -7472,14 +7472,14 @@ export default function ExportReportPage() {
                                   return (
                                     <div key={i} className="px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-200 min-h-[64px]">
                                       {/* Element Name */}
-                                      <div className="col-span-4 flex items-center">
+                                      <div className="col-span-3 flex items-center">
                                         <p className="text-[14px] text-slate-800 font-medium leading-snug">{elem.name}</p>
                                       </div>
 
                                       {/* Your Status */}
-                                      <div className="col-span-1 flex items-center justify-center">
-                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-bold leading-tight" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
-                                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusInfo.bg }} />
+                                      <div className="col-span-2 flex items-center justify-center">
+                                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold leading-tight whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: statusInfo.bg }} />
                                           {statusInfo.label}
                                         </span>
                                       </div>
