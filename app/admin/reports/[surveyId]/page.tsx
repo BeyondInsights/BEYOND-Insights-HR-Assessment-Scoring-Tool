@@ -6203,6 +6203,524 @@ export default function ExportReportPage() {
                     Each of the {totalElementCount} self-reported program elements is classified into one of three levels: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
                   </p>
 
+                  {/* Workplace Support Composite Score, Tier Score Breakdown */}
+                  {(() => {
+                    // Compute tier-level scores from element data
+                    const allElems = dimensionAnalysis?.flatMap((d: any) => 
+                      (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))
+                    ) || [];
+                
+                    const tierCalc = (level: string) => {
+                      const elems = allElems.filter((e: any) => getElementLevel(e.name) === level);
+                      if (elems.length === 0) return { score: 0, total: 0, inPlace: 0, inDev: 0, review: 0, toConfirm: 0, gaps: 0, wsiContrib: 0 };
+                      let inPlace = 0, inDev = 0, review = 0, toConfirm = 0, gaps = 0;
+                      let weightedContrib = 0;
+                      let weightedNum = 0, weightedDen = 0;
+                      const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                  
+                      // Compute per-dimension confirm rates for unsure substitution
+                      const dimConfirmRates: Record<number, number> = {};
+                      for (let d = 1; d <= 13; d++) {
+                        const dimElems = allElems.filter((e: any) => e.dim === d);
+                        if (dimElems.length === 0) { dimConfirmRates[d] = 1; continue; }
+                        const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
+                        dimConfirmRates[d] = confirmed / dimElems.length;
+                      }
+                  
+                      elems.forEach((e: any) => {
+                        const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                        const dimNum = ew ? ew[0] : (e.dim || 1);
+                        // Element weight for within-level weighted score
+                        const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / elems.length);
+                        let scoreNorm = 0;
+                    
+                        if (e.isUnsure) {
+                          toConfirm++;
+                          const mu = TIER_MEANS[dimNum]?.[level] || 0;
+                          const cr = dimConfirmRates[dimNum] || 0;
+                          scoreNorm = (mu * cr * cr) / 5;
+                          // WSI contribution
+                          if (ew) {
+                            const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
+                            weightedContrib += dimWt * ew[1] * scoreNorm;
+                          }
+                        } else if (e.isStrength) { scoreNorm = 1; inPlace++; }
+                        else if (e.isPlanning) { scoreNorm = 0.6; inDev++; }
+                        else if (e.isAssessing) { scoreNorm = 0.4; review++; }
+                        else {
+                          gaps++;
+                          scoreNorm = 0;
+                        }
+                    
+                        weightedNum += w * scoreNorm;
+                        weightedDen += w;
+                    
+                        // WSI contribution for non-Unsure elements
+                        if (!e.isUnsure && ew) {
+                          const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
+                          weightedContrib += dimWt * ew[1] * scoreNorm;
+                        }
+                      });
+                      return { 
+                        score: weightedDen > 0 ? Math.round((weightedNum / weightedDen) * 100) : 0, 
+                        total: elems.length, inPlace, inDev, review, toConfirm, gaps,
+                        wsiContrib: Math.round(weightedContrib * 100)
+                      };
+                    };
+                
+                    const coreData = tierCalc('core');
+                    const enhData = tierCalc('enhanced');
+                    const advData = tierCalc('advanced');
+                
+                    // WSI = precomputed at header level (single source of truth)
+                    const wsiScore = wsiScoreHeader;
+                    const M_CORE_PCT = 35;
+                    const M_ENH_PCT = 50;
+                    const M_ADV_PCT = 15;
+                    const rating = getWSIRating(wsiScore);
+                
+                    // Benchmark: compute tier scores for ALL complete companies
+                    const tierBenchmarks = { core: [] as number[], enhanced: [] as number[], advanced: [] as number[] };
+                    try {
+                      const allAssessments = (window as any).__allAssessments || [];
+                      const _bDimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                      allAssessments.forEach((a: any) => {
+                        try {
+                          const compScores = calculateCompanyScores(a);
+                          if (!compScores?.elements) return;
+                          const compElems = Object.entries(compScores.elements).flatMap(([dimStr, elems]: [string, any]) => 
+                            (elems as any[]).map((e: any) => ({ ...e, dim: parseInt(dimStr) }))
+                          );
+                          // Compute per-dimension confirm rates for this company
+                          const bDimCR: Record<number, number> = {};
+                          for (let d = 1; d <= 13; d++) {
+                            const de = compElems.filter((e: any) => e.dim === d || (ELEMENT_DIM_WEIGHTS[e.name] && ELEMENT_DIM_WEIGHTS[e.name][0] === d));
+                            if (de.length === 0) { bDimCR[d] = 1; continue; }
+                            bDimCR[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
+                          }
+                          (['core', 'enhanced', 'advanced'] as const).forEach(level => {
+                            const lElems = compElems.filter((e: any) => getElementLevel(e.name) === level);
+                            if (lElems.length === 0) return;
+                            let wNum = 0, wDen = 0;
+                            lElems.forEach((e: any) => {
+                              const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                              const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _bDimWtTotal) * ew[1] : (1 / lElems.length);
+                              let sn = 0;
+                              if (e.isUnsure) {
+                                const dn = ew ? ew[0] : 1;
+                                const mu = TIER_MEANS[dn]?.[level] || 0;
+                                const cr = bDimCR[dn] || 0;
+                                sn = (mu * cr * cr) / 5;
+                              } else if (e.isStrength) sn = 1;
+                              else if (e.isPlanning) sn = 0.6;
+                              else if (e.isAssessing) sn = 0.4;
+                              wNum += w * sn;
+                              wDen += w;
+                            });
+                            tierBenchmarks[level].push(wDen > 0 ? Math.round((wNum / wDen) * 100) : 0);
+                          });
+                        } catch {}
+                      });
+                    } catch {}
+                
+                    const getBenchStats = (level: 'core' | 'enhanced' | 'advanced', myScore: number) => {
+                      const scores = tierBenchmarks[level];
+                      if (scores.length === 0) return { avg: 0, pctl: 0, index: 100, diff: 0 };
+                      const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+                      const atOrBelowCount = scores.filter(s => s <= myScore).length;
+                      const pctl = Math.round((atOrBelowCount / scores.length) * 100);
+                      const index = avg > 0 ? Math.round((myScore / avg) * 100) : 100;
+                      const diff = Math.round(myScore - avg);
+                      return { avg: Math.round(avg), pctl, index, diff };
+                    };
+                
+                    const coreBench = getBenchStats('core', coreData.score);
+                    const enhBench = getBenchStats('enhanced', enhData.score);
+                    const advBench = getBenchStats('advanced', advData.score);
+                
+                    const tiers = [
+                      { key: 'core' as const, ...coreData, ...SUPPORT_LEVELS.core, bench: coreBench },
+                      { key: 'enhanced' as const, ...enhData, ...SUPPORT_LEVELS.enhanced, bench: enhBench },
+                      { key: 'advanced' as const, ...advData, ...SUPPORT_LEVELS.advanced, bench: advBench },
+                    ];
+                
+                    return (
+                      <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                        {/* Unified Score Panel */}
+                        <div className="px-8 pt-8 pb-6">
+                          <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Your Scores</p>
+
+                          {/* 4-column score grid: Composite + 3 support levels */}
+                          <div className="grid grid-cols-4 gap-4">
+                            {/* Composite Score, primary, slightly emphasized */}
+                            <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
+                              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Composite</p>
+                              <p className="text-6xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
+                              <p className="text-base font-bold mt-2" style={{ color: rating.color }}>{rating.label}</p>
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
+                                {(() => {
+                                  const diff = wsiScore - 59;
+                                  if (diff === 0) return null;
+                                  return (
+                                    <p className={`text-sm font-bold mt-1 ${diff > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                      {diff > 0 ? '+' : ''}{diff} vs benchmark
+                                    </p>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+
+                            {/* Core Support */}
+                            <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
+                              <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
+                              <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
+                              {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
+                                <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                  {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Enhanced Support */}
+                            <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
+                              <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
+                              <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
+                              {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
+                                <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                  {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Advanced Support */}
+                            <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
+                              <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
+                              <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
+                              {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
+                                <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                                  {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Composite weight footnote */}
+                          <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-200">
+                            <span className="text-sm text-slate-500">Composite = </span>
+                            <span className="text-sm font-semibold" style={{ color: '#047857' }}>35% Core</span>
+                            <span className="text-sm text-slate-300">+</span>
+                            <span className="text-sm font-semibold" style={{ color: '#B45309' }}>50% Enhanced</span>
+                            <span className="text-sm text-slate-300">+</span>
+                            <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>15% Advanced</span>
+                          </div>
+
+                        </div>
+                    
+                        {/* Support Level Details */}
+                        <div className="px-8 py-6 border-t border-slate-200">
+                          <div className="mb-5">
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
+                            <p className="text-sm text-slate-500 mt-2 leading-relaxed">
+                              Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from the baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-3 gap-5">
+                          {tiers.map((t) => {
+                            const Icon = t.icon;
+
+                            return (
+                              <div key={t.key} className="rounded-xl overflow-hidden bg-white flex flex-col" style={{ border: `1px solid ${t.border}` }}>
+                                {/* Card header */}
+                                <div className="px-5 py-4 flex items-center gap-3" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
+                                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
+                                    <Icon size={18} color="white" />
+                                  </div>
+                                  <div>
+                                    <h4 className="text-base font-bold" style={{ color: t.color }}>{t.name}</h4>
+                                    <span className="text-sm text-slate-500">{t.total} elements</span>
+                                  </div>
+                                </div>
+
+                                {/* Description, flex-1 to push View Details to consistent bottom */}
+                                <div className="px-5 py-3 flex-1">
+                                  <p className="text-sm text-slate-600 leading-relaxed">{t.shortDesc}</p>
+                                </div>
+
+                                {/* Score bar showing progress */}
+                                <div className="px-5 pb-3">
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-sm font-semibold text-slate-700">{t.score}/100</span>
+                                    <span className="text-sm text-slate-500">{t.bench.pctl}th percentile</span>
+                                  </div>
+                                  <div className="relative">
+                                    <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                                      <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
+                                    </div>
+                                    {t.bench.avg > 0 && (
+                                      <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${Math.min(t.bench.avg, 100)}%` }}>
+                                        <div className="w-0.5 h-4 -mt-0.5 rounded-full bg-slate-600" />
+                                      </div>
+                                    )}
+                                  </div>
+                                  {t.bench.avg > 0 && (
+                                    <div className="flex items-center justify-end gap-1 mt-1">
+                                      <div className="w-3 h-0.5 bg-slate-600 rounded-full" />
+                                      <span className="text-xs text-slate-500">Benchmark: {t.bench.avg}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Learn More toggle */}
+                                <div className="px-5 py-3 border-t" style={{ borderColor: t.border }}>
+                                  <button
+                                    onClick={() => setExpandedLearnMore(expandedLearnMore === t.key ? null : t.key)}
+                                    className="flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
+                                    style={{ color: t.color }}
+                                  >
+                                    <span>{expandedLearnMore === t.key ? 'Hide Details' : 'View Details'}</span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedLearnMore === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                  </button>
+                                </div>
+
+                                {/* Expanded: Element Status + element list */}
+                                {expandedLearnMore === t.key && (
+                                  <>
+                                    <div className="px-5 py-4" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
+                                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Element Status</p>
+                                      <div className="space-y-1.5">
+                                        {[
+                                          { label: 'In Place', count: t.inPlace, color: '#10B981' },
+                                          { label: 'In Development', count: t.inDev, color: '#3B82F6' },
+                                          { label: 'Under Review', count: t.review, color: '#F59E0B' },
+                                          { label: 'Not Planned', count: t.gaps, color: '#F87171' },
+                                          { label: 'Unsure', count: t.toConfirm, color: '#8B5CF6' },
+                                        ].map(s => (
+                                          <div key={s.label} className="flex items-center gap-2">
+                                            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
+                                            <span className="text-sm text-slate-600 flex-1">{s.label}</span>
+                                            <span className="text-sm font-bold tabular-nums" style={{ color: s.count > 0 ? s.color : '#CBD5E1' }}>{s.count}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+
+                                      {/* View elements link */}
+                                      <button
+                                        onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
+                                        className="mt-3 flex items-center gap-1.5 text-sm font-medium hover:underline"
+                                        style={{ color: t.color }}
+                                      >
+                                        {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                      </button>
+                                    </div>
+                                  </>
+                                )}
+                            
+                                {/* Expanded element list by dimension */}
+                                {expandedWSICard === t.key && (() => {
+                                  const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === t.key);
+                                  const dimGroups: Record<number, any[]> = {};
+                                  levelElems.forEach((e: any) => {
+                                    if (!dimGroups[e.dim]) dimGroups[e.dim] = [];
+                                    dimGroups[e.dim].push(e);
+                                  });
+                                  const sortedDims = Object.entries(dimGroups).sort(([a], [b]) => parseInt(a) - parseInt(b));
+                              
+                                  return (
+                                    <div className="px-4 py-3 max-h-80 overflow-y-auto" style={{ borderTop: `1px solid ${t.border}`, backgroundColor: 'white' }}>
+                                      {sortedDims.map(([dimStr, elems]) => {
+                                        const dimNum = parseInt(dimStr);
+                                        const dimInfo = dimensionAnalysis?.find((d: any) => d.dim === dimNum);
+                                        return (
+                                          <div key={dimNum} className="mb-3 last:mb-0">
+                                            <div className="flex items-center gap-2 mb-1.5">
+                                              <span className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{dimNum}</span>
+                                              <span className="text-xs font-semibold text-slate-700 truncate">{dimInfo?.name || `Dimension ${dimNum}`}</span>
+                                              <span className="text-[10px] text-slate-500 flex-shrink-0">{elems.length} element{elems.length !== 1 ? 's' : ''}</span>
+                                            </div>
+                                            <div className="pl-2 space-y-0.5 mt-1">
+                                              {elems.map((e: any) => {
+                                                const statusColor = e.isStrength ? '#10B981' : e.isPlanning ? '#3B82F6' : e.isAssessing ? '#F59E0B' : e.isUnsure ? '#8B5CF6' : '#F87171';
+                                                const statusLabel = e.isStrength ? 'In Place' : e.isPlanning ? 'In Dev' : e.isAssessing ? 'Review' : e.isUnsure ? 'Confirm' : 'Not Planned';
+                                                return (
+                                                  <div key={e.name} className="flex items-start gap-2 py-0.5">
+                                                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: statusColor }} />
+                                                    <span className="text-[11px] text-slate-600 flex-1 leading-tight">{e.name}</span>
+                                                    <span className="text-[10px] font-medium flex-shrink-0" style={{ color: statusColor }}>{statusLabel}</span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  );
+                                })()}
+                              </div>
+                            );
+                          })}
+                          </div>
+                        </div>
+
+                        {/* How does Company compare?, Dropdown */}
+                        {(() => {
+                          const computeDist = (scores: number[]) => {
+                            if (scores.length === 0) return { leading: 0, advancing: 0, accelerating: 0, building: 0 };
+                            const n = scores.length;
+                            return {
+                              leading: Math.round((scores.filter(s => s >= 80).length / n) * 100),
+                              advancing: Math.round((scores.filter(s => s >= 64 && s < 80).length / n) * 100),
+                              accelerating: Math.round((scores.filter(s => s >= 50 && s < 64).length / n) * 100),
+                              building: Math.round((scores.filter(s => s < 50).length / n) * 100),
+                            };
+                          };
+
+                          const getTierInfo = (score: number) => {
+                            if (score >= 80) return { label: 'Leading', color: '#047857' };
+                            if (score >= 64) return { label: 'Advancing', color: '#1D4ED8' };
+                            if (score >= 50) return { label: 'Accelerating', color: '#B45309' };
+                            return { label: 'Building', color: '#B91C1C' };
+                          };
+
+                          const compRows = [
+                            { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, accentColor: '#334155' },
+                            { label: 'Foundation', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
+                            { label: 'Expanded', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
+                            { label: 'Signature', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
+                          ];
+
+                          const tierDefs = [
+                            { key: 'leading', label: 'Leading', range: '80-100', color: '#047857' },
+                            { key: 'advancing', label: 'Advancing', range: '64-79', color: '#1D4ED8' },
+                            { key: 'accelerating', label: 'Accelerating', range: '50-63', color: '#B45309' },
+                            { key: 'building', label: 'Building', range: '0-49', color: '#B91C1C' },
+                          ];
+
+                          return (
+                            <div className="px-8 pb-6">
+                              {/* Dropdown trigger */}
+                              <button
+                                onClick={() => setShowScoreComparison(!showScoreComparison)}
+                                className="w-full flex items-center justify-between px-6 py-5 bg-white rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+                                style={{ border: showScoreComparison ? '2px solid #334155' : '1px solid #e2e8f0' }}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                  </svg>
+                                  <span className="text-lg font-bold text-slate-800">How does {companyName} compare?</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-500" style={{ transform: showScoreComparison ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                  </div>
+                                </div>
+                              </button>
+
+                              {showScoreComparison && (
+                                <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                  {/* Explanation header */}
+                                  <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                      This table shows where {companyName} falls relative to all participating companies.
+                                      <strong className="text-slate-700"> Your Score</strong> and <strong className="text-slate-700">Your Tier</strong> show your current standing,
+                                      while the percentage columns show how companies are distributed across the four performance tiers.
+                                    </p>
+                                  </div>
+
+                                  {/* Table header, two rows */}
+                                  <div className="bg-slate-50 border-b border-slate-200">
+                                    {/* Row 1: Your cols + Benchmark Distribution spanning header */}
+                                    <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6">
+                                      <div className="col-span-3"></div>
+                                      <div className="col-span-4 text-center py-2 border-l border-slate-200">
+                                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</p>
+                                      </div>
+                                    </div>
+                                    {/* Row 2: Individual column headers */}
+                                    <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-2">
+                                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider"></div>
+                                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Score</div>
+                                      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Your Tier</div>
+                                      {[
+                                        { label: 'Leading', range: '80\u2013100', color: '#047857' },
+                                        { label: 'Advancing', range: '64\u201379', color: '#1D4ED8' },
+                                        { label: 'Accelerating', range: '50\u201363', color: '#B45309' },
+                                        { label: 'Building', range: '0\u201349', color: '#B91C1C' },
+                                      ].map((td, i) => (
+                                        <div key={td.label} className={`text-center ${i === 0 ? 'border-l border-slate-200' : ''}`}>
+                                          <p className="text-xs font-bold uppercase tracking-wider" style={{ color: td.color }}>{td.label}</p>
+                                          <p className="text-[11px] text-slate-500">{td.range}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+
+                                  {/* Data rows */}
+                                  {compRows.map((row, i) => {
+                                    const dist = computeDist(row.scores);
+                                    const tierInfo = getTierInfo(row.score);
+                                    return (
+                                      <div key={row.label} className={`grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-4 items-center ${i < compRows.length - 1 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50/50' : ''}`}>
+                                        {/* Row label */}
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-1 h-8 rounded-full" style={{ backgroundColor: row.accentColor }} />
+                                          <span className="text-base font-semibold text-slate-800">{row.label}</span>
+                                        </div>
+
+                                        {/* Score */}
+                                        <div className="text-center">
+                                          <span className="text-2xl font-bold" style={{ color: row.accentColor }}>{row.score}</span>
+                                        </div>
+
+                                        {/* Tier badge */}
+                                        <div className="text-center pr-3">
+                                          <span className="inline-block text-sm font-bold px-3 py-1 rounded-lg" style={{ backgroundColor: tierInfo.color + '15', color: tierInfo.color }}>
+                                            {tierInfo.label}
+                                          </span>
+                                        </div>
+
+                                        {/* Tier distribution percentages */}
+                                        {[dist.leading, dist.advancing, dist.accelerating, dist.building].map((pct, j) => {
+                                          const isYourTier = tierDefs[j].label === tierInfo.label;
+                                          return (
+                                            <div key={j} className={`text-center ${j === 0 ? 'border-l border-slate-200 pl-3' : ''}`}>
+                                              <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-500'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
+                                                {pct}%
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  })}
+
+                                  {/* Footer note */}
+                                  <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
+                                    <p className="text-sm text-slate-500">
+                                      Percentages show the share of participating companies that scored within each tier range.
+                                      <strong className="text-slate-500"> Highlighted values</strong> indicate your tier.
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
+                      </div>
+                    );
+                  })()}
+
+
                   <div className="grid grid-cols-3 gap-4 mb-2">
                     {(['core', 'enhanced', 'advanced'] as const).map((key) => {
                       const L = SUPPORT_LEVELS[key];
@@ -6797,12 +7315,29 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                 );
+                // Build headline sentence from the same data
+                const formatList = (arr: any[]) => {
+                  if (arr.length === 0) return '';
+                  if (arr.length === 1) return arr[0].name;
+                  if (arr.length === 2) return `${arr[0].name} and ${arr[1].name}`;
+                  return `${arr.slice(0, -1).map(d => d.name).join(', ')}, and ${arr[arr.length - 1].name}`;
+                };
+                const topStrengths = strongest.slice(0, 2);
+                const topAreas = areasToAddress.slice(0, 2);
+                const hasHeadline = topStrengths.length > 0 && topAreas.length > 0;
                 return (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-                    {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
-                    {renderCard('Priority Gaps', 'High employee priority, room to grow', '#B45309', '#FEF3C7', iconBars, tensions, false)}
-                    {renderCard('Areas to Address', 'Greatest opportunity to improve', '#7C3AED', '#F3E8FF', iconSprout, areasToAddress, true)}
-                  </div>
+                  <>
+                    {hasHeadline && (
+                      <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
+                        <span className="font-semibold">{companyName}</span> shows strength in <span className="font-semibold">{formatList(topStrengths)}</span>, with room to grow in <span className="font-semibold">{formatList(topAreas)}</span>.
+                      </p>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+                      {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
+                      {renderCard('Priority Gaps', 'High employee priority, room to grow', '#4F46E5', '#E0E7FF', iconBars, tensions, false)}
+                      {renderCard('Areas to Address', 'Greatest opportunity to improve', '#D97706', '#FEF3C7', iconSprout, areasToAddress, true)}
+                    </div>
+                  </>
                 );
               })()}
 
@@ -6821,522 +7356,6 @@ export default function ExportReportPage() {
                 </div>
               )}
               
-              {/* Workplace Support Composite Score, Tier Score Breakdown */}
-              {(() => {
-                // Compute tier-level scores from element data
-                const allElems = dimensionAnalysis?.flatMap((d: any) => 
-                  (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))
-                ) || [];
-                
-                const tierCalc = (level: string) => {
-                  const elems = allElems.filter((e: any) => getElementLevel(e.name) === level);
-                  if (elems.length === 0) return { score: 0, total: 0, inPlace: 0, inDev: 0, review: 0, toConfirm: 0, gaps: 0, wsiContrib: 0 };
-                  let inPlace = 0, inDev = 0, review = 0, toConfirm = 0, gaps = 0;
-                  let weightedContrib = 0;
-                  let weightedNum = 0, weightedDen = 0;
-                  const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
-                  
-                  // Compute per-dimension confirm rates for unsure substitution
-                  const dimConfirmRates: Record<number, number> = {};
-                  for (let d = 1; d <= 13; d++) {
-                    const dimElems = allElems.filter((e: any) => e.dim === d);
-                    if (dimElems.length === 0) { dimConfirmRates[d] = 1; continue; }
-                    const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
-                    dimConfirmRates[d] = confirmed / dimElems.length;
-                  }
-                  
-                  elems.forEach((e: any) => {
-                    const ew = ELEMENT_DIM_WEIGHTS[e.name];
-                    const dimNum = ew ? ew[0] : (e.dim || 1);
-                    // Element weight for within-level weighted score
-                    const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / elems.length);
-                    let scoreNorm = 0;
-                    
-                    if (e.isUnsure) {
-                      toConfirm++;
-                      const mu = TIER_MEANS[dimNum]?.[level] || 0;
-                      const cr = dimConfirmRates[dimNum] || 0;
-                      scoreNorm = (mu * cr * cr) / 5;
-                      // WSI contribution
-                      if (ew) {
-                        const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
-                        weightedContrib += dimWt * ew[1] * scoreNorm;
-                      }
-                    } else if (e.isStrength) { scoreNorm = 1; inPlace++; }
-                    else if (e.isPlanning) { scoreNorm = 0.6; inDev++; }
-                    else if (e.isAssessing) { scoreNorm = 0.4; review++; }
-                    else {
-                      gaps++;
-                      scoreNorm = 0;
-                    }
-                    
-                    weightedNum += w * scoreNorm;
-                    weightedDen += w;
-                    
-                    // WSI contribution for non-Unsure elements
-                    if (!e.isUnsure && ew) {
-                      const dimWt = (DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal;
-                      weightedContrib += dimWt * ew[1] * scoreNorm;
-                    }
-                  });
-                  return { 
-                    score: weightedDen > 0 ? Math.round((weightedNum / weightedDen) * 100) : 0, 
-                    total: elems.length, inPlace, inDev, review, toConfirm, gaps,
-                    wsiContrib: Math.round(weightedContrib * 100)
-                  };
-                };
-                
-                const coreData = tierCalc('core');
-                const enhData = tierCalc('enhanced');
-                const advData = tierCalc('advanced');
-                
-                // WSI = precomputed at header level (single source of truth)
-                const wsiScore = wsiScoreHeader;
-                const M_CORE_PCT = 35;
-                const M_ENH_PCT = 50;
-                const M_ADV_PCT = 15;
-                const rating = getWSIRating(wsiScore);
-                
-                // Benchmark: compute tier scores for ALL complete companies
-                const tierBenchmarks = { core: [] as number[], enhanced: [] as number[], advanced: [] as number[] };
-                try {
-                  const allAssessments = (window as any).__allAssessments || [];
-                  const _bDimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
-                  allAssessments.forEach((a: any) => {
-                    try {
-                      const compScores = calculateCompanyScores(a);
-                      if (!compScores?.elements) return;
-                      const compElems = Object.entries(compScores.elements).flatMap(([dimStr, elems]: [string, any]) => 
-                        (elems as any[]).map((e: any) => ({ ...e, dim: parseInt(dimStr) }))
-                      );
-                      // Compute per-dimension confirm rates for this company
-                      const bDimCR: Record<number, number> = {};
-                      for (let d = 1; d <= 13; d++) {
-                        const de = compElems.filter((e: any) => e.dim === d || (ELEMENT_DIM_WEIGHTS[e.name] && ELEMENT_DIM_WEIGHTS[e.name][0] === d));
-                        if (de.length === 0) { bDimCR[d] = 1; continue; }
-                        bDimCR[d] = de.filter((e: any) => !e.isUnsure).length / de.length;
-                      }
-                      (['core', 'enhanced', 'advanced'] as const).forEach(level => {
-                        const lElems = compElems.filter((e: any) => getElementLevel(e.name) === level);
-                        if (lElems.length === 0) return;
-                        let wNum = 0, wDen = 0;
-                        lElems.forEach((e: any) => {
-                          const ew = ELEMENT_DIM_WEIGHTS[e.name];
-                          const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / _bDimWtTotal) * ew[1] : (1 / lElems.length);
-                          let sn = 0;
-                          if (e.isUnsure) {
-                            const dn = ew ? ew[0] : 1;
-                            const mu = TIER_MEANS[dn]?.[level] || 0;
-                            const cr = bDimCR[dn] || 0;
-                            sn = (mu * cr * cr) / 5;
-                          } else if (e.isStrength) sn = 1;
-                          else if (e.isPlanning) sn = 0.6;
-                          else if (e.isAssessing) sn = 0.4;
-                          wNum += w * sn;
-                          wDen += w;
-                        });
-                        tierBenchmarks[level].push(wDen > 0 ? Math.round((wNum / wDen) * 100) : 0);
-                      });
-                    } catch {}
-                  });
-                } catch {}
-                
-                const getBenchStats = (level: 'core' | 'enhanced' | 'advanced', myScore: number) => {
-                  const scores = tierBenchmarks[level];
-                  if (scores.length === 0) return { avg: 0, pctl: 0, index: 100, diff: 0 };
-                  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-                  const atOrBelowCount = scores.filter(s => s <= myScore).length;
-                  const pctl = Math.round((atOrBelowCount / scores.length) * 100);
-                  const index = avg > 0 ? Math.round((myScore / avg) * 100) : 100;
-                  const diff = Math.round(myScore - avg);
-                  return { avg: Math.round(avg), pctl, index, diff };
-                };
-                
-                const coreBench = getBenchStats('core', coreData.score);
-                const enhBench = getBenchStats('enhanced', enhData.score);
-                const advBench = getBenchStats('advanced', advData.score);
-                
-                const tiers = [
-                  { key: 'core' as const, ...coreData, ...SUPPORT_LEVELS.core, bench: coreBench },
-                  { key: 'enhanced' as const, ...enhData, ...SUPPORT_LEVELS.enhanced, bench: enhBench },
-                  { key: 'advanced' as const, ...advData, ...SUPPORT_LEVELS.advanced, bench: advBench },
-                ];
-                
-                return (
-                  <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                    {/* Unified Score Panel */}
-                    <div className="px-8 pt-8 pb-6">
-                      <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Your Scores</p>
-
-                      {/* 4-column score grid: Composite + 3 support levels */}
-                      <div className="grid grid-cols-4 gap-4">
-                        {/* Composite Score, primary, slightly emphasized */}
-                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
-                          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Composite</p>
-                          <p className="text-6xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
-                          <p className="text-base font-bold mt-2" style={{ color: rating.color }}>{rating.label}</p>
-                          <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
-                            {(() => {
-                              const diff = wsiScore - 59;
-                              if (diff === 0) return null;
-                              return (
-                                <p className={`text-sm font-bold mt-1 ${diff > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                                  {diff > 0 ? '+' : ''}{diff} vs benchmark
-                                </p>
-                              );
-                            })()}
-                          </div>
-                        </div>
-
-                        {/* Core Support */}
-                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
-                          <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
-                          {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
-                          <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
-                            <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                              {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Enhanced Support */}
-                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
-                          <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
-                          {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
-                          <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
-                            <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                              {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* Advanced Support */}
-                        <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
-                          <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
-                          {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
-                          <div className="mt-3 pt-3 border-t border-slate-100">
-                            <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
-                            <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                              {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Composite weight footnote */}
-                      <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-200">
-                        <span className="text-sm text-slate-500">Composite = </span>
-                        <span className="text-sm font-semibold" style={{ color: '#047857' }}>35% Core</span>
-                        <span className="text-sm text-slate-300">+</span>
-                        <span className="text-sm font-semibold" style={{ color: '#B45309' }}>50% Enhanced</span>
-                        <span className="text-sm text-slate-300">+</span>
-                        <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>15% Advanced</span>
-                      </div>
-
-                    </div>
-                    
-                    {/* Support Level Details */}
-                    <div className="px-8 py-6 border-t border-slate-200">
-                      <div className="mb-5">
-                        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
-                        <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                          Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from the baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-3 gap-5">
-                      {tiers.map((t) => {
-                        const Icon = t.icon;
-
-                        return (
-                          <div key={t.key} className="rounded-xl overflow-hidden bg-white flex flex-col" style={{ border: `1px solid ${t.border}` }}>
-                            {/* Card header */}
-                            <div className="px-5 py-4 flex items-center gap-3" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
-                              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
-                                <Icon size={18} color="white" />
-                              </div>
-                              <div>
-                                <h4 className="text-base font-bold" style={{ color: t.color }}>{t.name}</h4>
-                                <span className="text-sm text-slate-500">{t.total} elements</span>
-                              </div>
-                            </div>
-
-                            {/* Description, flex-1 to push View Details to consistent bottom */}
-                            <div className="px-5 py-3 flex-1">
-                              <p className="text-sm text-slate-600 leading-relaxed">{t.shortDesc}</p>
-                            </div>
-
-                            {/* Score bar showing progress */}
-                            <div className="px-5 pb-3">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-sm font-semibold text-slate-700">{t.score}/100</span>
-                                <span className="text-sm text-slate-500">{t.bench.pctl}th percentile</span>
-                              </div>
-                              <div className="relative">
-                                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                  <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
-                                </div>
-                                {t.bench.avg > 0 && (
-                                  <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${Math.min(t.bench.avg, 100)}%` }}>
-                                    <div className="w-0.5 h-4 -mt-0.5 rounded-full bg-slate-600" />
-                                  </div>
-                                )}
-                              </div>
-                              {t.bench.avg > 0 && (
-                                <div className="flex items-center justify-end gap-1 mt-1">
-                                  <div className="w-3 h-0.5 bg-slate-600 rounded-full" />
-                                  <span className="text-xs text-slate-500">Benchmark: {t.bench.avg}</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Learn More toggle */}
-                            <div className="px-5 py-3 border-t" style={{ borderColor: t.border }}>
-                              <button
-                                onClick={() => setExpandedLearnMore(expandedLearnMore === t.key ? null : t.key)}
-                                className="flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
-                                style={{ color: t.color }}
-                              >
-                                <span>{expandedLearnMore === t.key ? 'Hide Details' : 'View Details'}</span>
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedLearnMore === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                              </button>
-                            </div>
-
-                            {/* Expanded: Element Status + element list */}
-                            {expandedLearnMore === t.key && (
-                              <>
-                                <div className="px-5 py-4" style={{ backgroundColor: t.light, borderTop: `1px solid ${t.border}` }}>
-                                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Element Status</p>
-                                  <div className="space-y-1.5">
-                                    {[
-                                      { label: 'In Place', count: t.inPlace, color: '#10B981' },
-                                      { label: 'In Development', count: t.inDev, color: '#3B82F6' },
-                                      { label: 'Under Review', count: t.review, color: '#F59E0B' },
-                                      { label: 'Not Planned', count: t.gaps, color: '#F87171' },
-                                      { label: 'Unsure', count: t.toConfirm, color: '#8B5CF6' },
-                                    ].map(s => (
-                                      <div key={s.label} className="flex items-center gap-2">
-                                        <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
-                                        <span className="text-sm text-slate-600 flex-1">{s.label}</span>
-                                        <span className="text-sm font-bold tabular-nums" style={{ color: s.count > 0 ? s.color : '#CBD5E1' }}>{s.count}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-
-                                  {/* View elements link */}
-                                  <button
-                                    onClick={() => setExpandedWSICard(expandedWSICard === t.key ? null : t.key)}
-                                    className="mt-3 flex items-center gap-1.5 text-sm font-medium hover:underline"
-                                    style={{ color: t.color }}
-                                  >
-                                    {expandedWSICard === t.key ? 'Hide' : 'View'} all {t.total} elements
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: expandedWSICard === t.key ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                                  </button>
-                                </div>
-                              </>
-                            )}
-                            
-                            {/* Expanded element list by dimension */}
-                            {expandedWSICard === t.key && (() => {
-                              const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === t.key);
-                              const dimGroups: Record<number, any[]> = {};
-                              levelElems.forEach((e: any) => {
-                                if (!dimGroups[e.dim]) dimGroups[e.dim] = [];
-                                dimGroups[e.dim].push(e);
-                              });
-                              const sortedDims = Object.entries(dimGroups).sort(([a], [b]) => parseInt(a) - parseInt(b));
-                              
-                              return (
-                                <div className="px-4 py-3 max-h-80 overflow-y-auto" style={{ borderTop: `1px solid ${t.border}`, backgroundColor: 'white' }}>
-                                  {sortedDims.map(([dimStr, elems]) => {
-                                    const dimNum = parseInt(dimStr);
-                                    const dimInfo = dimensionAnalysis?.find((d: any) => d.dim === dimNum);
-                                    return (
-                                      <div key={dimNum} className="mb-3 last:mb-0">
-                                        <div className="flex items-center gap-2 mb-1.5">
-                                          <span className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{dimNum}</span>
-                                          <span className="text-xs font-semibold text-slate-700 truncate">{dimInfo?.name || `Dimension ${dimNum}`}</span>
-                                          <span className="text-[10px] text-slate-500 flex-shrink-0">{elems.length} element{elems.length !== 1 ? 's' : ''}</span>
-                                        </div>
-                                        <div className="pl-2 space-y-0.5 mt-1">
-                                          {elems.map((e: any) => {
-                                            const statusColor = e.isStrength ? '#10B981' : e.isPlanning ? '#3B82F6' : e.isAssessing ? '#F59E0B' : e.isUnsure ? '#8B5CF6' : '#F87171';
-                                            const statusLabel = e.isStrength ? 'In Place' : e.isPlanning ? 'In Dev' : e.isAssessing ? 'Review' : e.isUnsure ? 'Confirm' : 'Not Planned';
-                                            return (
-                                              <div key={e.name} className="flex items-start gap-2 py-0.5">
-                                                <span className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: statusColor }} />
-                                                <span className="text-[11px] text-slate-600 flex-1 leading-tight">{e.name}</span>
-                                                <span className="text-[10px] font-medium flex-shrink-0" style={{ color: statusColor }}>{statusLabel}</span>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        );
-                      })}
-                      </div>
-                    </div>
-
-                    {/* How does Company compare?, Dropdown */}
-                    {(() => {
-                      const computeDist = (scores: number[]) => {
-                        if (scores.length === 0) return { leading: 0, advancing: 0, accelerating: 0, building: 0 };
-                        const n = scores.length;
-                        return {
-                          leading: Math.round((scores.filter(s => s >= 80).length / n) * 100),
-                          advancing: Math.round((scores.filter(s => s >= 64 && s < 80).length / n) * 100),
-                          accelerating: Math.round((scores.filter(s => s >= 50 && s < 64).length / n) * 100),
-                          building: Math.round((scores.filter(s => s < 50).length / n) * 100),
-                        };
-                      };
-
-                      const getTierInfo = (score: number) => {
-                        if (score >= 80) return { label: 'Leading', color: '#047857' };
-                        if (score >= 64) return { label: 'Advancing', color: '#1D4ED8' };
-                        if (score >= 50) return { label: 'Accelerating', color: '#B45309' };
-                        return { label: 'Building', color: '#B91C1C' };
-                      };
-
-                      const compRows = [
-                        { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, accentColor: '#334155' },
-                        { label: 'Foundation', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
-                        { label: 'Expanded', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
-                        { label: 'Signature', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
-                      ];
-
-                      const tierDefs = [
-                        { key: 'leading', label: 'Leading', range: '80-100', color: '#047857' },
-                        { key: 'advancing', label: 'Advancing', range: '64-79', color: '#1D4ED8' },
-                        { key: 'accelerating', label: 'Accelerating', range: '50-63', color: '#B45309' },
-                        { key: 'building', label: 'Building', range: '0-49', color: '#B91C1C' },
-                      ];
-
-                      return (
-                        <div className="px-8 pb-6">
-                          {/* Dropdown trigger */}
-                          <button
-                            onClick={() => setShowScoreComparison(!showScoreComparison)}
-                            className="w-full flex items-center justify-between px-6 py-5 bg-white rounded-xl hover:bg-slate-50 transition-all shadow-sm"
-                            style={{ border: showScoreComparison ? '2px solid #334155' : '1px solid #e2e8f0' }}
-                          >
-                            <div className="flex items-center gap-3">
-                              <svg className="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                              </svg>
-                              <span className="text-lg font-bold text-slate-800">How does {companyName} compare?</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-slate-500" style={{ transform: showScoreComparison ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                              </div>
-                            </div>
-                          </button>
-
-                          {showScoreComparison && (
-                            <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-                              {/* Explanation header */}
-                              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
-                                <p className="text-sm text-slate-600 leading-relaxed">
-                                  This table shows where {companyName} falls relative to all participating companies.
-                                  <strong className="text-slate-700"> Your Score</strong> and <strong className="text-slate-700">Your Tier</strong> show your current standing,
-                                  while the percentage columns show how companies are distributed across the four performance tiers.
-                                </p>
-                              </div>
-
-                              {/* Table header, two rows */}
-                              <div className="bg-slate-50 border-b border-slate-200">
-                                {/* Row 1: Your cols + Benchmark Distribution spanning header */}
-                                <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6">
-                                  <div className="col-span-3"></div>
-                                  <div className="col-span-4 text-center py-2 border-l border-slate-200">
-                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Benchmark Distribution</p>
-                                  </div>
-                                </div>
-                                {/* Row 2: Individual column headers */}
-                                <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-2">
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider"></div>
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Score</div>
-                                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider text-center">Your Tier</div>
-                                  {[
-                                    { label: 'Leading', range: '80\u2013100', color: '#047857' },
-                                    { label: 'Advancing', range: '64\u201379', color: '#1D4ED8' },
-                                    { label: 'Accelerating', range: '50\u201363', color: '#B45309' },
-                                    { label: 'Building', range: '0\u201349', color: '#B91C1C' },
-                                  ].map((td, i) => (
-                                    <div key={td.label} className={`text-center ${i === 0 ? 'border-l border-slate-200' : ''}`}>
-                                      <p className="text-xs font-bold uppercase tracking-wider" style={{ color: td.color }}>{td.label}</p>
-                                      <p className="text-[11px] text-slate-500">{td.range}</p>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Data rows */}
-                              {compRows.map((row, i) => {
-                                const dist = computeDist(row.scores);
-                                const tierInfo = getTierInfo(row.score);
-                                return (
-                                  <div key={row.label} className={`grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6 py-4 items-center ${i < compRows.length - 1 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50/50' : ''}`}>
-                                    {/* Row label */}
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1 h-8 rounded-full" style={{ backgroundColor: row.accentColor }} />
-                                      <span className="text-base font-semibold text-slate-800">{row.label}</span>
-                                    </div>
-
-                                    {/* Score */}
-                                    <div className="text-center">
-                                      <span className="text-2xl font-bold" style={{ color: row.accentColor }}>{row.score}</span>
-                                    </div>
-
-                                    {/* Tier badge */}
-                                    <div className="text-center pr-3">
-                                      <span className="inline-block text-sm font-bold px-3 py-1 rounded-lg" style={{ backgroundColor: tierInfo.color + '15', color: tierInfo.color }}>
-                                        {tierInfo.label}
-                                      </span>
-                                    </div>
-
-                                    {/* Tier distribution percentages */}
-                                    {[dist.leading, dist.advancing, dist.accelerating, dist.building].map((pct, j) => {
-                                      const isYourTier = tierDefs[j].label === tierInfo.label;
-                                      return (
-                                        <div key={j} className={`text-center ${j === 0 ? 'border-l border-slate-200 pl-3' : ''}`}>
-                                          <span className={`text-lg tabular-nums ${isYourTier ? 'font-bold' : 'font-medium text-slate-500'}`} style={isYourTier ? { color: tierDefs[j].color } : {}}>
-                                            {pct}%
-                                          </span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                );
-                              })}
-
-                              {/* Footer note */}
-                              <div className="px-6 py-3 bg-slate-50 border-t border-slate-200">
-                                <p className="text-sm text-slate-500">
-                                  Percentages show the share of participating companies that scored within each tier range.
-                                  <strong className="text-slate-500"> Highlighted values</strong> indicate your tier.
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                  </div>
-                );
-              })()}
               
               {/* Combined Summary Section */}
               <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-10">
