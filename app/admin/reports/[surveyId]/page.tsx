@@ -8817,16 +8817,6 @@ export default function ExportReportPage() {
                     </div>
                   </div>
 
-                  {/* Composite weight footnote */}
-                  <div className="flex items-center justify-center gap-6 mt-4 pt-3 border-t border-slate-200">
-                    <span className="text-sm text-slate-500">Composite = </span>
-                    <span className="text-sm font-semibold" style={{ color: '#047857' }}>35% Core</span>
-                    <span className="text-sm text-slate-300">+</span>
-                    <span className="text-sm font-semibold" style={{ color: '#B45309' }}>50% Enhanced</span>
-                    <span className="text-sm text-slate-300">+</span>
-                    <span className="text-sm font-semibold" style={{ color: '#7C3AED' }}>15% Advanced</span>
-                  </div>
-
                 </div>
                     
                 {/* Support Level Details */}
@@ -16590,10 +16580,6 @@ export default function ExportReportPage() {
               })()}
             </div>
 
-            {/* Footer */}
-            <div className="px-8 py-4 border-t border-slate-200 text-xs text-slate-500">
-              Composite = ~35% Core + ~50% Enhanced + ~15% Advanced (emergent from element weights, plus 5% Maturity + 5% Breadth)
-            </div>
           </div>
         </div>
       )}
