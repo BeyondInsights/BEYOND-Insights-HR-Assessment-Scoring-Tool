@@ -6136,7 +6136,7 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-                        {/* The Three Levels of Workplace Support, Collapsible */}
+                        {/* The Three Your Support in Context, Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowLevelsOverview(!showLevelsOverview)}
@@ -6161,7 +6161,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Levels of Workplace Support</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Your Support in Context</span>
                     <span className="text-xs text-slate-500 block mt-0.5">How {totalElementCount} self-reported program elements are classified across three levels of workplace support</span>
                   </div>
                 </div>
@@ -6173,7 +6173,7 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span>: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Your Support in Context</span>: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
                   </p>
 
                   <div className="grid grid-cols-3 gap-4 mb-2">
@@ -7578,13 +7578,16 @@ export default function ExportReportPage() {
               </div>
             </div>
             <div className="px-12 py-4">
+              {/* Helper text */}
+              <p className="text-sm text-slate-600 italic mb-3">Click any dimension below to see element-level detail.</p>
               {/* Table Header */}
               <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
                 <div className="w-64 pl-2">Dimension</div>
                 <div className="flex-1 text-center">Performance</div>
                 <div className="w-24 text-center">Your Score</div>
-                <div className="w-28 text-center">Benchmark<br/><span className="normal-case tracking-normal font-medium text-slate-400" style={{ fontSize: '9px' }}>avg (+/− yours)</span></div>
+                <div className="w-28 text-center">Benchmark<br/><span className="normal-case tracking-normal font-medium text-slate-400" style={{ fontSize: '9px' }}>avg (+/- yours)</span></div>
                 <div className="w-36 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
+                <div className="w-10"></div>
               </div>
               <div className="divide-y divide-slate-100">
                 {[...dimensionAnalysis].sort((a, b) => {
@@ -7599,13 +7602,14 @@ export default function ExportReportPage() {
                     <div
                       key={d.dim}
                       onClick={() => setDimensionDetailModal(d.dim)}
-                      className={`flex items-center py-3.5 cursor-pointer hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
+                      title="Click for details"
+                      className={`group flex items-center py-3.5 cursor-pointer hover:bg-slate-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
                     >
                       <div className="w-64 flex items-center gap-3 pl-2">
                         <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>
                           D{d.dim}
                         </span>
-                        <span className="text-sm text-slate-800 font-semibold hover:text-slate-900">{d.name}</span>
+                        <span className="text-sm text-slate-800 font-semibold group-hover:text-slate-900">{d.name}</span>
                       </div>
                       <div className="flex-1 px-4">
                         <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
@@ -7645,6 +7649,12 @@ export default function ExportReportPage() {
                         >
                           {pg.chip}
                         </span>
+                      </div>
+                      <div className="w-10 flex items-center justify-end gap-1.5 pr-2">
+                        <span className="text-[10px] text-slate-400 group-hover:text-slate-600 transition-colors hidden lg:inline">View details</span>
+                        <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
                       </div>
                     </div>
                   );
