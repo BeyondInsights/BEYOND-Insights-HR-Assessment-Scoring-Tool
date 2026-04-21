@@ -7537,7 +7537,7 @@ export default function ExportReportPage() {
                                     <div className="flex items-center justify-between mb-2">
                                       <div>
                                         <h4 className="font-bold text-indigo-800 text-sm">Geographic Consistency</h4>
-                                        <p className="text-xs text-indigo-500">How consistently are these practices available across your operating locations?</p>
+                                        <p className="text-xs text-indigo-700">How consistently are these practices available across your operating locations?</p>
                                       </div>
                                       {d.geoMultiplier < 1.0 && (
                                         <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-200 text-indigo-700">
@@ -8016,7 +8016,7 @@ export default function ExportReportPage() {
                         {matrixView === 'both' ? (
                           <div className="grid grid-cols-3 gap-2 text-sm">
                             <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Your Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
-                            <div className="bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100"><p className="text-indigo-500 text-xs font-medium">Benchmark</p><p className="font-bold text-xl text-indigo-700">{getBenchmarkScore(hoveredData.dim) ?? '-'}</p></div>
+                            <div className="bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100"><p className="text-indigo-700 text-xs font-medium">Benchmark</p><p className="font-bold text-xl text-indigo-700">{getBenchmarkScore(hoveredData.dim) ?? '-'}</p></div>
                             <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
                           </div>
                         ) : (
@@ -8168,7 +8168,7 @@ export default function ExportReportPage() {
                         <ul className="space-y-2">
                           {(infoContent[infoModal] as any).questions?.map((q: string, i: number) => (
                             <li key={i} className="flex items-start gap-2 text-slate-600">
-                              <span className="text-violet-500 mt-1">•</span>
+                              <span className="text-violet-700 mt-1">•</span>
                               <span>{q}</span>
                             </li>
                           ))}
@@ -10992,7 +10992,7 @@ export default function ExportReportPage() {
                             </div>
                             
                             <div className="flex flex-col items-center">
-                              <svg className={`w-8 h-8 ${hasChanges ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className={`w-8 h-8 ${hasChanges ? 'text-violet-700' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                               </svg>
                               {hasChanges && (
@@ -11120,7 +11120,7 @@ export default function ExportReportPage() {
                             </div>
                             
                             <div className="w-8 flex justify-center">
-                              <svg className={`w-4 h-4 ${hasChange ? 'text-violet-500' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className={`w-4 h-4 ${hasChange ? 'text-violet-700' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                               </svg>
                             </div>
@@ -12019,7 +12019,7 @@ export default function ExportReportPage() {
                   >
                     <p className="text-2xl font-bold text-amber-700">{maturityScore ?? '-'}</p>
                     <p className="text-xs text-amber-700 mt-1">Maturity</p>
-                    <p className="text-xs text-amber-500">× 5%</p>
+                    <p className="text-xs text-amber-700">× 5%</p>
                   </div>
                   <span className="text-xl text-slate-500 font-light">+</span>
                   <div 
@@ -12028,7 +12028,7 @@ export default function ExportReportPage() {
                   >
                     <p className="text-2xl font-bold text-violet-700">{breadthScore ?? '-'}</p>
                     <p className="text-xs text-violet-600 mt-1">Breadth</p>
-                    <p className="text-xs text-violet-500">× 5%</p>
+                    <p className="text-xs text-violet-700">× 5%</p>
                   </div>
                 </div>
               </div>
@@ -15637,13 +15637,13 @@ export default function ExportReportPage() {
                           <div className="text-center px-4 py-2.5 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[90px]">
                             <p className="text-xl font-bold text-amber-700">{maturityScore ?? '-'}</p>
                             <p className="text-xs text-amber-700 mt-1">Maturity</p>
-                            <p className="text-xs text-amber-500">× 5%</p>
+                            <p className="text-xs text-amber-700">× 5%</p>
                           </div>
                           <span className="text-lg text-slate-500 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[90px]">
                             <p className="text-xl font-bold text-violet-700">{breadthScore ?? '-'}</p>
                             <p className="text-xs text-violet-600 mt-1">Breadth</p>
-                            <p className="text-xs text-violet-500">× 5%</p>
+                            <p className="text-xs text-violet-700">× 5%</p>
                           </div>
                         </div>
                       </div>
