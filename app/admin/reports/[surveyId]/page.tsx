@@ -8754,75 +8754,82 @@ export default function ExportReportPage() {
               <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                 {/* Unified Score Panel */}
                 <div className="px-8 pt-6 pb-5">
-                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">Your Scores</p>
+                  <div className="grid grid-cols-[1fr_auto_3fr] gap-5 items-stretch">
+                    {/* === COMPOSITE SCORE CLUSTER === */}
+                    <div className="flex flex-col">
+                      <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Composite Score</p>
+                      <div className="flex-1 bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
+                        <p className="text-4xl font-bold text-slate-900 leading-none">{wsiScore}</p>
+                        <p className="text-sm font-bold mt-1.5" style={{ color: rating.color }}>{rating.label}</p>
+                        <div className="mt-2 pt-2 border-t border-slate-100">
+                          <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">59</span></p>
+                          {(() => {
+                            const diff = wsiScore - 59;
+                            if (diff === 0) return null;
+                            return (
+                              <p className={`text-xs font-bold mt-0.5 tabular-nums ${diff > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                {diff > 0 ? '+' : ''}{diff} vs benchmark
+                              </p>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    </div>
 
-                  {/* 4-column score grid: Composite + 3 support levels */}
-                  <div className="grid grid-cols-4 gap-3">
-                    {/* Composite Score, primary, slightly emphasized */}
-                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
-                      <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Composite</p>
-                      <p className="text-4xl font-bold text-slate-900 mt-1.5 leading-none">{wsiScore}</p>
-                      <p className="text-sm font-bold mt-1.5" style={{ color: rating.color }}>{rating.label}</p>
-                      <div className="mt-2 pt-2 border-t border-slate-100">
-                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">59</span></p>
-                        {(() => {
-                          const diff = wsiScore - 59;
-                          if (diff === 0) return null;
-                          return (
-                            <p className={`text-xs font-bold mt-0.5 tabular-nums ${diff > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                              {diff > 0 ? '+' : ''}{diff} vs benchmark
+                    {/* Vertical divider */}
+                    <div className="w-px bg-slate-200 mt-6" />
+
+                    {/* === THREE LEVELS OF SUPPORT CLUSTER === */}
+                    <div className="flex flex-col">
+                      <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">The Three Levels of Support</p>
+                      <div className="grid grid-cols-3 gap-3 flex-1">
+                        {/* Foundation */}
+                        <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
+                          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
+                          <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
+                          {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
+                          <div className="mt-2 pt-2 border-t border-slate-100">
+                            <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{coreBench.avg}</span></p>
+                            <p className={`text-xs font-bold mt-0.5 tabular-nums ${coreBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                              {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
                             </p>
-                          );
-                        })()}
-                      </div>
-                    </div>
+                          </div>
+                        </div>
 
-                    {/* Core Support */}
-                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
-                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
-                      <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
-                      {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
-                      <div className="mt-2 pt-2 border-t border-slate-100">
-                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{coreBench.avg}</span></p>
-                        <p className={`text-xs font-bold mt-0.5 tabular-nums ${coreBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
-                        </p>
-                      </div>
-                    </div>
+                        {/* Expanded */}
+                        <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
+                          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
+                          <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
+                          {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
+                          <div className="mt-2 pt-2 border-t border-slate-100">
+                            <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{enhBench.avg}</span></p>
+                            <p className={`text-xs font-bold mt-0.5 tabular-nums ${enhBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                              {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
+                            </p>
+                          </div>
+                        </div>
 
-                    {/* Enhanced Support */}
-                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
-                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
-                      <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
-                      {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
-                      <div className="mt-2 pt-2 border-t border-slate-100">
-                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{enhBench.avg}</span></p>
-                        <p className={`text-xs font-bold mt-0.5 tabular-nums ${enhBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Advanced Support */}
-                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
-                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
-                      <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
-                      {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
-                      <div className="mt-2 pt-2 border-t border-slate-100">
-                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{advBench.avg}</span></p>
-                        <p className={`text-xs font-bold mt-0.5 tabular-nums ${advBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                          {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
-                        </p>
+                        {/* Signature */}
+                        <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
+                          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
+                          <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
+                          {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
+                          <div className="mt-2 pt-2 border-t border-slate-100">
+                            <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{advBench.avg}</span></p>
+                            <p className={`text-xs font-bold mt-0.5 tabular-nums ${advBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                              {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-
                 </div>
                     
                 {/* Support Level Details */}
                 <div className="px-8 pt-4 pb-4 border-t border-slate-200">
                   <div className="mb-3">
-                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">The Three Levels of Support</p>
+                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">What Each Level Includes</p>
                     <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                       Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs.
                     </p>
