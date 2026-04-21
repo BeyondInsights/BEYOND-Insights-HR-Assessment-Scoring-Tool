@@ -3662,6 +3662,9 @@ export default function ExportReportPage() {
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
+  const [openedDims, setOpenedDims] = useState<Set<number>>(new Set());
+  const [dpInitialized, setDpInitialized] = useState(false);
+  const dimDetailRef = useRef<HTMLDivElement | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
   const [exportProgress, setExportProgress] = useState({ step: '', percent: 0 });
@@ -4351,6 +4354,22 @@ export default function ExportReportPage() {
     }
   }, [company]);
 
+  // Auto-expand top-priority dimension in DP accordion on first load
+  useEffect(() => {
+    if (!dpInitialized && elementDetails && companyScores?.dimensionScores) {
+      let topDim = 1;
+      let maxWeight = 0;
+      Object.keys(companyScores.dimensionScores).forEach(k => {
+        const dimNum = parseInt(k);
+        const w = DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0;
+        if (w > maxWeight) { maxWeight = w; topDim = dimNum; }
+      });
+      setDimensionDetailModal(topDim);
+      setOpenedDims(new Set([topDim]));
+      setDpInitialized(true);
+    }
+  }, [elementDetails, companyScores, dpInitialized]);
+
   useEffect(() => {
     // CRITICAL: Reset ALL state when surveyId changes
     setLoading(true);
@@ -4361,6 +4380,8 @@ export default function ExportReportPage() {
     setElementDetails(null);
     setPercentileRank(null);
     setTotalCompanies(0);
+    setOpenedDims(new Set());
+    setDpInitialized(false);
     
     async function loadData() {
       try {
@@ -7598,12 +7619,21 @@ export default function ExportReportPage() {
                 }).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   const pg = getEmployeePriorityGroup(d.weight);
+                  const isOpen = dimensionDetailModal === d.dim;
                   return (
                     <div
                       key={d.dim}
-                      onClick={() => setDimensionDetailModal(d.dim)}
-                      title="Click for details"
-                      className={`group flex items-center py-3.5 cursor-pointer hover:bg-slate-100 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
+                      onClick={() => {
+                        if (isOpen) {
+                          setDimensionDetailModal(null);
+                        } else {
+                          setDimensionDetailModal(d.dim);
+                          setOpenedDims(prev => new Set(prev).add(d.dim));
+                          setTimeout(() => dimDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                        }
+                      }}
+                      title={isOpen ? 'Collapse' : 'Click for details'}
+                      className={`group flex items-center py-3.5 cursor-pointer hover:bg-slate-100 transition-colors ${isOpen ? 'bg-slate-100 ring-1 ring-slate-300' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
                     >
                       <div className="w-64 flex items-center gap-3 pl-2">
                         <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>
@@ -7651,8 +7681,8 @@ export default function ExportReportPage() {
                         </span>
                       </div>
                       <div className="w-10 flex items-center justify-end gap-1.5 pr-2">
-                        <span className="text-[10px] text-slate-400 group-hover:text-slate-600 transition-colors hidden lg:inline">View details</span>
-                        <svg className="w-4 h-4 text-slate-400 group-hover:text-slate-700 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                        <span className={`text-[10px] transition-colors hidden lg:inline ${isOpen ? 'text-slate-700 font-semibold' : 'text-slate-400 group-hover:text-slate-600'}`}>{isOpen ? 'Hide' : 'View details'}</span>
+                        <svg className={`w-4 h-4 transition-all ${isOpen ? 'text-slate-700 rotate-90' : 'text-slate-400 group-hover:text-slate-700'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                         </svg>
                       </div>
@@ -8147,8 +8177,8 @@ export default function ExportReportPage() {
             });
             
             return (
-              <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setDimensionDetailModal(null)}>
-                <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+              <div ref={dimDetailRef} className="max-w-[1280px] mx-auto mb-8 ppt-break">
+                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
                   {/* Header */}
                   <div className="px-6 py-4 flex-shrink-0 relative" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
                     <div className="flex items-center justify-between">
@@ -8379,32 +8409,29 @@ export default function ExportReportPage() {
                     )}
                   </div>
 
-                  {/* Footer - Navigation */}
+                  {/* Footer - Quick nav between dimensions */}
                   <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
-                    <div className="flex items-center justify-center">
-                      {/* Navigation */}
-                      <div className="flex items-center gap-4">
-                        <button onClick={() => setDimensionDetailModal(Math.max(1, dimensionDetailModal - 1))} disabled={dimensionDetailModal <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                          ← Prev
-                        </button>
-                        <div className="flex items-center gap-2">
-                          {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
-                            <button
-                              key={num}
-                              onClick={() => setDimensionDetailModal(num)}
-                              className={`w-7 h-7 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-                            >
-                              {num}
-                            </button>
-                          ))}
-                        </div>
-                        <button onClick={() => setDimensionDetailModal(Math.min(13, dimensionDetailModal + 1))} disabled={dimensionDetailModal >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                          Next →
-                        </button>
-                        <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-5 py-2 bg-slate-800 text-white rounded font-semibold text-sm hover:bg-slate-700">
-                          Close
-                        </button>
+                    <div className="flex items-center justify-center gap-3">
+                      <button onClick={() => { const n = Math.max(1, (dimensionDetailModal ?? 1) - 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                        &lt; Prev
+                      </button>
+                      <div className="flex items-center gap-2">
+                        {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
+                          <button
+                            key={num}
+                            onClick={() => { setDimensionDetailModal(num); setOpenedDims(prev => new Set(prev).add(num)); }}
+                            className={`w-7 h-7 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                          >
+                            {num}
+                          </button>
+                        ))}
                       </div>
+                      <button onClick={() => { const n = Math.min(13, (dimensionDetailModal ?? 1) + 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                        Next &gt;
+                      </button>
+                      <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white text-sm font-medium">
+                        Collapse
+                      </button>
                     </div>
                   </div>
                 </div>
