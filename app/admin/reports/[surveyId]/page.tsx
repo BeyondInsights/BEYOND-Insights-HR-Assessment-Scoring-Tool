@@ -5956,8 +5956,11 @@ export default function ExportReportPage() {
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
                               <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
-                              <p className="text-sm text-slate-700 leading-relaxed mb-2">
-                                The Composite Score combines your Foundation, Expanded, and Signature scores using research-derived weights: <span className="font-semibold text-slate-900">Foundation (35%)</span>, <span className="font-semibold text-slate-900">Expanded (50%)</span>, <span className="font-semibold text-slate-900">Signature (15%)</span>. These weights reflect the importance employees and HR leaders place on each level of support, based on research with employees managing cancer, HR leaders, and the broader workforce.
+                              <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
+                                Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element is weighted by its importance to employees navigating cancer, and each dimension contributes to the overall score based on how much it influences employee wellbeing and organizational outcomes.
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
+                                The {totalElementCount} elements are also grouped into three <span className="font-semibold text-slate-900">Levels of Workplace Support</span> (Foundation, Expanded, and Signature) for additional context on how your coverage is distributed. These groupings help you understand the shape of your support but do not determine your score.
                               </p>
                               <p className="text-sm text-slate-700 leading-relaxed">
                                 Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of care.
@@ -12525,8 +12528,11 @@ export default function ExportReportPage() {
                           </p>
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                             <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
+                            <p className="text-sm text-slate-700 leading-relaxed mb-2">
+                              Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span>. Each element is weighted by its importance to employees navigating cancer, and each dimension contributes based on how much it influences employee wellbeing and organizational outcomes.
+                            </p>
                             <p className="text-sm text-slate-700 leading-relaxed">
-                              The Composite Score combines your Foundation, Expanded, and Signature scores using research-derived weights: <span className="font-semibold text-slate-900">Foundation (35%)</span>, <span className="font-semibold text-slate-900">Expanded (50%)</span>, <span className="font-semibold text-slate-900">Signature (15%)</span>. Improvements in any dimension strengthen overall support, particularly when they expand access, consistency, and continuity of care.
+                              The {totalElementCount} elements are also grouped into three Levels of Workplace Support (Foundation, Expanded, Signature) for context. These groupings help you understand the shape of your support but do not determine your score.
                             </p>
                           </div>
                         </div>
