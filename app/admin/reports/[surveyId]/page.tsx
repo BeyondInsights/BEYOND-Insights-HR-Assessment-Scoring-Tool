@@ -7771,7 +7771,7 @@ export default function ExportReportPage() {
                   let top: string, left: string;
                   if (isRightEdge) { left = `calc(${xPercent}% - 280px)`; } else { left = `calc(${xPercent}% + 35px)`; }
                   if (isTopEdge) { top = `calc(${yPercent}% + 35px)`; } else if (isBottomEdge) { top = `calc(${yPercent}% - 190px)`; } else { top = `calc(${yPercent}% - 80px)`; }
-                  return { top, left, right: 'auto', opacity: 1, pointerEvents: 'none' as const };
+                  return { top, left, right: 'auto', opacity: 1, pointerEvents: 'auto' as const };
                 };
                 
                 return (
@@ -7792,20 +7792,42 @@ export default function ExportReportPage() {
                           <stop offset="65%" stopColor="#1E40AF" />
                           <stop offset="100%" stopColor="#1E3A8A" />
                         </linearGradient>
+                        <linearGradient id="yAxisArrowGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                          <stop offset="0%" stopColor="#CBD5E1" />
+                          <stop offset="35%" stopColor="#64748B" />
+                          <stop offset="65%" stopColor="#1E40AF" />
+                          <stop offset="100%" stopColor="#1E3A8A" />
+                        </linearGradient>
+                        <linearGradient id="qGapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.10" />
+                          <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.03" />
+                        </linearGradient>
+                        <linearGradient id="qStrGrad" x1="100%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#059669" stopOpacity="0.10" />
+                          <stop offset="100%" stopColor="#059669" stopOpacity="0.03" />
+                        </linearGradient>
+                        <linearGradient id="qSecGapGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.04" />
+                          <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
+                        </linearGradient>
+                        <linearGradient id="qSecStrGrad" x1="100%" y1="100%" x2="0%" y2="0%">
+                          <stop offset="0%" stopColor="#059669" stopOpacity="0.04" />
+                          <stop offset="100%" stopColor="#059669" stopOpacity="0" />
+                        </linearGradient>
                       </defs>
                       
                       <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Priority Gaps (top-left), faint amber */}
-                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
-                        {/* Priority Strengths (top-right), faint blue */}
-                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
-                        {/* Secondary Gaps (bottom-left), barely there warm */}
-                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
-                        {/* Secondary Strengths (bottom-right), barely there cool */}
-                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
+                        {/* Priority Gaps (top-left) — urgent amber gradient from corner */}
+                        <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qGapGrad)" />
+                        {/* Priority Strengths (top-right) — celebratory emerald gradient from corner */}
+                        <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qStrGrad)" />
+                        {/* Secondary Gaps (bottom-left) — very faint amber */}
+                        <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qSecGapGrad)" />
+                        {/* Secondary Strengths (bottom-right) — very faint emerald */}
+                        <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qSecStrGrad)" />
 
                         {/* Quadrant labels, centered in each quadrant */}
                         <text x={PLOT_WIDTH/4} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
@@ -7845,19 +7867,14 @@ export default function ExportReportPage() {
                           <text x={PLOT_WIDTH/2} y={36} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
                         </g>
 
-                        {/* Y-axis */}
-                        <g>
-                          {[0, 5, 10, 15].map((val) => {
-                            const yPos = PLOT_HEIGHT - ((val / MAX_WEIGHT) * PLOT_HEIGHT);
-                            return (
-                              <g key={val}>
-                                <line x1="-6" y1={yPos} x2="0" y2={yPos} stroke="#64748B" strokeWidth="1.5" />
-                                <text x="-12" y={yPos + 4} textAnchor="end" fill="#475569" fontSize="12" fontWeight="500" fontFamily="system-ui">{val}%</text>
-                              </g>
-                            );
-                          })}
+                        {/* Y-axis — gradient arrow bar (Lower at bottom -> Higher at top) */}
+                        <g transform={`translate(-10, 0)`}>
+                          <rect x={-3} y={6} width={6} height={PLOT_HEIGHT - 6} rx="3" fill="url(#yAxisArrowGrad)" opacity="0.9" />
+                          <polygon points={`-8,8 0,-4 8,8`} fill="#1E3A8A" opacity="0.9" />
+                          <text x={-14} y={PLOT_HEIGHT - 2} textAnchor="end" fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
+                          <text x={-14} y={14} textAnchor="end" fill="#1E3A8A" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-50" textAnchor="middle" fill="#1E293B" fontSize="13" fontWeight="700" fontFamily="system-ui">EMPLOYEE PRIORITY WEIGHT ↑</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-48" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">EMPLOYEE PRIORITY</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {(matrixView === 'benchmarks' || matrixView === 'both') && (() => {
