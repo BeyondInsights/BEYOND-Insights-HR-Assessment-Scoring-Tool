@@ -3662,6 +3662,7 @@ export default function ExportReportPage() {
   const [matrixView, setMatrixView] = useState<'company' | 'benchmarks' | 'both'>('company');
   const [activeScoreOverlay, setActiveScoreOverlay] = useState<'weightedDim' | 'maturity' | 'breadth' | null>(null);
   const [hoveredMatrixDim, setHoveredMatrixDim] = useState<number | null>(null);
+  const matrixHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [dimensionDetailModal, setDimensionDetailModal] = useState<number | null>(null);
   const [openedDims, setOpenedDims] = useState<Set<number>>(new Set());
   const [dpInitialized, setDpInitialized] = useState(false);
@@ -7799,19 +7800,19 @@ export default function ExportReportPage() {
                           <stop offset="100%" stopColor="#1E3A8A" />
                         </linearGradient>
                         <linearGradient id="qGapGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.10" />
-                          <stop offset="100%" stopColor="#F59E0B" stopOpacity="0.03" />
+                          <stop offset="0%" stopColor="#DC2626" stopOpacity="0.18" />
+                          <stop offset="100%" stopColor="#DC2626" stopOpacity="0.02" />
                         </linearGradient>
                         <linearGradient id="qStrGrad" x1="100%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#059669" stopOpacity="0.10" />
-                          <stop offset="100%" stopColor="#059669" stopOpacity="0.03" />
+                          <stop offset="0%" stopColor="#059669" stopOpacity="0.18" />
+                          <stop offset="100%" stopColor="#059669" stopOpacity="0.02" />
                         </linearGradient>
                         <linearGradient id="qSecGapGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.04" />
-                          <stop offset="100%" stopColor="#F59E0B" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#DC2626" stopOpacity="0.06" />
+                          <stop offset="100%" stopColor="#DC2626" stopOpacity="0" />
                         </linearGradient>
                         <linearGradient id="qSecStrGrad" x1="100%" y1="100%" x2="0%" y2="0%">
-                          <stop offset="0%" stopColor="#059669" stopOpacity="0.04" />
+                          <stop offset="0%" stopColor="#059669" stopOpacity="0.06" />
                           <stop offset="100%" stopColor="#059669" stopOpacity="0" />
                         </linearGradient>
                       </defs>
@@ -7874,7 +7875,7 @@ export default function ExportReportPage() {
                           <text x={-14} y={PLOT_HEIGHT - 2} textAnchor="end" fill="#94A3B8" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Lower</text>
                           <text x={-14} y={14} textAnchor="end" fill="#1E3A8A" fontSize="11" fontWeight="700" fontFamily="system-ui" letterSpacing="0.5">Higher</text>
                         </g>
-                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-48" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">EMPLOYEE PRIORITY</text>
+                        <text transform="rotate(-90)" x={-PLOT_HEIGHT/2} y="-48" textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">EMPLOYEE PRIORITY WEIGHT</text>
                         
                         {/* Benchmark rings at true positions + overlap indicators */}
                         {(matrixView === 'benchmarks' || matrixView === 'both') && (() => {
@@ -7995,9 +7996,20 @@ export default function ExportReportPage() {
                             key={d.dim}
                             className="absolute rounded-full cursor-pointer"
                             style={{ left: `${xPercent}%`, top: `${yPercent}%`, width: '60px', height: '60px', transform: 'translate(-50%, -50%)' }}
-                            onMouseEnter={() => setHoveredMatrixDim(d.dim)}
-                            onMouseLeave={() => setHoveredMatrixDim(null)}
-                            onClick={() => setDimensionDetailModal(d.dim)}
+                            onMouseEnter={() => {
+                              if (matrixHoverTimerRef.current) { clearTimeout(matrixHoverTimerRef.current); matrixHoverTimerRef.current = null; }
+                              setHoveredMatrixDim(d.dim);
+                            }}
+                            onMouseLeave={() => {
+                              if (matrixHoverTimerRef.current) clearTimeout(matrixHoverTimerRef.current);
+                              matrixHoverTimerRef.current = setTimeout(() => setHoveredMatrixDim(null), 250);
+                            }}
+                            onClick={() => {
+                              setDimensionDetailModal(d.dim);
+                              setOpenedDims(prev => new Set(prev).add(d.dim));
+                              setHoveredMatrixDim(null);
+                              setTimeout(() => { document.getElementById('dimension-performance-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+                            }}
                           />
                         );
                       })}
@@ -8019,8 +8031,14 @@ export default function ExportReportPage() {
                       <div
                         className={`absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-30 transition-opacity duration-150 cursor-pointer hover:ring-2 hover:ring-cyan-400 ${matrixView === 'both' ? 'w-80' : 'w-64'}`}
                         style={getTooltipStyle()}
-                        onMouseEnter={() => setHoveredMatrixDim(hoveredData.dim)}
-                        onMouseLeave={() => setHoveredMatrixDim(null)}
+                        onMouseEnter={() => {
+                          if (matrixHoverTimerRef.current) { clearTimeout(matrixHoverTimerRef.current); matrixHoverTimerRef.current = null; }
+                          setHoveredMatrixDim(hoveredData.dim);
+                        }}
+                        onMouseLeave={() => {
+                          if (matrixHoverTimerRef.current) clearTimeout(matrixHoverTimerRef.current);
+                          matrixHoverTimerRef.current = setTimeout(() => setHoveredMatrixDim(null), 250);
+                        }}
                         onClick={openDetail}
                       >
                         <div className="flex items-center gap-3 mb-3">
