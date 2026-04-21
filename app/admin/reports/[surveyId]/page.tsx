@@ -7621,7 +7621,7 @@ export default function ExportReportPage() {
                 }).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   const pg = getEmployeePriorityGroup(d.weight);
-                  const isOpen = dimensionDetailModal === d.dim;
+                  const isOpen = isPdf || dimensionDetailModal === d.dim;
                   // Delta pill color bands: green if >= +5, red if <= -5, grey otherwise
                   const deltaBand = diff === null ? 'none' : diff >= 5 ? 'positive' : diff <= -5 ? 'negative' : 'neutral';
                   const deltaStyles = deltaBand === 'positive' ? { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', arrow: 'M5 15l7-7 7 7' }
@@ -7692,7 +7692,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                      {dimensionDetailModal === d.dim && (() => {
+                      {(isPdf || dimensionDetailModal === d.dim) && (() => {
                         const d = dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
                         if (!d) return null;
                         const elemBench = elementBenchmarks[dimensionDetailModal] || {};
