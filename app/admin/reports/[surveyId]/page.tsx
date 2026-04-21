@@ -3574,7 +3574,8 @@ export default function ExportReportPage() {
   const [expandedReportSection, setExpandedReportSection] = useState<string | null>(null);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
-  const [activeReportTab, setActiveReportTab] = useState<'excellence' | 'initiatives' | 'growth' | null>(null);
+  const [activeReportTab, setActiveReportTab] = useState<'strength' | 'progress' | 'grow' | 'unsure' | null>('strength');
+  const [reportSummaryExpandedDim, setReportSummaryExpandedDim] = useState<number | null>(null);
   
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
   const [showWwcPledgeDetails, setShowWwcPledgeDetails] = useState(false);
@@ -9379,218 +9380,205 @@ export default function ExportReportPage() {
           )}
           
           {/* ============ REPORT SUMMARY ============ */}
-          <div id="report-summary" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-            {/* Dark accent header */}
-            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
-              <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-              <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
-            </div>
+          {(() => {
+            // Bucket every element into one of four status groups
+            // This is the coverage map — all elements across all dimensions should sum to the displayed total.
+            const bucketOf = (el: any): 'strength' | 'progress' | 'grow' | 'unsure' | null => {
+              if (el.isUnsure) return 'unsure';
+              if (el.isStrength) return 'strength';
+              if (el.isPlanning || el.isAssessing) return 'progress';
+              if (el.isGap) return 'grow';
+              return null;
+            };
+            const buckets: Record<'strength' | 'progress' | 'grow' | 'unsure', { dim: number; name: string; weight: number; elements: any[] }[]> = {
+              strength: [], progress: [], grow: [], unsure: [],
+            };
+            let coveredCount = 0;
+            let orphanCount = 0;
+            dimensionAnalysis.forEach((d: any) => {
+              const byBucket: Record<string, any[]> = { strength: [], progress: [], grow: [], unsure: [] };
+              (d.elements || []).forEach((el: any) => {
+                const b = bucketOf(el);
+                if (b === null) { orphanCount++; return; }
+                byBucket[b].push(el);
+                coveredCount++;
+              });
+              (['strength', 'progress', 'grow', 'unsure'] as const).forEach(b => {
+                if (byBucket[b].length > 0) {
+                  buckets[b].push({ dim: d.dim, name: d.name, weight: d.weight, elements: byBucket[b] });
+                }
+              });
+            });
+            if (orphanCount > 0 && typeof console !== 'undefined') {
+              // eslint-disable-next-line no-console
+              console.warn(`[ReportSummary] ${orphanCount} element(s) without a status bucket — data coverage gap`);
+            }
+            const countIn = (b: 'strength' | 'progress' | 'grow' | 'unsure') => buckets[b].reduce((s, g) => s + g.elements.length, 0);
 
-            {/* Tab cards + content area */}
-            <div className="px-12 pt-6 pb-0">
-              {/* Tab selector cards */}
-              <div className="grid grid-cols-3 gap-4 mt-2 mb-6">
-                {([
-                  {
-                    key: 'excellence' as const,
-                    label: 'Areas of Strength',
-                    desc: 'dimensions at Advancing or above',
-                    color: '#0284C7',
-                    lightBg: '#f0f9ff',
-                    icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-                    count: strengthDimensions.length
-                  },
-                  {
-                    key: 'initiatives' as const,
-                    label: 'Initiatives in Progress',
-                    desc: 'in development or under review',
-                    color: '#7C3AED',
-                    lightBg: '#f5f3ff',
-                    icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 5l7 7m0 0l-7 7m7-7H3" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-                    count: quickWinOpportunities.length
-                  },
-                  {
-                    key: 'growth' as const,
-                    label: 'Opportunities to Grow',
-                    desc: 'dimensions with growth potential',
-                    color: '#DC2626',
-                    lightBg: '#fef2f2',
-                    icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>,
-                    count: growthDimensions.length
-                  },
-                ]).map(tab => {
-                  const isActive = activeReportTab === tab.key;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => setActiveReportTab(activeReportTab === tab.key ? null : tab.key)}
-                      className="relative text-left rounded-xl p-5 transition-all"
-                      style={{
-                        backgroundColor: isActive ? '#1e293b' : '#ffffff',
-                        border: isActive ? '2px solid #1e293b' : '2px solid #64748b',
-                        boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
-                      }}
-                    >
-                      {isActive && (
-                        <div className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full" style={{ backgroundColor: '#1e293b' }} />
-                      )}
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#475569' : '#334155' }}>
-                            <span style={{ color: 'white' }}>{tab.icon}</span>
-                          </div>
-                          <div>
-                            <p className="text-base font-bold" style={{ color: isActive ? '#ffffff' : '#0f172a' }}>{tab.label}</p>
-                            <p className="text-sm mt-0.5" style={{ color: isActive ? '#cbd5e1' : '#475569' }}>{tab.desc}</p>
-                          </div>
-                        </div>
-                        <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: isActive ? '#ffffff' : '#1e293b' }}>{tab.count}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-center text-sm text-slate-500 mb-2">Select a tab above to explore your results</p>
-            </div>
+            const tabs = [
+              {
+                key: 'strength' as const,
+                label: 'Areas of Strength',
+                subtitle: 'strengths to protect',
+                count: countIn('strength'),
+                icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>,
+              },
+              {
+                key: 'progress' as const,
+                label: 'Initiatives in Progress',
+                subtitle: 'fastest path to improvement',
+                count: countIn('progress'),
+                icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>,
+              },
+              {
+                key: 'grow' as const,
+                label: 'Opportunities to Grow',
+                subtitle: 'greatest room to improve',
+                count: countIn('grow'),
+                icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11M12 14c-2 0-6-2-6-7 5 0 6 2 6 7zM12 11c2 0 6-2 6-7-5 0-6 2-6 7z" /></svg>,
+              },
+              {
+                key: 'unsure' as const,
+                label: 'Unsure',
+                subtitle: 'status could not be confirmed',
+                count: countIn('unsure'),
+                icon: <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01" /><circle cx="12" cy="12" r="9" /></svg>,
+              },
+            ];
+            const totalCovered = tabs.reduce((s, t) => s + t.count, 0);
 
-            {/* Tab content */}
-            {activeReportTab !== null && <div className="px-12 py-8">
-              {/* ---- Excellence tab ---- */}
-              {activeReportTab === 'excellence' && (
-                <div id="areas-of-excellence">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">Areas of Strength</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{strengthDimensions.length} {strengthDimensions.length === 1 ? 'dimension' : 'dimensions'} at Advancing or above <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
-                  {strengthDimensions.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-5">
-                      {strengthDimensions.map((d) => {
-                        const pg = getEmployeePriorityGroup(d.weight);
-                        return (
-                          <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-cyan-400 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
-                                <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
-                              </div>
-                              <div className="flex items-center gap-3 flex-shrink-0">
-                                <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                                <span className="text-xs font-semibold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
-                              </div>
-                            </div>
-                            <ul className="space-y-2">
-                              {d.strengths.slice(0, 3).map((e: any, i: number) => (
-                                <li key={i} className="text-base text-slate-600 flex items-start gap-2.5">
-                                  <svg className="w-5 h-5 text-cyan-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                  </svg>
-                                  <span>{e.name}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-slate-500">Focus on building foundational capabilities to reach Leading tier.</p>
-                    </div>
-                  )}
+            return (
+              <div id="report-summary" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+                {/* Dark accent header */}
+                <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
+                  <h2 className="text-2xl font-bold text-white">Report Summary</h2>
+                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items still to confirm — across all {totalCovered} support elements.</p>
                 </div>
-              )}
 
-              {/* ---- Initiatives tab ---- */}
-              {activeReportTab === 'initiatives' && (
-                <div id="initiatives-in-progress">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">Initiatives in Progress</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{quickWinOpportunities.length} programs currently in development or under review <span className="text-slate-500 font-normal">· Fastest path to improvement</span></p>
-                  {quickWinOpportunities.length > 0 ? (() => {
-                    const inProgressByDim = new Map<number, { dimNum: number; dimName: string; weight: number; items: any[] }>();
-                    quickWinOpportunities.forEach((item: any) => {
-                      if (!inProgressByDim.has(item.dimNum)) {
-                        const dimInfo = dimensionAnalysis.find((d: any) => d.dim === item.dimNum);
-                        inProgressByDim.set(item.dimNum, { dimNum: item.dimNum, dimName: item.dimName, weight: dimInfo?.weight || 0, items: [] });
-                      }
-                      inProgressByDim.get(item.dimNum)!.items.push(item);
-                    });
-                    const grouped = [...inProgressByDim.values()]
-                      .sort((a, b) => b.weight - a.weight)
-                      .map(g => ({ ...g, items: g.items.sort((a: any, b: any) => a.type === 'In Development' && b.type !== 'In Development' ? -1 : a.type !== 'In Development' && b.type === 'In Development' ? 1 : 0) }));
-                    const [showAllInit, setShowAllInit] = [grouped.length <= 6, null]; // show all if 6 or fewer
-                    const visibleGroups = grouped;
-                    return (
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {visibleGroups.map((group) => {
-                          const pg = getEmployeePriorityGroup(group.weight);
-                          return (
-                            <div key={group.dimNum} className="bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-shadow" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
-                              <div className="flex items-center gap-2 px-5 pt-4 pb-2">
-                                <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{group.dimNum}</span>
-                                <span className="text-sm font-semibold text-slate-800">{group.dimName}</span>
-                              </div>
-                              <div className="px-5 pb-4 space-y-3">
-                                {group.items.map((item: any, idx: number) => (
-                                  <div key={idx} className="pt-2 border-t border-slate-100 first:border-t-0 first:pt-0">
-                                    <div className="flex items-center justify-between gap-2">
-                                      <p className="text-sm text-slate-800">{item.name}</p>
-                                      <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
-                                    </div>
-                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Signature' : 'Expanded'; return <span style={{ color }}>({label})</span>; })()}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })() : (
-                    <div className="text-center py-8">
-                      <p className="text-slate-500">No initiatives currently in development or under review.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ---- Growth tab ---- */}
-              {activeReportTab === 'growth' && (
-                <div id="growth-opportunities">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">Opportunities to Grow</h3>
-                  <p className="text-base text-slate-600 mb-6 font-medium">{growthDimensions.length} {growthDimensions.length === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
-                  <div className="grid grid-cols-2 gap-5">
-                    {growthDimensions.map((d) => {
-                      const pg = getEmployeePriorityGroup(d.weight);
+                {/* Tab header */}
+                <div className="px-12 pt-6 pb-2">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                    {tabs.map(t => {
+                      const isActive = activeReportTab === t.key;
                       return (
-                        <div key={d.dim} className="border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-red-300 hover:-translate-y-0.5 transition-all cursor-pointer bg-white" onClick={() => setDimensionDetailModal(d.dim)}>
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-3 min-w-0">
-                              <span className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
-                              <p className="font-bold text-slate-800 text-lg truncate">{d.name}</p>
+                        <button
+                          key={t.key}
+                          onClick={() => {
+                            setActiveReportTab(activeReportTab === t.key ? null : t.key);
+                            setReportSummaryExpandedDim(null);
+                          }}
+                          className="relative text-left rounded-xl p-4 transition-all"
+                          style={{
+                            backgroundColor: isActive ? '#1e293b' : '#ffffff',
+                            border: isActive ? '2px solid #1e293b' : '2px solid #E2E8F0',
+                            boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
+                          }}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#475569' : '#F1F5F9', color: isActive ? '#ffffff' : '#334155' }}>
+                              {t.icon}
                             </div>
-                            <div className="flex items-center gap-3 flex-shrink-0">
-                              <span className="text-2xl font-bold" style={{ color: getScoreColor(d.score) }}>{d.score}</span>
-                              <span className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-lg" style={{ backgroundColor: pg.color + '15', color: pg.color }}>{pg.chip}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className="text-[14px] font-bold leading-tight" style={{ color: isActive ? '#ffffff' : '#0f172a' }}>{t.label}</p>
+                                <span className="text-[24px] font-bold tabular-nums leading-none" style={{ color: isActive ? '#ffffff' : '#1e293b' }}>{t.count}</span>
+                              </div>
+                              <p className="text-[11px] mt-1 leading-tight" style={{ color: isActive ? '#cbd5e1' : '#64748b' }}>{t.subtitle}</p>
                             </div>
                           </div>
-                          {d.needsAttention.length > 0 ? (
-                            <ul className="space-y-2">
-                              {d.needsAttention.slice(0, 3).map((e: any, i: number) => (
-                                <li key={i} className="text-base text-slate-600 flex items-start gap-2.5">
-                                  <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${e.isGap ? 'bg-rose-500' : e.isUnsure ? 'bg-slate-400' : 'bg-amber-500'}`}></span>
-                                  <span>{e.name}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            <p className="text-base text-slate-500">Focus on completing planned initiatives</p>
-                          )}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
+                  <p className="text-center text-sm text-slate-500 mt-3">Select a tab to explore your results</p>
                 </div>
-              )}
-            </div>}
-          </div>
+
+                {/* Tab content */}
+                {activeReportTab !== null && (() => {
+                  const activeBucket = buckets[activeReportTab];
+                  const dimsInTab = [...activeBucket].sort((a, b) => {
+                    if (b.elements.length !== a.elements.length) return b.elements.length - a.elements.length;
+                    return a.dim - b.dim;
+                  });
+                  const totalInTab = dimsInTab.reduce((s, g) => s + g.elements.length, 0);
+                  const activeTabMeta = tabs.find(t => t.key === activeReportTab)!;
+                  return (
+                    <div className="px-12 py-8">
+                      <div className="flex items-baseline justify-between mb-5">
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-800">{activeTabMeta.label}</h3>
+                          <p className="text-sm text-slate-500 mt-0.5 italic">Click any dimension to see its elements</p>
+                        </div>
+                        <p className="text-sm font-semibold text-slate-700 tabular-nums">{totalInTab} element{totalInTab === 1 ? '' : 's'} across {dimsInTab.length} dimension{dimsInTab.length === 1 ? '' : 's'}</p>
+                      </div>
+
+                      {dimsInTab.length === 0 ? (
+                        <div className="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
+                          <p className="text-slate-500">No elements in this status.</p>
+                        </div>
+                      ) : (
+                        <div className="divide-y divide-slate-200 border-t border-b border-slate-200">
+                          {dimsInTab.map(group => {
+                            const isOpen = (isPdf || reportSummaryExpandedDim === group.dim);
+                            return (
+                              <div key={group.dim}>
+                                <button
+                                  onClick={() => setReportSummaryExpandedDim(isOpen && !isPdf ? null : group.dim)}
+                                  className={`w-full flex items-center gap-3 py-3.5 px-2 text-left transition-colors ${isOpen ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
+                                >
+                                  <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''} text-slate-400`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                  </svg>
+                                  <span className="inline-flex items-center justify-center h-6 min-w-[42px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: '#1E3A5F' }}>
+                                    D{group.dim}
+                                  </span>
+                                  <span className="text-[15px] font-semibold text-slate-800 flex-1">{group.name}</span>
+                                  <span className="text-[13px] font-semibold text-slate-600 tabular-nums pr-2">{group.elements.length} element{group.elements.length === 1 ? '' : 's'}</span>
+                                </button>
+                                {isOpen && (
+                                  <div className="pl-12 pr-4 pb-4">
+                                    <ul className="space-y-2">
+                                      {group.elements.map((el: any, i: number) => (
+                                        <li key={i} className="flex items-center gap-3 text-[14px] text-slate-700">
+                                          {activeReportTab === 'strength' && (
+                                            <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                          )}
+                                          {activeReportTab === 'grow' && (
+                                            <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 flex-shrink-0" />
+                                          )}
+                                          {activeReportTab === 'unsure' && (
+                                            <span className="w-4 h-4 rounded-full bg-slate-200 text-slate-700 text-[11px] font-bold flex items-center justify-center flex-shrink-0">?</span>
+                                          )}
+                                          <span className="flex-1">{el.name}</span>
+                                          {activeReportTab === 'progress' && (
+                                            el.isPlanning ? (
+                                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 flex-shrink-0">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                                                In Development
+                                              </span>
+                                            ) : (
+                                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700 flex-shrink-0">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                                                Under Review
+                                              </span>
+                                            )
+                                          )}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })()}
 
           {/* Improvement Priorities Teaser Card */}
           <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
