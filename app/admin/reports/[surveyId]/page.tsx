@@ -11464,7 +11464,7 @@ export default function ExportReportPage() {
               13: { play: 'Ensure employees know what\'s available', firstStep: 'Test communication reach. Survey whether employees can name 3 cancer support resources.' },
             };
 
-            const wsiBenchmarkScore = benchmarks?.compositeScore ?? null;
+            const wsiBenchmarkScore = indexBenchmarks?.compositeScore ?? benchmarks?.compositeScore ?? null;
             const wsiBenchDiff = wsiScoreHeader != null && wsiBenchmarkScore != null ? wsiScoreHeader - wsiBenchmarkScore : null;
             const wsiTier = getWSITier(wsiScoreHeader ?? 0);
 
