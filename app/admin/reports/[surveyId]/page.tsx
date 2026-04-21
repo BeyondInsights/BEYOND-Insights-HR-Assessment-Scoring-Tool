@@ -6713,7 +6713,7 @@ export default function ExportReportPage() {
                     {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
                     {wsiPercentile !== null && totalCompanies > 1 && (
                       <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
-                    )}. The score is weighted across 13 dimensions of workplace cancer support across {totalElementCount} elements and their impact on employee wellbeing and organizational outcomes.
+                    )}. The score is weighted across 13 dimensions and {totalElementCount} elements of workplace cancer support, reflecting their impact on employee wellbeing and organizational outcomes.
                   </p>
                 </div>
               
@@ -11538,20 +11538,25 @@ export default function ExportReportPage() {
             </div>
             <div className="px-12 py-8">
               {/* Intro paragraph */}
-              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200 mb-8 relative">
+              <div className="bg-gradient-to-r from-orange-50 to-amber-50 rounded-2xl p-6 border border-orange-200 mb-6 relative">
                 <div className="absolute top-0 left-6 w-1 h-full bg-gradient-to-b from-[#F37021] to-transparent rounded-full"></div>
                 <div className="pl-4">
                   <p className="text-slate-700 text-base leading-relaxed">
-                    Every organization enters this work from a different place. Cancer and Careers' consulting practice 
-                    helps organizations understand where they are, identify where they want to be, and build a realistic 
-                    path to get there, shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                    Every organization enters this work from a different place. Cancer and Careers&apos; consulting practice
+                    helps organizations understand where they are, identify where they want to be, and build a realistic
+                    path to get there, shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer
                     and the HR teams supporting them.
                   </p>
                 </div>
               </div>
-              
+
+              {/* 30-minute call scheduling */}
+              <p className="text-slate-700 text-base leading-relaxed mb-8">
+                CAC will schedule a 30-minute call to review your report and identify the improvement priorities with the greatest impact on supporting your employees managing cancer and other serious health issues.
+              </p>
+
               {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
-              
+
               {/* Cancer and Careers' Services - flush-left list */}
               <h3 className="text-xl font-bold text-[#F37021] mb-5">Cancer and Careers&apos; Services</h3>
               <div className="space-y-5 mb-8">
