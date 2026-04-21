@@ -3471,34 +3471,34 @@ const SUPPORT_LEVELS = {
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
     shortDesc: 'The baseline practices most workplaces establish first.',
-    desc: 'The baseline practices most workplaces establish first. These are the protections and policies employees rely on the moment a diagnosis hits.',
-    boldPhrase: 'The baseline practices most workplaces establish first. These are the protections and policies employees rely on the moment a diagnosis hits. A strong Foundation signals your organization has the essentials right and is ready to build further.',
-    italic: 'A strong Foundation signals your organization has the essentials right and is ready to build further.',
+    desc: 'The baseline practices most workplaces establish first. These are the protections and policies employees rely on when first diagnosed.',
+    boldPhrase: 'The baseline practices most workplaces establish first. These are the protections and policies employees rely on when first diagnosed. A strong Foundation signals your organization has the essentials in place.',
+    italic: 'A strong Foundation signals your organization has the essentials in place.',
   },
   enhanced: {
-    name: 'Momentum', abbr: 'Momentum', tagline: 'The next layer',
+    name: 'Expanded', abbr: 'Expanded', tagline: 'Extended coverage',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
-    shortDesc: 'The next layer of practices that extend coverage, deepen manager readiness, and broaden access.',
-    desc: 'Once the Foundation is in place, these practices extend coverage, deepen manager readiness, and broaden access to care and resources.',
-    boldPhrase: 'Once the Foundation is in place, these practices extend coverage, deepen manager readiness, and broaden access to care and resources. Momentum is where a solid program becomes a genuinely supportive one.',
-    italic: 'Momentum is where a solid program becomes a genuinely supportive one.',
+    shortDesc: 'Practices that extend coverage, deepen manager readiness, and broaden access to care and resources.',
+    desc: 'Practices that extend coverage, deepen manager readiness, and broaden access to care and resources.',
+    boldPhrase: 'Practices that extend coverage, deepen manager readiness, and broaden access to care and resources. This is where a solid program becomes a genuinely supportive one.',
+    italic: 'This is where a solid program becomes a genuinely supportive one.',
   },
   advanced: {
-    name: 'Distinction', abbr: 'Distinction', tagline: 'Signature offerings',
+    name: 'Signature', abbr: 'Signature', tagline: 'High-impact programs',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    shortDesc: 'Signature offerings that set leading organizations apart. Specialized, high-impact programs.',
-    desc: 'The signature offerings that set leading organizations apart. Specialized, high-impact programs, often with dedicated resources.',
-    boldPhrase: 'The signature offerings that set leading organizations apart. Specialized, high-impact programs, often with dedicated resources. Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
-    italic: 'Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
+    shortDesc: 'High-impact offerings that set leading organizations apart, often backed by dedicated resources.',
+    desc: 'High-impact offerings that set leading organizations apart, often backed by dedicated resources.',
+    boldPhrase: 'High-impact offerings that set leading organizations apart, often backed by dedicated resources. These practices turn workplace cancer support into a differentiator.',
+    italic: 'These practices turn workplace cancer support into a differentiator.',
   },
 } as const;
 
 const SUPPORT_RATINGS: Record<string, { label: string; color: string; desc: string; range: string }> = {
-  leading: { label: 'Leading', range: '80–100', color: '#047857', desc: 'Comprehensive support across all three levels, with a strong Foundation, consistent Momentum, and meaningful Distinction practices in place.' },
-  established: { label: 'Advancing', range: '64–79', color: '#1D4ED8', desc: 'Strong Foundation coverage with solid Momentum and Distinction practices, indicating reliable support delivery and growing program depth.' },
-  progressing: { label: 'Accelerating', range: '50–63', color: '#B45309', desc: 'Foundation supports are well in place, forming a stable baseline with room to build Momentum and add Distinction depth.' },
+  leading: { label: 'Leading', range: '80–100', color: '#047857', desc: 'Comprehensive support across all three levels, with a strong Foundation, consistent Expanded, and meaningful Signature practices in place.' },
+  established: { label: 'Advancing', range: '64–79', color: '#1D4ED8', desc: 'Strong Foundation coverage with solid Expanded and Signature practices, indicating reliable support delivery and growing program depth.' },
+  progressing: { label: 'Accelerating', range: '50–63', color: '#B45309', desc: 'Foundation supports are well in place, forming a stable baseline with room to build Expanded coverage and add Signature depth.' },
   building: { label: 'Building', range: '0–49', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing Foundation access, navigation, and policy fundamentals.' },
 } as const;
 
@@ -3511,7 +3511,7 @@ function getWSIRating(score: number) {
 
 function SupportLevelBadge({ level }: { level: string }) {
   const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
-  const label = level === 'core' ? 'Foundation' : level === 'enhanced' ? 'Momentum' : 'Distinction';
+  const label = level === 'core' ? 'Foundation' : level === 'enhanced' ? 'Expanded' : 'Signature';
   return (
     <span
       className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap"
@@ -5929,7 +5929,7 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  The Index combines your Foundation, Momentum, and Distinction scores using research-derived weights: Foundation (35%), Momentum (50%), and Distinction (15%).
+                                  The Index combines your Foundation, Expanded, and Signature scores using research-derived weights: Foundation (35%), Expanded (50%), and Signature (15%).
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
@@ -6165,7 +6165,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Company Comparison</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">How Your Support Stacks Up</span>
                     <span className="text-xs text-slate-500 block mt-0.5">How {totalElementCount} self-reported program elements are classified across three levels of workplace support</span>
                   </div>
                 </div>
@@ -6177,7 +6177,7 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span>, from <span className="font-semibold text-slate-800">Foundation</span> practices every program builds on, to <span className="font-semibold text-slate-800">Momentum</span> that strengthens the employee experience, to <span className="font-semibold text-slate-800">Distinction</span> offerings that set leading organizations apart.
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span>: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
                   </p>
 
                   <div className="grid grid-cols-3 gap-4 mb-2">
@@ -6189,7 +6189,7 @@ export default function ExportReportPage() {
                       const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === key);
                       const count = levelElems.length;
                       const pct = allElems.length > 0 ? Math.round((count / allElems.length) * 100) : 0;
-                      const stageTag = key === 'core' ? 'the foundation every program builds on' : key === 'enhanced' ? 'typical as programs build momentum' : 'typical of leading-edge programs';
+                      const stageTag = key === 'core' ? 'found in most programs' : key === 'enhanced' ? 'common in stronger programs' : 'typical of standout programs';
 
                       // Per-dimension counts for this level
                       const dimCounts: Record<number, { count: number; total: number }> = {};
@@ -6891,7 +6891,7 @@ export default function ExportReportPage() {
 
                         {/* Enhanced Support */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Momentum</p>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
                           {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
@@ -6904,7 +6904,7 @@ export default function ExportReportPage() {
 
                         {/* Advanced Support */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Distinction</p>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
                           {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
@@ -6933,7 +6933,7 @@ export default function ExportReportPage() {
                       <div className="mb-5">
                         <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                          Each of the {totalElementCount} support elements is classified into one of three levels, Foundation, Momentum, and Distinction, reflecting a progression from the baseline practices every program should have in place, to the next layer that strengthens the employee experience, to signature offerings that set leading organizations apart. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                          Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from the baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
                         </p>
                       </div>
                       <div className="grid grid-cols-3 gap-5">
@@ -7098,8 +7098,8 @@ export default function ExportReportPage() {
                       const compRows = [
                         { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, accentColor: '#334155' },
                         { label: 'Foundation', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
-                        { label: 'Momentum', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
-                        { label: 'Distinction', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
+                        { label: 'Expanded', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
+                        { label: 'Signature', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
                       ];
 
                       const tierDefs = [
@@ -9337,7 +9337,7 @@ export default function ExportReportPage() {
                                       <p className="text-sm text-slate-800">{item.name}</p>
                                       <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
                                     </div>
-                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Distinction' : 'Momentum'; return <span style={{ color }}>({label})</span>; })()}</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Signature' : 'Expanded'; return <span style={{ color }}>({label})</span>; })()}</p>
                                   </div>
                                 ))}
                               </div>
@@ -11303,8 +11303,8 @@ export default function ExportReportPage() {
                     {[
                       { label: 'Composite', score: wsiScoreHeader, benchmark: wsiBenchmarkScore, color: '#334155' },
                       { label: 'Foundation', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
-                      { label: 'Momentum', score: enhancedScoreCalc, benchmark: enhancedTierBenchmarkAvg, color: '#B45309' },
-                      { label: 'Distinction', score: advancedScoreCalc, benchmark: advancedTierBenchmarkAvg, color: '#7C3AED' },
+                      { label: 'Expanded', score: enhancedScoreCalc, benchmark: enhancedTierBenchmarkAvg, color: '#B45309' },
+                      { label: 'Signature', score: advancedScoreCalc, benchmark: advancedTierBenchmarkAvg, color: '#7C3AED' },
                     ].map(item => {
                       const diff = item.benchmark != null && item.score != null ? item.score - item.benchmark : null;
                       return (
@@ -14067,7 +14067,7 @@ export default function ExportReportPage() {
                                           <p className="text-sm text-slate-800">{item.name}</p>
                                           <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
                                         </div>
-                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Distinction' : 'Momentum'; return <span style={{ color }}>({label})</span>; })()}</p>
+                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Signature' : 'Expanded'; return <span style={{ color }}>({label})</span>; })()}</p>
                                       </div>
                                     ))}
                                   </div>
@@ -16168,11 +16168,11 @@ export default function ExportReportPage() {
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
-                    label: 'Momentum', getValue: (r) => r.enhancedScore, getBenchmark: () => ib?.enhancedScore,
+                    label: 'Expanded', getValue: (r) => r.enhancedScore, getBenchmark: () => ib?.enhancedScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
-                    label: 'Distinction', getValue: (r) => r.advancedScore, getBenchmark: () => ib?.advancedScore,
+                    label: 'Signature', getValue: (r) => r.advancedScore, getBenchmark: () => ib?.advancedScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
