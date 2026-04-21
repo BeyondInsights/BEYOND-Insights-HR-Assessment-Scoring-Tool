@@ -7986,12 +7986,26 @@ export default function ExportReportPage() {
                       })}
                     </div>
                     
-                    {/* Hover Tooltip */}
+                    {/* Hover Tooltip - stays alive when hovered, clickable to open detail */}
                     {hoveredData && (() => {
                       const displayScore = getDisplayScore(hoveredData);
                       const scoreLabel = matrixView === 'benchmarks' ? 'Benchmark' : 'Score';
+                      const openDetail = () => {
+                        setDimensionDetailModal(hoveredData.dim);
+                        setOpenedDims(prev => new Set(prev).add(hoveredData.dim));
+                        setHoveredMatrixDim(null);
+                        setTimeout(() => {
+                          document.getElementById('dimension-performance-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 50);
+                      };
                       return (
-                      <div className={`absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-30 transition-opacity duration-150 ${matrixView === 'both' ? 'w-80' : 'w-64'}`} style={getTooltipStyle()}>
+                      <div
+                        className={`absolute bg-white rounded-xl shadow-2xl border border-slate-200 p-4 z-30 transition-opacity duration-150 cursor-pointer hover:ring-2 hover:ring-cyan-400 ${matrixView === 'both' ? 'w-80' : 'w-64'}`}
+                        style={getTooltipStyle()}
+                        onMouseEnter={() => setHoveredMatrixDim(hoveredData.dim)}
+                        onMouseLeave={() => setHoveredMatrixDim(null)}
+                        onClick={openDetail}
+                      >
                         <div className="flex items-center gap-3 mb-3">
                           <span className="w-11 h-11 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg" style={{ backgroundColor: getEmployeePriorityGroup(hoveredData.weight).color }}>D{hoveredData.dim}</span>
                           <div className="flex-1"><p className="font-bold text-slate-800 text-sm leading-tight">{hoveredData.name}</p></div>
@@ -8015,7 +8029,7 @@ export default function ExportReportPage() {
                         ) : (
                           <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
                             <span className={`text-xs font-bold px-3 py-1.5 rounded-lg ${hoveredData.tier.bgColor} border ${hoveredData.tier.borderColor}`} style={{ color: hoveredData.tier.color }}>{hoveredData.tier.name}</span>
-                            <span className="text-xs text-cyan-600 font-medium">Click for details →</span>
+                            <span className="text-xs font-semibold text-cyan-600">Click anywhere to open →</span>
                           </div>
                         )}
                       </div>
@@ -9009,25 +9023,17 @@ export default function ExportReportPage() {
                                   <span className="text-[13px] font-semibold text-slate-600 tabular-nums pr-2">{group.elements.length} element{group.elements.length === 1 ? '' : 's'}</span>
                                 </button>
                                 {isOpen && (
-                                  <div className="pl-12 pr-4 pb-4">
-                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
+                                  <div className="pl-12 pr-4 pt-3 pb-5">
+                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
                                       {group.elements.map((el: any, i: number) => (
                                         <li key={i} className="flex items-start gap-2.5 text-[14px] text-slate-700">
                                           <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 flex-shrink-0 mt-1" />
                                           <span className="leading-snug">
                                             {el.name}
                                             {activeReportTab === 'progress' && (
-                                              el.isPlanning ? (
-                                                <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 whitespace-nowrap align-middle">
-                                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                                                  In Development
-                                                </span>
-                                              ) : (
-                                                <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-700 whitespace-nowrap align-middle">
-                                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                                                  Under Review
-                                                </span>
-                                              )
+                                              <span className={`ml-1.5 text-[12px] italic ${el.isPlanning ? 'text-blue-700' : 'text-amber-700'}`}>
+                                                ({el.isPlanning ? 'In Development' : 'Under Review'})
+                                              </span>
                                             )}
                                           </span>
                                         </li>
@@ -9054,9 +9060,6 @@ export default function ExportReportPage() {
               <p className="text-white text-base mt-1 opacity-90">How your self-reported support compares to participating organizations across the three levels of workplace support.</p>
             </div>
             <div className="px-12 py-8">
-              <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2.5 mb-6">
-                <p className="text-[13px] text-amber-800"><span className="font-semibold">Note:</span> Scores reflect self-reported data submitted by participating organizations.</p>
-              </div>
           {/* Workplace Support Composite Score, Tier Score Breakdown */}
           {(() => {
             // Compute tier-level scores from element data
