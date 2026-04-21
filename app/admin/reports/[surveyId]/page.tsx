@@ -5952,7 +5952,7 @@ export default function ExportReportPage() {
                               Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions and {totalElementCount} elements of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
                             </p>
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                              Each of the {totalElementCount} elements is also classified into one of three Levels of Workplace Support: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>. These levels provide context for how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. <span className="italic text-slate-600">(See Your Support in Context.)</span>
+                              Each of the {totalElementCount} elements is also classified into one of three support levels: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>. These levels provide context for how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. <span className="italic text-slate-600">(See Your Support in Context.)</span>
                             </p>
                             <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
                               <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
@@ -5960,7 +5960,7 @@ export default function ExportReportPage() {
                                 Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
                               </p>
                               <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
-                                The {totalElementCount} elements are also grouped into three <span className="font-semibold text-slate-900">Levels of Workplace Support</span> (Foundation, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs.
+                                The {totalElementCount} elements are also grouped into three support levels (Foundation, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. See <span className="font-semibold text-slate-900">Your Support in Context</span>.
                               </p>
                               <p className="text-sm text-slate-700 leading-relaxed">
                                 Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of support.
@@ -6189,7 +6189,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Levels of Workplace Support</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Your Support in Context</span>
                     <span className="text-xs text-slate-500 block mt-0.5">Foundation, Expanded, and Signature: the three levels {totalElementCount} elements are classified into</span>
                   </div>
                 </div>
@@ -12524,7 +12524,7 @@ export default function ExportReportPage() {
                             Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across <strong className="text-slate-900">13 dimensions and {totalElementCount} elements</strong> of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
                           </p>
                           <p className="text-sm text-slate-700 leading-relaxed mb-3">
-                            Each of the {totalElementCount} elements is also classified into one of three Levels of Workplace Support: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>.
+                            Each of the {totalElementCount} elements is also classified into one of three support levels: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>.
                           </p>
                           <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
                             <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
@@ -12532,7 +12532,7 @@ export default function ExportReportPage() {
                               Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span>. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
                             </p>
                             <p className="text-sm text-slate-700 leading-relaxed">
-                              The {totalElementCount} elements are also grouped into three Levels of Workplace Support (Foundation, Expanded, Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs.
+                              The {totalElementCount} elements are also grouped into three support levels (Foundation, Expanded, Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs.
                             </p>
                           </div>
                         </div>
