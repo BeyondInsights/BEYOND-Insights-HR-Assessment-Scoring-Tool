@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef, Fragment } from 'react';
 import type { ReactNode } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
@@ -7620,51 +7620,50 @@ export default function ExportReportPage() {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   const pg = getEmployeePriorityGroup(d.weight);
                   const isOpen = dimensionDetailModal === d.dim;
-                  return (
+                  return (<Fragment key={d.dim}>
                     <div
-                      key={d.dim}
                       onClick={() => {
                         if (isOpen) {
                           setDimensionDetailModal(null);
                         } else {
                           setDimensionDetailModal(d.dim);
                           setOpenedDims(prev => new Set(prev).add(d.dim));
-                          setTimeout(() => dimDetailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
                         }
                       }}
                       title={isOpen ? 'Collapse' : 'Click for details'}
-                      className={`group flex items-center py-3.5 cursor-pointer hover:bg-slate-100 transition-colors ${isOpen ? 'bg-slate-100 ring-1 ring-slate-300' : idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'} -mx-4 px-4 rounded-lg`}
+                      className={`group flex items-center py-4 cursor-pointer transition-all ${isOpen ? 'bg-gradient-to-r from-slate-100 via-slate-50 to-white ring-1 ring-slate-300 shadow-sm' : idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-100/70'} -mx-4 px-4 rounded-xl`}
                     >
                       <div className="w-64 flex items-center gap-3 pl-2">
-                        <span className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold shadow-sm flex-shrink-0" style={{ backgroundColor: pg.color }}>
+                        <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md flex-shrink-0" style={{ backgroundColor: pg.color }}>
                           D{d.dim}
                         </span>
-                        <span className="text-sm text-slate-800 font-semibold group-hover:text-slate-900">{d.name}</span>
+                        <span className={`text-sm font-bold leading-snug transition-colors ${isOpen ? 'text-slate-900' : 'text-slate-800 group-hover:text-slate-900'}`}>{d.name}</span>
                       </div>
-                      <div className="flex-1 px-4">
-                        <div className="relative h-3 bg-slate-100 rounded-full overflow-visible">
+                      <div className="flex-1 px-5">
+                        <div className="relative h-3 bg-slate-200/70 rounded-full overflow-visible">
                           <div
                             className="absolute left-0 top-0 h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }}
+                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }}
                           />
                           {d.benchmark !== null && (
                             <div
                               className="absolute -top-2.5"
                               style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
+                              title={`Benchmark: ${d.benchmark}`}
                             >
-                              <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#64748b"/></svg>
+                              <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
                             </div>
                           )}
                         </div>
                       </div>
                       <div className="w-24 text-center">
-                        <span className="text-lg font-bold" style={{ color: d.tier.color }}>{d.score}</span>
+                        <span className="text-2xl font-bold tabular-nums" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
                       <div className="w-28 text-center">
                         {d.benchmark !== null ? (
-                          <div className="flex items-center justify-center gap-1">
-                            <span className="text-sm text-slate-500">{d.benchmark}</span>
-                            <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${diff !== null && diff >= 0 ? 'bg-teal-50 text-teal-600' : 'bg-amber-50 text-amber-600'}`}>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-sm text-slate-600 tabular-nums">{d.benchmark}</span>
+                            <span className={`text-[11px] font-bold tabular-nums ${diff !== null && diff >= 0 ? 'text-teal-600' : 'text-amber-600'}`}>
                               {diff !== null && diff >= 0 ? '+' : ''}{diff}
                             </span>
                           </div>
@@ -7673,21 +7672,334 @@ export default function ExportReportPage() {
                         )}
                       </div>
                       <div className="w-36 flex justify-center">
-                        <span
-                          className={`text-xs font-bold px-3 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`}
-                          style={{ color: pg.color }}
-                        >
-                          {pg.chip}
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pg.color }} />
+                          <span style={{ color: pg.color }}>{pg.chip}</span>
                         </span>
                       </div>
-                      <div className="w-10 flex items-center justify-end gap-1.5 pr-2">
-                        <span className={`text-[10px] transition-colors hidden lg:inline ${isOpen ? 'text-slate-700 font-semibold' : 'text-slate-400 group-hover:text-slate-600'}`}>{isOpen ? 'Hide' : 'View details'}</span>
-                        <svg className={`w-4 h-4 transition-all ${isOpen ? 'text-slate-700 rotate-90' : 'text-slate-400 group-hover:text-slate-700'}`} fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
+                      <div className="w-10 flex items-center justify-end pr-2">
+                        <div className={`w-8 h-8 rounded-full bg-white border flex items-center justify-center transition-all ${isOpen ? 'border-slate-400 shadow-sm rotate-180' : 'border-slate-200 group-hover:border-slate-400'}`}>
+                          <svg className={`w-4 h-4 transition-colors ${isOpen ? 'text-slate-700' : 'text-slate-500 group-hover:text-slate-700'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                  );
+                      {dimensionDetailModal === d.dim && (() => {
+                        const d = dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
+                        if (!d) return null;
+                        const elemBench = elementBenchmarks[dimensionDetailModal] || {};
+                        const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+                        
+                        const STATUS = {
+                          currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
+                          planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
+                          assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
+                          notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
+                          unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Unsure' }
+                        };
+                        
+                        const getStatusInfo = (elem: any) => {
+                          if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
+                          if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
+                          if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
+                          if (elem.isUnsure) return { key: 'unsure', ...STATUS.unsure };
+                          return { key: 'notAble', ...STATUS.notAble };
+                        };
+                        
+                        const getDefaultObservation = (elem: any, bench: any) => {
+                          const total = bench?.total || 1;
+                          const pctCurrently = Math.round(((bench?.currently || 0) / total) * 100);
+                          const pctPlanning = Math.round(((bench?.planning || 0) / total) * 100);
+                          const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
+                          const statusInfo = getStatusInfo(elem);
+                          if (statusInfo.key === 'currently') {
+                            if (pctCurrently < 30) return { prefix: 'Differentiator:', text: `Only ${pctCurrently}% of participating organizations offer`, color: '#7C3AED' };
+                            if (pctCurrently < 50) return { prefix: 'Ahead:', text: `${100 - pctCurrently}% of benchmark`, color: '#059669' };
+                            if (pctCurrently < 70) return { prefix: 'Solid:', text: `${pctCurrently}% of participating organizations also offer`, color: '#059669' };
+                            return { prefix: 'Table stakes:', text: `${pctCurrently}% offer`, color: '#6B7280' };
+                          }
+                          if (statusInfo.key === 'planning') {
+                            if (pctCurrently > 50) return { prefix: 'In progress:', text: `${pctCurrently}% already offer`, color: '#2563EB' };
+                            return { prefix: 'In progress:', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
+                          }
+                          if (statusInfo.key === 'assessing') {
+                            return { prefix: 'Under Review:', text: `${pctAssessing}% also under review; ${pctCurrently}% offer`, color: '#D97706' };
+                          }
+                          if (pctCurrently > 50) return { prefix: 'Gap:', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
+                          return { prefix: 'Growth Area:', text: `${pctCurrently}% offer`, color: '#6B7280' };
+                        };
+                        
+                        // Count by status
+                        const statusCounts = { currently: 0, planning: 0, assessing: 0, notAble: 0 };
+                        d.elements?.forEach((elem: any) => {
+                          const s = getStatusInfo(elem);
+                          statusCounts[s.key as keyof typeof statusCounts]++;
+                        });
+                        
+                        return (
+                          <div ref={dimDetailRef} className="max-w-[1280px] mx-auto mb-8 ppt-break">
+                            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
+                              {/* Header */}
+                              <div className="px-6 py-4 flex-shrink-0 relative" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-4">
+                                    <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{d.dim}</span>
+                                    <div>
+                                      <h3 className="text-xl font-bold text-white">{d.name}</h3>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-medium text-white/90">Weight: {d.weight}%</span>
+                                        <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-semibold text-white">{d.tier.name}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="text-right flex items-end gap-4">
+                                    <div>
+                                      <p className="text-5xl font-black text-white">{d.score}</p>
+                                      <p className="text-white/70 text-sm">Your Score</p>
+                                    </div>
+                                    {diff !== null && d.benchmark !== null && (
+                                      <div className="text-right">
+                                        <p className="text-3xl font-bold text-white/90">{d.benchmark} <span className={`text-lg font-semibold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>({diff >= 0 ? '+' : ''}{diff})</span></p>
+                                        <p className="text-white/70 text-sm">Benchmark Score</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Table Header Row */}
+                              <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                                <div className="col-span-4">Support Element</div>
+                                <div className="col-span-1 text-center">Your Status</div>
+                                <div className="col-span-4 text-center">
+                                  <div>Benchmark Distribution</div>
+                                  <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{'In Place'}</span></div>
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">{'In Development'}</span></div>
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">{'Under Review'}</span></div>
+                                    <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
+                                  </div>
+                                </div>
+                                <div className="col-span-3 pl-4">Observation</div>
+                              </div>
+                              
+                              {/* Table Body */}
+                              <div className="flex-1 overflow-y-auto">
+                                {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).sort((a: any, b: any) => {
+                                  const statusOrder: Record<string, number> = { currently: 0, planning: 1, assessing: 2, unsure: 3, notAble: 4 };
+                                  return (statusOrder[getStatusInfo(a).key] ?? 5) - (statusOrder[getStatusInfo(b).key] ?? 5);
+                                }).map((elem: any, i: number) => {
+                                  const statusInfo = getStatusInfo(elem);
+                                  const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
+                                  const total = bench.total || 1;
+                                  const pctCurrently = Math.round((bench.currently / total) * 100);
+                                  const pctPlanning = Math.round((bench.planning / total) * 100);
+                                  const pctAssessing = Math.round((bench.assessing / total) * 100);
+                                  const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
+                                  const observation = getDefaultObservation(elem, bench);
+            
+                                  return (
+                                    <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
+                                      {/* Element Name */}
+                                      <div className="col-span-4">
+                                        <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
+                                      </div>
+            
+                                      {/* Your Status */}
+                                      <div className="col-span-1 flex justify-center">
+                                        <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                                          {statusInfo.label}
+                                        </span>
+                                      </div>
+                                      
+                                      {/* Benchmark Distribution - Wide Stacked Bar */}
+                                      <div className="col-span-4">
+                                        <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
+                                          {/* Offering */}
+                                          <div 
+                                            className="flex items-center justify-center text-xs font-bold text-white"
+                                            style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '28px' : '0' }}
+                                          >
+                                            {pctCurrently}%
+                                          </div>
+                                          {/* Planning */}
+                                          <div 
+                                            className="flex items-center justify-center text-xs font-bold text-white"
+                                            style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '28px' : '0' }}
+                                          >
+                                            {pctPlanning > 0 ? `${pctPlanning}%` : ''}
+                                          </div>
+                                          {/* Assessing */}
+                                          <div 
+                                            className="flex items-center justify-center text-xs font-bold text-white"
+                                            style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '28px' : '0' }}
+                                          >
+                                            {pctAssessing > 0 ? `${pctAssessing}%` : ''}
+                                          </div>
+                                          {/* Not Currently Planned */}
+                                          <div 
+                                            className="flex items-center justify-center text-xs font-bold text-slate-600"
+                                            style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '28px' : '0' }}
+                                          >
+                                            {pctNotOffering}%
+                                          </div>
+                                        </div>
+                                      </div>
+                                      
+                                      {/* Observation - Editable */}
+                                      <div className="col-span-3 pl-4">
+                                        {editMode ? (
+                                          <input
+                                            type="text"
+                                            value={customObservations[`dim${d.dim}_${elem.name}`] ?? `${observation.prefix} ${observation.text}`}
+                                            onChange={(e) => {
+                                              setCustomObservations(prev => ({
+                                                ...prev,
+                                                [`dim${d.dim}_${elem.name}`]: e.target.value
+                                              }));
+                                              setHasUnsavedChanges(true);
+                                            }}
+                                            className="w-full text-xs text-slate-700 bg-amber-50 border border-amber-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                                            placeholder="Custom observation..."
+                                          />
+                                        ) : (
+                                          <p className="text-xs text-slate-600 leading-snug">
+                                            {customObservations[`dim${d.dim}_${elem.name}`] || (
+                                              <><span className="font-bold" style={{ color: observation.color }}>{observation.prefix}</span> {observation.text}</>
+                                            )}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                                
+                                {/* Geographic Consistency */}
+                                {!isSingleCountryCompany && (
+                                  <div className="mx-4 mb-4 bg-indigo-50 rounded-lg border border-indigo-200 px-5 py-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div>
+                                        <h4 className="font-bold text-indigo-800 text-sm">Geographic Consistency</h4>
+                                        <p className="text-xs text-indigo-500">How consistently are these practices available across your operating locations?</p>
+                                      </div>
+                                      {d.geoMultiplier < 1.0 && (
+                                        <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-200 text-indigo-700">
+                                          Score adjusted by ×{d.geoMultiplier.toFixed(2)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {(() => {
+                                        const geoBench = (window as any).__geoBenchmarks?.[d.dim] || { consistent: 0, varies: 0, select: 0, total: 0 };
+                                        const total = geoBench.total || 1;
+                                        const gm = d.geoMultiplier ?? 1.0;
+                                        const scope = gm <= 0.80 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
+            
+                                        return [
+                                          { key: 'consistent', label: 'Consistent across all', multiplier: '1.00', pct: Math.round((geoBench.consistent / total) * 100) },
+                                          { key: 'varies', label: 'Varies by location', multiplier: '0.90', pct: Math.round((geoBench.varies / total) * 100) },
+                                          { key: 'select', label: 'Select locations only', multiplier: '0.80', pct: Math.round((geoBench.select / total) * 100) },
+                                        ].map(opt => {
+                                          const isSelected = scope === opt.key;
+                                          return (
+                                            <div key={opt.key} className={`flex items-center justify-between px-3 py-2 rounded-lg border text-xs ${isSelected ? 'bg-white border-indigo-400 shadow-sm' : 'bg-white/50 border-transparent'}`}>
+                                              <div className="flex items-center gap-1.5 min-w-0">
+                                                {isSelected && (
+                                                  <span className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
+                                                    <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                                  </span>
+                                                )}
+                                                <span className={`font-medium truncate ${isSelected ? 'text-indigo-900' : 'text-slate-500'}`}>{opt.label}</span>
+                                              </div>
+                                              <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+                                                <span className={`tabular-nums ${isSelected ? 'font-bold text-indigo-700' : 'text-slate-500'}`}>×{opt.multiplier}</span>
+                                                <span className={`tabular-nums ${isSelected ? 'text-indigo-600' : 'text-slate-500'}`}>{opt.pct}%</span>
+                                              </div>
+                                            </div>
+                                          );
+                                        });
+                                      })()}
+                                    </div>
+                                  </div>
+                                )}
+            
+                                {/* Follow-Up Questions, only for D1, D3, D12, D13 */}
+                                {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
+                                  <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3">
+                                    <h4 className="font-bold text-blue-800 text-sm mb-3">Follow-Up Questions</h4>
+                                    <div className="space-y-4">
+                                      {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
+                                        const currentScore = (() => {
+                                          if (d.dim === 1) {
+                                            if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
+                                            if (fq.key === 'd1_1_non_usa') return d.followUpRaw?.d1_1_non_usa_score ?? null;
+                                            return null;
+                                          }
+                                          if (d.dim === 3) return d.followUpRaw?.d3_1_score ?? null;
+                                          if (d.dim === 12) {
+                                            if (fq.key === 'd12_1') return d.followUpRaw?.d12_1_score ?? null;
+                                            if (fq.key === 'd12_2') return d.followUpRaw?.d12_2_score ?? null;
+                                          }
+                                          if (d.dim === 13) return d.followUpRaw?.d13_1_score ?? null;
+                                          return null;
+                                        })();
+                                        return (
+                                          <div key={fq.key}>
+                                            <p className="text-xs text-slate-600 mb-2 font-medium">{fq.question}</p>
+                                            <div className="space-y-1">
+                                              {fq.options.map((opt, i) => {
+                                                const isSelected = currentScore === opt.score;
+                                                return (
+                                                  <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-white border border-blue-300 font-medium text-blue-800 shadow-sm' : 'bg-white/50 text-slate-600'}`}>
+                                                    <span className="flex items-center gap-2">
+                                                      {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+                                                      {opt.label}
+                                                    </span>
+                                                    <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.benchPct}%</span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                      {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+            
+                              {/* Footer - Quick nav between dimensions */}
+                              <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
+                                <div className="flex items-center justify-center gap-3">
+                                  <button onClick={() => { const n = Math.max(1, (dimensionDetailModal ?? 1) - 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                                    &lt; Prev
+                                  </button>
+                                  <div className="flex items-center gap-2">
+                                    {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
+                                      <button
+                                        key={num}
+                                        onClick={() => { setDimensionDetailModal(num); setOpenedDims(prev => new Set(prev).add(num)); }}
+                                        className={`w-7 h-7 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                      >
+                                        {num}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  <button onClick={() => { const n = Math.min(13, (dimensionDetailModal ?? 1) + 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
+                                    Next &gt;
+                                  </button>
+                                  <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white text-sm font-medium">
+                                    Collapse
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                  </Fragment>);
                 })}
               </div>
               <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">
@@ -8123,321 +8435,6 @@ export default function ExportReportPage() {
             </div>
           </div>
 
-          {/* ============ DIMENSION DETAIL MODAL ============ */}
-          {dimensionDetailModal && (() => {
-            const d = dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
-            if (!d) return null;
-            const elemBench = elementBenchmarks[dimensionDetailModal] || {};
-            const diff = d.benchmark !== null ? d.score - d.benchmark : null;
-            
-            const STATUS = {
-              currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
-              planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
-              assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
-              notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
-              unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Unsure' }
-            };
-            
-            const getStatusInfo = (elem: any) => {
-              if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
-              if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
-              if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
-              if (elem.isUnsure) return { key: 'unsure', ...STATUS.unsure };
-              return { key: 'notAble', ...STATUS.notAble };
-            };
-            
-            const getDefaultObservation = (elem: any, bench: any) => {
-              const total = bench?.total || 1;
-              const pctCurrently = Math.round(((bench?.currently || 0) / total) * 100);
-              const pctPlanning = Math.round(((bench?.planning || 0) / total) * 100);
-              const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
-              const statusInfo = getStatusInfo(elem);
-              if (statusInfo.key === 'currently') {
-                if (pctCurrently < 30) return { prefix: 'Differentiator:', text: `Only ${pctCurrently}% of participating organizations offer`, color: '#7C3AED' };
-                if (pctCurrently < 50) return { prefix: 'Ahead:', text: `${100 - pctCurrently}% of benchmark`, color: '#059669' };
-                if (pctCurrently < 70) return { prefix: 'Solid:', text: `${pctCurrently}% of participating organizations also offer`, color: '#059669' };
-                return { prefix: 'Table stakes:', text: `${pctCurrently}% offer`, color: '#6B7280' };
-              }
-              if (statusInfo.key === 'planning') {
-                if (pctCurrently > 50) return { prefix: 'In progress:', text: `${pctCurrently}% already offer`, color: '#2563EB' };
-                return { prefix: 'In progress:', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
-              }
-              if (statusInfo.key === 'assessing') {
-                return { prefix: 'Under Review:', text: `${pctAssessing}% also under review; ${pctCurrently}% offer`, color: '#D97706' };
-              }
-              if (pctCurrently > 50) return { prefix: 'Gap:', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
-              return { prefix: 'Growth Area:', text: `${pctCurrently}% offer`, color: '#6B7280' };
-            };
-            
-            // Count by status
-            const statusCounts = { currently: 0, planning: 0, assessing: 0, notAble: 0 };
-            d.elements?.forEach((elem: any) => {
-              const s = getStatusInfo(elem);
-              statusCounts[s.key as keyof typeof statusCounts]++;
-            });
-            
-            return (
-              <div ref={dimDetailRef} className="max-w-[1280px] mx-auto mb-8 ppt-break">
-                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
-                  {/* Header */}
-                  <div className="px-6 py-4 flex-shrink-0 relative" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{d.dim}</span>
-                        <div>
-                          <h3 className="text-xl font-bold text-white">{d.name}</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-medium text-white/90">Weight: {d.weight}%</span>
-                            <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-semibold text-white">{d.tier.name}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right flex items-end gap-4">
-                        <div>
-                          <p className="text-5xl font-black text-white">{d.score}</p>
-                          <p className="text-white/70 text-sm">Your Score</p>
-                        </div>
-                        {diff !== null && d.benchmark !== null && (
-                          <div className="text-right">
-                            <p className="text-3xl font-bold text-white/90">{d.benchmark} <span className={`text-lg font-semibold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>({diff >= 0 ? '+' : ''}{diff})</span></p>
-                            <p className="text-white/70 text-sm">Benchmark Score</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Table Header Row */}
-                  <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                    <div className="col-span-4">Support Element</div>
-                    <div className="col-span-1 text-center">Your Status</div>
-                    <div className="col-span-4 text-center">
-                      <div>Benchmark Distribution</div>
-                      <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span className="text-slate-500">{'In Place'}</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">{'In Development'}</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span className="text-slate-500">{'Under Review'}</span></div>
-                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span className="text-slate-500">Not Planned</span></div>
-                      </div>
-                    </div>
-                    <div className="col-span-3 pl-4">Observation</div>
-                  </div>
-                  
-                  {/* Table Body */}
-                  <div className="flex-1 overflow-y-auto">
-                    {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).sort((a: any, b: any) => {
-                      const statusOrder: Record<string, number> = { currently: 0, planning: 1, assessing: 2, unsure: 3, notAble: 4 };
-                      return (statusOrder[getStatusInfo(a).key] ?? 5) - (statusOrder[getStatusInfo(b).key] ?? 5);
-                    }).map((elem: any, i: number) => {
-                      const statusInfo = getStatusInfo(elem);
-                      const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
-                      const total = bench.total || 1;
-                      const pctCurrently = Math.round((bench.currently / total) * 100);
-                      const pctPlanning = Math.round((bench.planning / total) * 100);
-                      const pctAssessing = Math.round((bench.assessing / total) * 100);
-                      const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
-                      const observation = getDefaultObservation(elem, bench);
-
-                      return (
-                        <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
-                          {/* Element Name */}
-                          <div className="col-span-4">
-                            <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
-                          </div>
-
-                          {/* Your Status */}
-                          <div className="col-span-1 flex justify-center">
-                            <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
-                              {statusInfo.label}
-                            </span>
-                          </div>
-                          
-                          {/* Benchmark Distribution - Wide Stacked Bar */}
-                          <div className="col-span-4">
-                            <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
-                              {/* Offering */}
-                              <div 
-                                className="flex items-center justify-center text-xs font-bold text-white"
-                                style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '28px' : '0' }}
-                              >
-                                {pctCurrently}%
-                              </div>
-                              {/* Planning */}
-                              <div 
-                                className="flex items-center justify-center text-xs font-bold text-white"
-                                style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '28px' : '0' }}
-                              >
-                                {pctPlanning > 0 ? `${pctPlanning}%` : ''}
-                              </div>
-                              {/* Assessing */}
-                              <div 
-                                className="flex items-center justify-center text-xs font-bold text-white"
-                                style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '28px' : '0' }}
-                              >
-                                {pctAssessing > 0 ? `${pctAssessing}%` : ''}
-                              </div>
-                              {/* Not Currently Planned */}
-                              <div 
-                                className="flex items-center justify-center text-xs font-bold text-slate-600"
-                                style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '28px' : '0' }}
-                              >
-                                {pctNotOffering}%
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Observation - Editable */}
-                          <div className="col-span-3 pl-4">
-                            {editMode ? (
-                              <input
-                                type="text"
-                                value={customObservations[`dim${d.dim}_${elem.name}`] ?? `${observation.prefix} ${observation.text}`}
-                                onChange={(e) => {
-                                  setCustomObservations(prev => ({
-                                    ...prev,
-                                    [`dim${d.dim}_${elem.name}`]: e.target.value
-                                  }));
-                                  setHasUnsavedChanges(true);
-                                }}
-                                className="w-full text-xs text-slate-700 bg-amber-50 border border-amber-300 rounded px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-amber-400"
-                                placeholder="Custom observation..."
-                              />
-                            ) : (
-                              <p className="text-xs text-slate-600 leading-snug">
-                                {customObservations[`dim${d.dim}_${elem.name}`] || (
-                                  <><span className="font-bold" style={{ color: observation.color }}>{observation.prefix}</span> {observation.text}</>
-                                )}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                    
-                    {/* Geographic Consistency */}
-                    {!isSingleCountryCompany && (
-                      <div className="mx-4 mb-4 bg-indigo-50 rounded-lg border border-indigo-200 px-5 py-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <div>
-                            <h4 className="font-bold text-indigo-800 text-sm">Geographic Consistency</h4>
-                            <p className="text-xs text-indigo-500">How consistently are these practices available across your operating locations?</p>
-                          </div>
-                          {d.geoMultiplier < 1.0 && (
-                            <span className="text-xs font-semibold px-2 py-0.5 rounded-lg bg-indigo-200 text-indigo-700">
-                              Score adjusted by ×{d.geoMultiplier.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-3 gap-2">
-                          {(() => {
-                            const geoBench = (window as any).__geoBenchmarks?.[d.dim] || { consistent: 0, varies: 0, select: 0, total: 0 };
-                            const total = geoBench.total || 1;
-                            const gm = d.geoMultiplier ?? 1.0;
-                            const scope = gm <= 0.80 ? 'select' : gm <= 0.90 ? 'varies' : 'consistent';
-
-                            return [
-                              { key: 'consistent', label: 'Consistent across all', multiplier: '1.00', pct: Math.round((geoBench.consistent / total) * 100) },
-                              { key: 'varies', label: 'Varies by location', multiplier: '0.90', pct: Math.round((geoBench.varies / total) * 100) },
-                              { key: 'select', label: 'Select locations only', multiplier: '0.80', pct: Math.round((geoBench.select / total) * 100) },
-                            ].map(opt => {
-                              const isSelected = scope === opt.key;
-                              return (
-                                <div key={opt.key} className={`flex items-center justify-between px-3 py-2 rounded-lg border text-xs ${isSelected ? 'bg-white border-indigo-400 shadow-sm' : 'bg-white/50 border-transparent'}`}>
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    {isSelected && (
-                                      <span className="w-4 h-4 rounded-full bg-indigo-600 flex items-center justify-center flex-shrink-0">
-                                        <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                      </span>
-                                    )}
-                                    <span className={`font-medium truncate ${isSelected ? 'text-indigo-900' : 'text-slate-500'}`}>{opt.label}</span>
-                                  </div>
-                                  <div className="flex items-center gap-3 flex-shrink-0 ml-2">
-                                    <span className={`tabular-nums ${isSelected ? 'font-bold text-indigo-700' : 'text-slate-500'}`}>×{opt.multiplier}</span>
-                                    <span className={`tabular-nums ${isSelected ? 'text-indigo-600' : 'text-slate-500'}`}>{opt.pct}%</span>
-                                  </div>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Follow-Up Questions, only for D1, D3, D12, D13 */}
-                    {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
-                      <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3">
-                        <h4 className="font-bold text-blue-800 text-sm mb-3">Follow-Up Questions</h4>
-                        <div className="space-y-4">
-                          {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
-                            const currentScore = (() => {
-                              if (d.dim === 1) {
-                                if (fq.key === 'd1_1_usa') return d.followUpRaw?.d1_1_usa_score ?? null;
-                                if (fq.key === 'd1_1_non_usa') return d.followUpRaw?.d1_1_non_usa_score ?? null;
-                                return null;
-                              }
-                              if (d.dim === 3) return d.followUpRaw?.d3_1_score ?? null;
-                              if (d.dim === 12) {
-                                if (fq.key === 'd12_1') return d.followUpRaw?.d12_1_score ?? null;
-                                if (fq.key === 'd12_2') return d.followUpRaw?.d12_2_score ?? null;
-                              }
-                              if (d.dim === 13) return d.followUpRaw?.d13_1_score ?? null;
-                              return null;
-                            })();
-                            return (
-                              <div key={fq.key}>
-                                <p className="text-xs text-slate-600 mb-2 font-medium">{fq.question}</p>
-                                <div className="space-y-1">
-                                  {fq.options.map((opt, i) => {
-                                    const isSelected = currentScore === opt.score;
-                                    return (
-                                      <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-white border border-blue-300 font-medium text-blue-800 shadow-sm' : 'bg-white/50 text-slate-600'}`}>
-                                        <span className="flex items-center gap-2">
-                                          {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
-                                          {opt.label}
-                                        </span>
-                                        <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.benchPct}%</span>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            );
-                          })}
-                          {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer - Quick nav between dimensions */}
-                  <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
-                    <div className="flex items-center justify-center gap-3">
-                      <button onClick={() => { const n = Math.max(1, (dimensionDetailModal ?? 1) - 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                        &lt; Prev
-                      </button>
-                      <div className="flex items-center gap-2">
-                        {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
-                          <button
-                            key={num}
-                            onClick={() => { setDimensionDetailModal(num); setOpenedDims(prev => new Set(prev).add(num)); }}
-                            className={`w-7 h-7 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                          >
-                            {num}
-                          </button>
-                        ))}
-                      </div>
-                      <button onClick={() => { const n = Math.min(13, (dimensionDetailModal ?? 1) + 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                        Next &gt;
-                      </button>
-                      <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white text-sm font-medium">
-                        Collapse
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
           
           {/* ============ INFO MODAL ============ */}
           {infoModal && (
