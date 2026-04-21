@@ -4131,7 +4131,9 @@ export default function ExportReportPage() {
   const surveyYear = company.survey_year || '2026';
   const bestCompaniesLogo = surveyYear === '2027' ? '/best-companies-2027-logo.png' : '/best-companies-2026-logo.png';
   const indexYear = surveyYear === '2027' ? '2027' : '2026';
-  const totalElementCount = Object.values(elementDetails || {}).flat().length;
+  const rawElementCount = Object.values(elementDetails || {}).flat().length;
+  // 2026 cohort is standardized to 152 elements (client-facing consistency across all 2026 reports).
+  const totalElementCount = surveyYear === '2026' ? 152 : rawElementCount;
 
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
@@ -4430,15 +4432,15 @@ export default function ExportReportPage() {
                     <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
                   </div>
                   <div>
-                    <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
+                    <p className="text-white text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
                     <h1 className="text-3xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                    <p className="text-slate-300 mt-1 text-lg">Index {indexYear}</p>
+                    <p className="text-white mt-1 text-lg">Index {indexYear}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
+                  <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
                   <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                  <p className="text-slate-400 text-sm font-medium">Report Date</p>
+                  <p className="text-white text-sm font-medium">Report Date</p>
                   <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
@@ -9638,15 +9640,15 @@ export default function ExportReportPage() {
                             <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
                           </div>
                           <div>
-                            <p className="text-slate-400 text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
+                            <p className="text-white text-sm font-semibold tracking-widest uppercase">Performance Assessment</p>
                             <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                            <p className="text-slate-300 mt-2 text-xl">Index {indexYear}</p>
+                            <p className="text-white mt-2 text-xl">Index {indexYear}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-slate-400 text-sm font-medium">Prepared Exclusively for</p>
+                          <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
                           <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                          <p className="text-slate-400 text-sm font-medium">Report Date</p>
+                          <p className="text-white text-sm font-medium">Report Date</p>
                           <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>

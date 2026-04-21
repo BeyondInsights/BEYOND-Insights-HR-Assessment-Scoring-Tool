@@ -1769,7 +1769,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   // 1) Strong culture but weak manager training
   if (culture && manager && isStrong(culture) && isWeak(manager)) {
     add({
-      pattern: `Strong Culture (${culture.score}) paired with lower Manager Preparedness (${manager.score})${unsureNote(manager)}`,
+      pattern: `Strong D6 Culture (${culture.score}) paired with lower D3 Manager Preparedness (${manager.score})${unsureNote(manager)}`,
       implication: 'Employees feel safe disclosing. Managers lack tools to respond. Result: inconsistent support experiences.',
       recommendation: 'Prioritize manager training with conversation guides and scenario practice. Culture is willing; skills are the gap.',
       family: 'enablement'
@@ -1779,7 +1779,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   // 2) Good benefits but poor navigation
   if (insurance && navigation && isStrong(insurance) && isWeak(navigation)) {
     add({
-      pattern: `Strong Insurance Benefits (${insurance.score}) with weaker Navigation (${navigation.score})${unsureNote(navigation)}`,
+      pattern: `Strong D2 Insurance Benefits (${insurance.score}) with weaker D4 Navigation (${navigation.score})${unsureNote(navigation)}`,
       implication: 'Benefits are comprehensive. Employees struggle to find and access them. Utilization and ROI suffer.',
       recommendation: 'Implement a single-entry navigation solution (concierge, resource hub, or hotline). Maximize return on existing benefits.',
       family: 'enablement'
@@ -1789,7 +1789,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   // 3) Enablement tension (front door is unclear + managers not equipped)
   if (manager && navigation && communication && manager.score < 55 && navigation.score < 55 && communication.score < 55) {
     add({
-      pattern: `Enablement tension: Navigation (${navigation.score}), Communication (${communication.score}), and Manager Preparedness (${manager.score}) are all underdeveloped`,
+      pattern: `Enablement tension: D4 Navigation (${navigation.score}), D13 Communication (${communication.score}), and D3 Manager Preparedness (${manager.score}) are all underdeveloped`,
       implication: 'Employees do not know where to start. Managers lack clear tools. Low confidence and underutilization result.',
       recommendation: 'Create one clear entry point for support. Give managers a short playbook. Run a simple 3-touch awareness cadence. This unlocks multiple dimensions at once.',
       family: 'enablement'
@@ -1801,8 +1801,8 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     const strongDims = dimAnalysis.filter(d => d.dim !== 13 && isStrong(d));
     if (strongDims.length >= 2) {
       add({
-        pattern: `${strongDims.length} dimensions at Advancing+ level but Communication at only ${communication.score}${unsureNote(communication)}`,
-        implication: `Strong programs in ${strongDims.slice(0, 2).map(d => d.name).join(' and ')}, but low awareness limits utilization. Employees may not know resources exist.`,
+        pattern: `${strongDims.length} dimensions at Advancing+ level but D13 Communication at only ${communication.score}${unsureNote(communication)}`,
+        implication: `Strong programs in ${strongDims.slice(0, 2).map(d => `D${d.dim} ${d.name}`).join(' and ')}, but low awareness limits utilization. Employees may not know resources exist.`,
         recommendation: 'Launch targeted awareness campaigns for your strongest offerings. Programs exist; visibility does not.',
         family: 'enablement'
       }, (75 - communication.score) + 0.15 * strongDims.length * 10);
@@ -1813,7 +1813,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   // 5) Strong leave but weak return-to-work
   if (leave && returnToWork && isStrong(leave) && isWeak(returnToWork)) {
     add({
-      pattern: `Good Leave Policies (${leave.score}) but weaker Return-to-Work Support (${returnToWork.score})${unsureNote(returnToWork)}`,
+      pattern: `Good D1 Leave Policies (${leave.score}) but weaker D8 Return-to-Work Support (${returnToWork.score})${unsureNote(returnToWork)}`,
       implication: 'Employees get time for treatment but struggle with re-entry. Avoidable attrition and productivity loss follow.',
       recommendation: 'Implement structured return-to-work protocols. Phased re-entry, regular check-ins, and temporary accommodations protect the leave investment.',
       family: 'program'
@@ -1823,7 +1823,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
   // 6) Accommodations strong but career continuity weak
   if (accommodations && career && isStrong(accommodations) && isWeak(career)) {
     add({
-      pattern: `Good Accommodations (${accommodations.score}) but lower Career Continuity (${career.score})${unsureNote(career)}`,
+      pattern: `Good D5 Accommodations (${accommodations.score}) but lower D7 Career Continuity (${career.score})${unsureNote(career)}`,
       implication: 'Day-to-day accommodations work. Long-term career fears persist. Hidden diagnoses and premature departures result.',
       recommendation: 'Add explicit career protection norms. Clarify promotion eligibility during leave and share post-diagnosis success stories.',
       family: 'program'
@@ -1836,7 +1836,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     const avgOther = dimAnalysis.filter(d => d.dim !== 9).reduce((s, d) => s + d.score, 0) / 12;
     if (avgOther < 65) {
       add({
-        pattern: `Low Executive Commitment (${executive.score}) correlating with program gaps${unsureNote(executive)}`,
+        pattern: `Low D9 Executive Commitment (${executive.score}) correlating with program gaps${unsureNote(executive)}`,
         implication: 'Without visible leadership engagement, cancer support stays an isolated HR initiative. Resources and coordination suffer.',
         recommendation: 'Build the executive business case linking cancer support to retention and employer brand. Identify an executive sponsor.',
         family: 'leadership'
@@ -1851,9 +1851,9 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     const totalItems = totalGaps + totalConfirming;
     if (totalItems > 25) {
       add({
-        pattern: `${totalGaps} gaps + ${totalConfirming} items needing confirmation with limited Continuous Improvement infrastructure (${continuous.score})`,
+        pattern: `${totalGaps} gaps + ${totalConfirming} items needing confirmation with limited D${continuous.dim} Continuous Improvement infrastructure (${continuous.score})`,
         implication: 'Many improvement opportunities exist. Without systematic review, progress stalls and lessons are lost.',
-        recommendation: 'Establish quarterly program reviews and employee feedback mechanisms. Build infrastructure that sustains improvements.',
+        recommendation: 'Establish regular program reviews and employee feedback mechanisms. Build infrastructure that sustains improvements.',
         family: 'noteworthy'
       }, (totalItems - 25) + 0.25 * opp(continuous));
     }
@@ -1872,9 +1872,9 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     )[0];
     const inProgress = (topMomentum.planning?.length || 0) + (topMomentum.assessing?.length || 0);
     add({
-      pattern: `Active improvement momentum in ${topMomentum.name} (${topMomentum.score}) with ${inProgress} items in planning/assessment`,
+      pattern: `Active improvement momentum in D${topMomentum.dim} ${topMomentum.name} (${topMomentum.score}) with ${inProgress} items in planning/assessment`,
       implication: `Current score is ${topMomentum.score}. ${inProgress} elements are actively in development. Completing them could shift the score meaningfully.`,
-      recommendation: `Prioritize converting Planning items to Offering status in ${topMomentum.name}. Track quarterly to demonstrate ROI.`,
+      recommendation: `Prioritize converting Planning items to Offering status in D${topMomentum.dim} ${topMomentum.name}. Track progress regularly to demonstrate ROI.`,
       family: 'positive'
     }, 15 + inProgress * 2);
   }
@@ -1886,7 +1886,7 @@ function getCrossDimensionPatterns(dimAnalysis: any[]): {
     add({
       pattern: `Consistently strong performance across dimensions (${Math.round(avgScore)} average, ${lowestDim.score} floor)`,
       implication: 'Balanced performance across dimensions. A genuine differentiator for employer brand and talent attraction.',
-      recommendation: `Use this as a foundation for thought leadership. Refine ${lowestDim.name} (${lowestDim.score}) to reach full excellence.`,
+      recommendation: `Use this as a foundation for thought leadership. Refine D${lowestDim.dim} ${lowestDim.name} (${lowestDim.score}) to reach full excellence.`,
       family: 'positive'
     }, 30 + (avgScore - 72) * 2);
   }
@@ -3467,39 +3467,39 @@ function AdvancedSupportIcon({ size = 20, color = '#7C3AED' }: { size?: number; 
 
 const SUPPORT_LEVELS = {
   core: {
-    name: 'Core Support', abbr: 'Core', tagline: 'Essential supports',
+    name: 'Foundation', abbr: 'Foundation', tagline: 'Baseline practices',
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
-    shortDesc: 'Baseline practices that ensure employees can access treatment, leave, and essential workplace supports.',
-    desc: 'Core practices that help ensure employees can access treatment, take leave, and navigate benefits and workplace needs.',
-    boldPhrase: 'These elements form the baseline supports most organizations aim to have in place.',
-    italic: 'Establishes clear access to essential supports when employees need them most.',
+    shortDesc: 'The baseline practices every cancer-inclusive workplace establishes first.',
+    desc: 'The baseline practices every cancer-inclusive workplace establishes first — the protections and policies employees rely on the moment a diagnosis hits.',
+    boldPhrase: 'The baseline practices every cancer-inclusive workplace establishes first — the protections and policies employees rely on the moment a diagnosis hits. A strong Foundation signals your organization has the essentials right and is ready to build further.',
+    italic: 'A strong Foundation signals your organization has the essentials right and is ready to build further.',
   },
   enhanced: {
-    name: 'Enhanced Support', abbr: 'Enh', tagline: 'Expanded supports',
+    name: 'Momentum', abbr: 'Momentum', tagline: 'The next layer',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
-    shortDesc: 'Expanded practices that strengthen consistency, coordination, and manager readiness.',
-    desc: 'Expanded practices that strengthen consistency, coordination, and manager readiness, making support easier to access and more reliable across teams and situations.',
-    boldPhrase: 'Strengthen consistency, coordination, and manager readiness.',
-    italic: 'Strengthens day-to-day consistency and ease of access across teams and managers.',
+    shortDesc: 'The next layer — practices that extend coverage, deepen manager readiness, and broaden access.',
+    desc: 'Once the Foundation is in place, these practices extend coverage, deepen manager readiness, and broaden access to care and resources.',
+    boldPhrase: 'Once the Foundation is in place, these practices extend coverage, deepen manager readiness, and broaden access to care and resources. Momentum is where a solid program becomes a genuinely supportive one.',
+    italic: 'Momentum is where a solid program becomes a genuinely supportive one.',
   },
   advanced: {
-    name: 'Advanced Support', abbr: 'Adv', tagline: 'Differentiating supports',
+    name: 'Distinction', abbr: 'Distinction', tagline: 'Signature offerings',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    shortDesc: 'Proactive practices that deepen support continuity and innovative program design.',
-    desc: 'Advanced practices that are less commonly offered and proactively strengthen continuity of work and care. These often involve dedicated resources, cross-functional ownership, or innovative design.',
-    boldPhrase: 'Less commonly offered, proactively strengthen continuity of work and care.',
-    italic: 'Adds proactive, high-impact practices that deepen support and continuity over time.',
+    shortDesc: 'Signature offerings that set leading organizations apart — specialized, high-impact programs.',
+    desc: 'The signature offerings that set leading organizations apart — specialized, high-impact programs, often with dedicated resources.',
+    boldPhrase: 'The signature offerings that set leading organizations apart — specialized, high-impact programs, often with dedicated resources. Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
+    italic: 'Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
   },
 } as const;
 
 const SUPPORT_RATINGS: Record<string, { label: string; color: string; desc: string; range: string }> = {
-  leading: { label: 'Leading', range: '80–100', color: '#047857', desc: 'Comprehensive support across all three levels, with strong Core coverage, consistent Enhanced delivery, and meaningful Advanced practices in place.' },
-  established: { label: 'Advancing', range: '64–79', color: '#1D4ED8', desc: 'Strong Core coverage with solid Enhanced and Advanced practices, indicating reliable support delivery and growing program depth.' },
-  progressing: { label: 'Accelerating', range: '50–63', color: '#B45309', desc: 'Core supports are well in place, forming a stable baseline with room to expand Enhanced and Advanced program depth.' },
-  building: { label: 'Building', range: '0–49', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing core access, navigation, and policy fundamentals.' },
+  leading: { label: 'Leading', range: '80–100', color: '#047857', desc: 'Comprehensive support across all three levels, with a strong Foundation, consistent Momentum, and meaningful Distinction practices in place.' },
+  established: { label: 'Advancing', range: '64–79', color: '#1D4ED8', desc: 'Strong Foundation coverage with solid Momentum and Distinction practices, indicating reliable support delivery and growing program depth.' },
+  progressing: { label: 'Accelerating', range: '50–63', color: '#B45309', desc: 'Foundation supports are well in place, forming a stable baseline with room to build Momentum and add Distinction depth.' },
+  building: { label: 'Building', range: '0–49', color: '#B91C1C', desc: 'Early supports are in place. Priority is typically establishing Foundation access, navigation, and policy fundamentals.' },
 } as const;
 
 function getWSIRating(score: number) {
@@ -3511,7 +3511,7 @@ function getWSIRating(score: number) {
 
 function SupportLevelBadge({ level }: { level: string }) {
   const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
-  const label = level === 'core' ? 'Core' : level === 'enhanced' ? 'Enhanced' : 'Advanced';
+  const label = level === 'core' ? 'Foundation' : level === 'enhanced' ? 'Momentum' : 'Distinction';
   return (
     <span
       className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap"
@@ -5198,7 +5198,9 @@ export default function ExportReportPage() {
   const surveyYear = company.survey_year || '2026';
   const bestCompaniesLogo = surveyYear === '2027' ? '/best-companies-2027-logo.png' : '/best-companies-2026-logo.png';
   const indexYear = surveyYear === '2027' ? '2027' : '2026';
-  const totalElementCount = Object.values(elementDetails || {}).flat().length;
+  const rawElementCount = Object.values(elementDetails || {}).flat().length;
+  // 2026 cohort is standardized to 152 elements (client-facing consistency across all 2026 reports).
+  const totalElementCount = surveyYear === '2026' ? 152 : rawElementCount;
   
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
@@ -5797,15 +5799,15 @@ export default function ExportReportPage() {
                     <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
                   </div>
                   <div>
-                    <p className="text-slate-500 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
+                    <p className="text-white text-sm font-semibold tracking-widest uppercase">Performance Report</p>
                     <h1 className="text-3xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                    <p className="text-slate-300 mt-1 text-lg">Index {indexYear}</p>
+                    <p className="text-white mt-1 text-lg">Index {indexYear}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-slate-500 text-sm font-medium">Prepared Exclusively for</p>
+                  <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
                   <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                  <p className="text-slate-500 text-sm font-medium">Report Date</p>
+                  <p className="text-white text-sm font-medium">Report Date</p>
                   <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
@@ -5927,7 +5929,7 @@ export default function ExportReportPage() {
                               <ul className="space-y-1.5">
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  The Index combines your Core, Enhanced, and Advanced Support scores using research-derived weights: Core (35%), Enhanced (50%), and Advanced (15%).
+                                  The Index combines your Foundation, Momentum, and Distinction scores using research-derived weights: Foundation (35%), Momentum (50%), and Distinction (15%).
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
@@ -6023,13 +6025,13 @@ export default function ExportReportPage() {
                       </div>
                     </div>
                     
-                    <div className="px-6 py-4 bg-gradient-to-r from-violet-700 to-purple-700 flex items-center gap-3">
+                    <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
                       </div>
-                      <p className="text-sm text-violet-100">
-                        <span className="font-semibold text-white">This score is just the beginning.</span> The detailed analysis that follows lets you 
-                        explore each dimension in depth, identifying specific strengths to leverage and opportunities to strengthen your 
+                      <p className="text-sm text-slate-200">
+                        <span className="font-semibold text-white">This score is just the beginning.</span> The detailed analysis that follows lets you
+                        explore each dimension in depth, identifying specific strengths to leverage and opportunities to strengthen your
                         support for employees managing cancer.
                       </p>
                     </div>
@@ -6112,7 +6114,7 @@ export default function ExportReportPage() {
                               </div>
                               <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: d.color }}>
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
                                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                                   <span>{elementCount} support elements</span>
                                 </div>
@@ -6163,8 +6165,8 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The Three Levels of Workplace Support</span>
-                    <span className="text-xs text-slate-500 block mt-0.5">How {totalElementCount} program elements are classified — from core coverage to advanced practices</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Company Comparison</span>
+                    <span className="text-xs text-slate-500 block mt-0.5">How {totalElementCount} self-reported program elements are classified across three levels of workplace support</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showLevelsOverview ? 'rotate-180' : ''}`}>
@@ -6175,10 +6177,10 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the {totalElementCount} program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span> based on how widely it is offered among participating organizations — showing your support ecosystem from core coverage to advanced practices.
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span> — from <span className="font-semibold text-slate-800">Foundation</span> practices every program builds on, to <span className="font-semibold text-slate-800">Momentum</span> that strengthens the employee experience, to <span className="font-semibold text-slate-800">Distinction</span> offerings that set leading organizations apart.
                   </p>
 
-                  <div className="grid grid-cols-3 gap-5 mb-5">
+                  <div className="grid grid-cols-3 gap-4 mb-2">
                     {(['core', 'enhanced', 'advanced'] as const).map((key) => {
                       const L = SUPPORT_LEVELS[key];
                       const Icon = L.icon;
@@ -6187,6 +6189,7 @@ export default function ExportReportPage() {
                       const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === key);
                       const count = levelElems.length;
                       const pct = allElems.length > 0 ? Math.round((count / allElems.length) * 100) : 0;
+                      const stageTag = key === 'core' ? 'the foundation every program builds on' : key === 'enhanced' ? 'typical as programs build momentum' : 'typical of leading-edge programs';
 
                       // Per-dimension counts for this level
                       const dimCounts: Record<number, { count: number; total: number }> = {};
@@ -6198,45 +6201,36 @@ export default function ExportReportPage() {
 
                       return (
                         <div key={key} className="rounded-xl overflow-hidden flex flex-col" style={{ border: `2px solid ${isExp ? L.color : L.border}`, boxShadow: isExp ? `0 4px 24px ${L.color}18` : '0 1px 3px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>
-                          <div className="px-5 pt-5 pb-4 flex flex-col flex-1" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)` }}>
-                            <div className="flex items-center gap-3 mb-3">
-                              <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-sm" style={{ backgroundColor: L.color }}>
-                                <Icon size={24} color="white" />
+                          <div className="px-4 pt-4 pb-3 flex flex-col flex-1" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)` }}>
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: L.color }}>
+                                <Icon size={18} color="white" />
                               </div>
                               <div>
                                 <h4 className="font-bold text-sm" style={{ color: L.color }}>{L.name}</h4>
-                                <span className="text-xs text-slate-500">{L.tagline}</span>
+                                <span className="text-[11px] text-slate-500">{count} Elements ({pct}%)</span>
                               </div>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs text-slate-600 leading-relaxed mb-1">{L.desc}</p>
-                              {L.boldPhrase && <p className="text-xs font-semibold text-slate-700 mb-2">{L.boldPhrase}</p>}
-                              <p className="text-xs italic" style={{ color: L.color, opacity: 0.75 }}>{L.italic}</p>
+                              <p className="text-xs font-semibold text-slate-700 leading-relaxed">{L.boldPhrase}<span className="text-slate-500">*</span></p>
                             </div>
                           </div>
-                          <div className="px-5 py-3 flex items-center justify-between" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
-                            <div className="flex items-center gap-4">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-lg font-bold" style={{ color: L.color }}>{count}</span>
-                                <span className="text-xs text-slate-500">elements</span>
-                              </div>
-                              <span className="text-xs text-slate-500">&middot;</span>
-                              <span className="text-xs text-slate-500">{pct}% of elements</span>
-                            </div>
-                            <button onClick={() => setExpandedLevel(isExp ? null : key)} className="text-xs font-medium flex items-center gap-1" style={{ color: L.color }}>
-                              {isExp ? 'Hide' : 'Explore'} by dimension
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isExp ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                          <div className="px-4 py-2.5 flex items-center justify-between" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
+                            <span className="text-[11px] italic" style={{ color: L.color, opacity: 0.85 }}>{stageTag}</span>
+                            <button onClick={() => setExpandedLevel(isExp ? null : key)} className="text-[11px] font-medium flex items-center gap-1" style={{ color: L.color }}>
+                              <span className="text-slate-500">*</span>{isExp ? 'Hide' : 'Explore'} by Dimension
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isExp ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                             </button>
                           </div>
                           {isExp && (
-                            <div className="px-5 py-3" style={{ borderTop: `1px solid ${L.border}`, backgroundColor: 'white' }}>
+                            <div className="px-4 py-3" style={{ borderTop: `1px solid ${L.border}`, backgroundColor: 'white' }}>
                               <div className="space-y-1.5">
                                 {Object.entries(dimCounts).sort(([,a],[,b]) => b.count - a.count).map(([dStr, cnt]) => {
                                   const d = parseInt(dStr);
                                   const dimInfo = dimensionAnalysis?.find((da: any) => da.dim === d);
                                   return (
                                     <div key={d} className="flex items-center gap-2">
-                                      <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: dimInfo?.tier?.color || '#64748B', fontSize: 9 }}>{d}</div>
+                                      <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: '#475569', fontSize: 9 }}>{d}</div>
                                       <span className="text-xs text-slate-600 flex-1 truncate" style={{ minWidth: 0 }}>{dimInfo?.name || `Dimension ${d}`}</span>
                                       <span className="text-xs font-bold flex-shrink-0 w-10 text-right" style={{ color: L.color }}>{cnt.count}</span>
                                       <span className="text-xs text-slate-500 flex-shrink-0">of {cnt.total}</span>
@@ -6249,19 +6243,6 @@ export default function ExportReportPage() {
                         </div>
                       );
                     })}
-                  </div>
-
-                  <div className="flex items-start gap-3 px-4 py-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    </div>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Levels are based on adoption patterns across participating organizations using cluster analysis.
-                      <strong className="text-slate-600"> Core</strong> elements are offered by more than 55% of participants.
-                      <strong className="text-slate-600"> Advanced</strong> elements are offered by fewer than 25%.
-                      <strong className="text-slate-600"> Enhanced</strong> elements fall between those ranges.
-                      Scores reflect the share of practices in place within each level; benchmarks reflect participating organizations.
-                    </p>
                   </div>
                 </div>
               )}
@@ -6344,7 +6325,7 @@ export default function ExportReportPage() {
                     {/* Footer */}
                     <div className="px-8 py-5 bg-slate-800">
                       <p className="text-base text-slate-200 text-center">
-                        <strong className="text-white">From insight to action.</strong> Each section builds toward a focused plan you can execute with confidence.
+                        <strong className="text-white">From insight to action.</strong>
                       </p>
                     </div>
                   </div>
@@ -6708,7 +6689,7 @@ export default function ExportReportPage() {
                     {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
                     {wsiPercentile !== null && totalCompanies > 1 && (
                       <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
-                    )}. The score is weighted across 13 dimensions of workplace cancer support, combining Core, Enhanced, and Advanced program elements based on their impact on employee wellbeing and organizational outcomes.
+                    )}. The score is weighted across 13 dimensions of workplace cancer support across {totalElementCount} elements and their impact on employee wellbeing and organizational outcomes.
                   </p>
                 </div>
               
@@ -6952,7 +6933,7 @@ export default function ExportReportPage() {
                       <div className="mb-5">
                         <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                          Each of the {totalElementCount} support elements is classified into one of three levels — Core, Enhanced, and Advanced — based on how commonly it appears across participating organizations. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                          Each of the {totalElementCount} support elements is classified into one of three levels — Foundation, Momentum, and Distinction — reflecting a progression from the baseline practices every program should have in place, to the next layer that strengthens the employee experience, to signature offerings that set leading organizations apart. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
                         </p>
                       </div>
                       <div className="grid grid-cols-3 gap-5">
@@ -9016,11 +8997,11 @@ export default function ExportReportPage() {
                       </div>
                       <div>
                         <h3 className="font-bold text-white text-2xl tracking-tight">Cross-Dimensional Insights</h3>
-                        <p className="text-slate-500 text-sm">Connecting the dots across your report</p>
+                        <p className="text-white text-sm opacity-90">Connecting the dots across your report</p>
                       </div>
                     </div>
                     <div className="ml-[52px]">
-                      <p className="text-slate-300 text-sm leading-relaxed mb-3">
+                      <p className="text-white text-sm leading-relaxed mb-3 opacity-90">
                         Highlights likely tensions where a lower-scoring area may be limiting the impact of stronger programs elsewhere.
                         Based on the most common cross-dimensional tensions observed to date across participating organizations.
                       </p>
@@ -9030,7 +9011,7 @@ export default function ExportReportPage() {
                             <circle cx="10" cy="10" r="6" />
                             <path d="M14.5 14.5L20 20" strokeLinecap="round" />
                           </svg>
-                          <span className="text-slate-300 text-sm"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional tensions detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional tensions detected' || patterns.length !== 1 ? 'tensions' : 'tension'} flagged</span>
+                          <span className="text-white text-sm opacity-90"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional tensions detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional tensions detected' || patterns.length !== 1 ? 'tensions' : 'tension'} flagged</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -9038,7 +9019,7 @@ export default function ExportReportPage() {
                             <circle cx="12" cy="12" r="4" />
                             <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
                           </svg>
-                          <span className="text-slate-300 text-sm">Each includes an <span className="text-white font-semibold">actionable starting step</span></span>
+                          <span className="text-white text-sm opacity-90">Each includes an <span className="text-white font-semibold">actionable starting step</span></span>
                         </div>
                       </div>
                     </div>
@@ -9161,17 +9142,17 @@ export default function ExportReportPage() {
                     </div>
                     <div className="space-y-3">
                       {positiveInsights.map((p, idx) => (
-                        <div key={`pos-${idx}`} className="bg-gradient-to-r from-emerald-50 to-white rounded-xl border border-emerald-200 p-4">
-                          <h5 className="font-semibold text-emerald-800 text-sm mb-2">{p.pattern}</h5>
+                        <div key={`pos-${idx}`} className="bg-white rounded-xl border border-slate-200 p-4">
+                          <h5 className="font-semibold text-slate-800 text-sm mb-2">{p.pattern}</h5>
                           <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
-                          <p className="text-emerald-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                          <p className="text-slate-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
                         </div>
                       ))}
                       {noteworthyInsights.map((p, idx) => (
-                        <div key={`note-${idx}`} className="bg-gradient-to-r from-amber-50 to-white rounded-xl border border-amber-200 p-4">
-                          <h5 className="font-semibold text-amber-800 text-sm mb-2">{p.pattern}</h5>
+                        <div key={`note-${idx}`} className="bg-white rounded-xl border border-slate-200 p-4">
+                          <h5 className="font-semibold text-slate-800 text-sm mb-2">{p.pattern}</h5>
                           <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
-                          <p className="text-amber-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                          <p className="text-slate-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
                         </div>
                       ))}
                     </div>
@@ -9180,9 +9161,8 @@ export default function ExportReportPage() {
 
                 {/* Bottom guidance */}
                 <div className="mt-6 pt-4 border-t border-slate-200">
-                  <div className="flex items-start gap-3 p-4 bg-gradient-to-r from-violet-600 to-violet-700 rounded-xl">
+                  <div className="flex items-start gap-3 p-4 bg-slate-800 rounded-xl">
                     <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                      {/* Custom conversation/strategy icon */}
                       <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <rect x="3" y="4" width="18" height="14" rx="2" />
                         <path d="M7 9h10M7 13h6" strokeLinecap="round" />
@@ -9191,7 +9171,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <h4 className="font-semibold text-white text-sm">How to use these insights</h4>
-                      <p className="text-violet-100 text-sm mt-1 leading-relaxed">
+                      <p className="text-slate-200 text-sm mt-1 leading-relaxed">
                         Use these patterns as a <span className="font-semibold text-white">discussion guide for leadership alignment</span>. Validate internally where needed, then assign owners to the recommended actions. These tensions often explain why existing investments underperform. Addressing them typically <span className="font-semibold text-white">unlocks value across multiple dimensions</span>.
                       </p>
                     </div>
@@ -9206,7 +9186,7 @@ export default function ExportReportPage() {
             {/* Dark accent header */}
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
               <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-              <p className="text-slate-500 text-base mt-1">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
+              <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, and growth opportunities across all 13 dimensions</p>
             </div>
 
             {/* Tab cards + content area */}
@@ -9249,25 +9229,25 @@ export default function ExportReportPage() {
                       onClick={() => setActiveReportTab(activeReportTab === tab.key ? null : tab.key)}
                       className="relative text-left rounded-xl p-5 transition-all"
                       style={{
-                        backgroundColor: isActive ? '#1e1e1e' : '#ffffff',
-                        border: isActive ? '2px solid #1e1e1e' : '2px solid #e2e8f0',
+                        backgroundColor: isActive ? '#1e293b' : '#ffffff',
+                        border: isActive ? '2px solid #1e293b' : '2px solid #64748b',
                         boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
                       }}
                     >
                       {isActive && (
-                        <div className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full" style={{ backgroundColor: '#1e1e1e' }} />
+                        <div className="absolute top-0 left-4 right-4 h-[3px] rounded-b-full" style={{ backgroundColor: '#1e293b' }} />
                       )}
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#333' : '#e2e8f0' }}>
-                            <span style={{ color: isActive ? 'white' : '#94a3b8' }}>{tab.icon}</span>
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#475569' : '#334155' }}>
+                            <span style={{ color: 'white' }}>{tab.icon}</span>
                           </div>
                           <div>
-                            <p className="text-base font-bold" style={{ color: isActive ? '#e5e5e5' : '#64748b' }}>{tab.label}</p>
-                            <p className="text-sm mt-0.5" style={{ color: isActive ? '#a3a3a3' : '#94a3b8' }}>{tab.desc}</p>
+                            <p className="text-base font-bold" style={{ color: isActive ? '#ffffff' : '#0f172a' }}>{tab.label}</p>
+                            <p className="text-sm mt-0.5" style={{ color: isActive ? '#cbd5e1' : '#475569' }}>{tab.desc}</p>
                           </div>
                         </div>
-                        <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: isActive ? '#e5e5e5' : '#cbd5e1' }}>{tab.count}</span>
+                        <span className="text-3xl font-bold tabular-nums leading-none" style={{ color: isActive ? '#ffffff' : '#1e293b' }}>{tab.count}</span>
                       </div>
                     </button>
                   );
@@ -9357,7 +9337,7 @@ export default function ExportReportPage() {
                                       <p className="text-sm text-slate-800">{item.name}</p>
                                       <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
                                     </div>
-                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; return <span style={{ color }}>({label})</span>; })()}</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Distinction' : 'Momentum'; return <span style={{ color }}>({label})</span>; })()}</p>
                                   </div>
                                 ))}
                               </div>
@@ -11477,15 +11457,15 @@ export default function ExportReportPage() {
                               <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold mt-0.5">{idx + 1}</span>
                               <div>
                                 <div className="flex items-baseline gap-3">
-                                  <span className="text-lg font-bold text-slate-800">{d.name}</span>
-                                  <span className="text-sm text-slate-400">Score: {Math.round(d.score)}{d.benchmark != null ? ' (Benchmark: ' + d.benchmark + ')' : ''}</span>
+                                  <span className="text-lg font-bold text-slate-800">D{d.dim} {d.name}</span>
+                                  <span className="text-sm text-slate-700 font-medium">Score: {Math.round(d.score)}{d.benchmark != null ? ' (Benchmark: ' + d.benchmark + ')' : ''}</span>
                                 </div>
-                                <p className="text-base text-slate-600 mt-1.5">{crossContext}</p>
+                                <p className="text-base text-slate-700 mt-1.5">{crossContext}</p>
                                 <p className="text-base mt-2">
                                   <strong className="text-amber-700">{playTitle}.</strong>
-                                  <span className="text-slate-600"> {firstStep}</span>
+                                  <span className="text-slate-700"> {firstStep}</span>
                                 </p>
-                                <p className="text-sm text-slate-500 mt-1 italic">{whyForEmployees}</p>
+                                <p className="text-sm text-slate-700 mt-1 italic">{whyForEmployees}</p>
                               </div>
                             </div>
                           )}
@@ -11538,23 +11518,18 @@ export default function ExportReportPage() {
               
               {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
               
-              {/* 4 Service Cards with bullets - enhanced design */}
+              {/* 4 Service Cards with bullets - unified orange theme */}
               <div className="grid grid-cols-2 gap-6 mb-8">
                 {[
-                  { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'violet' },
-                  { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'emerald' },
-                  { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'amber' },
-                  { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'blue' },
+                  { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'orange' },
+                  { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'orange' },
+                  { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'orange' },
+                  { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'orange' },
                 ].map(item => {
                   const custom = customCacHelp[item.key as keyof typeof customCacHelp];
                   const title = custom?.title || item.defaultTitle;
                   const bullets = custom?.bullets || item.defaultBullets;
-                  const colorClasses = {
-                    violet: { bg: 'bg-violet-500', border: 'border-violet-300', icon: 'bg-violet-100 text-violet-600', light: 'bg-violet-50' },
-                    emerald: { bg: 'bg-emerald-500', border: 'border-emerald-300', icon: 'bg-emerald-100 text-emerald-600', light: 'bg-emerald-50' },
-                    amber: { bg: 'bg-amber-500', border: 'border-amber-300', icon: 'bg-amber-100 text-amber-600', light: 'bg-amber-50' },
-                    blue: { bg: 'bg-blue-500', border: 'border-blue-300', icon: 'bg-blue-100 text-blue-600', light: 'bg-blue-50' },
-                  }[item.color];
+                  const colorClasses = { bg: 'bg-[#F37021]', border: 'border-orange-200', icon: 'bg-orange-100 text-[#F37021]', light: 'bg-orange-50' };
                   
                   return (
                     <div key={item.key} className={`rounded-2xl border ${colorClasses?.border} overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
@@ -12060,15 +12035,15 @@ export default function ExportReportPage() {
                             <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
                           </div>
                           <div>
-                            <p className="text-slate-500 text-sm font-semibold tracking-widest uppercase">Performance Report</p>
+                            <p className="text-white text-sm font-semibold tracking-widest uppercase">Performance Report</p>
                             <h1 className="text-4xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                            <p className="text-slate-300 mt-2 text-xl">Index {indexYear}</p>
+                            <p className="text-white mt-2 text-xl">Index {indexYear}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-slate-500 text-sm font-medium">Prepared Exclusively for</p>
+                          <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
                           <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                          <p className="text-slate-500 text-sm font-medium">Report Date</p>
+                          <p className="text-white text-sm font-medium">Report Date</p>
                           <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
@@ -14092,7 +14067,7 @@ export default function ExportReportPage() {
                                           <p className="text-sm text-slate-800">{item.name}</p>
                                           <span className={`text-xs font-semibold px-2 py-0.5 rounded flex-shrink-0 ${item.type === 'In Development' ? 'bg-blue-50 text-blue-700' : 'bg-amber-50 text-amber-700'}`}>{item.type}</span>
                                         </div>
-                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Core' : lvl === 'advanced' ? 'Advanced' : 'Enhanced'; return <span style={{ color }}>({label})</span>; })()}</p>
+                                        <p className="text-xs text-slate-400 mt-0.5">{item.peerPct !== null ? item.peerPct + '% of participating organizations' : ''} {(() => { const lvl = getElementLevel(item.name); const color = lvl === 'core' ? '#059669' : lvl === 'advanced' ? '#4F46E5' : '#0284C7'; const label = lvl === 'core' ? 'Foundation' : lvl === 'advanced' ? 'Distinction' : 'Momentum'; return <span style={{ color }}>({label})</span>; })()}</p>
                                       </div>
                                     ))}
                                   </div>
