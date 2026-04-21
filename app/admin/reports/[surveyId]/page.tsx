@@ -657,7 +657,7 @@ const CLASSIFICATION_STYLES: Record<string, { color: string; bg: string; border:
   'Table Stakes Gap': { color: '#B91C1C', bg: '#FEF2F2', border: '#FECACA' },
   'Momentum Opportunity': { color: '#1D4ED8', bg: '#EFF6FF', border: '#BFDBFE' },
   'Aspirational Gap': { color: '#B45309', bg: '#FFFBEB', border: '#FDE68A' },
-  'In Progress': { color: '#6366F1', bg: '#EEF2FF', border: '#C7D2FE' },
+  'In Progress': { color: '#3730A3', bg: '#EEF2FF', border: '#C7D2FE' },
 };
 
 // Generate tier-adaptive insights based on actual performance
@@ -2633,10 +2633,10 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
   const elemBench = selectedDim ? elementBenchmarks[selectedDim] || {} : {};
 
   const STATUS = {
-    currently: { bg: '#10B981', light: '#ECFDF5', text: '#065F46', label: 'In Place' },
+    currently: { bg: '#047857', light: '#ECFDF5', text: '#065F46', label: 'In Place' },
     planning: { bg: '#3B82F6', light: '#EFF6FF', text: '#1E40AF', label: 'In Development' },
-    assessing: { bg: '#F59E0B', light: '#FFFBEB', text: '#92400E', label: 'Under Review' },
-    notAble: { bg: '#EF4444', light: '#FEF2F2', text: '#991B1B', label: 'Not Planned' }
+    assessing: { bg: '#B45309', light: '#FFFBEB', text: '#92400E', label: 'Under Review' },
+    notAble: { bg: '#B91C1C', light: '#FEF2F2', text: '#991B1B', label: 'Not Planned' }
   };
   const UNSURE_LABEL = 'Unsure';
 
@@ -2711,7 +2711,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   {/* Dimension Number Badge - colored by Employee Priority group */}
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: isSelected ? '#6366F1' : priorityGroup.color }}
+                    style={{ backgroundColor: isSelected ? '#3730A3' : priorityGroup.color }}
                     title={priorityGroup.label}
                   >
                     {d.dim}
@@ -3079,7 +3079,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                   {/* Dimension Number Badge - colored by Employee Priority group */}
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: isSelected ? '#6366F1' : priorityGroup.color }}
+                    style={{ backgroundColor: isSelected ? '#3730A3' : priorityGroup.color }}
                     title={priorityGroup.label}
                   >
                     {d.dim}
@@ -6103,18 +6103,18 @@ export default function ExportReportPage() {
                       {/* Dimensions Grid - 3x4 + 1 */}
                       <div className="grid grid-cols-3 gap-4">
                         {[
-                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
-                          { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
+                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#5B21B6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
+                          { dim: 2, name: 'Insurance & Financial Protection', color: '#3730A3', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
                           { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
                           { dim: 4, name: 'Specialized Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
                           { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
-                          { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
+                          { dim: 6, name: 'Culture & Psychological Safety', color: '#047857', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
                           { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
                           { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
                           { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
-                          { dim: 10, name: 'Caregiver & Family Support', color: '#F59E0B', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
+                          { dim: 10, name: 'Caregiver & Family Support', color: '#B45309', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
                           { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
-                          { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
+                          { dim: 12, name: 'Continuous Improvement', color: '#B91C1C', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
                           { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
                         ].map((d) => {
                           const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
@@ -7222,7 +7222,7 @@ export default function ExportReportPage() {
                             />
                             <div
                               className="absolute"
-                              style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-6px', transform: 'translateX(-50%)', height: '20px', width: '2px', backgroundColor: '#6366F1', boxShadow: '0 0 0 2px #ffffff' }}
+                              style={{ left: `${Math.min(d.benchmark, 100)}%`, top: '-6px', transform: 'translateX(-50%)', height: '20px', width: '2px', backgroundColor: '#3730A3', boxShadow: '0 0 0 2px #ffffff' }}
                               title={`Benchmark: ${d.benchmark}`}
                             />
                           </div>
@@ -7271,10 +7271,10 @@ export default function ExportReportPage() {
                         const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                         
                         const STATUS = {
-                          currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
+                          currently: { bg: '#047857', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
                           planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
-                          assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
-                          notAble: { bg: '#EF4444', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
+                          assessing: { bg: '#B45309', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
+                          notAble: { bg: '#B91C1C', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
                           unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Unsure' }
                         };
                         
@@ -7345,7 +7345,7 @@ export default function ExportReportPage() {
                                       <div className="flex items-center gap-3">
                                         <span className="w-24 text-xs font-medium text-slate-600">Benchmark</span>
                                         <div className="flex-1 relative h-6 bg-slate-100 rounded">
-                                          <div className="absolute left-0 top-0 h-full rounded" style={{ width: `${Math.min(d.benchmark, 100)}%`, backgroundColor: '#6366F1' }} />
+                                          <div className="absolute left-0 top-0 h-full rounded" style={{ width: `${Math.min(d.benchmark, 100)}%`, backgroundColor: '#3730A3' }} />
                                         </div>
                                         <span className="w-10 text-right text-sm font-bold tabular-nums text-slate-900">{d.benchmark}</span>
                                       </div>
@@ -8892,11 +8892,11 @@ export default function ExportReportPage() {
                               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Element Status</p>
                               <div className="space-y-1.5">
                                 {[
-                                  { label: 'In Place', count: t.inPlace, color: '#10B981' },
+                                  { label: 'In Place', count: t.inPlace, color: '#047857' },
                                   { label: 'In Development', count: t.inDev, color: '#3B82F6' },
-                                  { label: 'Under Review', count: t.review, color: '#F59E0B' },
+                                  { label: 'Under Review', count: t.review, color: '#B45309' },
                                   { label: 'Not Planned', count: t.gaps, color: '#F87171' },
-                                  { label: 'Unsure', count: t.toConfirm, color: '#8B5CF6' },
+                                  { label: 'Unsure', count: t.toConfirm, color: '#5B21B6' },
                                 ].map(s => (
                                   <div key={s.label} className="flex items-center gap-2">
                                     <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.count > 0 ? s.color : '#CBD5E1' }} />
@@ -8943,7 +8943,7 @@ export default function ExportReportPage() {
                                     </div>
                                     <div className="pl-2 space-y-0.5 mt-1">
                                       {elems.map((e: any) => {
-                                        const statusColor = e.isStrength ? '#10B981' : e.isPlanning ? '#3B82F6' : e.isAssessing ? '#F59E0B' : e.isUnsure ? '#8B5CF6' : '#F87171';
+                                        const statusColor = e.isStrength ? '#047857' : e.isPlanning ? '#3B82F6' : e.isAssessing ? '#B45309' : e.isUnsure ? '#5B21B6' : '#F87171';
                                         const statusLabel = e.isStrength ? 'In Place' : e.isPlanning ? 'In Dev' : e.isAssessing ? 'Review' : e.isUnsure ? 'Confirm' : 'Not Planned';
                                         return (
                                           <div key={e.name} className="flex items-start gap-2 py-0.5">
@@ -12543,10 +12543,10 @@ export default function ExportReportPage() {
                             
                             <div className="space-y-2">
                               {[
-                                { name: 'Leading', range: '80-100', color: '#10B981', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                { name: 'Leading', range: '80-100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', pct: (wsiTierDistribution as any)?.leading ?? 0 },
                                 { name: 'Advancing', range: '64-79', color: '#3B82F6', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                { name: 'Accelerating', range: '50-63', color: '#F59E0B', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                { name: 'Building', range: '0-49', color: '#EF4444', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 }
+                                { name: 'Accelerating', range: '50-63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                { name: 'Building', range: '0-49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', pct: (wsiTierDistribution as any)?.building ?? 0 }
                               ].map((t) => {
                                 const isCurrentTier = tier?.name === t.name;
                                 return (
@@ -12657,18 +12657,18 @@ export default function ExportReportPage() {
                         {/* Dimensions Grid - 3x4 + 1 */}
                         <div className="grid grid-cols-3 gap-3">
                           {[
-                            { dim: 1, name: 'Medical Leave & Flexibility', color: '#8B5CF6', def: 'Time off for treatment, recovery, and appointments while maintaining job security.' },
-                            { dim: 2, name: 'Insurance & Financial Protection', color: '#6366F1', def: 'Health coverage, disability benefits, and financial protections for serious illness.' },
+                            { dim: 1, name: 'Medical Leave & Flexibility', color: '#5B21B6', def: 'Time off for treatment, recovery, and appointments while maintaining job security.' },
+                            { dim: 2, name: 'Insurance & Financial Protection', color: '#3730A3', def: 'Health coverage, disability benefits, and financial protections for serious illness.' },
                             { dim: 3, name: 'Manager Preparedness', color: '#3B82F6', def: 'Training and resources for managers to support team members facing health conditions.' },
                             { dim: 4, name: 'Specialized Resources', color: '#0EA5E9', def: 'Care coordinators, patient advocates, and navigation support services.' },
                             { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments enabling work during and after treatment.' },
-                            { dim: 6, name: 'Culture & Psychological Safety', color: '#10B981', def: 'Environment where employees feel safe disclosing health conditions.' },
+                            { dim: 6, name: 'Culture & Psychological Safety', color: '#047857', def: 'Environment where employees feel safe disclosing health conditions.' },
                             { dim: 7, name: 'Career Continuity', color: '#22C55E', def: 'Policies protecting career progression for employees managing health conditions.' },
                             { dim: 8, name: 'Work Resumption', color: '#84CC16', def: 'Structured programs supporting successful return to work after medical leave.' },
                             { dim: 9, name: 'Executive Commitment', color: '#EAB308', def: 'Visible leadership support and dedicated resources for employee health support.' },
-                            { dim: 10, name: 'Caregiver Support', color: '#F59E0B', def: 'Programs for employees caring for family members with serious health conditions.' },
+                            { dim: 10, name: 'Caregiver Support', color: '#B45309', def: 'Programs for employees caring for family members with serious health conditions.' },
                             { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health programs, preventive care, and legal compliance.' },
-                            { dim: 12, name: 'Continuous Improvement', color: '#EF4444', def: 'Measuring effectiveness, gathering feedback, and improving support programs.' },
+                            { dim: 12, name: 'Continuous Improvement', color: '#B91C1C', def: 'Measuring effectiveness, gathering feedback, and improving support programs.' },
                             { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic communication ensuring employees know what support is available.' },
                           ].map((d) => {
                             const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
@@ -13168,9 +13168,9 @@ export default function ExportReportPage() {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   
                   const STATUS = {
-                    currently: { bg: '#10B981', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
+                    currently: { bg: '#047857', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
                     planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
-                    assessing: { bg: '#F59E0B', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
+                    assessing: { bg: '#B45309', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
                     notAble: { bg: '#CBD5E1', light: '#F1F5F9', text: '#475569', label: 'Not Planned' },
                     unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Unsure' }
                   };
@@ -13243,9 +13243,9 @@ export default function ExportReportPage() {
                         <div className="col-span-5 text-center">
                           <div>Benchmark Distribution</div>
                           <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#10B981' }}></span><span>{'In Place'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#047857' }}></span><span>{'In Place'}</span></div>
                             <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span>{'In Development'}</span></div>
-                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#F59E0B' }}></span><span>{'Under Review'}</span></div>
+                            <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#B45309' }}></span><span>{'Under Review'}</span></div>
                             <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#CBD5E1' }}></span><span>Not Planned</span></div>
                           </div>
                         </div>
@@ -13276,13 +13276,13 @@ export default function ExportReportPage() {
                               </div>
                               <div className="col-span-5">
                                 <div className="h-8 rounded-lg overflow-hidden flex bg-slate-200 border border-slate-300">
-                                  <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#10B981', minWidth: pctCurrently > 0 ? '28px' : '0' }}>
+                                  <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#047857', minWidth: pctCurrently > 0 ? '28px' : '0' }}>
                                     {pctCurrently > 0 ? `${pctCurrently}%` : ''}
                                   </div>
                                   <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6', minWidth: pctPlanning > 0 ? '28px' : '0' }}>
                                     {pctPlanning > 0 ? `${pctPlanning}%` : ''}
                                   </div>
-                                  <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#F59E0B', minWidth: pctAssessing > 0 ? '28px' : '0' }}>
+                                  <div className="flex items-center justify-center text-xs font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#B45309', minWidth: pctAssessing > 0 ? '28px' : '0' }}>
                                     {pctAssessing > 0 ? `${pctAssessing}%` : ''}
                                   </div>
                                   <div className="flex items-center justify-center text-xs font-bold text-slate-600" style={{ width: `${pctNotOffering}%`, backgroundColor: '#CBD5E1', minWidth: pctNotOffering > 0 ? '28px' : '0' }}>
