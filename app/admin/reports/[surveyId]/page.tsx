@@ -943,11 +943,11 @@ function getDynamicInsight(
       focus: 'continuous improvement', 
       risk: 'static policies that don\'t evolve', 
       opportunity: 'learning organization', 
-      quickWin: 'annual program review and employee feedback',
+      quickWin: 'regular program review and employee feedback',
       cacPrograms: {
         exemplary: 'Your continuous improvement practices could inform CAC\'s assessment methodology. We welcome partnership on evolving best practice standards.',
         leading: 'Our CI Excellence program adds case review protocols, outcome tracking, and systematic policy refinement processes.',
-        progressing: 'CAC\'s Continuous Improvement Framework designs feedback mechanisms, annual review cycles, and benchmarking practices.',
+        progressing: 'CAC\'s Continuous Improvement Framework designs feedback mechanisms, regular review cycles, and benchmarking practices.',
         emerging: 'Our CI Foundation program implements basic feedback collection, annual policy review, and metric tracking.',
         developing: 'Critical: CAC\'s CI Quick-Start establishes immediate feedback channels while systematic improvement processes are developed.'
       }
@@ -1553,7 +1553,7 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('financial') || name.includes('hardship') || name.includes('grant')) return 'Fund or program operational with clear eligibility criteria and a simple application process.';
     if (name.includes('clinical trial') || name.includes('experimental')) return 'Coverage terms published, employee notification process defined, and claims pathway documented.';
     if (name.includes('advanced therap') || name.includes('car-t') || name.includes('immunotherapy') || name.includes('proton')) return 'Coverage terms documented, prior authorization pathway defined, and communicated through benefits materials.';
-    if (name.includes('out-of-pocket') || name.includes('maximum') || name.includes('copay') || name.includes('specialty drug')) return 'Limits published in benefits summary, communicated at enrollment, and reviewed annually.';
+    if (name.includes('out-of-pocket') || name.includes('maximum') || name.includes('copay') || name.includes('specialty drug')) return 'Limits published in benefits summary, communicated at enrollment, and reviewed regularly.';
     if (name.includes('travel') || name.includes('lodging') || name.includes('reimbursement')) return 'Policy published with eligibility criteria, reimbursement process defined, and communicated through benefits orientation.';
     if (name.includes('supplemental') || name.includes('voluntary')) return 'Benefit available, enrollment integrated into open enrollment, and employer contribution communicated.';
     if (name.includes('cost estimator') || name.includes('tool')) return 'Tool live, accessible to all employees, and promoted during benefits enrollment.';
@@ -1568,32 +1568,32 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
   }
   if (dimNum === 3) {
     if (name.includes('escalation') || name.includes('protocol')) return 'Escalation path documented, distributed to all managers, and tested via at least 2 scenario walkthroughs with HR.';
-    if (name.includes('resource hub')) return 'Single access point live, maintained by a named owner, referenced in manager training materials, and reviewed quarterly.';
-    if (name.includes('training')) return 'Required for all people managers, completed annually, with completion tracking.';
-    if (name.includes('compliance') || name.includes('legal')) return 'Required for managers, refreshed annually, with a clear escalation path for complex cases.';
+    if (name.includes('resource hub')) return 'Single access point live, maintained by a named owner, referenced in manager training materials, and reviewed regularly.';
+    if (name.includes('training')) return 'Required for all people managers, completed regularly, with completion tracking.';
+    if (name.includes('compliance') || name.includes('legal')) return 'Required for managers, refreshed regularly, with a clear escalation path for complex cases.';
     if (name.includes('evaluation')) return 'Integrated into existing manager performance review process with defined criteria.';
     if (name.includes('community') || name.includes('peer support')) return 'Launched with participation targets, a regular meeting cadence, and a facilitator.';
-    if (name.includes('coach') || name.includes('senior leader')) return 'Program active, participants identified, and engagement tracked quarterly.';
-    if (name.includes('ai') || name.includes('guidance') || name.includes('tool')) return 'Tool deployed, accessible to all managers, and usage tracked monthly.';
-    return 'Program launched, all people managers enrolled, and completion tracked quarterly.';
+    if (name.includes('coach') || name.includes('senior leader')) return 'Program active, participants identified, and engagement tracked regularly.';
+    if (name.includes('ai') || name.includes('guidance') || name.includes('tool')) return 'Tool deployed, accessible to all managers, and usage tracked regularly.';
+    return 'Program launched, all people managers enrolled, and completion tracked regularly.';
   }
   if (dimNum === 4) {
     if (name.includes('navigation') || name.includes('hub') || name.includes('coordinator')) return 'Single access point published, findable within 2 clicks from the company intranet, and promoted at onboarding.';
     if (name.includes('coach') || name.includes('counseling') || name.includes('emotional')) return 'Provider contracted, referral pathway documented, and communicated to HR business partners and managers.';
     if (name.includes('peer') || name.includes('mentor')) return 'Matching process defined, initial cohort active, and participant feedback collected after 90 days.';
     if (name.includes('advocacy') || name.includes('appeals')) return 'Service contracted or internal process defined, with a clear intake method and average resolution time tracked.';
-    if (name.includes('concierge') || name.includes('care coordination')) return 'Concierge service operational, referral pathway live, and utilization reported quarterly.';
+    if (name.includes('concierge') || name.includes('care coordination')) return 'Concierge service operational, referral pathway live, and utilization reported regularly.';
     if (name.includes('survivorship') || name.includes('planning assistance')) return 'Program available to post-treatment employees, with enrollment criteria defined and at least one participant served within the first quarter.';
     if (name.includes('financial') || name.includes('assistance')) return 'Fund or service operational, eligibility criteria published, and application process accessible within 48 hours.';
     if (name.includes('legal') || name.includes('workplace rights')) return 'Resource published, accessible to all employees, and referenced in relevant HR communications.';
-    if (name.includes('optimization') || name.includes('benefits')) return 'Service operational, referral process defined, and utilization tracked quarterly.';
-    if (name.includes('tool') || name.includes('portal') || name.includes('online') || name.includes('app')) return 'Tool or portal live, accessible to all employees, and usage tracked quarterly.';
-    if (name.includes('second opinion')) return 'Service contracted, referral process defined, and utilization tracked quarterly.';
+    if (name.includes('optimization') || name.includes('benefits')) return 'Service operational, referral process defined, and utilization tracked regularly.';
+    if (name.includes('tool') || name.includes('portal') || name.includes('online') || name.includes('app')) return 'Tool or portal live, accessible to all employees, and usage tracked regularly.';
+    if (name.includes('second opinion')) return 'Service contracted, referral process defined, and utilization tracked regularly.';
     if (name.includes('specialized') || name.includes('network') || name.includes('treatment center')) return 'Network defined, access pathway documented, and communicated to employees through benefits materials.';
     if (name.includes('travel')) return 'Policy published with clear eligibility criteria, reimbursement process defined, and communicated through benefits orientation.';
-    if (name.includes('medication') || name.includes('affordability')) return 'Program operational, eligibility criteria published, and enrollment tracked quarterly.';
-    if (name.includes('program') || name.includes('service')) return 'Service operational, referral process defined, and utilization tracked quarterly.';
-    return 'Service operational, referral process defined, and utilization tracked quarterly.';
+    if (name.includes('medication') || name.includes('affordability')) return 'Program operational, eligibility criteria published, and enrollment tracked regularly.';
+    if (name.includes('program') || name.includes('service')) return 'Service operational, referral process defined, and utilization tracked regularly.';
+    return 'Service operational, referral process defined, and utilization tracked regularly.';
   }
   if (dimNum === 5) {
     if (name.includes('process') || name.includes('request')) return 'Standardized request form and approval workflow live, with SLA for response time.';
@@ -1615,17 +1615,17 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('stigma')) return 'Campaign launched, employee awareness measured, and integrated into onboarding.';
     if (name.includes('privacy') || name.includes('confidential')) return 'Policy documented, communicated to managers, and auditable.';
     if (name.includes('resource group') || name.includes('erg')) return 'Group formed, meeting regularly, and with executive sponsorship.';
-    if (name.includes('guideline') || name.includes('inclusive communication')) return 'Guidelines published, incorporated into manager onboarding, and reviewed annually.';
+    if (name.includes('guideline') || name.includes('inclusive communication')) return 'Guidelines published, incorporated into manager onboarding, and reviewed regularly.';
     if (name.includes('anti-discrimination') || name.includes('discrimination')) return 'Policy published in employee handbook, communicated at onboarding, and enforced consistently.';
     if (name.includes('anti-retaliation') || name.includes('retaliation')) return 'Policy documented, reporting mechanism defined, and communicated to all employees.';
     if (name.includes('peer support') || name.includes('employee peer')) return 'Group launched with regular meeting cadence, participation tracked, and facilitator assigned.';
     if (name.includes('professional-led') || name.includes('support group') || name.includes('facilitator')) return 'Provider contracted, sessions scheduled regularly, and participation tracked.';
     if (name.includes('emotional') || name.includes('counseling')) return 'Service contracted, referral pathway documented, and promoted through EAP and HR channels.';
-    if (name.includes('dialogue') || name.includes('forum') || name.includes('open health')) return 'Forum established, participation voluntary, and held at least quarterly.';
-    if (name.includes('training') || name.includes('sensitive health')) return 'Required for all managers, completed annually, with completion tracked.';
+    if (name.includes('dialogue') || name.includes('forum') || name.includes('open health')) return 'Forum established, participation voluntary, and held regularly.';
+    if (name.includes('training') || name.includes('sensitive health')) return 'Required for all managers, completed regularly, with completion tracked.';
     if (name.includes('hr channel') || name.includes('benefits') || name.includes('insurance')) return 'Channel established, response time defined, and promoted to all employees.';
     if (name.includes('anonymous') || name.includes('no login')) return 'Tool live, accessible without authentication, and promoted through multiple channels.';
-    return 'Initiative active, participation or reach measured, and reviewed at least annually.';
+    return 'Initiative active, participation or reach measured, and reviewed regularly.';
   }
   if (dimNum === 7) {
     if (name.includes('succession') || name.includes('protection')) return 'Policy updated to explicitly address treatment-related absence, communicated to affected employees.';
@@ -1651,12 +1651,12 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('budget') || name.includes('dedicated') || name.includes('year-over-year')) return 'Line item in annual budget with named owner and quarterly reporting.';
     if (name.includes('sponsor') || name.includes('champion') || name.includes('c-suite')) return 'Named executive sponsor with defined role, visible to employees.';
     if (name.includes('communicate') || name.includes('town hall') || name.includes('visible')) return 'At least one leadership communication per year referencing cancer support, with employee awareness measured.';
-    if (name.includes('accountability') || name.includes('metric')) return 'Metrics defined, tracked quarterly, and included in executive performance reviews.';
+    if (name.includes('accountability') || name.includes('metric')) return 'Metrics defined, tracked regularly, and included in executive performance reviews.';
     if (name.includes('success story') || name.includes('celebration')) return 'At least 2 stories shared per year through internal channels, with employee consent.';
-    if (name.includes('compensation') || name.includes('tied to')) return 'Support outcomes integrated into executive compensation framework and reviewed annually.';
-    if (name.includes('esg') || name.includes('csr') || name.includes('sustainability') || name.includes('annual report')) return 'Support program data included in reporting cycle, with metrics updated annually.';
-    if (name.includes('investor') || name.includes('stakeholder')) return 'Support programs referenced in stakeholder communications at least annually.';
-    if (name.includes('steering committee') || name.includes('cross-functional')) return 'Committee formed, meeting at least quarterly, with documented action items and follow-through.';
+    if (name.includes('compensation') || name.includes('tied to')) return 'Support outcomes integrated into executive compensation framework and reviewed regularly.';
+    if (name.includes('esg') || name.includes('csr') || name.includes('sustainability') || name.includes('annual report')) return 'Support program data included in reporting cycle, with metrics updated regularly.';
+    if (name.includes('investor') || name.includes('stakeholder')) return 'Support programs referenced in stakeholder communications regularly.';
+    if (name.includes('steering committee') || name.includes('cross-functional')) return 'Committee formed, meeting regularly, with documented action items and follow-through.';
     return 'Commitment formalized with measurable objectives and visible to the broader organization.';
   }
   if (dimNum === 10) {
@@ -1667,8 +1667,8 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     if (name.includes('practical') || name.includes('logistics') || name.includes('managing caregiving')) return 'Support options documented, eligibility clear, and accessible through self-service or a single point of contact.';
     if (name.includes('flexible') || name.includes('arrangement') || name.includes('modified') || name.includes('job dut')) return 'Formal request process documented with manager guidelines and HR oversight.';
     if (name.includes('subsid') || name.includes('account') || name.includes('matching') || name.includes('contribution')) return 'Benefit active, enrollment process documented, and employees informed through benefits orientation.';
-    if (name.includes('mental health')) return 'Service available, promoted to caregivers specifically, and utilization tracked quarterly.';
-    if (name.includes('manager training') || name.includes('training')) return 'Required for managers of caregiving employees, completed annually, with completion tracked.';
+    if (name.includes('mental health')) return 'Service available, promoted to caregivers specifically, and utilization tracked regularly.';
+    if (name.includes('manager training') || name.includes('training')) return 'Required for managers of caregiving employees, completed regularly, with completion tracked.';
     if (name.includes('respite')) return 'Benefit operational, eligibility criteria published, and reimbursement process accessible within 48 hours.';
     if (name.includes('legal') || name.includes('financial') || name.includes('planning assistance')) return 'Service contracted, referral pathway active, and communicated through benefits orientation.';
     if (name.includes('eldercare') || name.includes('consultation') || name.includes('referral')) return 'Service contracted, referral pathway documented, and promoted through existing EAP channels.';
@@ -1676,41 +1676,41 @@ function getDefinitionOfDone(dimNum: number, elementName: string): string {
     return 'Support available, eligibility clear, and promoted through the same channels as employee-facing programs.';
   }
   if (dimNum === 11) {
-    if (name.includes('screening') || name.includes('checkup')) return 'Program active with participation tracked and reported quarterly.';
+    if (name.includes('screening') || name.includes('checkup')) return 'Program active with participation tracked and reported regularly.';
     if (name.includes('education')) return 'Sessions scheduled, attendance tracked, and materials available on-demand.';
-    if (name.includes('incentive') || name.includes('partnership')) return 'Program launched, participation incentives defined, and enrollment tracked quarterly.';
+    if (name.includes('incentive') || name.includes('partnership')) return 'Program launched, participation incentives defined, and enrollment tracked regularly.';
     if (name.includes('risk-reduction') || name.includes('targeted')) return 'Program defined with target population identified, participation tracked, and outcomes reported annually.';
     if (name.includes('time off') || name.includes('preventive care') || name.includes('paid time')) return 'Policy published, communicated to all employees, and usage tracked.';
     if (name.includes('legal protection') || name.includes('beyond requirements')) return 'Protections documented in employee handbook, communicated at onboarding, and enforced consistently.';
-    if (name.includes('safety') || name.includes('workplace safety')) return 'Assessments conducted annually, findings documented, and remediation tracked to completion.';
+    if (name.includes('safety') || name.includes('workplace safety')) return 'Assessments conducted regularly, findings documented, and remediation tracked to completion.';
     if (name.includes('health assessment') || name.includes('individual')) return 'Assessments available to all employees, participation tracked, and results confidential.';
     if (name.includes('genetic') || name.includes('counseling')) return 'Service available, referral pathway defined, and communicated through benefits materials.';
-    if (name.includes('vaccination') || name.includes('on-site')) return 'Program scheduled annually, participation tracked, and communicated through multiple channels.';
-    if (name.includes('lifestyle') || name.includes('coaching')) return 'Program available, enrollment open to all employees, and participation tracked quarterly.';
-    if (name.includes('risk factor') || name.includes('tracking') || name.includes('reporting')) return 'Tracking system active, data reviewed quarterly, and findings shared with program owners.';
+    if (name.includes('vaccination') || name.includes('on-site')) return 'Program scheduled regularly, participation tracked, and communicated through multiple channels.';
+    if (name.includes('lifestyle') || name.includes('coaching')) return 'Program available, enrollment open to all employees, and participation tracked regularly.';
+    if (name.includes('risk factor') || name.includes('tracking') || name.includes('reporting')) return 'Tracking system active, data reviewed regularly, and findings shared with program owners.';
     if (name.includes('immuno') || name.includes('mask') || name.includes('ventilation')) return 'Policies published, communicated to all employees, and compliance monitored.';
-    return 'Program active, participation tracked, and results reported to leadership annually.';
+    return 'Program active, participation tracked, and results reported to leadership regularly.';
   }
   if (dimNum === 12) {
-    if (name.includes('feedback') || name.includes('survey') || name.includes('satisfaction')) return 'Survey deployed at least annually with results reviewed by program owners.';
+    if (name.includes('feedback') || name.includes('survey') || name.includes('satisfaction')) return 'Survey deployed regularly with results reviewed by program owners.';
     if (name.includes('enhancement') || name.includes('program enhancement')) return 'Quarterly review cadence established with documented action items and owners.';
-    if (name.includes('roi') || name.includes('business impact')) return 'Assessment framework defined, data collected at least annually, and findings shared with leadership.';
+    if (name.includes('roi') || name.includes('business impact')) return 'Assessment framework defined, data collected regularly, and findings shared with leadership.';
     if (name.includes('pilot') || name.includes('innovation')) return 'At least one pilot launched per year, with defined success criteria and a decision timeline.';
-    if (name.includes('return-to-work') || name.includes('success metric')) return 'Metrics defined, tracked for each returning employee, and reported to leadership quarterly.';
-    if (name.includes('benchmarking') || name.includes('external')) return 'Benchmarking conducted at least annually against peer organizations, with findings documented.';
-    if (name.includes('confidence') || name.includes('employee confidence')) return 'Measured at least annually through survey, with results tracked over time and shared with leadership.';
-    if (name.includes('utilization') || name.includes('analytics')) return 'Dashboard or report active, reviewed quarterly, and used to inform program adjustments.';
+    if (name.includes('return-to-work') || name.includes('success metric')) return 'Metrics defined, tracked for each returning employee, and reported to leadership regularly.';
+    if (name.includes('benchmarking') || name.includes('external')) return 'Benchmarking conducted regularly against peer organizations, with findings documented.';
+    if (name.includes('confidence') || name.includes('employee confidence')) return 'Measured regularly through survey, with results tracked over time and shared with leadership.';
+    if (name.includes('utilization') || name.includes('analytics')) return 'Dashboard or report active, reviewed regularly, and used to inform program adjustments.';
     return 'Review cycle established, findings documented, and at least one improvement implemented per cycle.';
   }
   if (dimNum === 13) {
-    if (name.includes('testimonial') || name.includes('story')) return 'At least 2 employee stories published with consent, promoted through at least 2 internal channels, and refreshed annually.';
-    if (name.includes('manager toolkit') || name.includes('cascade')) return 'Toolkit distributed to all managers with usage tracked and refreshed quarterly.';
+    if (name.includes('testimonial') || name.includes('story')) return 'At least 2 employee stories published with consent, promoted through at least 2 internal channels, and refreshed regularly.';
+    if (name.includes('manager toolkit') || name.includes('cascade')) return 'Toolkit distributed to all managers with usage tracked and refreshed regularly.';
     if (name.includes('campaign') || name.includes('awareness')) return 'Campaign calendar published, delivered through at least 2 channels, reach measured.';
     if (name.includes('onboarding') || name.includes('orientation') || name.includes('new hire')) return 'Cancer support resources included in onboarding materials and reviewed for accuracy annually.';
     if (name.includes('multi-channel') || name.includes('strategy')) return 'Strategy documented with at least 3 channels defined, reach measured within 60 days.';
     if (name.includes('diagnosis') || name.includes('proactive') || name.includes('disclosure')) return 'Communication protocol defined, triggered within 48 hours of disclosure, and delivered by trained HR staff.';
-    if (name.includes('website') || name.includes('portal') || name.includes('dedicated')) return 'Site live, content reviewed quarterly, and promoted through at least 2 internal channels.';
-    if (name.includes('family') || name.includes('caregiver')) return 'Materials accessible to family members, distributed through at least 2 channels, and updated annually.';
+    if (name.includes('website') || name.includes('portal') || name.includes('dedicated')) return 'Site live, content reviewed regularly, and promoted through at least 2 internal channels.';
+    if (name.includes('family') || name.includes('caregiver')) return 'Materials accessible to family members, distributed through at least 2 channels, and updated regularly.';
     if (name.includes('anonymous') || name.includes('information access')) return 'Access point live, no authentication required, and promoted through multiple channels.';
     return 'Content published, delivered through at least 2 channels, and reach measured within 90 days.';
   }
@@ -3157,7 +3157,6 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       <thead>
                         <tr className="border-b-2 border-slate-200">
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Element</th>
-                          <th className="text-center px-3 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider w-24">Support Level</th>
                           <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Your Status</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.currently.bg }}>{'In Place'}</th>
                           <th className="text-center px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: STATUS.planning.bg }}>{'In Development'}</th>
@@ -3188,13 +3187,10 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                               <td className="px-4 py-3">
                                 <span className="text-sm font-medium text-slate-700">{el.name}</span>
                               </td>
-                              <td className="px-3 py-3 text-center">
-                                  <SupportLevelBadge level={getElementLevel(el.name)} full />
-                                </td>
                               <td className="px-4 py-3">
-                                <span 
+                                <span
                                   className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold"
-                                  style={{ 
+                                  style={{
                                     backgroundColor: statusInfo.light,
                                     color: statusInfo.text
                                   }}
@@ -3488,9 +3484,9 @@ const SUPPORT_LEVELS = {
     name: 'Signature', abbr: 'Signature', tagline: 'High-impact programs',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    shortDesc: 'High-impact offerings that set leading organizations apart, often backed by dedicated resources.',
-    desc: 'High-impact offerings that set leading organizations apart, often backed by dedicated resources.',
-    boldPhrase: 'High-impact offerings that set leading organizations apart, often backed by dedicated resources. These practices turn workplace cancer support into a differentiator.',
+    shortDesc: 'High-impact offerings that set standout organizations apart, often backed by dedicated resources.',
+    desc: 'High-impact offerings that set standout organizations apart, often backed by dedicated resources.',
+    boldPhrase: 'High-impact offerings that set standout organizations apart, often backed by dedicated resources. These practices turn workplace cancer support into a differentiator.',
     italic: 'These practices turn workplace cancer support into a differentiator.',
   },
 } as const;
@@ -4166,7 +4162,7 @@ export default function ExportReportPage() {
       questions: ['What are we doing right?', 'Which programs can we highlight for recruiting?', 'What best practices can we share?', 'Where are we leading vs. other participants?']
     },
     growth: {
-      title: 'Areas of Opportunities',
+      title: 'Opportunities to Grow',
       what: 'Identifies your lower-performing dimensions that represent the greatest opportunities for improvement.',
       how: 'Shows dimensions with the lowest scores, indicating where your cancer support programs need the most attention.',
       when: 'Use these to prioritize improvement initiatives and understand where you have the most room to grow.',
@@ -5287,7 +5283,7 @@ export default function ExportReportPage() {
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
     { id: 'areas-of-excellence', label: 'Areas of Strength', iconKey: 'excellence' },
     { id: 'initiatives-in-progress', label: 'Initiatives In Development or Under Review', iconKey: 'progress' },
-    { id: 'growth-opportunities', label: 'Areas of Opportunities', iconKey: 'growth' },
+    { id: 'growth-opportunities', label: 'Opportunities to Grow', iconKey: 'growth' },
     { id: 'impact-ranked-priorities', label: 'Improvement Priorities', iconKey: 'impact' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap', iconKey: 'roadmap' },
@@ -6165,7 +6161,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">How Your Support Stacks Up</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Levels of Workplace Support</span>
                     <span className="text-xs text-slate-500 block mt-0.5">How {totalElementCount} self-reported program elements are classified across three levels of workplace support</span>
                   </div>
                 </div>
@@ -6191,13 +6187,20 @@ export default function ExportReportPage() {
                       const pct = allElems.length > 0 ? Math.round((count / allElems.length) * 100) : 0;
                       const stageTag = key === 'core' ? 'found in most programs' : key === 'enhanced' ? 'common in stronger programs' : 'typical of standout programs';
 
-                      // Per-dimension counts for this level
+                      // Per-dimension counts for this level, plus peer adoption rollup
                       const dimCounts: Record<number, { count: number; total: number }> = {};
+                      const peerPcts: number[] = [];
                       dimensionAnalysis?.forEach((d: any) => {
                         const total = d.elements?.length || 0;
-                        const c = (d.elements || []).filter((e: any) => getElementLevel(e.name) === key).length;
-                        if (c > 0) dimCounts[d.dim] = { count: c, total };
+                        const levelMatch = (d.elements || []).filter((e: any) => getElementLevel(e.name) === key);
+                        if (levelMatch.length > 0) dimCounts[d.dim] = { count: levelMatch.length, total };
+                        const benchForDim = elementBenchmarks?.[d.dim] || {};
+                        levelMatch.forEach((e: any) => {
+                          const b = benchForDim[e.name];
+                          if (b && b.total > 0) peerPcts.push((b.currently / b.total) * 100);
+                        });
                       });
+                      const avgPeerPct = peerPcts.length > 0 ? Math.round(peerPcts.reduce((a, b) => a + b, 0) / peerPcts.length) : null;
 
                       return (
                         <div key={key} className="rounded-xl overflow-hidden flex flex-col" style={{ border: `2px solid ${isExp ? L.color : L.border}`, boxShadow: isExp ? `0 4px 24px ${L.color}18` : '0 1px 3px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>
@@ -6208,15 +6211,15 @@ export default function ExportReportPage() {
                               </div>
                               <div>
                                 <h4 className="font-bold text-sm" style={{ color: L.color }}>{L.name}</h4>
-                                <span className="text-[11px] text-slate-500">{count} Elements ({pct}%)</span>
+                                <span className="text-[11px] text-slate-600 font-medium">{count} Elements ({pct}%){avgPeerPct !== null ? ` · offered by ${avgPeerPct}% of participants` : ''}</span>
                               </div>
                             </div>
                             <div className="flex-1">
                               <p className="text-xs font-semibold text-slate-700 leading-relaxed">{L.boldPhrase}<span className="text-slate-500">*</span></p>
+                              <p className="text-[11px] italic mt-2" style={{ color: L.color, opacity: 0.85 }}>{stageTag}</p>
                             </div>
                           </div>
-                          <div className="px-4 py-2.5 flex items-center justify-between" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
-                            <span className="text-[11px] italic" style={{ color: L.color, opacity: 0.85 }}>{stageTag}</span>
+                          <div className="px-4 py-2.5 flex items-center justify-end" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
                             <button onClick={() => setExpandedLevel(isExp ? null : key)} className="text-[11px] font-medium flex items-center gap-1" style={{ color: L.color }}>
                               <span className="text-slate-500">*</span>{isExp ? 'Hide' : 'Explore'} by Dimension
                               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isExp ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
@@ -6288,7 +6291,7 @@ export default function ExportReportPage() {
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-indigo-600', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
                           { id: 'impactranked', name: 'Improvement Priorities', color: 'bg-amber-500', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'Dimensions with the highest opportunity to improve overall performance, ranked by gap size, impact weight, and practical readiness.', fits: 'Your execution shortlist. Not the biggest gaps, but the gaps most likely to move the Composite and improve employee support measurably.' },
                           { id: 'excellence', name: 'Areas of Strength', color: 'bg-emerald-600', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', measures: 'Your highest-performing dimensions and standout support elements.', fits: 'What to celebrate and protect. Proof points to communicate internally and externally, plus replicable practices you can extend into weaker areas.' },
-                          { id: 'growth', name: 'Areas of Opportunities', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Interactive Performance Matrix clarifies which gaps are most consequential.' },
+                          { id: 'growth', name: 'Opportunities to Grow', color: 'bg-orange-500', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', measures: 'Dimensions with the largest gaps relative to benchmarks or your internal balance.', fits: 'Where focused improvement will matter most. This section flags gaps; the Interactive Performance Matrix clarifies which gaps are most consequential.' },
                           { id: 'inprogress', name: 'Initiatives In Development or Under Review', color: 'bg-sky-600', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', measures: 'Programs and practices currently being built, piloted, or expanded.', fits: 'Momentum and sequencing. Ensures your action plan builds on work already underway rather than starting over.' },
                           { id: 'whatif', name: 'What-If Scenario Builder', color: 'bg-teal-600', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'Projections of how advancing specific elements could shift future dimension and composite scores.', fits: 'Decision support. Compare investment paths, build internal alignment, and translate priorities into a realistic, staged roadmap.' },
                           { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-800', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Two to four integrated moves that synthesize the full story, anchored in your priority gaps, informed by cross-dimensional tensions, and sequenced with work already in motion.', fits: 'The sponsor-ready agenda. A coherent plan leadership can own, fund, and execute.' },
@@ -8166,8 +8169,7 @@ export default function ExportReportPage() {
                   
                   {/* Table Header Row */}
                   <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
-                    <div className="col-span-3">Support Element</div>
-                    <div className="col-span-1 text-center">Support Level</div>
+                    <div className="col-span-4">Support Element</div>
                     <div className="col-span-1 text-center">Your Status</div>
                     <div className="col-span-4 text-center">
                       <div>Benchmark Distribution</div>
@@ -8199,15 +8201,10 @@ export default function ExportReportPage() {
                       return (
                         <div key={i} className={`px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-100 ${i % 2 === 1 ? 'bg-slate-50/30' : ''}`}>
                           {/* Element Name */}
-                          <div className="col-span-3">
+                          <div className="col-span-4">
                             <p className="text-sm text-slate-800 font-medium leading-snug">{elem.name}</p>
                           </div>
-                          
-                          {/* Element Type */}
-                          <div className="col-span-1 flex justify-center">
-                              <SupportLevelBadge level={getElementLevel(elem.name)} full />
-                            </div>
-                          
+
                           {/* Your Status */}
                           <div className="col-span-1 flex justify-center">
                             <span className="px-2.5 py-1.5 rounded text-xs font-bold text-center leading-tight max-w-[90px]" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
@@ -9214,7 +9211,7 @@ export default function ExportReportPage() {
                   },
                   {
                     key: 'growth' as const,
-                    label: 'Areas of Opportunities',
+                    label: 'Opportunities to Grow',
                     desc: 'dimensions with growth potential',
                     color: '#DC2626',
                     lightBg: '#fef2f2',
@@ -9357,7 +9354,7 @@ export default function ExportReportPage() {
               {/* ---- Growth tab ---- */}
               {activeReportTab === 'growth' && (
                 <div id="growth-opportunities">
-                  <h3 className="text-xl font-bold text-slate-800 mb-1">Areas of Opportunities</h3>
+                  <h3 className="text-xl font-bold text-slate-800 mb-1">Opportunities to Grow</h3>
                   <p className="text-base text-slate-600 mb-6 font-medium">{growthDimensions.length} {growthDimensions.length === 1 ? 'dimension' : 'dimensions'} with improvement potential <span className="text-slate-500 font-normal">· Click any dimension for full details</span></p>
                   <div className="grid grid-cols-2 gap-5">
                     {growthDimensions.map((d) => {
@@ -11227,11 +11224,11 @@ export default function ExportReportPage() {
                   <div className="relative flex items-center justify-between">
                     <div>
                       <h3 className="font-bold text-white text-2xl tracking-tight">Summary and Next Steps</h3>
-                      <p className="text-slate-400 mt-1 text-base">Strengths to protect and priorities to address</p>
+                      <p className="text-white mt-1 text-base opacity-90">Strengths to protect and priorities to address</p>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-3">
-                        <span className="text-slate-400 text-xs uppercase tracking-wider font-semibold">Workplace Support Composite Score</span>
+                        <span className="text-white text-xs uppercase tracking-wider font-semibold opacity-90">Workplace Support Composite Score</span>
                         <span className="text-4xl font-bold text-white">{wsiScoreHeader ?? '\u2014'}</span>
                       </div>
                       <span className="px-4 py-1.5 rounded-lg text-sm font-bold text-white" style={{ backgroundColor: wsiTier.color }}>
@@ -11518,42 +11515,37 @@ export default function ExportReportPage() {
               
               {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
               
-              {/* 4 Service Cards with bullets - unified orange theme */}
-              <div className="grid grid-cols-2 gap-6 mb-8">
+              {/* Cancer and Careers' Services - flush-left list */}
+              <h3 className="text-xl font-bold text-[#F37021] mb-5">Cancer and Careers&apos; Services</h3>
+              <div className="space-y-5 mb-8">
                 {[
-                  { key: 'item1', num: 1, defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'], color: 'orange' },
-                  { key: 'item2', num: 2, defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'], color: 'orange' },
-                  { key: 'item3', num: 3, defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'], color: 'orange' },
-                  { key: 'item4', num: 4, defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'], color: 'orange' },
+                  { key: 'item1', defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'] },
+                  { key: 'item2', defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'] },
+                  { key: 'item3', defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'] },
+                  { key: 'item4', defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'] },
                 ].map(item => {
                   const custom = customCacHelp[item.key as keyof typeof customCacHelp];
                   const title = custom?.title || item.defaultTitle;
                   const bullets = custom?.bullets || item.defaultBullets;
-                  const colorClasses = { bg: 'bg-[#F37021]', border: 'border-orange-200', icon: 'bg-orange-100 text-[#F37021]', light: 'bg-orange-50' };
-                  
+
                   return (
-                    <div key={item.key} className={`rounded-2xl border ${colorClasses?.border} overflow-hidden shadow-sm hover:shadow-md transition-shadow`}>
-                      <div className={`${colorClasses?.light} px-5 py-4 border-b ${colorClasses?.border}`}>
-                        {editMode ? (
-                          <input type="text" value={title} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: e.target.value, bullets: bullets } })); setHasUnsavedChanges(true); }} className="w-full font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                        ) : (
-                          <h4 className="font-bold text-slate-800">{title}</h4>
-                        )}
-                      </div>
-                      <div className="p-5 bg-white">
-                        {editMode ? (
-                          <textarea value={bullets.join('\n')} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: title, bullets: e.target.value.split('\n') } })); setHasUnsavedChanges(true); }} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[90px] focus:outline-none focus:ring-2 focus:ring-amber-400" placeholder="One bullet per line..." />
-                        ) : (
-                          <ul className="text-sm text-slate-600 space-y-2">
-                            {bullets.map((b: string, i: number) => (
-                              <li key={i} className="flex items-start gap-2">
-                                <svg className="w-4 h-4 text-[#F37021] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
-                                <span>{b}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
+                    <div key={item.key}>
+                      {editMode ? (
+                        <input type="text" value={title} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: e.target.value, bullets: bullets } })); setHasUnsavedChanges(true); }} className="w-full font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 mb-2" />
+                      ) : (
+                        <h4 className="font-bold text-slate-800 text-base mb-2">{title}</h4>
+                      )}
+                      {editMode ? (
+                        <textarea value={bullets.join('\n')} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: title, bullets: e.target.value.split('\n') } })); setHasUnsavedChanges(true); }} className="w-full text-sm text-slate-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[90px] focus:outline-none focus:ring-2 focus:ring-amber-400" placeholder="One bullet per line..." />
+                      ) : (
+                        <ul className="text-sm text-slate-700 space-y-1.5 ml-5">
+                          {bullets.map((b: string, i: number) => (
+                            <li key={i} className="list-disc marker:text-[#F37021]">
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
                   );
                 })}
@@ -13966,7 +13958,7 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 24: Areas of Opportunities - exact match to report */}
+                {/* Slide 24: Opportunities to Grow - exact match to report */}
                 {currentSlide === 23 && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
@@ -13978,7 +13970,7 @@ export default function ExportReportPage() {
                             </svg>
                           </div>
                           <div>
-                            <h3 className="font-bold text-white text-xl">Areas of Opportunities</h3>
+                            <h3 className="font-bold text-white text-xl">Opportunities to Grow</h3>
                             <p className="text-slate-300 mt-0.5 text-sm">{growthDimensions.length} {growthDimensions.length === 1 ? 'dimension' : 'dimensions'} with improvement potential</p>
                           </div>
                         </div>
@@ -16102,7 +16094,7 @@ export default function ExportReportPage() {
                            i === 20 ? 'Benchmarks' :
                            i === 21 ? 'Cross-Dimensional Insights' :
                            i === 22 ? 'Areas of Strength' :
-                           i === 23 ? 'Areas of Opportunities' :
+                           i === 23 ? 'Opportunities to Grow' :
                            i === 24 ? 'Initiatives In Development or Under Review' :
                            i === 25 ? 'Strategic Recommendations' :
                            i === 26 ? 'From Insight to Action' :

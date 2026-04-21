@@ -65,7 +65,7 @@ export default function PresentationMode(props: PresentationModeProps) {
     { id: 'cross-dim', title: 'Cross-Dimensional Insights', type: 'cross-dim' },
     { id: 'impact-ranked', title: 'Impact-Ranked Priorities', type: 'impact-ranked' },
     { id: 'excellence', title: 'Areas of Strength', type: 'excellence' },
-    { id: 'growth', title: 'Areas of Opportunities', type: 'growth' },
+    { id: 'growth', title: 'Opportunities to Grow', type: 'growth' },
     { id: 'in-progress', title: 'Initiatives in Progress', type: 'in-progress' },
     { id: 'reco-intro', title: 'Strategic Recommendations', type: 'reco-intro' },
     ...top4.map((d, i) => ({ id: `reco-${i}`, title: `Priority ${i+1}: ${d.name}`, type: 'reco-card', dimNum: d.dim, recoIdx: i })),
@@ -393,7 +393,7 @@ export default function PresentationMode(props: PresentationModeProps) {
     if (s.type === 'growth') {
       return (
         <div className="p-8">
-          <div className="px-6 py-4 bg-amber-500 rounded-t-xl"><h2 className="font-bold text-white text-2xl">Areas of Opportunities</h2><p className="text-amber-100 mt-1">Dimensions with the most opportunity for improvement</p></div>
+          <div className="px-6 py-4 bg-amber-500 rounded-t-xl"><h2 className="font-bold text-white text-2xl">Opportunities to Grow</h2><p className="text-amber-100 mt-1">Dimensions with the most opportunity for improvement</p></div>
           <div className="p-6 bg-white rounded-b-xl border border-slate-200">
             {gapOpportunities.length > 0 ? (
               <div className="grid grid-cols-2 gap-4">{gapOpportunities.slice(0,6).map(d=>(<div key={d.dim} className="p-5 bg-amber-50 rounded-xl border border-amber-200"><div className="flex items-center justify-between mb-3"><div className="flex items-center gap-3"><span className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{backgroundColor:d.tier.color}}>D{d.dim}</span><span className="font-bold text-slate-800">{d.name}</span></div><span className="text-2xl font-black" style={{color:d.tier.color}}>{d.score}</span></div><p className="text-sm text-slate-600">{d.gaps?.length||0} gaps identified • Weight: {d.weight}%</p></div>))}</div>
