@@ -3731,6 +3731,8 @@ export default function ExportReportPage() {
   const [expandedPriorities, setExpandedPriorities] = useState<Record<number, { accel: boolean; build: boolean }>>({});
   const [showAllImpactDimensions, setShowAllImpactDimensions] = useState(false);
   const [showImpactRanked, setShowImpactRanked] = useState(false);
+  const [showStrategicRecs, setShowStrategicRecs] = useState(false);
+  const [showRoadmap, setShowRoadmap] = useState(false);
   const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced' | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
@@ -9592,27 +9594,37 @@ export default function ExportReportPage() {
           </div>
 
 
-          {/* Improvement Priorities Teaser Card */}
+          {/* Improvement Priorities - collapsible consulting section */}
           <div id="impact-ranked-priorities" className="max-w-[1280px] mx-auto mb-8">
             <button
               onClick={() => setShowImpactRanked(!showImpactRanked)}
-              className="w-full group px-8 py-6 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 hover:from-slate-700 hover:via-slate-600 hover:to-slate-700 border border-slate-600 rounded-xl transition-all flex items-center justify-center gap-4 shadow-md"
+              className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group"
             >
-              <div className="w-11 h-11 rounded-xl bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors flex-shrink-0">
-                <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+              <div className="px-8 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-xl">Your Improvement Priorities</h3>
+                  <p className="text-slate-300 text-sm mt-1">The 5 dimensions where focused investment will have the greatest impact on your overall score</p>
+                </div>
+                <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${showImpactRanked ? 'rotate-180' : ''}`}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </div>
               </div>
-              <div className="text-left flex-1">
-                <span className="text-white font-semibold text-lg block">Your Improvement Priorities</span>
-                <span className="text-slate-300 group-hover:text-slate-200 text-base">The 5 dimensions where focused investment will have the greatest impact on your overall score</span>
-              </div>
-              <div className={`w-7 h-7 rounded-full bg-white/10 flex items-center justify-center transition-transform duration-200 ${showImpactRanked ? 'rotate-180' : ''}`}>
-                <svg className="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p className="text-[14px] text-slate-700 leading-relaxed">
+                  <span className="text-[15px] font-bold text-slate-900">Explore this with CAC.</span> These recommendations are designed to spark a deeper conversation. Your 30-minute consultation call is the place to work through what matters most for your organization.
+                </p>
               </div>
             </button>
           </div>
 
           {/* ============ IMPACT-RANKED PRIORITIES ============ */}
-          {showImpactRanked && (() => {
+          {(showImpactRanked || isPdf) && (() => {
             const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
             const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
             const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
@@ -9975,7 +9987,37 @@ export default function ExportReportPage() {
               </div>
             );
           })()}
+          {/* Strategic Recommendations - collapsible consulting section */}
+          <div className="max-w-[1280px] mx-auto mb-8">
+            <button
+              onClick={() => setShowStrategicRecs(!showStrategicRecs)}
+              className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+            >
+              <div className="px-8 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-xl">Strategic Recommendations</h3>
+                  <p className="text-slate-300 text-sm mt-1">Deep-dive analysis with element-level actions for your priority dimensions</p>
+                </div>
+                <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${showStrategicRecs ? 'rotate-180' : ''}`}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+              <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p className="text-[14px] text-slate-700 leading-relaxed">
+                  <span className="text-[15px] font-bold text-slate-900">Explore this with CAC.</span> These recommendations are designed to spark a deeper conversation. Your 30-minute consultation call is the place to work through what matters most for your organization.
+                </p>
+              </div>
+            </button>
+          </div>
+
           {/* ============ STRATEGIC RECOMMENDATIONS - TRANSITION ============ */}
+          {(showStrategicRecs || isPdf) && (<>
           <div id="strategic-recommendations" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before max-w-[1280px] mx-auto" data-export="appendix-start">
             {/* Header with visual interest */}
             <div className="px-12 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
@@ -10934,9 +10976,40 @@ export default function ExportReportPage() {
             </div>
           </div>
           </>)}
+          </>)}
 
+
+          {/* Implementation Roadmap - collapsible consulting section */}
+          <div className="max-w-[1280px] mx-auto mb-8">
+            <button
+              onClick={() => setShowRoadmap(!showRoadmap)}
+              className="w-full text-left bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden group"
+            >
+              <div className="px-8 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-white font-bold text-xl">Implementation Roadmap</h3>
+                  <p className="text-slate-300 text-sm mt-1">A phased timeline sequencing quick wins, foundational capabilities, and longer-term initiatives</p>
+                </div>
+                <div className={`w-9 h-9 rounded-full bg-white/10 flex items-center justify-center transition-transform flex-shrink-0 ${showRoadmap ? 'rotate-180' : ''}`}>
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </div>
+              <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-8 py-4 flex items-start gap-3">
+                <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <p className="text-[14px] text-slate-700 leading-relaxed">
+                  <span className="text-[15px] font-bold text-slate-900">Explore this with CAC.</span> These recommendations are designed to spark a deeper conversation. Your 30-minute consultation call is the place to work through what matters most for your organization.
+                </p>
+              </div>
+            </button>
+          </div>
 
           {/* ============ IMPLEMENTATION ROADMAP ============ */}
+          {(showRoadmap || isPdf) && (
           <div id="implementation-roadmap" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
               <div className="flex items-center justify-between">
@@ -11116,6 +11189,7 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
+          )}
 
           {/* ============ WORKING WITH CANCER PLEDGE (hidden - will likely bring back) ============ */}
           {false && (
