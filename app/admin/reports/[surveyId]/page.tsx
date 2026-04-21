@@ -6783,7 +6783,7 @@ export default function ExportReportPage() {
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
                     {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconStar, strongest, true)}
-                    {renderCard('Key Tensions', 'High priority, uneven performance', '#B45309', '#FEF3C7', iconScales, tensions, false)}
+                    {renderCard('Priority Gaps', 'High employee priority, room to grow', '#B45309', '#FEF3C7', iconScales, tensions, false)}
                     {renderCard('Areas to Address', 'Greatest opportunity to improve', '#7C3AED', '#F3E8FF', iconTarget, areasToAddress, true)}
                   </div>
                 );
