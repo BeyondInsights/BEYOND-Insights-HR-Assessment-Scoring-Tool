@@ -43,16 +43,16 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
       <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Score Composition</h3><p className="text-sm text-slate-500 mt-0.5">How your composite score is calculated</p></div>
       <div className="p-8">
         <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
-          <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? '—'}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
+          <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? ', '}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
           <span className="text-2xl text-slate-300 font-light">=</span>
-          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '—'}</p><p className="text-xs text-slate-400 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
+          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? ', '}</p><p className="text-xs text-slate-400 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
         </div>
-        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : '—'}</span><span className="text-xs text-slate-400">vs benchmark</span></div></div>)}
+        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : ', '}</span><span className="text-xs text-slate-400">vs benchmark</span></div></div>)}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {components.map((comp) => { const isExpanded = expandedCard === comp.id; const diff = comp.score && comp.benchmark ? comp.score - comp.benchmark : null; return (
             <div key={comp.id} className="border border-slate-200 rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-400 font-medium">{comp.weight}%</span></div></div>
-              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '—'}<span className="text-sm text-slate-400 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-400">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : '—'} <span className="text-slate-400 font-normal">({comp.benchmark})</span></span></div>)}</div>
+              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? ', '}<span className="text-sm text-slate-400 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-400">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : ', '} <span className="text-slate-400 font-normal">({comp.benchmark})</span></span></div>)}</div>
               <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-400 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
               {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-400">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-400">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-400">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-400">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-400">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-400">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-400">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × impact weights</td></tr>)}</tbody></table></div></div>)}
             </div>); })}
@@ -76,7 +76,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
             <div className="w-10 text-center"><span className="text-xs text-slate-400">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
-            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-400">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">, </span>}</div>
             <div className="w-24 flex justify-center"><span className={`text-xs font-medium px-2.5 py-1 rounded ${d.tier.bgColor} border ${d.tier.borderColor}`} style={{ color: d.tier.color }}>{d.tier.name}</span></div>
           </div>); })}</div>
         <div className="flex items-center justify-end gap-4 mt-4 pt-3 border-t border-slate-100 text-xs text-slate-400"><span>Scores out of 100</span><span className="flex items-center gap-1"><span className="inline-block w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-l-transparent border-r-transparent border-t-slate-500"></span>Benchmark</span></div>
@@ -128,9 +128,9 @@ function PolishedKeyTakeaways({ dimensionAnalysis, inProgressItems }: any) {
     <div className="bg-slate-800 rounded-lg p-6 mb-6">
       <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-4">Key Takeaways</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div><p className="text-xs text-slate-400 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || '—'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
-        <div><p className="text-xs text-slate-400 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || '—'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
-        <div><p className="text-xs text-slate-400 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || '—'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
+        <div><p className="text-xs text-slate-400 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || ', '}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
+        <div><p className="text-xs text-slate-400 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || ', '}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
+        <div><p className="text-xs text-slate-400 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || ', '}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
       </div>
     </div>
   );
@@ -152,7 +152,7 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
           <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-400 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-400 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-400 uppercase w-20">Pts</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
+          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-400 bg-slate-50'; if (el.isStrength) { statusLabel = 'Offering'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'Planning'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Assessing'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-400 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? ', '}</td></tr>); })}</tbody></table>
         </div>
       </div>
     </div>
@@ -201,7 +201,7 @@ const DIMENSION_SHORT_NAMES: Record<number, string> = {
 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 
-// Elements added in the app but not in the original survey — exclude from scoring and benchmarks
+// Elements added in the app but not in the original survey, exclude from scoring and benchmarks
 // These only have N=11-12 responses out of 43 completes
 const APP_ONLY_EXCLUDED_ITEMS: Record<number, string[]> = {
   1: ['Full salary (100%) continuation during cancer-related short-term disability leave'],
@@ -3035,7 +3035,7 @@ export default function ExportReportPage() {
         
         <!-- PRIVATE WARNING BANNER -->
         <div class="private-banner">
-          🔒 PRIVATE — DO NOT SHARE THIS WINDOW
+          🔒 PRIVATE, DO NOT SHARE THIS WINDOW
         </div>
         
         <div class="header">
@@ -4446,7 +4446,7 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* The Context — Why This Work Matters */}
+            {/* The Context, Why This Work Matters */}
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
               <div className="flex items-start gap-10 mb-8">
@@ -4507,7 +4507,7 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research, Index framework, and scoring methodology developed by BEYOND Insights — an independent research and insights firm — in collaboration with Cancer and Careers.</p>
+                  <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research, Index framework, and scoring methodology developed by BEYOND Insights, an independent research and insights firm, in collaboration with Cancer and Careers.</p>
 
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in the index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
@@ -4527,7 +4527,7 @@ export default function ExportReportPage() {
             </div>
             
             
-            {/* Understanding Your Composite Score — Collapsible */}
+            {/* Understanding Your Composite Score, Collapsible */}
             <div id="score-composition-section" className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
@@ -4680,7 +4680,7 @@ export default function ExportReportPage() {
               )}
             </div>
             
-            {/* The 13 Dimensions Overview — Collapsible */}
+            {/* The 13 Dimensions Overview, Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
@@ -4762,7 +4762,7 @@ export default function ExportReportPage() {
                           <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         </div>
                         <p className="text-sm text-slate-600">
-                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful, lasting impact for employees managing cancer.
+                          Each dimension is scored on a 0–100 scale based on the support elements offered. Dimensions are weighted based on their impact on employee wellbeing and organizational outcomes. <strong className="text-slate-800">However, every dimension and every support element matters</strong>, improvements in any area create meaningful, lasting impact for employees managing cancer.
                         </p>
                       </div>
                     </div>
@@ -4771,7 +4771,7 @@ export default function ExportReportPage() {
               )}
             </div>
             
-            {/* How to Use This Report — Collapsible */}
+            {/* How to Use This Report, Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowReportGuide(!showReportGuide)}
@@ -4843,7 +4843,7 @@ export default function ExportReportPage() {
               )}
             </div>
             
-            {/* Understanding Your Report Sections — Collapsible */}
+            {/* Understanding Your Report Sections, Collapsible */}
             <div className="px-12 py-5 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowReportSections(!showReportSections)}
@@ -5129,10 +5129,10 @@ export default function ExportReportPage() {
             </div>
             
             
-            {/* Visual separator — page break between context and company report */}
+            {/* Visual separator, page break between context and company report */}
             <div className="py-4 bg-slate-100 border-t border-b border-slate-200 -mx-0 my-12"></div>
 
-            {/* Company info + score — Dark Hero Header */}
+            {/* Company info + score, Dark Hero Header */}
             <div className="px-12 py-12 rounded-2xl" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -5164,7 +5164,7 @@ export default function ExportReportPage() {
                 <div className="flex items-center gap-6 flex-shrink-0">
                   <div className="text-center">
                     <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-wider">Workplace Support Composite Score</p>
-                    <p className="text-8xl font-bold mt-1 leading-none text-white" data-export="composite-score">{compositeScore ?? '—'}</p>
+                    <p className="text-8xl font-bold mt-1 leading-none text-white" data-export="composite-score">{compositeScore ?? ', '}</p>
                     <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
                   </div>
                   {tier && (
@@ -5272,7 +5272,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-base font-bold text-slate-800 group-hover:text-[#F37021] transition-colors">
-                        Confirmatory Checklist — {unsureItems} Support Elements Requiring Confirmation
+                        Confirmatory Checklist, {unsureItems} Support Elements Requiring Confirmation
                       </p>
                       <p className="text-sm text-slate-600">
                         Review support elements marked "Unsure" to finalize your assessment scores
@@ -5324,10 +5324,10 @@ export default function ExportReportPage() {
                               
                               // Set column widths
                               ws['!cols'] = [
-                                { wch: 24 },  // Dimension
-                                { wch: 12 },  // Response
-                                { wch: 55 },  // Element
-                                { wch: 50 },  // Resources to help confirm
+                                { wch: 24 }, // Dimension
+                                { wch: 12 }, // Response
+                                { wch: 55 }, // Element
+                                { wch: 50 }, // Resources to help confirm
                               ];
                               
                               XLSX.utils.book_append_sheet(wb, ws, 'Confirmatory Items');
@@ -5559,7 +5559,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-300 mt-1">Contributes 90% of your composite score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? '—'}</p>
+                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? ', '}</p>
                           <p className="text-sm text-slate-300">Your Score</p>
                         </div>
                       </div>
@@ -5601,7 +5601,7 @@ export default function ExportReportPage() {
                           <p className="text-amber-100 mt-1">Contributes 5% of your composite score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-white">{maturityScore ?? '—'}</p>
+                          <p className="text-4xl font-bold text-white">{maturityScore ?? ', '}</p>
                           <p className="text-sm text-amber-100">Your Score</p>
                         </div>
                       </div>
@@ -5728,13 +5728,13 @@ export default function ExportReportPage() {
                             <p className="text-violet-100 mt-1">Contributes 5% of your composite score</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-4xl font-bold text-white">{breadthScore ?? '—'}</p>
+                            <p className="text-4xl font-bold text-white">{breadthScore ?? ', '}</p>
                             <p className="text-sm text-violet-100">Your Score</p>
                           </div>
                         </div>
                       </div>
                       <div className="px-8 py-6 space-y-6">
-                        <p className="text-slate-600">How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
+                        <p className="text-slate-600">How expansive your benefits and support are, including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
                         
                         {/* CB3a - Beyond Legal */}
                         <div className="border border-violet-200 rounded-xl overflow-hidden">
@@ -5895,7 +5895,7 @@ export default function ExportReportPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-300">—</span>
+                          <span className="text-sm text-slate-300">, </span>
                         )}
                       </div>
                       <div className="w-28 flex justify-center">
@@ -6831,7 +6831,7 @@ export default function ExportReportPage() {
                                 <div className="text-center">
                                   <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Projected Score</p>
                                   <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
+                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : ', '}</span>
                                   </div>
                                 </div>
                               </div>
@@ -6904,7 +6904,7 @@ export default function ExportReportPage() {
                                         : 'border-slate-200 bg-white text-slate-600'
                                     }`}
                                   >
-                                    <option value="">—</option>
+                                    <option value="">, </option>
                                     {statusOptions.map(opt => (
                                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
@@ -9110,7 +9110,7 @@ export default function ExportReportPage() {
                   <p className="text-slate-700 text-base leading-relaxed">
                     Every organization enters this work from a different place. Cancer and Careers' consulting practice 
                     helps organizations understand where they are, identify where they want to be, and build a realistic 
-                    path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                    path to get there, shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
                     and the HR teams supporting them.
                   </p>
                 </div>
@@ -9260,12 +9260,12 @@ export default function ExportReportPage() {
                 <p className="text-xs text-slate-500 mb-4 text-center">Click on Maturity or Breadth to learn more</p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <div className="text-center px-6 py-4 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 min-w-[120px]">
-                    <p className="text-3xl font-bold text-white">{compositeScore ?? '—'}</p>
+                    <p className="text-3xl font-bold text-white">{compositeScore ?? ', '}</p>
                     <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-2">Composite</p>
                   </div>
                   <span className="text-2xl text-slate-400 font-light">=</span>
                   <div className="text-center px-5 py-3 bg-white rounded-xl border-2 border-slate-200 min-w-[100px]">
-                    <p className="text-2xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
+                    <p className="text-2xl font-bold text-slate-700">{weightedDimScore ?? ', '}</p>
                     <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
                     <p className="text-xs text-slate-400">× 90%</p>
                   </div>
@@ -9274,7 +9274,7 @@ export default function ExportReportPage() {
                     onClick={() => setActiveScoreOverlay('maturity')}
                     className="text-center px-5 py-3 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all"
                   >
-                    <p className="text-2xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                    <p className="text-2xl font-bold text-amber-700">{maturityScore ?? ', '}</p>
                     <p className="text-xs text-amber-600 mt-1">Maturity</p>
                     <p className="text-xs text-amber-500">× 5%</p>
                   </div>
@@ -9283,7 +9283,7 @@ export default function ExportReportPage() {
                     onClick={() => setActiveScoreOverlay('breadth')}
                     className="text-center px-5 py-3 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all"
                   >
-                    <p className="text-2xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                    <p className="text-2xl font-bold text-violet-700">{breadthScore ?? ', '}</p>
                     <p className="text-xs text-violet-600 mt-1">Breadth</p>
                     <p className="text-xs text-violet-500">× 5%</p>
                   </div>
@@ -9720,7 +9720,7 @@ export default function ExportReportPage() {
                         <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                       </div>
                     </div>
-                    <p className="text-[10px] text-slate-400 italic mt-3 mb-6">Research, Index framework, and scoring methodology developed by BEYOND Insights — an independent research and insights firm — in collaboration with Cancer and Careers.</p>
+                    <p className="text-[10px] text-slate-400 italic mt-3 mb-6">Research, Index framework, and scoring methodology developed by BEYOND Insights, an independent research and insights firm, in collaboration with Cancer and Careers.</p>
 
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
@@ -9962,7 +9962,7 @@ export default function ExportReportPage() {
                       
                       <div className="px-5 py-3 bg-slate-50 border-t border-slate-200">
                         <p className="text-sm text-slate-600">
-                          Each dimension is weighted based on its impact on employee wellbeing. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful impact.
+                          Each dimension is weighted based on its impact on employee wellbeing. <strong className="text-slate-800">However, every dimension and every support element matters</strong>, improvements in any area create meaningful impact.
                         </p>
                       </div>
                     </div>
@@ -9996,7 +9996,7 @@ export default function ExportReportPage() {
                         <div className="flex items-center gap-8">
                           <div className="text-right">
                             <p className="text-slate-500 text-sm font-medium">Composite Score</p>
-                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? '—'}</p>
+                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{compositeScore ?? ', '}</p>
                           </div>
                           {tier && (
                             <div className="flex flex-col items-center">
@@ -10243,7 +10243,7 @@ export default function ExportReportPage() {
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-sm text-slate-300">—</span>
+                                <span className="text-sm text-slate-300">, </span>
                               )}
                             </div>
                             <div className="w-28 flex justify-center">
@@ -12584,7 +12584,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-700 text-base leading-relaxed">
                             Every organization enters this work from a different place. Cancer and Careers' consulting practice 
                             helps organizations understand where they are, identify where they want to be, and build a realistic 
-                            path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                            path to get there, shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
                             and the HR teams supporting them.
                           </p>
                         </div>
@@ -12661,24 +12661,24 @@ export default function ExportReportPage() {
                         <p className="font-bold text-slate-700 mb-4 text-center">Score Composition</p>
                         <div className="flex items-center justify-center gap-4 flex-wrap">
                           <div className="text-center px-5 py-3 bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl border-2 border-slate-600 min-w-[100px]">
-                            <p className="text-2xl font-bold text-white">{compositeScore ?? '—'}</p>
+                            <p className="text-2xl font-bold text-white">{compositeScore ?? ', '}</p>
                             <p className="text-xs text-slate-300 font-semibold uppercase tracking-wider mt-1">Composite</p>
                           </div>
                           <span className="text-xl text-slate-400 font-light">=</span>
                           <div className="text-center px-4 py-2.5 bg-white rounded-xl border-2 border-slate-200 min-w-[90px]">
-                            <p className="text-xl font-bold text-slate-700">{weightedDimScore ?? '—'}</p>
+                            <p className="text-xl font-bold text-slate-700">{weightedDimScore ?? ', '}</p>
                             <p className="text-xs text-slate-500 mt-1">Weighted Dims</p>
                             <p className="text-xs text-slate-400">× 90%</p>
                           </div>
                           <span className="text-lg text-slate-400 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[90px]">
-                            <p className="text-xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                            <p className="text-xl font-bold text-amber-700">{maturityScore ?? ', '}</p>
                             <p className="text-xs text-amber-600 mt-1">Maturity</p>
                             <p className="text-xs text-amber-500">× 5%</p>
                           </div>
                           <span className="text-lg text-slate-400 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[90px]">
-                            <p className="text-xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                            <p className="text-xl font-bold text-violet-700">{breadthScore ?? ', '}</p>
                             <p className="text-xs text-violet-600 mt-1">Breadth</p>
                             <p className="text-xs text-violet-500">× 5%</p>
                           </div>

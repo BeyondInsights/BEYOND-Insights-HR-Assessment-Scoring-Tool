@@ -255,7 +255,7 @@ export default function PresentationMode(props: PresentationModeProps) {
                     <td className="px-4 py-2.5"><span className="font-bold text-slate-400 mr-2">D{d.dim}</span><span className="font-medium text-slate-800">{d.name}</span></td>
                     <td className="px-4 py-2.5 text-center text-slate-600">{d.weight}%</td>
                     <td className="px-4 py-2.5 text-center font-bold" style={{color:getScoreColor(d.score)}}>{d.score}</td>
-                    <td className="px-4 py-2.5 text-center">{diff!==null?<span className={diff>=0?'text-emerald-600 font-semibold':'text-red-500 font-semibold'}>{diff>=0?'+':''}{diff}</span>:'—'}</td>
+                    <td className="px-4 py-2.5 text-center">{diff!==null?<span className={diff>=0?'text-emerald-600 font-semibold':'text-red-500 font-semibold'}>{diff>=0?'+':''}{diff}</span>:', '}</td>
                     <td className="px-4 py-2.5 text-center"><span className="px-2 py-1 rounded text-xs font-bold" style={{backgroundColor:d.tier.color+'20',color:d.tier.color}}>{d.tier.name}</span></td>
                   </tr>
                 );})}
@@ -423,7 +423,7 @@ export default function PresentationMode(props: PresentationModeProps) {
         <div className="p-8">
           <div className="px-8 py-6 bg-gradient-to-r from-violet-700 to-indigo-700 rounded-t-xl"><h2 className="font-bold text-white text-3xl">Strategic Recommendations</h2><p className="text-violet-200 mt-2 text-lg">Prioritized actions based on your assessment results</p></div>
           <div className="p-8 bg-white rounded-b-xl border border-slate-200">
-            <p className="text-lg text-slate-700 mb-8">The following pages provide detailed recommendations for your <strong>{top4.length} priority dimensions</strong> — those with the greatest opportunity for meaningful improvement.</p>
+            <p className="text-lg text-slate-700 mb-8">The following pages provide detailed recommendations for your <strong>{top4.length} priority dimensions</strong>, those with the greatest opportunity for meaningful improvement.</p>
             <div className="grid grid-cols-4 gap-4">
               {top4.map((d,i)=>(<div key={d.dim} className="p-5 rounded-xl border-2 text-center" style={{borderColor:d.tier.color,backgroundColor:d.tier.color+'10'}}><div className="w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-white font-bold text-lg" style={{backgroundColor:d.tier.color}}>P{i+1}</div><p className="font-bold text-slate-800">{d.name}</p><p className="text-sm text-slate-500 mt-1">Score: {d.score}</p></div>))}
             </div>

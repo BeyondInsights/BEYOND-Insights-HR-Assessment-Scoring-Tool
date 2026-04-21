@@ -44,16 +44,16 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
       <div className="px-8 py-4 border-b border-slate-100"><h3 className="font-semibold text-slate-900">Score Composition</h3><p className="text-sm text-slate-500 mt-0.5">How your composite score is calculated</p></div>
       <div className="p-8">
         <div className="flex items-center justify-center gap-4 mb-8 flex-wrap">
-          <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? '—'}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
+          <div className="text-center px-6 py-4 bg-slate-50 rounded-lg border-2 border-slate-200 min-w-[140px]"><p className="text-4xl font-bold" style={{ color: compositeScore ? getScoreColor(compositeScore) : '#94a3b8' }}>{compositeScore ?? '-'}</p><p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Composite</p></div>
           <span className="text-2xl text-slate-300 font-light">=</span>
-          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '—'}</p><p className="text-xs text-slate-500 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
+          {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '-'}</p><p className="text-xs text-slate-500 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
         </div>
-        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : '—'}</span><span className="text-xs text-slate-500">vs benchmark</span></div></div>)}
+        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : ', '}</span><span className="text-xs text-slate-500">vs benchmark</span></div></div>)}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {components.map((comp) => { const isExpanded = expandedCard === comp.id; const diff = comp.score && comp.benchmark ? comp.score - comp.benchmark : null; return (
             <div key={comp.id} className="border border-slate-200 rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-500 font-medium">{comp.weight}%</span></div></div>
-              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '—'}<span className="text-sm text-slate-500 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-500">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : '—'} <span className="text-slate-500 font-normal">({comp.benchmark})</span></span></div>)}</div>
+              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '-'}<span className="text-sm text-slate-500 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-500">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : ', '} <span className="text-slate-500 font-normal">({comp.benchmark})</span></span></div>)}</div>
               <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-500 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
               {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-500">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-500">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-500">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-500">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-500">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-500">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-500">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-500">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × impact weights</td></tr>)}</tbody></table></div></div>)}
             </div>); })}
@@ -77,7 +77,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
             <div className="w-10 text-center"><span className="text-xs text-slate-500">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
-            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-500">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">—</span>}</div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-500">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">-</span>}</div>
             <div className="w-28 flex justify-center"><span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`} style={{ color: pg.color }}>{pg.chip}</span></div>
           </div>); })}</div>
         <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
@@ -129,9 +129,9 @@ function PolishedKeyTakeaways({ dimensionAnalysis, inProgressItems }: any) {
     <div className="bg-slate-800 rounded-lg p-6 mb-6">
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-4">Key Takeaways</p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div><p className="text-xs text-slate-500 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || '—'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
-        <div><p className="text-xs text-slate-500 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || '—'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
-        <div><p className="text-xs text-slate-500 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || '—'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
+        <div><p className="text-xs text-slate-500 mb-1">Top Strength</p><p className="text-white font-medium">{topStrength?.name || '-'}</p>{topStrength && <p className="text-emerald-400 text-sm">Score: {topStrength.score}</p>}</div>
+        <div><p className="text-xs text-slate-500 mb-1">Biggest Gap</p><p className="text-white font-medium">{biggestGap?.name || '-'}</p>{biggestGap && <p className="text-amber-400 text-sm">Score: {biggestGap.score}</p>}</div>
+        <div><p className="text-xs text-slate-500 mb-1">Fastest Win</p><p className="text-white font-medium">{fastestWin?.name || '-'}</p>{fastestWin && <p className="text-sky-400 text-sm">{fastestWin.type} in {fastestWin.dimName}</p>}</div>
       </div>
     </div>
   );
@@ -153,7 +153,7 @@ function PolishedDimensionDrilldown({ dimension, onClose }: any) {
             <div className="flex items-center gap-2"><span className="w-6 h-6 rounded flex items-center justify-center text-xs font-semibold bg-slate-100 text-slate-700">{dimension.gaps?.length || 0}</span><span className="text-xs text-slate-500">Gaps</span></div>
           </div>
           <table className="w-full"><thead><tr className="border-b border-slate-200"><th className="text-left py-2 px-3 text-xs font-medium text-slate-500 uppercase">Element</th><th className="text-center py-2 px-3 text-xs font-medium text-slate-500 uppercase w-36">Status</th><th className="text-right py-2 px-3 text-xs font-medium text-slate-500 uppercase w-20">Pts</th></tr></thead>
-          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-500 bg-slate-50'; if (el.isStrength) { statusLabel = 'In Place'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'In Development'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Under Review'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-500 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '—'}</td></tr>); })}</tbody></table>
+          <tbody className="divide-y divide-slate-100">{dimension.elements?.map((el: any, idx: number) => { let statusLabel = 'Unknown'; let statusClass = 'text-slate-500 bg-slate-50'; if (el.isStrength) { statusLabel = 'In Place'; statusClass = 'text-emerald-700 bg-emerald-50'; } else if (el.isPlanning) { statusLabel = 'In Development'; statusClass = 'text-blue-700 bg-blue-50'; } else if (el.isAssessing) { statusLabel = 'Under Review'; statusClass = 'text-violet-700 bg-violet-50'; } else if (el.isGap) { statusLabel = 'Gap'; statusClass = 'text-slate-500 bg-slate-50'; } else if (el.isUnsure) { statusLabel = 'Unsure'; statusClass = 'text-slate-500 bg-slate-50'; } return (<tr key={idx} className={idx % 2 === 0 ? '' : 'bg-slate-50/50'}><td className="py-2.5 px-3 text-sm text-slate-700">{el.name}</td><td className="py-2.5 px-3 text-center"><span className={`text-xs font-medium px-2 py-1 rounded ${statusClass}`}>{statusLabel}</span></td><td className="py-2.5 px-3 text-right text-sm font-medium text-slate-600">{el.points ?? '-'}</td></tr>); })}</tbody></table>
         </div>
       </div>
     </div>
@@ -202,7 +202,7 @@ const DIMENSION_SHORT_NAMES: Record<number, string> = {
 
 const POINTS = { CURRENTLY_OFFER: 5, PLANNING: 3, ASSESSING: 2, NOT_ABLE: 0 };
 
-// Elements added in the app but not in the original survey — exclude from scoring and benchmarks
+// Elements added in the app but not in the original survey, exclude from scoring and benchmarks
 // These only have N=11-12 responses out of 43 completes
 const APP_ONLY_EXCLUDED_ITEMS: Record<number, string[]> = {
   1: ['Full salary (100%) continuation during cancer-related short-term disability leave'],
@@ -568,7 +568,7 @@ function getTier(score: number): { name: string; color: string; bgColor: string;
 }
 
 
-// WSI Tier View (4-level) — used only when Tier View is enabled
+// WSI Tier View (4-level), used only when Tier View is enabled
 function getWSITier(score: number): { name: string; color: string; bgColor: string; textColor: string; borderColor: string } {
   if (score >= 80) return { name: 'Leading', color: '#047857', bgColor: 'bg-emerald-50', textColor: 'text-emerald-900', borderColor: 'border-emerald-200' };
   if (score >= 64) return { name: 'Advancing', color: '#1D4ED8', bgColor: 'bg-blue-50', textColor: 'text-blue-900', borderColor: 'border-blue-200' };
@@ -581,7 +581,7 @@ function getScoreColor(score: number): string {
   if (score >= 50) return '#B45309'; return '#B91C1C';
 }
 
-// Employee Priority grouping — reflects what employees managing cancer described as most critical
+// Employee Priority grouping, reflects what employees managing cancer described as most critical
 function getEmployeePriorityGroup(weight: number): { label: string; chip: string; color: string; bgColor: string; borderColor: string; ringColor: string } {
   if (weight >= 10) return { label: 'Most Critical to Employees', chip: 'Most Critical', color: '#7C3AED', bgColor: 'bg-violet-50', borderColor: 'border-violet-200', ringColor: '#7C3AED' };
   if (weight >= 7)  return { label: 'Highly Important to Employees', chip: 'Highly Important', color: '#D97706', bgColor: 'bg-amber-50', borderColor: 'border-amber-200', ringColor: '#D97706' };
@@ -741,7 +741,7 @@ function getTwoStepRoadmap(
     const item = allItems[0];
     const isQuick = item.isPlanning || item.pct >= 60;
     const effortTag = isQuick ? 'Accelerate' : 'Build';
-    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity — already in development' : `${item.pct}% of participating organizations offer this`;
+    const label = item.cls === 'Table Stakes Gap' ? 'Table-stakes gap' : item.cls === 'Momentum Opportunity' ? 'Momentum opportunity, already in development' : `${item.pct}% of participating organizations offer this`;
     quickWin = { name: item.name, reason: `${label}; ${item.pct}% of participating organizations offer this`, effortTag, projectedLift: Math.round(item.lift * 10) / 10 };
   }
 
@@ -982,7 +982,7 @@ function getDynamicInsight(
   const cacProgram = ctx.cacPrograms[(cacKeyMap[tierName] || 'progressing') as keyof typeof ctx.cacPrograms] || ctx.cacPrograms.progressing;
   cacHelp = cacProgram;
 
-  // Evidence-based insight generation — build from modular clauses using actual data
+  // Evidence-based insight generation, build from modular clauses using actual data
   const hasEvidence = evidence && (evidence.topStrength || evidence.biggestGap || evidence.inFlight);
 
   if (hasEvidence) {
@@ -1047,11 +1047,11 @@ function calculateElementLift(dimNum: number, elementName: string): number {
 function getBenchmarkNarrative(score: number, benchmark: number | null, dimName: string): string {
   if (benchmark === null) return '';
   const diff = score - benchmark;
-  if (diff >= 15) return `At ${score}, your ${dimName} score is ${diff} points above the ${benchmark} benchmark — a genuine differentiator. Protect this advantage.`;
+  if (diff >= 15) return `At ${score}, your ${dimName} score is ${diff} points above the ${benchmark} benchmark, a genuine differentiator. Protect this advantage.`;
   if (diff >= 5) return `At ${score}, you're ${diff} points above the ${benchmark} benchmark in ${dimName}. A solid position with room to extend your lead.`;
   if (diff >= -2) return `At ${score}, your ${dimName} score is in line with the ${benchmark} benchmark. An opportunity to differentiate from participating organizations.`;
   if (diff >= -10) return `At ${score}, you're ${Math.abs(diff)} points below the ${benchmark} benchmark in ${dimName}. Targeted improvements in a few elements can close this gap.`;
-  return `At ${score}, ${dimName} is ${Math.abs(diff)} points below the ${benchmark} benchmark. This represents one of your largest gaps relative to participating organizations — prioritize this dimension.`;
+  return `At ${score}, ${dimName} is ${Math.abs(diff)} points below the ${benchmark} benchmark. This represents one of your largest gaps relative to participating organizations, prioritize this dimension.`;
 }
 
 // Identify meaningful cross-dimension patterns
@@ -1059,7 +1059,7 @@ function getBenchmarkNarrative(score: number, benchmark: number | null, dimName:
 // Methodology: Evaluates cross-dimensional tension rules and surfaces the top 3
 // based on the size of the mismatch and the opportunity in the weaker dimension.
 
-// Dimension-specific insight templates — produces contextual diagnosis text
+// Dimension-specific insight templates, produces contextual diagnosis text
 // based on which elements are in place vs missing for each dimension
 function getDimensionInsight(
   dimNum: number,
@@ -3470,16 +3470,16 @@ const SUPPORT_LEVELS = {
     name: 'Foundation', abbr: 'Foundation', tagline: 'Baseline practices',
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
-    shortDesc: 'The baseline practices every cancer-inclusive workplace establishes first.',
-    desc: 'The baseline practices every cancer-inclusive workplace establishes first — the protections and policies employees rely on the moment a diagnosis hits.',
-    boldPhrase: 'The baseline practices every cancer-inclusive workplace establishes first — the protections and policies employees rely on the moment a diagnosis hits. A strong Foundation signals your organization has the essentials right and is ready to build further.',
+    shortDesc: 'The baseline practices most workplaces establish first.',
+    desc: 'The baseline practices most workplaces establish first. These are the protections and policies employees rely on the moment a diagnosis hits.',
+    boldPhrase: 'The baseline practices most workplaces establish first. These are the protections and policies employees rely on the moment a diagnosis hits. A strong Foundation signals your organization has the essentials right and is ready to build further.',
     italic: 'A strong Foundation signals your organization has the essentials right and is ready to build further.',
   },
   enhanced: {
     name: 'Momentum', abbr: 'Momentum', tagline: 'The next layer',
     color: '#B45309', light: '#FFFBEB', border: '#FDE68A',
     icon: EnhancedSupportIcon,
-    shortDesc: 'The next layer — practices that extend coverage, deepen manager readiness, and broaden access.',
+    shortDesc: 'The next layer of practices that extend coverage, deepen manager readiness, and broaden access.',
     desc: 'Once the Foundation is in place, these practices extend coverage, deepen manager readiness, and broaden access to care and resources.',
     boldPhrase: 'Once the Foundation is in place, these practices extend coverage, deepen manager readiness, and broaden access to care and resources. Momentum is where a solid program becomes a genuinely supportive one.',
     italic: 'Momentum is where a solid program becomes a genuinely supportive one.',
@@ -3488,9 +3488,9 @@ const SUPPORT_LEVELS = {
     name: 'Distinction', abbr: 'Distinction', tagline: 'Signature offerings',
     color: '#7C3AED', light: '#F5F3FF', border: '#C4B5FD',
     icon: AdvancedSupportIcon,
-    shortDesc: 'Signature offerings that set leading organizations apart — specialized, high-impact programs.',
-    desc: 'The signature offerings that set leading organizations apart — specialized, high-impact programs, often with dedicated resources.',
-    boldPhrase: 'The signature offerings that set leading organizations apart — specialized, high-impact programs, often with dedicated resources. Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
+    shortDesc: 'Signature offerings that set leading organizations apart. Specialized, high-impact programs.',
+    desc: 'The signature offerings that set leading organizations apart. Specialized, high-impact programs, often with dedicated resources.',
+    boldPhrase: 'The signature offerings that set leading organizations apart. Specialized, high-impact programs, often with dedicated resources. Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
     italic: 'Distinction practices turn workplace cancer support into a visible strength for talent, retention, and reputation.',
   },
 } as const;
@@ -3562,7 +3562,7 @@ export default function ExportReportPage() {
   
   // Edit Mode State
   const [editMode, setEditMode] = useState(false);
-  // NOTE: Classic view (tierView=false) removed 2026-03-02 — WSI tier view is now the only view.
+  // NOTE: Classic view (tierView=false) removed 2026-03-02, WSI tier view is now the only view.
   // Current model: 4-tier WSI (Leading 80+, Advancing 64+, Accelerating 50+, Building 0+).
   // To restore, revert this to: const [tierView, setTierView] = useState(false);
   const tierView = true;
@@ -3960,7 +3960,7 @@ export default function ExportReportPage() {
         
         <!-- PRIVATE WARNING BANNER -->
         <div class="private-banner">
-          🔒 PRIVATE — DO NOT SHARE THIS WINDOW
+          🔒 PRIVATE, DO NOT SHARE THIS WINDOW
         </div>
         
         <div class="header">
@@ -4391,7 +4391,7 @@ export default function ExportReportPage() {
           } else if (matchingRows.length === 1) {
             assessment = matchingRows[0];
           } else {
-            // Multiple rows — prefer 2026 (completed year) over 2027 (in-progress)
+            // Multiple rows, prefer 2026 (completed year) over 2027 (in-progress)
             assessment = matchingRows.find((r: any) => r.survey_year === '2026') || matchingRows[0];
           }
         }
@@ -5250,7 +5250,7 @@ export default function ExportReportPage() {
   // Check if company is a WWC Pledge Signatory
   const currentSupportData = company.current_support_data || {};
   const or2c = currentSupportData.or2c || [];
-  // NOTE: Founding Partner auto-qualification temporarily disabled — may re-enable later
+  // NOTE: Founding Partner auto-qualification temporarily disabled, may re-enable later
   // const isFoundingPartner = company.is_founding_partner === true ||
   //   company.payment_method === 'founding_partner' ||
   //   (company.application_id && company.application_id.startsWith('FP-'));
@@ -5370,7 +5370,7 @@ export default function ExportReportPage() {
   const coreScoreCalc = _tierCalc('core');
   const enhancedScoreCalc = _tierCalc('enhanced');
   const advancedScoreCalc = _tierCalc('advanced');
-  // Prog+Innov combined score (for reference only — NOT used in gates)
+  // Prog+Innov combined score (for reference only, NOT used in gates)
   const _enhElems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === 'enhanced');
   const _advElems = _allElemsForRating.filter((e: any) => getElementLevel(e.name) === 'advanced');
   const _piMax = (_enhElems.length + _advElems.length) * 5;
@@ -5378,7 +5378,7 @@ export default function ExportReportPage() {
   [..._enhElems, ..._advElems].forEach((e: any) => { if (e.isStrength) _piPts += 5; else if (e.isPlanning) _piPts += 3; else if (e.isAssessing) _piPts += 2; });
   const progInnovScoreCalc = _piMax > 0 ? Math.round((_piPts / _piMax) * 1000) / 10 : 0;
 
-  // WSI — matches page 166 scoring: per-dimension element-weighted scores + geo + follow-up + maturity/breadth
+  // WSI, matches page 166 scoring: per-dimension element-weighted scores + geo + follow-up + maturity/breadth
   // Step 1: Compute per-dimension element-weighted raw scores with unsure substitution
   const _dimElemScores: Record<number, number> = {};
   for (let d = 1; d <= 13; d++) {
@@ -5813,7 +5813,7 @@ export default function ExportReportPage() {
               </div>
             </div>
             
-            {/* The Context — Why This Work Matters */}
+            {/* The Context, Why This Work Matters */}
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
               <div className="flex items-start gap-10 mb-8">
@@ -5873,7 +5873,7 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-500 italic mt-3 mb-5">Research, Index framework, and scoring methodology developed by BEYOND Insights — an independent research and insights firm — in collaboration with Cancer and Careers.</p>
+                  <p className="text-[10px] text-slate-500 italic mt-3 mb-5">Research, Index framework, and scoring methodology developed by BEYOND Insights, an independent research and insights firm, in collaboration with Cancer and Careers.</p>
 
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in the Index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
@@ -5893,7 +5893,7 @@ export default function ExportReportPage() {
             </div>
             
             
-            {/* Understanding Your Workplace Support Composite Score / Composite Score — Collapsible */}
+            {/* Understanding Your Workplace Support Composite Score / Composite Score, Collapsible */}
             <div id="score-composition-section" className="px-12 py-6 bg-white border-b border-slate-200">
               <button 
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
@@ -5933,7 +5933,7 @@ export default function ExportReportPage() {
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
-                                  These weights are not arbitrary — they derive directly from the element importance weights within each dimension, partitioned by support level.
+                                  These weights are not arbitrary, they derive directly from the element importance weights within each dimension, partitioned by support level.
                                 </li>
                                 <li className="text-sm text-slate-600 flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-violet-500 mt-2 flex-shrink-0"></span>
@@ -6140,7 +6140,7 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-                        {/* The Three Levels of Workplace Support — Collapsible */}
+                        {/* The Three Levels of Workplace Support, Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowLevelsOverview(!showLevelsOverview)}
@@ -6177,7 +6177,7 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span> — from <span className="font-semibold text-slate-800">Foundation</span> practices every program builds on, to <span className="font-semibold text-slate-800">Momentum</span> that strengthens the employee experience, to <span className="font-semibold text-slate-800">Distinction</span> offerings that set leading organizations apart.
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three <span className="font-semibold text-slate-800">Levels of Workplace Support</span>, from <span className="font-semibold text-slate-800">Foundation</span> practices every program builds on, to <span className="font-semibold text-slate-800">Momentum</span> that strengthens the employee experience, to <span className="font-semibold text-slate-800">Distinction</span> offerings that set leading organizations apart.
                   </p>
 
                   <div className="grid grid-cols-3 gap-4 mb-2">
@@ -6248,7 +6248,7 @@ export default function ExportReportPage() {
               )}
             </div>
 
-            {/* Understanding Your Report Sections — Collapsible */}
+            {/* Understanding Your Report Sections, Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowReportSections(!showReportSections)}
@@ -6333,7 +6333,7 @@ export default function ExportReportPage() {
               )}
             </div>
 
-            {/* How to Use This Report — Collapsible */}
+            {/* How to Use This Report, Collapsible */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowReportGuide(!showReportGuide)}
@@ -6412,7 +6412,7 @@ export default function ExportReportPage() {
               )}
             </div>
 
-            {/* Company info + score — Dark Hero Header */}
+            {/* Company info + score, Dark Hero Header */}
             <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
@@ -6552,7 +6552,7 @@ export default function ExportReportPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-base font-bold text-slate-800 group-hover:text-[#F37021] transition-colors">
-                        Confirmatory Checklist — {unsureItems} Support Elements Requiring Confirmation
+                        Confirmatory Checklist, {unsureItems} Support Elements Requiring Confirmation
                       </p>
                       <p className="text-sm text-slate-600">
                         Review support elements marked "Unsure" to finalize your report scores
@@ -6604,10 +6604,10 @@ export default function ExportReportPage() {
                               
                               // Set column widths
                               ws['!cols'] = [
-                                { wch: 24 },  // Dimension
-                                { wch: 12 },  // Response
-                                { wch: 55 },  // Element
-                                { wch: 50 },  // Resources to help confirm
+                                { wch: 24 }, // Dimension
+                                { wch: 12 }, // Response
+                                { wch: 55 }, // Element
+                                { wch: 50 }, // Resources to help confirm
                               ];
                               
                               XLSX.utils.book_append_sheet(wb, ws, 'Confirmatory Items');
@@ -6708,7 +6708,7 @@ export default function ExportReportPage() {
                 </div>
               )}
               
-              {/* Workplace Support Composite Score — Tier Score Breakdown */}
+              {/* Workplace Support Composite Score, Tier Score Breakdown */}
               {(() => {
                 // Compute tier-level scores from element data
                 const allElems = dimensionAnalysis?.flatMap((d: any) => 
@@ -6857,7 +6857,7 @@ export default function ExportReportPage() {
 
                       {/* 4-column score grid: Composite + 3 support levels */}
                       <div className="grid grid-cols-4 gap-4">
-                        {/* Composite Score — primary, slightly emphasized */}
+                        {/* Composite Score, primary, slightly emphasized */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
                           <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Composite</p>
                           <p className="text-6xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
@@ -6933,7 +6933,7 @@ export default function ExportReportPage() {
                       <div className="mb-5">
                         <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">What Each Support Level Includes</p>
                         <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-                          Each of the {totalElementCount} support elements is classified into one of three levels — Foundation, Momentum, and Distinction — reflecting a progression from the baseline practices every program should have in place, to the next layer that strengthens the employee experience, to signature offerings that set leading organizations apart. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
+                          Each of the {totalElementCount} support elements is classified into one of three levels, Foundation, Momentum, and Distinction, reflecting a progression from the baseline practices every program should have in place, to the next layer that strengthens the employee experience, to signature offerings that set leading organizations apart. The Composite Score weights each dimension by employee-identified priorities and each element by its measured impact on wellbeing and organizational outcomes.
                         </p>
                       </div>
                       <div className="grid grid-cols-3 gap-5">
@@ -6953,7 +6953,7 @@ export default function ExportReportPage() {
                               </div>
                             </div>
 
-                            {/* Description — flex-1 to push View Details to consistent bottom */}
+                            {/* Description, flex-1 to push View Details to consistent bottom */}
                             <div className="px-5 py-3 flex-1">
                               <p className="text-sm text-slate-600 leading-relaxed">{t.shortDesc}</p>
                             </div>
@@ -7075,7 +7075,7 @@ export default function ExportReportPage() {
                       </div>
                     </div>
 
-                    {/* How does Company compare? — Dropdown */}
+                    {/* How does Company compare?, Dropdown */}
                     {(() => {
                       const computeDist = (scores: number[]) => {
                         if (scores.length === 0) return { leading: 0, advancing: 0, accelerating: 0, building: 0 };
@@ -7141,7 +7141,7 @@ export default function ExportReportPage() {
                                 </p>
                               </div>
 
-                              {/* Table header — two rows */}
+                              {/* Table header, two rows */}
                               <div className="bg-slate-50 border-b border-slate-200">
                                 {/* Row 1: Your cols + Benchmark Distribution spanning header */}
                                 <div className="grid grid-cols-[200px_80px_130px_1fr_1fr_1fr_1fr] gap-0 px-6">
@@ -7279,7 +7279,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-300 mt-1">Contributes 90% of your composite score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? '—'}</p>
+                          <p className="text-4xl font-bold text-white">{weightedDimScore ?? '-'}</p>
                           <p className="text-sm text-slate-300">Your Score</p>
                         </div>
                       </div>
@@ -7321,7 +7321,7 @@ export default function ExportReportPage() {
                           <p className="text-amber-100 mt-1">Contributes 5% of your composite score</p>
                         </div>
                         <div className="text-center">
-                          <p className="text-4xl font-bold text-white">{maturityScore ?? '—'}</p>
+                          <p className="text-4xl font-bold text-white">{maturityScore ?? '-'}</p>
                           <p className="text-sm text-amber-100">Your Score</p>
                         </div>
                       </div>
@@ -7448,13 +7448,13 @@ export default function ExportReportPage() {
                             <p className="text-violet-100 mt-1">Contributes 5% of your composite score</p>
                           </div>
                           <div className="text-center">
-                            <p className="text-4xl font-bold text-white">{breadthScore ?? '—'}</p>
+                            <p className="text-4xl font-bold text-white">{breadthScore ?? '-'}</p>
                             <p className="text-sm text-violet-100">Your Score</p>
                           </div>
                         </div>
                       </div>
                       <div className="px-8 py-6 space-y-6">
-                        <p className="text-slate-600">How expansive your benefits and support are—including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
+                        <p className="text-slate-600">How expansive your benefits and support are, including whether you go beyond legal requirements, how structured your programs are, and how many health conditions are addressed.</p>
                         
                         {/* CB3a - Beyond Legal */}
                         <div className="border border-violet-200 rounded-xl overflow-hidden">
@@ -7632,7 +7632,7 @@ export default function ExportReportPage() {
                             </span>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-300">—</span>
+                          <span className="text-sm text-slate-300">-</span>
                         )}
                       </div>
                       <div className="w-36 flex justify-center">
@@ -7804,16 +7804,16 @@ export default function ExportReportPage() {
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Priority Gaps (top-left) — faint amber */}
+                        {/* Priority Gaps (top-left), faint amber */}
                         <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.06" />
-                        {/* Priority Strengths (top-right) — faint blue */}
+                        {/* Priority Strengths (top-right), faint blue */}
                         <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.06" />
-                        {/* Secondary Gaps (bottom-left) — barely there warm */}
+                        {/* Secondary Gaps (bottom-left), barely there warm */}
                         <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#F59E0B" fillOpacity="0.03" />
-                        {/* Secondary Strengths (bottom-right) — barely there cool */}
+                        {/* Secondary Strengths (bottom-right), barely there cool */}
                         <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#1D4ED8" fillOpacity="0.03" />
 
-                        {/* Quadrant labels — centered in each quadrant */}
+                        {/* Quadrant labels, centered in each quadrant */}
                         <text x={PLOT_WIDTH/4} y={16} textAnchor="middle" dominantBaseline="middle" fill="#B45309" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY GAPS</text>
                         <text x={PLOT_WIDTH * 3/4} y={16} textAnchor="middle" dominantBaseline="middle" fill="#1D4ED8" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.6">PRIORITY STRENGTHS</text>
                         <text x={PLOT_WIDTH/4} y={PLOT_HEIGHT - 12} textAnchor="middle" dominantBaseline="middle" fill="#92400E" fontSize="13" fontWeight="700" fontFamily="system-ui" opacity="0.4">SECONDARY GAPS</text>
@@ -7842,7 +7842,7 @@ export default function ExportReportPage() {
                         {/* Border */}
                         <rect x={0} y={0} width={PLOT_WIDTH} height={PLOT_HEIGHT} fill="none" stroke="#64748B" strokeWidth="2" rx="4" />
 
-                        {/* X-axis — gradient arrow bar */}
+                        {/* X-axis, gradient arrow bar */}
                         <g transform={`translate(0, ${PLOT_HEIGHT + 10})`}>
                           <rect x={0} y={-3} width={PLOT_WIDTH - 6} height={6} rx="3" fill="url(#xAxisArrowGrad)" opacity="0.9" />
                           <polygon points={`${PLOT_WIDTH - 8},-8 ${PLOT_WIDTH + 4},0 ${PLOT_WIDTH - 8},8`} fill="#1E3A8A" opacity="0.9" />
@@ -8005,7 +8005,7 @@ export default function ExportReportPage() {
                         {matrixView === 'both' ? (
                           <div className="grid grid-cols-3 gap-2 text-sm">
                             <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Your Score</p><p className="font-bold text-xl" style={{ color: getScoreColor(hoveredData.score) }}>{hoveredData.score}</p></div>
-                            <div className="bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100"><p className="text-indigo-500 text-xs font-medium">Benchmark</p><p className="font-bold text-xl text-indigo-700">{getBenchmarkScore(hoveredData.dim) ?? '—'}</p></div>
+                            <div className="bg-indigo-50 rounded-lg px-3 py-2 border border-indigo-100"><p className="text-indigo-500 text-xs font-medium">Benchmark</p><p className="font-bold text-xl text-indigo-700">{getBenchmarkScore(hoveredData.dim) ?? '-'}</p></div>
                             <div className="bg-slate-50 rounded-lg px-3 py-2 border border-slate-100"><p className="text-slate-500 text-xs font-medium">Weight</p><p className="font-bold text-xl text-slate-700">{hoveredData.weight}%</p></div>
                           </div>
                         ) : (
@@ -8326,7 +8326,7 @@ export default function ExportReportPage() {
                       </div>
                     )}
 
-                    {/* Follow-Up Questions — only for D1, D3, D12, D13 */}
+                    {/* Follow-Up Questions, only for D1, D3, D12, D13 */}
                     {[1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
                       <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3">
                         <h4 className="font-bold text-blue-800 text-sm mb-3">Follow-Up Questions</h4>
@@ -8751,7 +8751,7 @@ export default function ExportReportPage() {
                                 <div className="text-center">
                                   <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Projected Score</p>
                                   <div className={`w-20 h-20 rounded-xl flex items-center justify-center shadow-md transition-all ${hasChanges ? `bg-gradient-to-br ${getScoreBgColor(projectedDimScore)}` : 'bg-slate-100 border-2 border-dashed border-slate-300'}`}>
-                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : '—'}</span>
+                                    <span className={`text-3xl font-bold ${hasChanges ? 'text-white' : 'text-slate-300'}`}>{hasChanges ? projectedDimScore : ', '}</span>
                                   </div>
                                 </div>
                               </div>
@@ -8816,7 +8816,7 @@ export default function ExportReportPage() {
                                     {isOriginal && <span className="ml-1.5 text-xs font-normal text-slate-500">(current)</span>}
                                   </p>
                                   <p className={`text-xs mt-0.5 ${isSelected ? 'text-violet-600' : 'text-slate-500'}`}>
-                                    ×{opt.value.toFixed(2)} — {opt.desc}
+                                    ×{opt.value.toFixed(2)}, {opt.desc}
                                   </p>
                                 </button>
                               );
@@ -8889,7 +8889,7 @@ export default function ExportReportPage() {
                                         : 'border-slate-200 bg-white text-slate-600'
                                     }`}
                                   >
-                                    <option value="">—</option>
+                                    <option value="">-</option>
                                     {statusOptions.map(opt => (
                                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                                     ))}
@@ -8939,7 +8939,7 @@ export default function ExportReportPage() {
                                       }
                                     }}
                                   >
-                                    {currentScore === null && <option value="">— not answered —</option>}
+                                    {currentScore === null && <option value="">, not answered , </option>}
                                     {fq.options.map((opt, i) => (
                                       <option key={i} value={opt.score}>
                                         {opt.label} ({opt.benchPct}% of orgs){currentScore === opt.score ? ' \u2190 current' : ''}
@@ -9845,7 +9845,7 @@ export default function ExportReportPage() {
               </div>
             </div>
 
-            {/* Dimension selection — two compelling cards */}
+            {/* Dimension selection, two compelling cards */}
             <div className="p-10 pt-6">
               <p className="text-base text-slate-600 mb-6">Select a view to explore priority dimensions in depth. Each includes an assessment, recommended actions, and projected impact.</p>
 
@@ -10069,7 +10069,7 @@ export default function ExportReportPage() {
                       const unsurePct = enriched.length > 0 ? (unsure.length / enriched.length) * 100 : 0;
 
                       if (unsurePct >= 40) {
-                        // Unsure-dominant dimension — actions should focus on confirmation first
+                        // Unsure-dominant dimension, actions should focus on confirmation first
                         const topUnsureByPeers = [...unsure].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
                         actionSteps.push({
                           text: unsure.length + ' of ' + enriched.length + ' elements in this dimension are pending confirmation. The score of ' + d.score + ' reflects this uncertainty. The first priority is to confirm the status of these elements, starting with ' + (topUnsureByPeers[0]?.name || 'the highest-adoption items') + (topUnsureByPeers[0]?.peerPct ? ' (' + topUnsureByPeers[0].peerPct + '% of peers offer this)' : '') + '. Until these are confirmed, any other recommendations would be premature.',
@@ -10441,7 +10441,7 @@ export default function ExportReportPage() {
                       const unsurePct = enriched.length > 0 ? (unsure.length / enriched.length) * 100 : 0;
 
                       if (unsurePct >= 40) {
-                        // Unsure-dominant dimension — actions should focus on confirmation first
+                        // Unsure-dominant dimension, actions should focus on confirmation first
                         const topUnsureByPeers = [...unsure].sort((a: any, b: any) => (b.peerPct ?? 0) - (a.peerPct ?? 0));
                         actionSteps.push({
                           text: unsure.length + ' of ' + enriched.length + ' elements in this dimension are pending confirmation. The score of ' + d.score + ' reflects this uncertainty. The first priority is to confirm the status of these elements, starting with ' + (topUnsureByPeers[0]?.name || 'the highest-adoption items') + (topUnsureByPeers[0]?.peerPct ? ' (' + topUnsureByPeers[0].peerPct + '% of peers offer this)' : '') + '. Until these are confirmed, any other recommendations would be premature.',
@@ -11510,7 +11510,7 @@ export default function ExportReportPage() {
                   <p className="text-slate-700 text-base leading-relaxed">
                     Every organization enters this work from a different place. Cancer and Careers' consulting practice 
                     helps organizations understand where they are, identify where they want to be, and build a realistic 
-                    path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                    path to get there, shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
                     and the HR teams supporting them.
                   </p>
                 </div>
@@ -11669,7 +11669,7 @@ export default function ExportReportPage() {
                     onClick={() => setActiveScoreOverlay('maturity')}
                     className="text-center px-5 py-3 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all"
                   >
-                    <p className="text-2xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                    <p className="text-2xl font-bold text-amber-700">{maturityScore ?? '-'}</p>
                     <p className="text-xs text-amber-600 mt-1">Maturity</p>
                     <p className="text-xs text-amber-500">× 5%</p>
                   </div>
@@ -11678,7 +11678,7 @@ export default function ExportReportPage() {
                     onClick={() => setActiveScoreOverlay('breadth')}
                     className="text-center px-5 py-3 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-violet-400 hover:scale-105 transition-all"
                   >
-                    <p className="text-2xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                    <p className="text-2xl font-bold text-violet-700">{breadthScore ?? '-'}</p>
                     <p className="text-xs text-violet-600 mt-1">Breadth</p>
                     <p className="text-xs text-violet-500">× 5%</p>
                   </div>
@@ -12114,7 +12114,7 @@ export default function ExportReportPage() {
                         <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                       </div>
                     </div>
-                    <p className="text-[10px] text-slate-500 italic mt-3 mb-6">Research, Index framework, and scoring methodology developed by BEYOND Insights — an independent research and insights firm — in collaboration with Cancer and Careers.</p>
+                    <p className="text-[10px] text-slate-500 italic mt-3 mb-6">Research, Index framework, and scoring methodology developed by BEYOND Insights, an independent research and insights firm, in collaboration with Cancer and Careers.</p>
 
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
@@ -12358,7 +12358,7 @@ export default function ExportReportPage() {
                       
                       <div className="px-5 py-3 bg-slate-50 border-t border-slate-200">
                         <p className="text-sm text-slate-600">
-                          Each dimension is weighted based on its impact on employee wellbeing. <strong className="text-slate-800">However, every dimension and every support element matters</strong>—improvements in any area create meaningful impact.
+                          Each dimension is weighted based on its impact on employee wellbeing. <strong className="text-slate-800">However, every dimension and every support element matters</strong>, improvements in any area create meaningful impact.
                         </p>
                       </div>
                     </div>
@@ -12568,7 +12568,7 @@ export default function ExportReportPage() {
 
                       {/* Auto-Generated Executive Insight Blocks */}
                       {(() => {
-                        // BLOCK A: "What You Do Well" — top 2 scoring dimensions with a named element
+                        // BLOCK A: "What You Do Well", top 2 scoring dimensions with a named element
                         const top2Dims = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 2);
                         const doWellDefaults = top2Dims.map(d => {
                           const dimBench = elementBenchmarks[d.dim] || {};
@@ -12584,7 +12584,7 @@ export default function ExportReportPage() {
                           return `${d.name} (${d.score}${benchStr ? ', ' + benchStr : ''})${elemStr}`;
                         });
 
-                        // BLOCK B: "Where to Improve" — top 2 by impact-weighted gap magnitude
+                        // BLOCK B: "Where to Improve", top 2 by impact-weighted gap magnitude
                         // Exclude dims already cited in "What You Do Well" to avoid contradictions
                         const doWellDimSet = new Set(top2Dims.map(d => d.dim));
                         const improveDims = [...dimensionAnalysis]
@@ -12613,7 +12613,7 @@ export default function ExportReportPage() {
                           return `${d.name} (${d.score}, ${pg.chip})${tsgStr}`;
                         });
 
-                        // BLOCK C: "Building Momentum" — top 3 Momentum Opportunity elements
+                        // BLOCK C: "Building Momentum", top 3 Momentum Opportunity elements
                         const momentumItems: { name: string; dimName: string; pct: number }[] = [];
                         dimensionAnalysis.forEach(d => {
                           const dimBench = elementBenchmarks[d.dim] || {};
@@ -12791,7 +12791,7 @@ export default function ExportReportPage() {
                                   </span>
                                 </div>
                               ) : (
-                                <span className="text-sm text-slate-300">—</span>
+                                <span className="text-sm text-slate-300">-</span>
                               )}
                             </div>
                             <div className="w-32 flex justify-center">
@@ -15200,7 +15200,7 @@ export default function ExportReportPage() {
                           <p className="text-slate-700 text-base leading-relaxed">
                             Every organization enters this work from a different place. Cancer and Careers' consulting practice 
                             helps organizations understand where they are, identify where they want to be, and build a realistic 
-                            path to get there—shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
+                            path to get there, shaped by <strong className="text-[#F37021]">two decades of frontline experience</strong> with employees navigating cancer 
                             and the HR teams supporting them.
                           </p>
                         </div>
@@ -15288,13 +15288,13 @@ export default function ExportReportPage() {
                           </div>
                           <span className="text-lg text-slate-500 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[90px]">
-                            <p className="text-xl font-bold text-amber-700">{maturityScore ?? '—'}</p>
+                            <p className="text-xl font-bold text-amber-700">{maturityScore ?? '-'}</p>
                             <p className="text-xs text-amber-600 mt-1">Maturity</p>
                             <p className="text-xs text-amber-500">× 5%</p>
                           </div>
                           <span className="text-lg text-slate-500 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-violet-50 rounded-xl border-2 border-violet-200 min-w-[90px]">
-                            <p className="text-xl font-bold text-violet-700">{breadthScore ?? '—'}</p>
+                            <p className="text-xl font-bold text-violet-700">{breadthScore ?? '-'}</p>
                             <p className="text-xs text-violet-600 mt-1">Breadth</p>
                             <p className="text-xs text-violet-500">× 5%</p>
                           </div>
