@@ -7566,60 +7566,54 @@ export default function ExportReportPage() {
                   <rect width="100%" height="100%" fill="url(#dimPerfGrid)" />
                 </svg>
               </div>
-              <div className="relative flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-white text-xl">Dimension Performance Based on What Matters Most</h3>
-                    <p className="text-slate-500 mt-0.5 text-sm">All 13 dimensions sorted by {dimPerfSortBy === 'score' ? `${companyName}${companyName.endsWith('s') ? "'" : "'s"} score` : dimPerfSortBy === 'benchmark' ? 'benchmark score' : 'employee priority weight'}</p>
-                  </div>
+              <div className="relative flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-slate-500 font-medium">Sort:</span>
-                    <select
-                      value={dimPerfSortBy}
-                      onChange={(e) => setDimPerfSortBy(e.target.value as 'score' | 'benchmark' | 'priority')}
-                      className="bg-white text-slate-900 text-sm font-medium border border-slate-300 rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
-                    >
-                      <option value="score">Your Score</option>
-                      <option value="benchmark">Benchmark</option>
-                      <option value="priority">Employee Priority</option>
-                    </select>
-                  </div>
-                  <span className="flex items-center gap-2 text-xs text-slate-500">
-                    <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#94a3b8"/></svg>
-                    <span>= Benchmark Score</span>
-                  </span>
-                </div>
+                <h3 className="font-bold text-white text-xl">Dimension Performance Based on What Matters Most</h3>
               </div>
             </div>
-            <div className="px-12 py-4">
-              {/* Helper text */}
-              <p className="text-sm text-slate-600 italic mb-3">Click any dimension below to see element-level detail.</p>
-              {/* Table Header */}
-              <div className="flex items-center py-3 border-b-2 border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                <div className="w-64 pl-2">Dimension</div>
-                <div className="flex-1 text-center">Performance</div>
-                <div className="w-24 text-center">Your Score</div>
-                <div className="w-28 text-center">Benchmark<br/><span className="normal-case tracking-normal font-medium text-slate-400" style={{ fontSize: '9px' }}>avg (+/- yours)</span></div>
-                <div className="w-36 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
-                <div className="w-10"></div>
+            <div className="px-12 py-5">
+              {/* Helper text + Sort control on same row */}
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-slate-600 italic">Click any dimension below to see element-level detail.</p>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-slate-500 font-medium uppercase tracking-wider">Sort by</label>
+                  <select
+                    value={dimPerfSortBy}
+                    onChange={(e) => setDimPerfSortBy(e.target.value as 'score' | 'benchmark' | 'priority')}
+                    className="bg-white text-slate-900 text-sm font-medium border border-slate-300 rounded-lg px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  >
+                    <option value="score">Your Score</option>
+                    <option value="benchmark">Benchmark</option>
+                    <option value="priority">Employee Priority</option>
+                  </select>
+                </div>
               </div>
-              <div className="divide-y divide-slate-100">
+              {/* Table Header */}
+              <div className="flex items-center py-3 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <div className="flex-1 pl-2">Dimension</div>
+                <div className="w-24 text-center">Your Score</div>
+                <div className="w-40 text-center" title="Delta vs. participating-company average">Delta vs. Benchmark</div>
+                <div className="w-40 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
+                <div className="w-12"></div>
+              </div>
+              <div className="divide-y divide-slate-200">
                 {[...dimensionAnalysis].sort((a, b) => {
                   if (dimPerfSortBy === 'score') return b.score - a.score;
                   if (dimPerfSortBy === 'benchmark') return (b.benchmark ?? 0) - (a.benchmark ?? 0);
-                  // priority: sort by weight descending
                   return b.weight - a.weight;
                 }).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   const pg = getEmployeePriorityGroup(d.weight);
                   const isOpen = dimensionDetailModal === d.dim;
+                  // Delta pill color bands: green if >= +5, red if <= -5, grey otherwise
+                  const deltaBand = diff === null ? 'none' : diff >= 5 ? 'positive' : diff <= -5 ? 'negative' : 'neutral';
+                  const deltaStyles = deltaBand === 'positive' ? { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', arrow: 'M5 15l7-7 7 7' }
+                    : deltaBand === 'negative' ? { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', arrow: 'M19 9l-7 7-7-7' }
+                    : { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', arrow: 'M5 12h14' };
                   return (<Fragment key={d.dim}>
                     <div
                       onClick={() => {
@@ -7631,53 +7625,39 @@ export default function ExportReportPage() {
                         }
                       }}
                       title={isOpen ? 'Collapse' : 'Click for details'}
-                      className={`group flex items-center py-4 cursor-pointer transition-all ${isOpen ? 'bg-gradient-to-r from-slate-100 via-slate-50 to-white ring-1 ring-slate-300 shadow-sm' : idx % 2 === 0 ? 'bg-white hover:bg-slate-50' : 'bg-slate-50/40 hover:bg-slate-100/70'} -mx-4 px-4 rounded-xl`}
+                      className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[68px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
-                      <div className="w-64 flex items-center gap-3 pl-2">
-                        <span className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md flex-shrink-0" style={{ backgroundColor: pg.color }}>
+                      <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
+                        <span className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                           D{d.dim}
                         </span>
-                        <span className={`text-sm font-bold leading-snug transition-colors ${isOpen ? 'text-slate-900' : 'text-slate-800 group-hover:text-slate-900'}`}>{d.name}</span>
-                      </div>
-                      <div className="flex-1 px-5">
-                        <div className="relative h-3 bg-slate-200/70 rounded-full overflow-visible">
-                          <div
-                            className="absolute left-0 top-0 h-full rounded-full transition-all"
-                            style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.tier.color }}
-                          />
-                          {d.benchmark !== null && (
-                            <div
-                              className="absolute -top-2.5"
-                              style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}
-                              title={`Benchmark: ${d.benchmark}`}
-                            >
-                              <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none"><path d="M6 12L0 4H12L6 12Z" fill="#475569"/></svg>
-                            </div>
-                          )}
-                        </div>
+                        <span className="text-sm font-semibold text-slate-800 leading-snug">{d.name}</span>
                       </div>
                       <div className="w-24 text-center">
-                        <span className="text-2xl font-bold tabular-nums" style={{ color: d.tier.color }}>{d.score}</span>
+                        <span className="text-2xl font-bold tabular-nums text-slate-900">{d.score}</span>
                       </div>
-                      <div className="w-28 text-center">
-                        {d.benchmark !== null ? (
+                      <div className="w-40 flex justify-center">
+                        {diff !== null ? (
                           <div className="flex flex-col items-center gap-0.5">
-                            <span className="text-sm text-slate-600 tabular-nums">{d.benchmark}</span>
-                            <span className={`text-[11px] font-bold tabular-nums ${diff !== null && diff >= 0 ? 'text-teal-600' : 'text-amber-600'}`}>
-                              {diff !== null && diff >= 0 ? '+' : ''}{diff}
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold tabular-nums ${deltaStyles.bg} ${deltaStyles.text} ${deltaStyles.border}`}>
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d={deltaStyles.arrow} />
+                              </svg>
+                              {diff >= 0 ? '+' : ''}{diff}
                             </span>
+                            <span className="text-[11px] text-slate-500 tabular-nums">vs. {d.benchmark}</span>
                           </div>
                         ) : (
                           <span className="text-sm text-slate-300">-</span>
                         )}
                       </div>
-                      <div className="w-36 flex justify-center">
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: pg.color }} />
-                          <span style={{ color: pg.color }}>{pg.chip}</span>
+                      <div className="w-40 flex justify-center">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600">
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: pg.color }} />
+                          <span>{pg.chip}</span>
                         </span>
                       </div>
-                      <div className="w-10 flex items-center justify-end pr-2">
+                      <div className="w-12 flex items-center justify-end pr-2">
                         <div className={`w-8 h-8 rounded-full bg-white border flex items-center justify-center transition-all ${isOpen ? 'border-slate-400 shadow-sm rotate-180' : 'border-slate-200 group-hover:border-slate-400'}`}>
                           <svg className={`w-4 h-4 transition-colors ${isOpen ? 'text-slate-700' : 'text-slate-500 group-hover:text-slate-700'}`} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -7737,37 +7717,81 @@ export default function ExportReportPage() {
                           statusCounts[s.key as keyof typeof statusCounts]++;
                         });
                         
+                        // Compute tier distribution within this dimension
+                        const tierCounts = { core: 0, enhanced: 0, advanced: 0 };
+                        d.elements?.forEach((elem: any) => {
+                          const lvl = getElementLevel(elem.name);
+                          if (lvl in tierCounts) tierCounts[lvl as keyof typeof tierCounts]++;
+                        });
+                        const totalElemsInDim = d.elements?.length || 0;
+                        const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => (a as number) + (b as number), 0);
+                        const dimWeightPct = totalDimWeight > 0 ? Math.round(((DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0) / (totalDimWeight as number)) * 100) : 0;
                         return (
-                          <div ref={dimDetailRef} className="max-w-[1280px] mx-auto mb-8 ppt-break">
-                            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden flex flex-col">
-                              {/* Header */}
-                              <div className="px-6 py-4 flex-shrink-0 relative" style={{ background: `linear-gradient(135deg, ${d.tier.color} 0%, ${d.tier.color}dd 100%)` }}>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-4">
-                                    <span className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center text-white text-2xl font-bold">{d.dim}</span>
-                                    <div>
-                                      <h3 className="text-xl font-bold text-white">{d.name}</h3>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <span className="px-2 py-0.5 bg-white/20 rounded text-xs font-medium text-white/90">Weight: {d.weight}%</span>
-                                        <span className="px-2 py-0.5 bg-white/30 rounded text-xs font-semibold text-white">{d.tier.name}</span>
+                          <div ref={dimDetailRef} className="border-t border-slate-200 bg-slate-50/50">
+                            <div className="px-6 py-6">
+                              {/* Benchmark comparison chart */}
+                              {d.benchmark !== null && (
+                                <div className="mb-6">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Score vs. Benchmark</p>
+                                  <div className="relative h-10 bg-slate-200 rounded-lg overflow-visible">
+                                    <div
+                                      className="absolute left-0 top-0 h-full rounded-lg bg-slate-800 flex items-center justify-end pr-3"
+                                      style={{ width: `${Math.min(d.score, 100)}%` }}
+                                    >
+                                      <span className="text-xs font-bold text-white tabular-nums">{d.score}</span>
+                                    </div>
+                                    <div
+                                      className="absolute top-0 h-full w-0.5 bg-slate-500"
+                                      style={{ left: `${Math.min(d.benchmark, 100)}%` }}
+                                    >
+                                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                                        <span className="text-[11px] font-semibold text-slate-600 tabular-nums">Benchmark: {d.benchmark}</span>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="text-right flex items-end gap-4">
+                                  <p className={`text-sm mt-4 font-medium ${diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                    {diff >= 0 ? `+${diff} points above` : `${Math.abs(diff)} points below`} the participating-organization average.
+                                  </p>
+                                </div>
+                              )}
+
+                              {/* Tier distribution + priority context */}
+                              <div className="grid grid-cols-2 gap-6 mb-6">
+                                <div className="bg-white rounded-lg border border-slate-200 p-4">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Elements by Support Level</p>
+                                  <div className="space-y-2">
+                                    {[
+                                      { key: 'core', label: 'Foundation', count: tierCounts.core, color: SUPPORT_LEVELS.core.color },
+                                      { key: 'enhanced', label: 'Expanded', count: tierCounts.enhanced, color: SUPPORT_LEVELS.enhanced.color },
+                                      { key: 'advanced', label: 'Signature', count: tierCounts.advanced, color: SUPPORT_LEVELS.advanced.color },
+                                    ].map(t => {
+                                      const pct = totalElemsInDim > 0 ? Math.round((t.count / totalElemsInDim) * 100) : 0;
+                                      return (
+                                        <div key={t.key} className="flex items-center gap-3">
+                                          <span className="w-20 text-xs font-semibold" style={{ color: t.color }}>{t.label}</span>
+                                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: t.color }} />
+                                          </div>
+                                          <span className="text-xs text-slate-600 tabular-nums w-16 text-right">{t.count} of {totalElemsInDim}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                                <div className="bg-white rounded-lg border border-slate-200 p-4">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Employee Priority</p>
+                                  <div className="flex items-start gap-3">
+                                    <span className="w-3 h-3 rounded-full mt-1 flex-shrink-0" style={{ backgroundColor: pg.color }} />
                                     <div>
-                                      <p className="text-5xl font-black text-white">{d.score}</p>
-                                      <p className="text-white/70 text-sm">Your Score</p>
+                                      <p className="text-sm font-semibold" style={{ color: pg.color }}>{pg.label}</p>
+                                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                        Contributes <span className="font-semibold text-slate-800 tabular-nums">{dimWeightPct}%</span> to the Composite Score, based on research with employees managing cancer and HR leaders.
+                                      </p>
                                     </div>
-                                    {diff !== null && d.benchmark !== null && (
-                                      <div className="text-right">
-                                        <p className="text-3xl font-bold text-white/90">{d.benchmark} <span className={`text-lg font-semibold ${diff >= 0 ? 'text-emerald-200' : 'text-red-200'}`}>({diff >= 0 ? '+' : ''}{diff})</span></p>
-                                        <p className="text-white/70 text-sm">Benchmark Score</p>
-                                      </div>
-                                    )}
                                   </div>
                                 </div>
                               </div>
-                              
+
                               {/* Table Header Row */}
                               <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
                                 <div className="col-span-4">Support Element</div>
