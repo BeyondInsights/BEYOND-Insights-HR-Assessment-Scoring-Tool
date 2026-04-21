@@ -6805,22 +6805,14 @@ export default function ExportReportPage() {
                     <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
                       Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
                     </p>
-                    <div className="mt-4 flex items-center gap-4 text-[12.5px] text-slate-600">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-slate-900 text-[15px] tabular-nums">00</span>
-                        <span>dimension score</span>
-                      </div>
-                      <span className="text-slate-300">|</span>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold tabular-nums"><span className="text-emerald-600">+0</span> <span className="text-slate-400">/</span> <span className="text-rose-600">-0</span></span>
-                        <span>points above or below the benchmark</span>
-                      </div>
-                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
                       {renderCard('Priority Gaps', 'High employee priority, room to grow', '#4F46E5', '#E0E7FF', iconBars, tensions, true)}
                       {renderCard('Areas to Address', 'Greatest opportunity to improve', '#D97706', '#FEF3C7', iconSprout, areasToAddress, true)}
                     </div>
+                    <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
+                      The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
+                    </p>
                   </>
                 );
               })()}
