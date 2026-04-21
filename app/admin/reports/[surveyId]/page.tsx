@@ -6856,7 +6856,7 @@ export default function ExportReportPage() {
                     <p className="text-lg text-slate-300 mt-3">identified support element gaps</p>
                     <div className="mt-3 space-y-1">
                       <p className="text-base text-amber-400">{notPlannedItems} not planned</p>
-                      <p className="text-base text-amber-400">{unsureItems} to confirm</p>
+                      <p className="text-base text-amber-400">{unsureItems} unsure</p>
                     </div>
                   </div>
                   <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #8B5CF6' }}>
@@ -12781,7 +12781,7 @@ export default function ExportReportPage() {
                             <p className="text-sm text-slate-500 mt-1">identified support element gaps</p>
                             <div className="mt-1 space-y-0.5">
                               <p className="text-xs text-amber-400">{notPlannedItems} not planned</p>
-                              <p className="text-xs text-amber-400">{unsureItems} need confirmation</p>
+                              <p className="text-xs text-amber-400">{unsureItems} unsure</p>
                             </div>
                           </div>
                           <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
