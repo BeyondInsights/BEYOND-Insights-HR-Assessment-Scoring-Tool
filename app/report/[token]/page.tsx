@@ -4507,7 +4507,7 @@ export default function ExportReportPage() {
                       <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                     </div>
                   </div>
-                  <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
+                  <p className="text-[10px] text-slate-400 italic mt-3 mb-5">Research, Index framework, and scoring methodology developed by BEYOND Insights — an independent research and insights firm — in collaboration with Cancer and Careers.</p>
 
                   <p className="text-sm text-slate-700 leading-relaxed">
                     This same research drives how each dimension is weighted in the index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
@@ -9010,7 +9010,7 @@ export default function ExportReportPage() {
                     </div>
                     <div>
                       <p className="text-white font-bold text-sm">What Employees Say About the Pledge</p>
-                      <p className="text-slate-400 text-xs">Research by BEYOND Insights for Cancer and Careers</p>
+                      <p className="text-slate-400 text-xs">Research, Index design, and scoring by BEYOND Insights for Cancer and Careers</p>
                     </div>
                   </div>
                   <div className="bg-white rounded-lg px-3 py-2 text-center shadow-md">
@@ -9720,7 +9720,7 @@ export default function ExportReportPage() {
                         <p className="text-xs text-slate-600 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
                       </div>
                     </div>
-                    <p className="text-[10px] text-slate-400 italic mt-3 mb-6">Research conducted by BEYOND Insights, an independent research and insights firm.</p>
+                    <p className="text-[10px] text-slate-400 italic mt-3 mb-6">Research, Index framework, and scoring methodology developed by BEYOND Insights — an independent research and insights firm — in collaboration with Cancer and Careers.</p>
 
                     {/* Weighting explanation */}
                     <p className="text-base text-slate-700 leading-relaxed mb-6">
@@ -12492,7 +12492,7 @@ export default function ExportReportPage() {
                             </div>
                             <div>
                               <p className="text-white font-bold text-sm">What Employees Say About the Pledge</p>
-                              <p className="text-slate-300 text-xs">Research by BEYOND Insights for Cancer and Careers</p>
+                              <p className="text-slate-300 text-xs">Research, Index design, and scoring by BEYOND Insights for Cancer and Careers</p>
                             </div>
                           </div>
                           <div className="bg-white rounded-lg px-3 py-2 text-center shadow-md">
