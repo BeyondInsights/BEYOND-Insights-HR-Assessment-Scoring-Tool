@@ -6878,7 +6878,7 @@ export default function ExportReportPage() {
 
                         {/* Core Support */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Core Support</p>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
                           {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
@@ -6891,7 +6891,7 @@ export default function ExportReportPage() {
 
                         {/* Enhanced Support */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Enhanced Support</p>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Momentum</p>
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
                           {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
@@ -6904,7 +6904,7 @@ export default function ExportReportPage() {
 
                         {/* Advanced Support */}
                         <div className="bg-white rounded-xl p-6 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
-                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Advanced Support</p>
+                          <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Distinction</p>
                           <p className="text-6xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
                           {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-3 pt-3 border-t border-slate-100">
@@ -7097,9 +7097,9 @@ export default function ExportReportPage() {
 
                       const compRows = [
                         { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, accentColor: '#334155' },
-                        { label: 'Core Support', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
-                        { label: 'Enhanced Support', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
-                        { label: 'Advanced Support', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
+                        { label: 'Foundation', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
+                        { label: 'Momentum', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
+                        { label: 'Distinction', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
                       ];
 
                       const tierDefs = [
@@ -11302,9 +11302,9 @@ export default function ExportReportPage() {
                   <div className="grid grid-cols-4 gap-4">
                     {[
                       { label: 'Composite', score: wsiScoreHeader, benchmark: wsiBenchmarkScore, color: '#334155' },
-                      { label: 'Core Support', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
-                      { label: 'Enhanced Support', score: enhancedScoreCalc, benchmark: enhancedTierBenchmarkAvg, color: '#B45309' },
-                      { label: 'Advanced Support', score: advancedScoreCalc, benchmark: advancedTierBenchmarkAvg, color: '#7C3AED' },
+                      { label: 'Foundation', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
+                      { label: 'Momentum', score: enhancedScoreCalc, benchmark: enhancedTierBenchmarkAvg, color: '#B45309' },
+                      { label: 'Distinction', score: advancedScoreCalc, benchmark: advancedTierBenchmarkAvg, color: '#7C3AED' },
                     ].map(item => {
                       const diff = item.benchmark != null && item.score != null ? item.score - item.benchmark : null;
                       return (
@@ -16164,15 +16164,15 @@ export default function ExportReportPage() {
                   },
                   { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
                   {
-                    label: 'Core Support', getValue: (r) => r.coreScore, getBenchmark: () => ib?.coreScore,
+                    label: 'Foundation', getValue: (r) => r.coreScore, getBenchmark: () => ib?.coreScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
-                    label: 'Enhanced Support', getValue: (r) => r.enhancedScore, getBenchmark: () => ib?.enhancedScore,
+                    label: 'Momentum', getValue: (r) => r.enhancedScore, getBenchmark: () => ib?.enhancedScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
-                    label: 'Advanced Support', getValue: (r) => r.advancedScore, getBenchmark: () => ib?.advancedScore,
+                    label: 'Distinction', getValue: (r) => r.advancedScore, getBenchmark: () => ib?.advancedScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
