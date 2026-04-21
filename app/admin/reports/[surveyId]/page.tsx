@@ -3574,7 +3574,7 @@ export default function ExportReportPage() {
   const [expandedReportSection, setExpandedReportSection] = useState<string | null>(null);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
-  const [activeReportTab, setActiveReportTab] = useState<'strength' | 'progress' | 'grow' | 'unsure' | null>('strength');
+  const [activeReportTab, setActiveReportTab] = useState<'strength' | 'progress' | 'grow' | 'unsure' | null>(null);
   const [reportSummaryExpandedDim, setReportSummaryExpandedDim] = useState<number | null>(null);
   
   const [showConfirmatoryChecklist, setShowConfirmatoryChecklist] = useState(false);
@@ -9520,6 +9520,7 @@ export default function ExportReportPage() {
                         <div className="divide-y divide-slate-200 border-t border-b border-slate-200">
                           {dimsInTab.map(group => {
                             const isOpen = (isPdf || reportSummaryExpandedDim === group.dim);
+                            const groupPg = getEmployeePriorityGroup(group.weight);
                             return (
                               <div key={group.dim}>
                                 <button
@@ -9529,7 +9530,7 @@ export default function ExportReportPage() {
                                   <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''} text-slate-400`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                   </svg>
-                                  <span className="inline-flex items-center justify-center h-6 min-w-[42px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: '#1E3A5F' }}>
+                                  <span className="inline-flex items-center justify-center h-6 min-w-[42px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: groupPg.color }}>
                                     D{group.dim}
                                   </span>
                                   <span className="text-[15px] font-semibold text-slate-800 flex-1">{group.name}</span>
