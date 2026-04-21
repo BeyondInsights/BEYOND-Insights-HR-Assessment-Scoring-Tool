@@ -48,12 +48,12 @@ function PolishedScoreComposition({ compositeScore, weightedDimScore, maturitySc
           <span className="text-2xl text-slate-300 font-light">=</span>
           {components.map((comp, idx) => (<div key={comp.id} className="flex items-center gap-4"><div className="text-center px-4 py-3 bg-white rounded-lg border border-slate-200 min-w-[110px]"><p className="text-2xl font-semibold text-slate-700">{comp.score ?? '-'}</p><p className="text-xs text-slate-500 mt-0.5">{comp.label}</p><p className="text-xs text-slate-300">× {comp.weight}%</p></div>{idx < components.length - 1 && <span className="text-xl text-slate-300 font-light">+</span>}</div>))}
         </div>
-        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : ', '}</span><span className="text-xs text-slate-500">vs benchmark</span></div></div>)}
+        {benchmarks?.compositeScore && (<div className="flex items-center justify-center gap-6 py-3 px-4 bg-slate-50 rounded-lg border border-slate-100 mb-8 flex-wrap"><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Your Score:</span><span className="text-sm font-semibold text-slate-800">{compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-2"><span className="text-sm text-slate-500">Participant Benchmark:</span><span className="text-sm font-medium text-slate-600">{benchmarks.compositeScore}</span></div><div className="w-px h-4 bg-slate-300 hidden sm:block"></div><div className="flex items-center gap-1"><span className={`text-sm font-semibold ${benchDiff && benchDiff >= 0 ? 'text-emerald-700' : 'text-amber-700'}`}>{benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} pts` : ', '}</span><span className="text-xs text-slate-500">vs benchmark</span></div></div>)}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {components.map((comp) => { const isExpanded = expandedCard === comp.id; const diff = comp.score && comp.benchmark ? comp.score - comp.benchmark : null; return (
             <div key={comp.id} className="border border-slate-200 rounded-lg overflow-hidden">
               <div className="px-4 py-3 border-b border-slate-100 bg-slate-50"><div className="flex items-center justify-between"><span className="text-sm font-medium text-slate-700">{comp.label}</span><span className="text-xs text-slate-500 font-medium">{comp.weight}%</span></div></div>
-              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '-'}<span className="text-sm text-slate-500 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-500">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : ', '} <span className="text-slate-500 font-normal">({comp.benchmark})</span></span></div>)}</div>
+              <div className="p-4"><p className="text-xs text-slate-500 mb-4 leading-relaxed">{comp.description}</p><div className="space-y-2"><div className="flex items-center justify-between"><span className="text-sm text-slate-500">Your Score</span><span className="text-lg font-semibold text-slate-800">{comp.score ?? '-'}<span className="text-sm text-slate-500 font-normal"> / 100</span></span></div>{comp.benchmark !== null && comp.benchmark !== undefined && (<div className="flex items-center justify-between pt-2 border-t border-slate-100"><span className="text-xs text-slate-500">vs. Benchmark</span><span className={`text-sm font-medium ${diff && diff >= 0 ? 'text-emerald-700' : 'text-amber-700'}`}>{diff !== null ? `${diff >= 0 ? '+' : ''}${diff}` : ', '} <span className="text-slate-500 font-normal">({comp.benchmark})</span></span></div>)}</div>
               <button onClick={() => setExpandedCard(isExpanded ? null : comp.id)} className="w-full mt-4 pt-3 border-t border-slate-100 flex items-center justify-center gap-1 text-xs text-slate-500 hover:text-slate-600">{isExpanded ? 'Hide' : 'Show'} details {isExpanded ? <ChevronUpIcon className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}</button></div>
               {isExpanded && (<div className="px-4 pb-4 bg-slate-50 border-t border-slate-100"><div className="rounded border border-slate-200 bg-white overflow-hidden mt-3"><table className="w-full text-xs"><thead><tr className="bg-slate-50 border-b border-slate-200"><th className="text-left px-3 py-2 font-medium text-slate-500">Response</th><th className="text-center px-2 py-2 font-medium text-slate-500">Bench</th><th className="text-right px-3 py-2 font-medium text-slate-500">Pts</th></tr></thead><tbody className="divide-y divide-slate-100">{comp.id === 'maturity' && (<><tr className={maturityScore === 100 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 100 ? '✓ ' : ''}Comprehensive</td><td className="text-center px-2 py-2 text-slate-500">15%</td><td className="text-right px-3 py-2">100</td></tr><tr className={maturityScore === 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 80 ? '✓ ' : ''}Enhanced</td><td className="text-center px-2 py-2 text-slate-500">22%</td><td className="text-right px-3 py-2">80</td></tr><tr className={maturityScore === 50 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{maturityScore === 50 ? '✓ ' : ''}Moderate</td><td className="text-center px-2 py-2 text-slate-500">35%</td><td className="text-right px-3 py-2">50</td></tr><tr className={maturityScore === 20 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{maturityScore === 20 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-500">18%</td><td className="text-right px-3 py-2">20</td></tr><tr className={maturityScore === 0 ? 'bg-red-50' : ''}><td className="px-3 py-2">{maturityScore === 0 ? '✓ ' : ''}Minimum/None</td><td className="text-center px-2 py-2 text-slate-500">10%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'breadth' && (<><tr className={breadthScore >= 80 ? 'bg-emerald-50' : ''}><td className="px-3 py-2">{breadthScore >= 80 ? '✓ ' : ''}Beyond legal</td><td className="text-center px-2 py-2 text-slate-500">45%</td><td className="text-right px-3 py-2">100</td></tr><tr className={breadthScore >= 40 && breadthScore < 80 ? 'bg-amber-50' : ''}><td className="px-3 py-2">{breadthScore >= 40 && breadthScore < 80 ? '✓ ' : ''}Developing</td><td className="text-center px-2 py-2 text-slate-500">30%</td><td className="text-right px-3 py-2">50</td></tr><tr className={breadthScore < 40 ? 'bg-red-50' : ''}><td className="px-3 py-2">{breadthScore < 40 ? '✓ ' : ''}Minimum only</td><td className="text-center px-2 py-2 text-slate-500">25%</td><td className="text-right px-3 py-2">0</td></tr></>)}{comp.id === 'weighted' && (<tr><td colSpan={3} className="px-3 py-3 text-slate-500 text-center">From 13 dimensions × impact weights</td></tr>)}</tbody></table></div></div>)}
             </div>); })}
@@ -77,7 +77,7 @@ function PolishedDimensionTable({ dimensionAnalysis, getScoreColor }: any) {
             <div className="w-10 text-center"><span className="text-xs text-slate-500">{d.weight}%</span></div>
             <div className="w-48"><div className="relative h-3 bg-slate-100 rounded-full overflow-visible"><div className="absolute left-0 top-0 h-full rounded-full" style={{ width: `${Math.min(d.score, 100)}%`, backgroundColor: d.benchmark !== null && d.score >= d.benchmark ? '#1D4ED8' : '#94A3B8' }} />{d.benchmark !== null && (<div className="absolute -top-1" style={{ left: `${Math.min(d.benchmark, 100)}%`, transform: 'translateX(-50%)' }}><div className="w-0 h-0 border-l-[5px] border-r-[5px] border-t-[7px] border-l-transparent border-r-transparent border-t-slate-500" /></div>)}</div></div>
             <div className="w-12 text-right"><span className="text-sm font-semibold" style={{ color: d.tier.color }}>{d.score}</span></div>
-            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-500">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">-</span>}</div>
+            <div className="w-20 text-center">{d.benchmark !== null ? (<span className="text-xs"><span className="text-slate-500">{d.benchmark}</span><span className={`ml-1 font-medium ${diff !== null && diff >= 0 ? 'text-emerald-700' : 'text-amber-700'}`}>({diff !== null && diff >= 0 ? '+' : ''}{diff})</span></span>) : <span className="text-xs text-slate-300">-</span>}</div>
             <div className="w-28 flex justify-center"><span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`} style={{ color: pg.color }}>{pg.chip}</span></div>
           </div>); })}</div>
         <p className="text-xs text-slate-500 mt-4 pt-3 border-t border-slate-100 leading-relaxed">*{EMPLOYEE_PRIORITY_FOOTNOTE}</p>
@@ -2566,7 +2566,7 @@ function ScoreComponentCard({
   
   const colorStyles = {
     slate: { border: 'border-slate-200', header: 'bg-slate-100', headerText: 'text-slate-800', badge: 'text-slate-500' },
-    amber: { border: 'border-amber-200', header: 'bg-amber-100', headerText: 'text-amber-800', badge: 'text-amber-600' },
+    amber: { border: 'border-amber-200', header: 'bg-amber-100', headerText: 'text-amber-800', badge: 'text-amber-700' },
     violet: { border: 'border-violet-200', header: 'bg-violet-100', headerText: 'text-violet-800', badge: 'text-violet-600' },
   };
   
@@ -2596,7 +2596,7 @@ function ScoreComponentCard({
           {diff !== null && (
             <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-200">
               <span className="text-xs text-slate-500">vs. Participant Benchmark</span>
-              <span className={`text-sm font-bold ${diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+              <span className={`text-sm font-bold ${diff >= 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
                 {diff >= 0 ? '+' : ''}{diff} pts <span className="font-normal text-slate-500">({benchmarkScore} avg)</span>
               </span>
             </div>
@@ -2753,7 +2753,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       <span className={`text-sm font-semibold px-2 py-1 rounded ${
                         isSelected 
                           ? (diff > 0 ? 'text-emerald-300' : diff < 0 ? 'text-red-300' : 'text-slate-500')
-                          : (diff > 0 ? 'text-emerald-600 bg-emerald-50' : diff < 0 ? 'text-red-500 bg-red-50' : 'text-slate-500 bg-slate-50')
+                          : (diff > 0 ? 'text-emerald-700 bg-emerald-50' : diff < 0 ? 'text-rose-700 bg-red-50' : 'text-slate-500 bg-slate-50')
                       }`}>
                         {diff > 0 ? '+' : ''}{diff}
                       </span>
@@ -2788,16 +2788,16 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                     {/* Quick Stats */}
                     <div className="flex items-center gap-6 mb-5 text-sm">
                       <span className="text-slate-600">
-                        <strong className="text-emerald-600">{selectedData.strengths.length}</strong> currently offering
+                        <strong className="text-emerald-700">{selectedData.strengths.length}</strong> currently offering
                       </span>
                       <span className="text-slate-600">
-                        <strong className="text-blue-600">{selectedData.planningItems?.length || 0}</strong> in planning
+                        <strong className="text-blue-700">{selectedData.planningItems?.length || 0}</strong> in planning
                       </span>
                       <span className="text-slate-600">
-                        <strong className="text-amber-600">{selectedData.assessingItems?.length || 0}</strong> assessing
+                        <strong className="text-amber-700">{selectedData.assessingItems?.length || 0}</strong> assessing
                       </span>
                       <span className="text-slate-600">
-                        <strong className="text-red-500">{selectedData.needsAttention.length}</strong> gaps
+                        <strong className="text-rose-700">{selectedData.needsAttention.length}</strong> gaps
                       </span>
                     </div>
                     
@@ -2907,9 +2907,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                             const isSelect = geoText.includes('select');
                             
                             const options = [
-                              { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 55 },
-                              { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 25 },
-                              { label: 'Only available in select locations', multiplier: 'x0.80', selected: isSelect, color: 'text-red-500', benchPct: 20 },
+                              { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-700', benchPct: 55 },
+                              { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-700', benchPct: 25 },
+                              { label: 'Only available in select locations', multiplier: 'x0.80', selected: isSelect, color: 'text-rose-700', benchPct: 20 },
                             ];
 
                             return options.map((opt, i) => (
@@ -2955,12 +2955,12 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 return (
                                   <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
                                     <div className="flex items-center gap-2">
-                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      {isSelected && <span className="text-blue-700">✓</span>}
                                       <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
                                     </div>
                                     <div className="flex items-center">
                                       <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-700' : opt.points >= 40 ? 'text-blue-700' : opt.points >= 20 ? 'text-amber-700' : 'text-rose-700'}`}>{opt.points} pts</span>
                                     </div>
                                   </div>
                                 );
@@ -2989,12 +2989,12 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 return (
                                   <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
                                     <div className="flex items-center gap-2">
-                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      {isSelected && <span className="text-blue-700">✓</span>}
                                       <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
                                     </div>
                                     <div className="flex items-center">
                                       <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-700' : opt.points >= 40 ? 'text-blue-700' : opt.points >= 20 ? 'text-amber-700' : 'text-rose-700'}`}>{opt.points} pts</span>
                                     </div>
                                   </div>
                                 );
@@ -3028,12 +3028,12 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                 return (
                                   <div key={i} className={`flex justify-between items-center px-2 py-1.5 rounded text-xs ${isSelected ? 'bg-blue-100 border-2 border-blue-400' : 'bg-slate-50'}`}>
                                     <div className="flex items-center gap-2">
-                                      {isSelected && <span className="text-blue-600">✓</span>}
+                                      {isSelected && <span className="text-blue-700">✓</span>}
                                       <span className={isSelected ? 'font-semibold text-blue-900' : 'text-slate-700'}>{opt.label}</span>
                                     </div>
                                     <div className="flex items-center">
                                       <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                      <span className={`font-semibold w-14 text-right ${opt.points >= 80 ? 'text-emerald-600' : opt.points >= 50 ? 'text-blue-600' : opt.points >= 30 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                      <span className={`font-semibold w-14 text-right ${opt.points >= 80 ? 'text-emerald-700' : opt.points >= 50 ? 'text-blue-700' : opt.points >= 30 ? 'text-amber-700' : 'text-rose-700'}`}>{opt.points} pts</span>
                                     </div>
                                   </div>
                                 );
@@ -3117,7 +3117,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                       <p className={`text-xs mt-0.5 ${
                         isSelected 
                           ? (diff >= 0 ? 'text-emerald-300' : 'text-amber-300')
-                          : (diff >= 0 ? 'text-emerald-600' : 'text-amber-600')
+                          : (diff >= 0 ? 'text-emerald-700' : 'text-amber-700')
                       }`}>
                         {diff >= 0 ? '+' : ''}{diff} vs avg
                       </p>
@@ -3264,9 +3264,9 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                           const isSelect = geoText.includes('select');
                           
                           const options = [
-                            { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-600', benchPct: 55 },
-                            { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-600', benchPct: 25 },
-                            { label: 'Only available in select locations', multiplier: 'x0.80', selected: isSelect, color: 'text-red-500', benchPct: 20 },
+                            { label: 'Consistent across all locations', multiplier: 'x1.00', selected: isConsistent, color: 'text-emerald-700', benchPct: 55 },
+                            { label: 'Varies by location', multiplier: 'x0.90', selected: isVaries, color: 'text-amber-700', benchPct: 25 },
+                            { label: 'Only available in select locations', multiplier: 'x0.80', selected: isSelect, color: 'text-rose-700', benchPct: 20 },
                           ];
 
                           return options.map((opt, i) => (
@@ -3313,7 +3313,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   </div>
                                   <div className="flex items-center">
                                     <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                    <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 50 ? 'text-emerald-700' : 'text-rose-700'}`}>{opt.points} pts</span>
                                   </div>
                                 </div>
                               );
@@ -3343,7 +3343,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   </div>
                                   <div className="flex items-center">
                                     <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                    <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 60 ? 'text-emerald-700' : 'text-rose-700'}`}>{opt.points} pts</span>
                                   </div>
                                 </div>
                               );
@@ -3383,7 +3383,7 @@ function DimensionDrillDown({ dimensionAnalysis, selectedDim, setSelectedDim, el
                                   </div>
                                   <div className="flex items-center">
                                     <span className="text-slate-500 w-16 text-center">{opt.benchPct}%</span>
-                                    <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-600' : opt.points >= 40 ? 'text-blue-600' : opt.points >= 20 ? 'text-amber-600' : 'text-red-500'}`}>{opt.points} pts</span>
+                                    <span className={`font-semibold w-14 text-right ${opt.points >= 70 ? 'text-emerald-700' : opt.points >= 40 ? 'text-blue-700' : opt.points >= 20 ? 'text-amber-700' : 'text-rose-700'}`}>{opt.points} pts</span>
                                   </div>
                                 </div>
                               );
@@ -5804,7 +5804,7 @@ export default function ExportReportPage() {
         {editMode && (
           <div className="no-print bg-amber-50 border-b border-amber-200 px-10 py-3">
             <div className="max-w-7xl mx-auto flex items-center gap-3">
-              <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-sm text-amber-800">
@@ -5967,7 +5967,7 @@ export default function ExportReportPage() {
                               </p>
                             </div>
                             <div className="flex items-start gap-2 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-md px-3 py-2.5">
-                              <svg className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              <svg className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                               <p className="text-xs text-slate-700 leading-relaxed">
                                 <span className="font-bold text-slate-900">Tip:</span> Use the three level scores to understand where your results are coming from. <span className="font-semibold">Foundation</span> captures baseline practices most workplaces establish first. <span className="font-semibold">Expanded</span> captures mid-tier offerings that strengthen the employee experience. <span className="font-semibold">Signature</span> captures standout programs that go beyond the norm.
                               </p>
@@ -6778,7 +6778,7 @@ export default function ExportReportPage() {
                             <span className="text-[14px] text-slate-700 font-semibold flex-1 leading-snug">{d.name}</span>
                             <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none mt-0.5">{d.score}</span>
                             {showDelta ? (
-                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                                 {d.delta >= 0 ? '+' : ''}{d.delta}
                               </span>
                             ) : null}
@@ -6795,9 +6795,9 @@ export default function ExportReportPage() {
                       Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-                      {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
-                      {renderCard('Priority Gaps', 'High employee priority, room to grow', '#4F46E5', '#E0E7FF', iconBars, tensions, true)}
-                      {renderCard('Areas to Address', 'Greatest opportunity to improve', '#D97706', '#FEF3C7', iconSprout, areasToAddress, true)}
+                      {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
+                      {renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
+                      {renderCard('Areas to Address', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
                     </div>
                     <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
                       The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
@@ -6810,7 +6810,7 @@ export default function ExportReportPage() {
               {isProvisional && (
                 <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
                   <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
                     <div>
@@ -6942,7 +6942,7 @@ export default function ExportReportPage() {
                         ].map((opt, i) => (
                           <div key={i} className={`flex justify-between items-center px-4 py-3 rounded-xl ${opt.selected ? 'bg-amber-100 border-2 border-amber-400 shadow-sm' : 'bg-slate-50'}`}>
                             <div className="flex items-center gap-3">
-                              {opt.selected && <span className="text-amber-600 text-lg">✓</span>}
+                              {opt.selected && <span className="text-amber-700 text-lg">✓</span>}
                               <span className={opt.selected ? 'font-semibold text-amber-900' : 'text-slate-600'}>{opt.label}</span>
                             </div>
                             <div className="flex items-center gap-6">
@@ -7238,7 +7238,7 @@ export default function ExportReportPage() {
                           <div className="flex flex-col items-center gap-0.5">
                             <span className="text-[26px] font-semibold tabular-nums text-slate-500 leading-none">{d.benchmark}</span>
                             {diff !== null && (
-                              <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${deltaBand === 'positive' ? 'text-emerald-600' : deltaBand === 'negative' ? 'text-rose-600' : 'text-slate-500'}`}>
+                              <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${deltaBand === 'positive' ? 'text-emerald-700' : deltaBand === 'negative' ? 'text-rose-700' : 'text-slate-500'}`}>
                                 <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" d={deltaStyles.arrow} />
                                 </svg>
@@ -7609,10 +7609,10 @@ export default function ExportReportPage() {
                                                 return (
                                                   <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-white border border-blue-300 font-medium text-blue-800 shadow-sm' : 'bg-white/50 text-slate-600'}`}>
                                                     <span className="flex items-center gap-2">
-                                                      {isSelected && <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
+                                                      {isSelected && <svg className="w-4 h-4 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
                                                       {opt.label}
                                                     </span>
-                                                    <span className={`text-xs ${isSelected ? 'text-blue-600' : 'text-slate-400'}`}>{opt.benchPct}%</span>
+                                                    <span className={`text-xs ${isSelected ? 'text-blue-700' : 'text-slate-400'}`}>{opt.benchPct}%</span>
                                                   </div>
                                                 );
                                               })}
@@ -8133,7 +8133,7 @@ export default function ExportReportPage() {
                     <>
                       <div>
                         <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
-                          <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                          <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                           </span>
                           What It Shows
@@ -8142,7 +8142,7 @@ export default function ExportReportPage() {
                       </div>
                       <div>
                         <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
-                          <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                          <span className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                           </span>
                           How It Works
@@ -8151,7 +8151,7 @@ export default function ExportReportPage() {
                       </div>
                       <div>
                         <h4 className="font-bold text-slate-800 text-base flex items-center gap-2 mb-2">
-                          <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+                          <span className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                           </span>
                           When to Use
@@ -8311,7 +8311,7 @@ export default function ExportReportPage() {
                               </div>
                               <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
                                 Recommended Action
-                                {editMode && <span className="ml-2 text-amber-600 font-normal normal-case">(editable)</span>}
+                                {editMode && <span className="ml-2 text-amber-700 font-normal normal-case">(editable)</span>}
                               </span>
                             </div>
                             {editMode ? (
@@ -8349,7 +8349,7 @@ export default function ExportReportPage() {
                   <div className="mt-5 pt-5 border-t border-slate-200">
                     <div className="flex items-center gap-2 mb-3">
                       <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                       </div>
@@ -8769,7 +8769,7 @@ export default function ExportReportPage() {
                           const diff = wsiScore - 59;
                           if (diff === 0) return null;
                           return (
-                            <p className={`text-sm font-bold mt-1 ${diff > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                            <p className={`text-sm font-bold mt-1 ${diff > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                               {diff > 0 ? '+' : ''}{diff} vs benchmark
                             </p>
                           );
@@ -8784,7 +8784,7 @@ export default function ExportReportPage() {
                       {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
-                        <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
                         </p>
                       </div>
@@ -8797,7 +8797,7 @@ export default function ExportReportPage() {
                       {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
-                        <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
                         </p>
                       </div>
@@ -8810,7 +8810,7 @@ export default function ExportReportPage() {
                       {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
-                        <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+                        <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
                         </p>
                       </div>
@@ -9169,8 +9169,8 @@ export default function ExportReportPage() {
               { bg: 'bg-indigo-700', light: 'bg-indigo-50', accent: 'text-indigo-600', bar: 'bg-indigo-500' },
               { bg: 'bg-teal-700', light: 'bg-teal-50', accent: 'text-teal-600', bar: 'bg-teal-500' },
               { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600', bar: 'bg-violet-500' },
-              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600', bar: 'bg-amber-500' },
-              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600', bar: 'bg-rose-500' },
+              { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-700', bar: 'bg-amber-500' },
+              { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-700', bar: 'bg-rose-500' },
             ];
             
             // Helper to get benchmark % for an element
@@ -9283,8 +9283,8 @@ export default function ExportReportPage() {
                           <p className="text-2xl font-bold text-white">{projectedCompositeY1}</p>
                         </div>
                         <div className="bg-emerald-50 rounded-lg p-3 text-center">
-                          <p className="text-xs text-emerald-600 uppercase tracking-wide font-medium mb-1">Gain</p>
-                          <p className="text-2xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</p>
+                          <p className="text-xs text-emerald-700 uppercase tracking-wide font-medium mb-1">Gain</p>
+                          <p className="text-2xl font-bold text-emerald-700">+{totalGainY1.toFixed(1)}</p>
                         </div>
                       </div>
                       <p className="text-xs text-slate-500 text-center mt-2">If roadmap delivered</p>
@@ -10035,14 +10035,14 @@ export default function ExportReportPage() {
                                   if (!el.isStrength) return 'Leading-edge';
                                   return '';
                                 })();
-                                const flagColors: Record<string, string> = { 'Accelerate': 'text-blue-600', 'Confirm': 'text-violet-600', 'Baseline': 'text-red-600', 'Emerging': 'text-amber-600', 'Leverage': 'text-slate-600', 'Leading-edge': 'text-slate-400' };
+                                const flagColors: Record<string, string> = { 'Accelerate': 'text-blue-700', 'Confirm': 'text-violet-600', 'Baseline': 'text-red-600', 'Emerging': 'text-amber-700', 'Leverage': 'text-slate-600', 'Leading-edge': 'text-slate-400' };
                                 return (
                                 <div key={i} className={`flex items-center gap-3 px-5 py-3 bg-white ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
                                   <span className="flex-1 text-base text-slate-700">{el.name}</span>
                                   <span className={`w-28 text-right text-sm font-medium ${
-                                    el.isStrength ? 'text-emerald-600' :
-                                    el.isPlanning ? 'text-blue-600' :
-                                    el.isAssessing ? 'text-amber-600' :
+                                    el.isStrength ? 'text-emerald-700' :
+                                    el.isPlanning ? 'text-blue-700' :
+                                    el.isAssessing ? 'text-amber-700' :
                                     el.isUnsure ? 'text-violet-600' :
                                     'text-slate-400'
                                   }`}>
@@ -10411,14 +10411,14 @@ export default function ExportReportPage() {
                                   if (!el.isStrength) return 'Leading-edge';
                                   return '';
                                 })();
-                                const flagColors: Record<string, string> = { 'Accelerate': 'text-blue-600', 'Confirm': 'text-violet-600', 'Baseline': 'text-red-600', 'Emerging': 'text-amber-600', 'Leverage': 'text-slate-600', 'Leading-edge': 'text-slate-400' };
+                                const flagColors: Record<string, string> = { 'Accelerate': 'text-blue-700', 'Confirm': 'text-violet-600', 'Baseline': 'text-red-600', 'Emerging': 'text-amber-700', 'Leverage': 'text-slate-600', 'Leading-edge': 'text-slate-400' };
                                 return (
                                 <div key={i} className={`flex items-center gap-3 px-5 py-3 bg-white ${i < enriched.length - 1 ? 'border-b border-slate-100' : ''}`}>
                                   <span className="flex-1 text-base text-slate-700">{el.name}</span>
                                   <span className={`w-28 text-right text-sm font-medium ${
-                                    el.isStrength ? 'text-emerald-600' :
-                                    el.isPlanning ? 'text-blue-600' :
-                                    el.isAssessing ? 'text-amber-600' :
+                                    el.isStrength ? 'text-emerald-700' :
+                                    el.isPlanning ? 'text-blue-700' :
+                                    el.isAssessing ? 'text-amber-700' :
                                     el.isUnsure ? 'text-violet-600' :
                                     'text-slate-400'
                                   }`}>
@@ -10501,7 +10501,7 @@ export default function ExportReportPage() {
                   {allDimensionsByScore.filter(d => !strategicPriorityDims.some(top => top.dim === d.dim)).filter(d => !additionalAnalyzedDims.includes(d.dim)).length === 0 && (
                     <div className="text-center py-8">
                       <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-                        <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                        <svg className="w-6 h-6 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       </div>
                       <p className="text-sm text-slate-500">All dimensions have been analyzed</p>
                     </div>
@@ -10598,7 +10598,7 @@ export default function ExportReportPage() {
                         <span className="px-2 py-1 bg-cyan-100 text-cyan-700 text-xs font-semibold rounded">ACCELERATE</span>
                         <span className="text-xs text-slate-500">Items in progress</span>
                       </div>
-                      {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
+                      {editMode && <p className="text-xs text-amber-700 mb-3">(editable)</p>}
                       {editMode ? (
                         <textarea value={customRoadmap.phase1?.useCustom ? customRoadmap.phase1.items.join('\n') : quickWinItems.map(item => item.name).join('\n')} onChange={(e) => updateCustomRoadmap('phase1', e.target.value.split('\n').filter(s => s.trim()), true)} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y" placeholder="Enter items, one per line..." />
                       ) : (
@@ -10626,7 +10626,7 @@ export default function ExportReportPage() {
                     <div className="bg-gradient-to-br from-blue-500 to-blue-600 px-5 py-5">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                           </svg>
                         </div>
@@ -10645,7 +10645,7 @@ export default function ExportReportPage() {
                         <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded">BUILD</span>
                         <span className="text-xs text-slate-500">High-weight gaps</span>
                       </div>
-                      {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
+                      {editMode && <p className="text-xs text-amber-700 mb-3">(editable)</p>}
                       {editMode ? (
                         <textarea value={customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.join('\n') : foundationItems.map(item => item.name).join('\n')} onChange={(e) => updateCustomRoadmap('phase2', e.target.value.split('\n').filter(s => s.trim()), true)} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y" placeholder="Enter items, one per line..." />
                       ) : (
@@ -10653,7 +10653,7 @@ export default function ExportReportPage() {
                           {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string) => ({ name, dimNum: null })) : foundationItems).slice(0, 5).map((item: any, idx: number) => (
                             <li key={idx} className="flex items-start gap-2">
                               <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                <svg className="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                               </span>
                               <div>
                                 <p className="text-sm text-slate-700">{item.name}</p>
@@ -10692,7 +10692,7 @@ export default function ExportReportPage() {
                         <span className="px-2 py-1 bg-violet-100 text-violet-700 text-xs font-semibold rounded">OPTIMIZE</span>
                         <span className="text-xs text-slate-500">Comprehensive coverage</span>
                       </div>
-                      {editMode && <p className="text-xs text-amber-600 mb-3">(editable)</p>}
+                      {editMode && <p className="text-xs text-amber-700 mb-3">(editable)</p>}
                       {editMode ? (
                         <textarea value={customRoadmap.phase3?.useCustom ? customRoadmap.phase3.items.join('\n') : stretchItems.map(item => item.name).join('\n')} onChange={(e) => updateCustomRoadmap('phase3', e.target.value.split('\n').filter(s => s.trim()), true)} className="w-full text-sm text-slate-600 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[140px] focus:outline-none focus:ring-2 focus:ring-amber-400 resize-y" placeholder="Enter items, one per line..." />
                       ) : (
@@ -10996,7 +10996,7 @@ export default function ExportReportPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                               </svg>
                               {hasChanges && (
-                                <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-600' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-500'}`}>
+                                <span className={`text-sm font-bold mt-1 ${projectedDimScore > actualDimScore ? 'text-emerald-700' : projectedDimScore < actualDimScore ? 'text-red-600' : 'text-slate-500'}`}>
                                   {projectedDimScore > actualDimScore ? '+' : ''}{projectedDimScore - actualDimScore}
                                 </span>
                               )}
@@ -11111,9 +11111,9 @@ export default function ExportReportPage() {
                             </div>
                             
                             <div className={`w-32 text-center text-sm ${
-                              currentStatus === 'currently' ? 'text-emerald-600 font-medium' :
-                              currentStatus === 'planning' ? 'text-blue-600' :
-                              currentStatus === 'assessing' ? 'text-amber-600' :
+                              currentStatus === 'currently' ? 'text-emerald-700 font-medium' :
+                              currentStatus === 'planning' ? 'text-blue-700' :
+                              currentStatus === 'assessing' ? 'text-amber-700' :
                               'text-slate-500'
                             }`}>
                               {getStatusLabel(currentStatus)}
@@ -11869,7 +11869,7 @@ export default function ExportReportPage() {
                 CAC will schedule a 30-minute call to review your report and identify the improvement priorities with the greatest impact on supporting your employees managing cancer and other serious health issues.
               </p>
 
-              {editMode && <p className="text-sm text-amber-600 mb-4">(editable below)</p>}
+              {editMode && <p className="text-sm text-amber-700 mb-4">(editable below)</p>}
 
               {/* Cancer and Careers' Services - 2-column flush-left list */}
               <h3 className="text-xl font-bold text-[#F37021] mb-6">Cancer and Careers&apos; Services</h3>
@@ -12018,7 +12018,7 @@ export default function ExportReportPage() {
                     className="text-center px-5 py-3 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[100px] cursor-pointer hover:shadow-lg hover:border-amber-400 hover:scale-105 transition-all"
                   >
                     <p className="text-2xl font-bold text-amber-700">{maturityScore ?? '-'}</p>
-                    <p className="text-xs text-amber-600 mt-1">Maturity</p>
+                    <p className="text-xs text-amber-700 mt-1">Maturity</p>
                     <p className="text-xs text-amber-500">× 5%</p>
                   </div>
                   <span className="text-xl text-slate-500 font-light">+</span>
@@ -12252,7 +12252,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                     <div className="flex gap-3">
-                      <svg className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 text-blue-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <div className="text-sm text-blue-800">
@@ -12266,7 +12266,7 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                   <div className="mt-4 pt-4 border-t border-slate-200 flex justify-between items-center">
-                    <button onClick={() => { navigator.clipboard.writeText(`Interactive Report Link:\n${interactiveLink.url}\n\nPassword: ${interactiveLink.password}`); showToast('Link and password copied', 'success'); }} className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                    <button onClick={() => { navigator.clipboard.writeText(`Interactive Report Link:\n${interactiveLink.url}\n\nPassword: ${interactiveLink.password}`); showToast('Link and password copied', 'success'); }} className="text-sm text-blue-700 hover:text-blue-800 font-medium flex items-center gap-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
                       </svg>
@@ -12747,7 +12747,7 @@ export default function ExportReportPage() {
                                 <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
                                 <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
                                 {isProvisional && (
-                                  <p className="text-xs text-amber-600 font-medium mt-1">Provisional*</p>
+                                  <p className="text-xs text-amber-700 font-medium mt-1">Provisional*</p>
                                 )}
                               </div>
                               <button
@@ -12792,7 +12792,7 @@ export default function ExportReportPage() {
                       {isProvisional && (
                         <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
                           <div className="flex items-start gap-3">
-                            <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                             <div>
@@ -12981,7 +12981,7 @@ export default function ExportReportPage() {
                             <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
                               <div className="flex items-center gap-2 mb-3">
                                 <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-emerald-600 text-xs font-bold">✓</span>
+                                  <span className="text-emerald-700 text-xs font-bold">✓</span>
                                 </span>
                                 <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">What You Do Well</h4>
                               </div>
@@ -13004,7 +13004,7 @@ export default function ExportReportPage() {
                             <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
                               <div className="flex items-center gap-2 mb-3">
                                 <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-amber-600 text-xs font-bold">!</span>
+                                  <span className="text-amber-700 text-xs font-bold">!</span>
                                 </span>
                                 <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider">Where to Improve</h4>
                               </div>
@@ -13027,7 +13027,7 @@ export default function ExportReportPage() {
                             <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
                               <div className="flex items-center gap-2 mb-3">
                                 <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-blue-600 text-xs font-bold">→</span>
+                                  <span className="text-blue-700 text-xs font-bold">→</span>
                                 </span>
                                 <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wider">Building Momentum</h4>
                               </div>
@@ -13133,7 +13133,7 @@ export default function ExportReportPage() {
                               {d.benchmark !== null ? (
                                 <div>
                                   <span className="text-sm text-slate-500">{d.benchmark}</span>
-                                  <span className={`ml-1.5 text-xs font-semibold ${diff !== null && diff >= 0 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                                  <span className={`ml-1.5 text-xs font-semibold ${diff !== null && diff >= 0 ? 'text-emerald-700' : 'text-amber-700'}`}>
                                     ({diff !== null && diff >= 0 ? '+' : ''}{diff})
                                   </span>
                                 </div>
@@ -13796,7 +13796,7 @@ export default function ExportReportPage() {
                           <div className="mt-4 pt-4 border-t border-slate-200">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
-                                <svg className="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                               </div>
@@ -13930,8 +13930,8 @@ export default function ExportReportPage() {
                               <p className="text-xl font-bold text-white">{projectedCompositeY1}</p>
                             </div>
                             <div className="bg-emerald-50 rounded p-2 text-center">
-                              <p className="text-[9px] text-emerald-600 uppercase font-medium mb-1">Gain</p>
-                              <p className="text-xl font-bold text-emerald-600">+{totalGainY1.toFixed(1)}</p>
+                              <p className="text-[9px] text-emerald-700 uppercase font-medium mb-1">Gain</p>
+                              <p className="text-xl font-bold text-emerald-700">+{totalGainY1.toFixed(1)}</p>
                             </div>
                           </div>
                           <p className="text-xs text-slate-500 text-center mt-2">If roadmap delivered</p>
@@ -14092,8 +14092,8 @@ export default function ExportReportPage() {
                   const totalBuild = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
                   const dimColors = [
                     { bg: 'bg-violet-700', light: 'bg-violet-50', accent: 'text-violet-600' },
-                    { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-600' },
-                    { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-600' },
+                    { bg: 'bg-amber-700', light: 'bg-amber-50', accent: 'text-amber-700' },
+                    { bg: 'bg-rose-700', light: 'bg-rose-50', accent: 'text-rose-700' },
                   ];
                   const getElementBenchmark = (dimNum: number, elementName: string) => {
                     const key = `D${dimNum}`;
@@ -14918,7 +14918,7 @@ export default function ExportReportPage() {
                                   {evidence.topStrength && (
                                     <div className="flex items-start gap-2">
                                       <span className="w-4 h-4 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-emerald-600 text-xs">✓</span>
+                                        <span className="text-emerald-700 text-xs">✓</span>
                                       </span>
                                       <p className="text-xs text-slate-700">
                                         <span className="font-medium">Strength:</span> <span className="font-semibold text-emerald-700">{evidence.topStrength.name}</span>
@@ -14929,7 +14929,7 @@ export default function ExportReportPage() {
                                   {evidence.biggestGap && (
                                     <div className="flex items-start gap-2">
                                       <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-amber-600 text-xs">✗</span>
+                                        <span className="text-amber-700 text-xs">✗</span>
                                       </span>
                                       <p className="text-xs text-slate-700">
                                         <span className="font-medium">Gap:</span> <span className="font-semibold text-amber-700">{evidence.biggestGap.name}</span>
@@ -15144,7 +15144,7 @@ export default function ExportReportPage() {
                                   {evidence.biggestGap && (
                                     <div className="flex items-start gap-2">
                                       <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <span className="text-amber-600 text-xs">✗</span>
+                                        <span className="text-amber-700 text-xs">✗</span>
                                       </span>
                                       <p className="text-xs text-slate-700">
                                         <span className="font-medium">Gap:</span> <span className="font-semibold text-amber-700">{evidence.biggestGap.name}</span>
@@ -15279,7 +15279,7 @@ export default function ExportReportPage() {
                           <div className="bg-gradient-to-br from-blue-500 to-blue-600 px-5 py-5">
                             <div className="flex items-center gap-4">
                               <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-md">
-                                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                <svg className="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-bold text-white text-lg">Foundation Building</h4>
@@ -15296,7 +15296,7 @@ export default function ExportReportPage() {
                               {(customRoadmap.phase2?.useCustom ? customRoadmap.phase2.items.map((name: string) => ({ name, dimNum: null })) : foundationItems).slice(0, 5).map((item: any, idx: number) => (
                                 <li key={idx} className="flex items-start gap-2">
                                   <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                    <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                    <svg className="w-3 h-3 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                   </span>
                                   <div>
                                     <p className="text-sm text-slate-700">{item.name}</p>
@@ -15636,7 +15636,7 @@ export default function ExportReportPage() {
                           <span className="text-lg text-slate-500 font-light">+</span>
                           <div className="text-center px-4 py-2.5 bg-amber-50 rounded-xl border-2 border-amber-200 min-w-[90px]">
                             <p className="text-xl font-bold text-amber-700">{maturityScore ?? '-'}</p>
-                            <p className="text-xs text-amber-600 mt-1">Maturity</p>
+                            <p className="text-xs text-amber-700 mt-1">Maturity</p>
                             <p className="text-xs text-amber-500">× 5%</p>
                           </div>
                           <span className="text-lg text-slate-500 font-light">+</span>
@@ -15945,7 +15945,7 @@ export default function ExportReportPage() {
                     <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 mb-3">
                       <div></div>
                       <div className="text-xs font-bold text-slate-500 text-center py-2 bg-slate-50 rounded">WINDOWS</div>
-                      <div className="text-xs font-bold text-blue-600 text-center py-2 bg-blue-50 rounded">MAC</div>
+                      <div className="text-xs font-bold text-blue-700 text-center py-2 bg-blue-50 rounded">MAC</div>
                     </div>
                     {/* Single unified grid for both sections */}
                     <div className="grid grid-cols-[1fr_minmax(160px,auto)_minmax(160px,auto)] gap-x-6 gap-y-1.5 items-center">
