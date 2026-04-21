@@ -6722,7 +6722,59 @@ export default function ExportReportPage() {
                     )}. The score is weighted across 13 dimensions and {totalElementCount} elements of workplace cancer support, reflecting their impact on employee wellbeing and organizational outcomes.
                   </p>
                 </div>
-              
+
+              {/* Executive Overview callouts: Strongest Dimensions / Key Tensions / Areas to Address */}
+              {(() => {
+                const dimsWithBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null);
+                const withDelta = dimsWithBench.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
+                const strongest = [...withDelta].sort((a, b) => b.delta - a.delta).slice(0, 3);
+                const areasToAddress = [...withDelta].sort((a, b) => a.delta - b.delta).slice(0, 3);
+                const avgW = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
+                const tensions = dimensionAnalysis
+                  .filter((d: any) => d.weight >= avgW && d.score < 75 && !strongest.some(s => s.dim === d.dim) && !areasToAddress.some(a => a.dim === d.dim))
+                  .sort((a: any, b: any) => b.weight - a.weight)
+                  .slice(0, 3);
+                const renderCard = (title: string, subtitle: string, accent: string, iconPath: string, dims: any[], showDelta: boolean) => (
+                  <div className="bg-white rounded-[10px] border border-slate-200 overflow-hidden">
+                    <div className="h-1" style={{ backgroundColor: accent }} />
+                    <div className="p-5">
+                      <div className="flex items-start gap-2 mb-1">
+                        <svg className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accent }} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d={iconPath} />
+                        </svg>
+                        <h4 className="text-[14px] font-bold text-slate-900">{title}</h4>
+                      </div>
+                      <p className="text-[12px] text-slate-500 mb-4 ml-6">{subtitle}</p>
+                      <ul className="space-y-2">
+                        {dims.length === 0 ? (
+                          <li className="text-[13px] text-slate-400 italic">No dimensions match this profile.</li>
+                        ) : dims.map((d: any) => (
+                          <li key={d.dim} className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center px-2 h-5 rounded-full text-white text-[10px] font-bold flex-shrink-0" style={{ backgroundColor: '#475569' }}>
+                              D{d.dim}
+                            </span>
+                            <span className="text-[13px] text-slate-700 font-medium flex-1 truncate">{d.name}</span>
+                            <span className="text-[14px] font-bold tabular-nums text-slate-900">{d.score}</span>
+                            {showDelta && d.delta !== undefined && (
+                              <span className={`text-[11px] font-semibold tabular-nums ${d.delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {d.delta >= 0 ? '+' : ''}{d.delta}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                );
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', 'M5 15l7-7 7 7', strongest, true)}
+                    {renderCard('Key Tensions', 'High priority, uneven performance', '#D97706', 'M12 9v2m0 4h.01M5 20h14a2 2 0 001.84-2.75L13.74 4a2 2 0 00-3.48 0L3.26 17.25A2 2 0 005 20z', tensions, false)}
+                    {renderCard('Areas to Address', 'Greatest opportunity to improve', '#DC2626', 'M19 9l-7 7-7-7', areasToAddress, true)}
+                  </div>
+                );
+              })()}
+
               {/* Provisional Classification Notice */}
               {isProvisional && (
                 <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
