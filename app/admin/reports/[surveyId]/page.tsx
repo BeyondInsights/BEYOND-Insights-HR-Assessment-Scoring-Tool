@@ -6800,23 +6800,11 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                 );
-                // Build headline sentence from the same data
-                const formatList = (arr: any[]) => {
-                  if (arr.length === 0) return '';
-                  if (arr.length === 1) return arr[0].name;
-                  if (arr.length === 2) return `${arr[0].name} and ${arr[1].name}`;
-                  return `${arr.slice(0, -1).map(d => d.name).join(', ')}, and ${arr[arr.length - 1].name}`;
-                };
-                const topStrengths = strongest.slice(0, 2);
-                const topAreas = areasToAddress.slice(0, 2);
-                const hasHeadline = topStrengths.length > 0 && topAreas.length > 0;
                 return (
                   <>
-                    {hasHeadline && (
-                      <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
-                        <span className="font-semibold">{companyName}</span> shows strength in <span className="font-semibold">{formatList(topStrengths)}</span>, with room to grow in <span className="font-semibold">{formatList(topAreas)}</span>.
-                      </p>
-                    )}
+                    <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
+                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span> — where you outperform the benchmark, where employee priorities signal room to grow, and where there&apos;s the greatest opportunity to improve.
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
                       {renderCard('Priority Gaps', 'High employee priority, room to grow', '#4F46E5', '#E0E7FF', iconBars, tensions, false)}
@@ -8936,7 +8924,7 @@ export default function ExportReportPage() {
                 {/* Dark accent header */}
                 <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
                   <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items still to confirm — across all {totalCovered} support elements.</p>
+                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure — across all {totalCovered} support elements.</p>
                 </div>
 
                 {/* Tab header */}
