@@ -8753,23 +8753,23 @@ export default function ExportReportPage() {
             return (
               <div id="wsi-score-section" className="mt-8 rounded-2xl overflow-hidden" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
                 {/* Unified Score Panel */}
-                <div className="px-8 pt-8 pb-6">
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Your Scores</p>
+                <div className="px-8 pt-6 pb-5">
+                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">Your Scores</p>
 
                   {/* 4-column score grid: Composite + 3 support levels */}
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-4 gap-3">
                     {/* Composite Score, primary, slightly emphasized */}
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
-                      <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Composite</p>
-                      <p className="text-5xl font-bold text-slate-900 mt-2 leading-none">{wsiScore}</p>
-                      <p className="text-base font-bold mt-2" style={{ color: rating.color }}>{rating.label}</p>
-                      <div className="mt-3 pt-3 border-t border-slate-100">
-                        <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">59</span></p>
+                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
+                      <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Composite</p>
+                      <p className="text-4xl font-bold text-slate-900 mt-1.5 leading-none">{wsiScore}</p>
+                      <p className="text-sm font-bold mt-1.5" style={{ color: rating.color }}>{rating.label}</p>
+                      <div className="mt-2 pt-2 border-t border-slate-100">
+                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">59</span></p>
                         {(() => {
                           const diff = wsiScore - 59;
                           if (diff === 0) return null;
                           return (
-                            <p className={`text-sm font-bold mt-1 ${diff > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                            <p className={`text-xs font-bold mt-0.5 tabular-nums ${diff > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                               {diff > 0 ? '+' : ''}{diff} vs benchmark
                             </p>
                           );
@@ -8778,39 +8778,39 @@ export default function ExportReportPage() {
                     </div>
 
                     {/* Core Support */}
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
-                      <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
-                      <p className="text-5xl font-bold mt-2 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
-                      {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
-                      <div className="mt-3 pt-3 border-t border-slate-100">
-                        <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{coreBench.avg}</span></p>
-                        <p className={`text-sm font-bold mt-1 ${coreBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
+                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
+                      <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
+                      {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
+                      <div className="mt-2 pt-2 border-t border-slate-100">
+                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{coreBench.avg}</span></p>
+                        <p className={`text-xs font-bold mt-0.5 tabular-nums ${coreBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {coreBench.diff >= 0 ? '+' : ''}{coreBench.diff} vs benchmark
                         </p>
                       </div>
                     </div>
 
                     {/* Enhanced Support */}
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
-                      <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
-                      <p className="text-5xl font-bold mt-2 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
-                      {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
-                      <div className="mt-3 pt-3 border-t border-slate-100">
-                        <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{enhBench.avg}</span></p>
-                        <p className={`text-sm font-bold mt-1 ${enhBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #B4530930' }}>
+                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#B45309' }}>Expanded</p>
+                      <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#B45309' }}>{enhData.score}</p>
+                      {(() => { const t = enhData.score >= 80 ? { label: 'Leading', color: '#047857' } : enhData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : enhData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
+                      <div className="mt-2 pt-2 border-t border-slate-100">
+                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{enhBench.avg}</span></p>
+                        <p className={`text-xs font-bold mt-0.5 tabular-nums ${enhBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {enhBench.diff >= 0 ? '+' : ''}{enhBench.diff} vs benchmark
                         </p>
                       </div>
                     </div>
 
                     {/* Advanced Support */}
-                    <div className="bg-white rounded-xl p-4 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
-                      <p className="text-sm font-semibold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
-                      <p className="text-5xl font-bold mt-2 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
-                      {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-base font-bold mt-2" style={{ color: t.color }}>{t.label}</p>; })()}
-                      <div className="mt-3 pt-3 border-t border-slate-100">
-                        <p className="text-sm text-slate-500">Benchmark: <span className="font-semibold text-slate-500">{advBench.avg}</span></p>
-                        <p className={`text-sm font-bold mt-1 ${advBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                    <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #7C3AED30' }}>
+                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#7C3AED' }}>Signature</p>
+                      <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#7C3AED' }}>{advData.score}</p>
+                      {(() => { const t = advData.score >= 80 ? { label: 'Leading', color: '#047857' } : advData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : advData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
+                      <div className="mt-2 pt-2 border-t border-slate-100">
+                        <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{advBench.avg}</span></p>
+                        <p className={`text-xs font-bold mt-0.5 tabular-nums ${advBench.diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                           {advBench.diff >= 0 ? '+' : ''}{advBench.diff} vs benchmark
                         </p>
                       </div>
@@ -8820,64 +8820,64 @@ export default function ExportReportPage() {
                 </div>
                     
                 {/* Support Level Details */}
-                <div className="px-8 pt-5 pb-5 border-t border-slate-200">
-                  <div className="mb-4">
-                    <p className="text-sm font-bold text-slate-700 uppercase tracking-wider">What Each Support Level Includes</p>
-                    <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">
+                <div className="px-8 pt-4 pb-4 border-t border-slate-200">
+                  <div className="mb-3">
+                    <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">The Three Levels of Support</p>
+                    <p className="text-sm text-slate-600 mt-1 leading-relaxed">
                       Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs.
                     </p>
                   </div>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-3">
                   {tiers.map((t) => {
                     const Icon = t.icon;
 
                     return (
-                      <div key={t.key} className="rounded-xl overflow-hidden bg-white flex flex-col" style={{ border: `1px solid ${t.border}` }}>
+                      <div key={t.key} className="rounded-lg overflow-hidden bg-white flex flex-col" style={{ border: `1px solid ${t.border}` }}>
                         {/* Card header */}
-                        <div className="px-5 py-4 flex items-center gap-3" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
-                          <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
-                            <Icon size={18} color="white" />
+                        <div className="px-4 py-3 flex items-center gap-2.5" style={{ background: `linear-gradient(135deg, ${t.light} 0%, white 100%)` }}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: t.color }}>
+                            <Icon size={16} color="white" />
                           </div>
                           <div>
-                            <h4 className="text-base font-bold" style={{ color: t.color }}>{t.name}</h4>
-                            <span className="text-sm text-slate-500">{t.total} elements</span>
+                            <h4 className="text-sm font-bold" style={{ color: t.color }}>{t.name}</h4>
+                            <span className="text-xs text-slate-600">{t.total} elements</span>
                           </div>
                         </div>
 
                         {/* Description, flex-1 to push View Details to consistent bottom */}
-                        <div className="px-5 py-3 flex-1">
-                          <p className="text-sm text-slate-600 leading-relaxed">{t.shortDesc}</p>
+                        <div className="px-4 py-2.5 flex-1">
+                          <p className="text-[13px] text-slate-600 leading-relaxed">{t.shortDesc}</p>
                         </div>
 
                         {/* Score bar showing progress */}
-                        <div className="px-5 pb-3">
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="text-sm font-semibold text-slate-700">{t.score}/100</span>
-                            <span className="text-sm text-slate-500">{t.bench.pctl}th percentile</span>
+                        <div className="px-4 pb-2.5">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-semibold text-slate-700 tabular-nums">{t.score}/100</span>
+                            <span className="text-xs text-slate-500">{t.bench.pctl}th percentile</span>
                           </div>
                           <div className="relative">
-                            <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                            <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
                               <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(t.score, 100)}%`, backgroundColor: t.color }} />
                             </div>
                             {t.bench.avg > 0 && (
                               <div className="absolute top-0 bottom-0 flex items-center" style={{ left: `${Math.min(t.bench.avg, 100)}%` }}>
-                                <div className="w-0.5 h-4 -mt-0.5 rounded-full bg-slate-600" />
+                                <div className="w-0.5 h-3.5 -mt-0.5 rounded-full bg-slate-600" />
                               </div>
                             )}
                           </div>
                           {t.bench.avg > 0 && (
                             <div className="flex items-center justify-end gap-1 mt-1">
                               <div className="w-3 h-0.5 bg-slate-600 rounded-full" />
-                              <span className="text-xs text-slate-500">Benchmark: {t.bench.avg}</span>
+                              <span className="text-xs text-slate-500 tabular-nums">Benchmark: {t.bench.avg}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Learn More toggle */}
-                        <div className="px-5 py-3 border-t" style={{ borderColor: t.border }}>
+                        <div className="px-4 py-2 border-t" style={{ borderColor: t.border }}>
                           <button
                             onClick={() => setExpandedLearnMore(expandedLearnMore === t.key ? null : t.key)}
-                            className="flex items-center gap-2 text-sm font-semibold hover:underline transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-semibold hover:underline transition-colors"
                             style={{ color: t.color }}
                           >
                             <span>{expandedLearnMore === t.key ? 'Hide Details' : 'View Details'}</span>
@@ -11768,7 +11768,7 @@ export default function ExportReportPage() {
                             const delta = bench != null ? Math.round(d.score) - bench : null;
                             return (
                             <div className="relative flex gap-5 p-5 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
-                              <span className="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-white text-base font-bold mt-0.5" style={{ backgroundColor: pg.color }}>
+                              <span className="flex-shrink-0 w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center text-white text-base font-bold mt-0.5">
                                 {idx + 1}
                               </span>
                               <div className="flex-1 min-w-0">
