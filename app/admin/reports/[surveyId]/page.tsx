@@ -8111,31 +8111,6 @@ export default function ExportReportPage() {
                                 )}
                               </div>
             
-                              {/* Footer - Quick nav between dimensions */}
-                              <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 flex-shrink-0">
-                                <div className="flex items-center justify-center gap-3">
-                                  <button onClick={() => { const n = Math.max(1, (dimensionDetailModal ?? 1) - 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) <= 1} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                                    &lt; Prev
-                                  </button>
-                                  <div className="flex items-center gap-2">
-                                    {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
-                                      <button
-                                        key={num}
-                                        onClick={() => { setDimensionDetailModal(num); setOpenedDims(prev => new Set(prev).add(num)); }}
-                                        className={`w-7 h-7 rounded text-xs font-bold ${num === dimensionDetailModal ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                                      >
-                                        {num}
-                                      </button>
-                                    ))}
-                                  </div>
-                                  <button onClick={() => { const n = Math.min(13, (dimensionDetailModal ?? 1) + 1); setDimensionDetailModal(n); setOpenedDims(prev => new Set(prev).add(n)); }} disabled={(dimensionDetailModal ?? 1) >= 13} className="px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white disabled:opacity-40 text-sm font-medium">
-                                    Next &gt;
-                                  </button>
-                                  <button onClick={() => setDimensionDetailModal(null)} className="ml-4 px-4 py-2 rounded border border-slate-200 text-slate-600 hover:bg-white text-sm font-medium">
-                                    Collapse
-                                  </button>
-                                </div>
-                              </div>
                             </div>
                           </div>
                         );
