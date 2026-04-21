@@ -7655,10 +7655,10 @@ export default function ExportReportPage() {
           
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
           <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
-            <div className="px-12 py-6 border-b border-slate-200 flex items-center justify-between">
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center justify-between gap-6 flex-wrap">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="3" width="7" height="7" rx="1" />
                     <rect x="14" y="3" width="7" height="7" rx="1" />
                     <rect x="3" y="14" width="7" height="7" rx="1" />
@@ -7666,11 +7666,11 @@ export default function ExportReportPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-xl">Interactive Performance Matrix</h3>
-                  <p className="text-slate-500 mt-0.5">Dimensions plotted by support score vs. employee priorities. <span className="text-slate-700 font-medium">Hover for details, click to explore.</span></p>
+                  <h2 className="text-2xl font-bold text-white">Interactive Performance Matrix</h2>
+                  <p className="text-white text-base mt-1 opacity-90">Dimensions plotted by support score versus employee priority. Hover a dimension to see details, click to open its breakdown.</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+              <div className="flex items-center gap-1 bg-white/10 backdrop-blur rounded-lg p-1 flex-shrink-0">
                 {([
                   { key: 'company' as const, label: 'Your Scores' },
                   { key: 'benchmarks' as const, label: 'Benchmarks' },
@@ -7679,10 +7679,10 @@ export default function ExportReportPage() {
                   <button
                     key={opt.key}
                     onClick={() => setMatrixView(opt.key)}
-                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    className={`px-3 py-1.5 rounded-md text-sm font-semibold transition-all ${
                       matrixView === opt.key
                         ? 'bg-white text-slate-900 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700'
+                        : 'text-slate-300 hover:text-white'
                     }`}
                   >
                     {opt.label}
