@@ -7609,7 +7609,7 @@ export default function ExportReportPage() {
                   </div>
                 </div>
                 <div className="w-24 text-right pr-2">Your Score</div>
-                <div className="w-32 text-center" title="Delta vs. participating-company average">Delta</div>
+                <div className="w-32 text-center" title="Participating-company average">Benchmark</div>
                 <div className="w-40 text-center" title={EMPLOYEE_PRIORITY_FOOTNOTE}>Employee Priority*</div>
                 <div className="w-12"></div>
               </div>
@@ -7641,7 +7641,7 @@ export default function ExportReportPage() {
                       className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[72px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
                       <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
-                        <span className="inline-flex items-center justify-center px-2.5 h-7 rounded-full text-white text-[11px] font-bold flex-shrink-0 tracking-wide" style={{ backgroundColor: '#475569' }}>
+                        <span className="inline-flex items-center justify-center px-2.5 h-7 rounded-full text-white text-[11px] font-bold flex-shrink-0 tracking-wide" style={{ backgroundColor: pg.color }}>
                           D{d.dim}
                         </span>
                         <span className="text-[15px] font-semibold text-slate-700 leading-snug">{d.name}</span>
@@ -7666,14 +7666,19 @@ export default function ExportReportPage() {
                       <div className="w-24 text-right pr-2">
                         <span className="text-[26px] font-semibold tabular-nums leading-none" style={{ color: d.tier.color }}>{d.score}</span>
                       </div>
-                      <div className="w-32 flex justify-center">
-                        {diff !== null ? (
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-bold tabular-nums ${deltaStyles.bg} ${deltaStyles.text} ${deltaStyles.border}`}>
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" d={deltaStyles.arrow} />
-                            </svg>
-                            {diff >= 0 ? '+' : ''}{diff}
-                          </span>
+                      <div className="w-32 text-center">
+                        {d.benchmark !== null ? (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-[26px] font-semibold tabular-nums text-slate-500 leading-none">{d.benchmark}</span>
+                            {diff !== null && (
+                              <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${deltaBand === 'positive' ? 'text-emerald-600' : deltaBand === 'negative' ? 'text-rose-600' : 'text-slate-500'}`}>
+                                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d={deltaStyles.arrow} />
+                                </svg>
+                                {diff >= 0 ? '+' : ''}{diff}
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-sm text-slate-300">-</span>
                         )}
