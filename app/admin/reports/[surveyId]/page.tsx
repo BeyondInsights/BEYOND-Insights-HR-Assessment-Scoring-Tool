@@ -6168,17 +6168,11 @@ export default function ExportReportPage() {
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowLevelsOverview(!showLevelsOverview)}
-                className="w-full flex items-center justify-between px-5 py-4 rounded-xl border transition-all group"
-                style={{
-                  background: showLevelsOverview
-                    ? 'linear-gradient(135deg, #ECFDF5 0%, #FFFBEB 50%, #F5F3FF 100%)'
-                    : 'linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%)',
-                  borderColor: showLevelsOverview ? '#A7F3D0' : '#E2E8F0',
-                }}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
               >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-5 h-5 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="16.5" width="18" height="3.5" rx="0.75" />
                       <rect x="6" y="10.25" width="12" height="3.5" rx="0.75" />
                       <rect x="9" y="4" width="6" height="3.5" rx="0.75" />
@@ -6186,7 +6180,6 @@ export default function ExportReportPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Your Support in Context</span>
-                    <span className="text-xs text-slate-500 block mt-0.5">Foundation, Expanded, and Signature: the three levels {totalElementCount} elements are classified into</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showLevelsOverview ? 'rotate-180' : ''}`}>
