@@ -8474,9 +8474,18 @@ export default function ExportReportPage() {
             return (
               <div id="report-summary" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
                 {/* Dark accent header */}
-                <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
-                  <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure, across all {totalElementCount} support elements.</p>
+                <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                    <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h4V11z" />
+                      <path d="M15 3h-4a2 2 0 00-2 2v15h6V3z" opacity="0.75" />
+                      <path d="M19 7h-4v13h4a2 2 0 002-2V9a2 2 0 00-2-2z" opacity="0.5" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white">Report Summary</h2>
+                    <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure, across all {totalElementCount} support elements.</p>
+                  </div>
                 </div>
 
                 {/* Tab header */}
@@ -8491,23 +8500,23 @@ export default function ExportReportPage() {
                             setActiveReportTab(activeReportTab === t.key ? null : t.key);
                             setReportSummaryExpandedDim(null);
                           }}
-                          className="relative text-left rounded-xl p-4 transition-all"
+                          className="relative text-left rounded-xl p-4 transition-all hover:shadow-md"
                           style={{
-                            backgroundColor: isActive ? '#1e293b' : '#ffffff',
-                            border: isActive ? '2px solid #1e293b' : '2px solid #E2E8F0',
-                            boxShadow: isActive ? '0 4px 16px rgba(0,0,0,0.12)' : 'none',
+                            backgroundColor: isActive ? '#0f172a' : '#F8FAFC',
+                            border: isActive ? '2px solid #0f172a' : '2px solid #CBD5E1',
+                            boxShadow: isActive ? '0 6px 20px rgba(15,23,42,0.18)' : 'none',
                           }}
                         >
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#475569' : '#F1F5F9', color: isActive ? '#ffffff' : '#334155' }}>
+                            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isActive ? '#334155' : '#E2E8F0', color: isActive ? '#ffffff' : '#1e293b' }}>
                               {t.icon}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-baseline justify-between gap-2">
                                 <p className="text-[14px] font-bold leading-tight" style={{ color: isActive ? '#ffffff' : '#0f172a' }}>{t.label}</p>
-                                <span className="text-[24px] font-bold tabular-nums leading-none" style={{ color: isActive ? '#ffffff' : '#1e293b' }}>{t.count}</span>
+                                <span className="text-[24px] font-bold tabular-nums leading-none" style={{ color: isActive ? '#ffffff' : '#0f172a' }}>{t.count}</span>
                               </div>
-                              <p className="text-[11px] mt-1 leading-tight" style={{ color: isActive ? '#cbd5e1' : '#64748b' }}>{t.subtitle}</p>
+                              <p className="text-[11px] mt-1 leading-tight" style={{ color: isActive ? '#cbd5e1' : '#475569' }}>{t.subtitle}</p>
                             </div>
                           </div>
                         </button>
@@ -11532,9 +11541,17 @@ export default function ExportReportPage() {
                     </svg>
                   </div>
                   <div className="relative flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-white text-2xl tracking-tight">Summary and Next Steps</h3>
-                      <p className="text-white mt-1 text-base opacity-90">Strengths to protect and priorities to address</p>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 13l4 4L19 7" />
+                          <path d="M3 21h18" opacity="0.5" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-2xl tracking-tight">Summary and Next Steps</h3>
+                        <p className="text-white mt-1 text-base opacity-90">Strengths to protect and priorities to address</p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-3">
