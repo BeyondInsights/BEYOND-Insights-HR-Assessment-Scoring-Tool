@@ -6191,7 +6191,7 @@ export default function ExportReportPage() {
                   </div>
                   <div className="text-left">
                     <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Levels of Workplace Support</span>
-                    <span className="text-xs text-slate-500 block mt-0.5">Foundation, Expanded, and Signature — the three levels {totalElementCount} elements are classified into</span>
+                    <span className="text-xs text-slate-500 block mt-0.5">Foundation, Expanded, and Signature: the three levels {totalElementCount} elements are classified into</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showLevelsOverview ? 'rotate-180' : ''}`}>
@@ -6804,7 +6804,7 @@ export default function ExportReportPage() {
                 return (
                   <>
                     <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
-                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span> — where you outperform the benchmark, where employee priorities signal room to grow, and where there&apos;s the greatest opportunity to improve.
+                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you outperform the benchmark, where employee priorities signal room to grow, and where there&apos;s the greatest opportunity to improve.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#059669', '#D1FAE5', iconTrend, strongest, true)}
@@ -7821,13 +7821,13 @@ export default function ExportReportPage() {
                         {/* Background with subtle gradient */}
                         <rect x={-2} y={-2} width={PLOT_WIDTH + 4} height={PLOT_HEIGHT + 4} fill="url(#chartBgGradient)" rx="8" />
                         
-                        {/* Priority Gaps (top-left) — urgent amber gradient from corner */}
+                        {/* Priority Gaps (top-left), urgent amber gradient from corner */}
                         <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qGapGrad)" />
-                        {/* Priority Strengths (top-right) — celebratory emerald gradient from corner */}
+                        {/* Priority Strengths (top-right), celebratory emerald gradient from corner */}
                         <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qStrGrad)" />
-                        {/* Secondary Gaps (bottom-left) — very faint amber */}
+                        {/* Secondary Gaps (bottom-left), very faint amber */}
                         <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qSecGapGrad)" />
-                        {/* Secondary Strengths (bottom-right) — very faint emerald */}
+                        {/* Secondary Strengths (bottom-right), very faint emerald */}
                         <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="url(#qSecStrGrad)" />
 
                         {/* Quadrant labels, centered in each quadrant */}
@@ -7868,7 +7868,7 @@ export default function ExportReportPage() {
                           <text x={PLOT_WIDTH/2} y={36} textAnchor="middle" fill="#334155" fontSize="12" fontWeight="700" fontFamily="system-ui" letterSpacing="1.5">DIMENSION SUPPORT SCORE</text>
                         </g>
 
-                        {/* Y-axis — gradient arrow bar (Lower at bottom -> Higher at top) */}
+                        {/* Y-axis, gradient arrow bar (Lower at bottom -> Higher at top) */}
                         <g transform={`translate(-10, 0)`}>
                           <rect x={-3} y={6} width={6} height={PLOT_HEIGHT - 6} rx="3" fill="url(#yAxisArrowGrad)" opacity="0.9" />
                           <polygon points={`-8,8 0,-4 8,8`} fill="#1E3A8A" opacity="0.9" />
@@ -8903,7 +8903,7 @@ export default function ExportReportPage() {
           {/* ============ REPORT SUMMARY ============ */}
           {(() => {
             // Bucket every element into one of four status groups
-            // This is the coverage map — all elements across all dimensions should sum to the displayed total.
+            // This is the coverage map, all elements across all dimensions should sum to the displayed total.
             const bucketOf = (el: any): 'strength' | 'progress' | 'grow' | 'unsure' | null => {
               if (el.isUnsure) return 'unsure';
               if (el.isStrength) return 'strength';
@@ -8932,7 +8932,7 @@ export default function ExportReportPage() {
             });
             if (orphanCount > 0 && typeof console !== 'undefined') {
               // eslint-disable-next-line no-console
-              console.warn(`[ReportSummary] ${orphanCount} element(s) without a status bucket — data coverage gap`);
+              console.warn(`[ReportSummary] ${orphanCount} element(s) without a status bucket, data coverage gap`);
             }
             const countIn = (b: 'strength' | 'progress' | 'grow' | 'unsure') => buckets[b].reduce((s, g) => s + g.elements.length, 0);
 
@@ -8973,7 +8973,7 @@ export default function ExportReportPage() {
                 {/* Dark accent header */}
                 <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900">
                   <h2 className="text-2xl font-bold text-white">Report Summary</h2>
-                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure — across all {totalCovered} support elements.</p>
+                  <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure, across all {totalCovered} support elements.</p>
                 </div>
 
                 {/* Tab header */}
