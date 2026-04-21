@@ -5868,7 +5868,7 @@ export default function ExportReportPage() {
               {/* Research Foundation */}
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-slate-800">
-                  <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                  <p className="text-slate-300 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
                   <h4 className="font-semibold text-white text-lg">How This Index Was Developed</h4>
                 </div>
                 
@@ -11977,15 +11977,15 @@ export default function ExportReportPage() {
               <div className="grid grid-cols-3 gap-6 max-w-3xl mx-auto mb-10">
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-[#F37021]">{wsiScoreHeader}</p>
-                  <p className="text-slate-500 text-sm mt-2">Your Score</p>
+                  <p className="text-slate-200 text-sm mt-2 font-medium">Your Score</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-emerald-400">{strengthDimensions?.length ?? '--'}</p>
-                  <p className="text-slate-500 text-sm mt-2">Strong Dimensions</p>
+                  <p className="text-slate-200 text-sm mt-2 font-medium">Strong Dimensions</p>
                 </div>
                 <div className="text-center p-6 bg-white/5 rounded-2xl border border-white/10 backdrop-blur">
                   <p className="text-4xl font-bold text-violet-400">{allInProgressItems?.length ?? '--'}</p>
-                  <p className="text-slate-500 text-sm mt-2">Initiatives In Development or Under Review</p>
+                  <p className="text-slate-200 text-sm mt-2 font-medium">Initiatives In Development or Under Review</p>
                 </div>
               </div>
               
@@ -11996,12 +11996,12 @@ export default function ExportReportPage() {
                 <div className="flex items-center justify-center gap-8">
                   <div className="text-center">
                     <p className="text-[#F37021] font-bold text-lg">cacbestcompanies@cew.org</p>
-                    <p className="text-slate-500 text-sm">Email Us</p>
+                    <p className="text-slate-200 text-sm font-medium">Email Us</p>
                   </div>
                   <div className="w-px h-12 bg-white/20"></div>
                   <div className="text-center">
                     <p className="text-white font-bold text-lg">cancerandcareers.org</p>
-                    <p className="text-slate-500 text-sm">Visit Our Site</p>
+                    <p className="text-slate-200 text-sm font-medium">Visit Our Site</p>
                   </div>
                 </div>
               </div>
@@ -12446,7 +12446,7 @@ export default function ExportReportPage() {
                   <div className="p-10">
                     {/* Header */}
                     <div className="mb-6">
-                      <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                      <p className="text-slate-300 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
                       <h2 className="text-2xl font-bold text-slate-900">How This Index Was Developed</h2>
                     </div>
                     
