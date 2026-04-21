@@ -4133,7 +4133,7 @@ export default function ExportReportPage() {
   const indexYear = surveyYear === '2027' ? '2027' : '2026';
   const rawElementCount = Object.values(elementDetails || {}).flat().length;
   // 2026 cohort is standardized to 152 elements (client-facing consistency across all 2026 reports).
-  const totalElementCount = surveyYear === '2026' ? 152 : rawElementCount;
+  const totalElementCount = indexYear === '2026' ? 152 : rawElementCount;
 
   const dimensionAnalysis = Object.entries(dimensionScores)
     .map(([dim, score]) => {
@@ -4441,7 +4441,7 @@ export default function ExportReportPage() {
                   <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
                   <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                   <p className="text-white text-sm font-medium">Report Date</p>
-                  <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                  <p className="text-white font-semibold text-lg">{indexYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                 </div>
               </div>
             </div>
@@ -9649,7 +9649,7 @@ export default function ExportReportPage() {
                           <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
                           <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
                           <p className="text-white text-sm font-medium">Report Date</p>
-                          <p className="text-white font-semibold text-lg">{surveyYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                          <p className="text-white font-semibold text-lg">{indexYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
                         </div>
                       </div>
                     </div>
