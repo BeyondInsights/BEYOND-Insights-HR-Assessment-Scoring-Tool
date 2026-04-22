@@ -5982,7 +5982,58 @@ export default function ExportReportPage() {
                   </div>
                 )}
               </div>
-              <button 
+              {/* Comments (opens presentation mode with notes panel) */}
+              <button
+                onClick={() => {
+                  if (enabledSlides.size === 0) {
+                    const allSlides = new Set<number>();
+                    for (let i = 0; i < totalSlides; i++) allSlides.add(i);
+                    setEnabledSlides(allSlides);
+                  }
+                  setPresentationMode(true);
+                  setNotesPanelOpen(true);
+                }}
+                className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                style={{ background: 'linear-gradient(135deg, #7C3AED, #5B21B6)' }}
+                title="Open slide review notes"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Comments
+                {Object.values(slideNotes).reduce((s, arr) => s + (arr?.length || 0), 0) > 0 && (
+                  <span className="bg-amber-400 text-slate-900 rounded-full px-1.5 text-xs font-bold">
+                    {Object.values(slideNotes).reduce((s, arr) => s + (arr?.length || 0), 0)}
+                  </span>
+                )}
+              </button>
+
+              {/* PDF Export */}
+              <button
+                onClick={() => {
+                  document.body.classList.add('presentation-print');
+                  // If we're not already in presentation mode, enter it so the 1920x1080 deck renders for print.
+                  const wasPresentation = presentationMode;
+                  if (!wasPresentation) setPresentationMode(true);
+                  setTimeout(() => {
+                    window.print();
+                    setTimeout(() => {
+                      document.body.classList.remove('presentation-print');
+                      if (!wasPresentation) setPresentationMode(false);
+                    }, 400);
+                  }, 250);
+                }}
+                className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
+                title="Export deck as PDF (each slide on its own 1920x1080 page)"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                PDF
+              </button>
+
+              <button
                 onClick={() => {
                   // Initialize all slides as enabled if not set yet
                   if (enabledSlides.size === 0) {
@@ -12631,15 +12682,26 @@ export default function ExportReportPage() {
                 justifyContent: presenterView ? 'center' : 'flex-start',
               }}
             >
-              {PRESENTATION_SLIDES.map((slide, idx) => (
+              {PRESENTATION_SLIDES.map((slide, idx) => {
+                const isActivePresenter = presenterView && idx === currentSlide;
+                // In presenter view, pin the active slide to the full viewport and translate+scale to center-fit.
+                const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1920;
+                const viewportH = typeof window !== 'undefined' ? window.innerHeight : 1080;
+                const offsetX = isActivePresenter ? (viewportW - 1920 * deckScale) / 2 : 0;
+                const offsetY = isActivePresenter ? (viewportH - 1080 * deckScale) / 2 : 0;
+                return (
                 <div
                   key={`${slide.id}-${idx}`}
                   className="slide-wrapper flex-shrink-0 relative"
                   data-slide-idx={idx}
                   style={{
-                    width: `${1920 * deckScale}px`,
-                    height: `${1080 * deckScale}px`,
-                    display: presenterView && idx !== currentSlide ? 'none' : undefined,
+                    width: isActivePresenter ? `100vw` : `${1920 * deckScale}px`,
+                    height: isActivePresenter ? `100vh` : `${1080 * deckScale}px`,
+                    display: presenterView && !isActivePresenter ? 'none' : undefined,
+                    position: isActivePresenter ? 'fixed' as const : 'relative' as const,
+                    top: isActivePresenter ? 0 : undefined,
+                    left: isActivePresenter ? 0 : undefined,
+                    zIndex: isActivePresenter ? 1 : undefined,
                   }}
                 >
                   <div
@@ -12647,10 +12709,14 @@ export default function ExportReportPage() {
                     style={{
                       width: '1920px',
                       height: '1080px',
-                      transform: `scale(${deckScale})`,
+                      transform: isActivePresenter
+                        ? `translate(${offsetX}px, ${offsetY}px) scale(${deckScale})`
+                        : `scale(${deckScale})`,
                       transformOrigin: 'top left',
-                      boxShadow: '0 20px 60px rgba(0,0,0,0.28), 0 8px 24px rgba(0,0,0,0.15)',
-                      borderRadius: '4px',
+                      boxShadow: isActivePresenter
+                        ? 'none'
+                        : '0 20px 60px rgba(0,0,0,0.28), 0 8px 24px rgba(0,0,0,0.15)',
+                      borderRadius: isActivePresenter ? '0' : '4px',
                       overflow: 'hidden',
                     }}
                   >
@@ -12669,9 +12735,10 @@ export default function ExportReportPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
-            
+
             {/* Navigation Bar - enhanced */}
             <div className="flex-shrink-0 bg-slate-800 px-6 py-2 flex items-center justify-between">
               {/* Left side - slide counter and progress */}
