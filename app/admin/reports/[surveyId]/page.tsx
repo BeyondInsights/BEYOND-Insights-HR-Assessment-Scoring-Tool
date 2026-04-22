@@ -7699,6 +7699,214 @@ export default function ExportReportPage() {
             </div>
           </div>
           
+          {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
+          {patterns.length > 0 && (
+            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+              {/* Header with gradient and visual interest */}
+              <div className="px-12 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                      <pattern id="crossGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 20 M 10 -10 L -10 10 M 30 10 L 10 30" stroke="white" strokeWidth="0.5" fill="none" opacity="0.3"/>
+                      </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#crossGrid)" />
+                  </svg>
+                </div>
+                <div className="relative flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-white text-2xl tracking-tight">Cross-Dimensional Insights</h3>
+                        <p className="text-white text-sm opacity-90">Connecting the dots across your report</p>
+                      </div>
+                    </div>
+                    <div className="ml-[52px]">
+                      <p className="text-white text-sm leading-relaxed mb-3 opacity-90">
+                        Highlights likely tensions where a lower-scoring area may be limiting the impact of stronger programs elsewhere.
+                        Based on the most common cross-dimensional tensions observed to date across participating organizations.
+                      </p>
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="10" cy="10" r="6" />
+                            <path d="M14.5 14.5L20 20" strokeLinecap="round" />
+                          </svg>
+                          <span className="text-white text-sm opacity-90"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional tensions detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional tensions detected' || patterns.length !== 1 ? 'tensions' : 'tension'} flagged</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="8" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                          </svg>
+                          <span className="text-white text-sm opacity-90">Each includes an <span className="text-white font-semibold">actionable starting step</span></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setInfoModal('crossDimensional')}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      Learn More
+                    </button>
+                    <button 
+                      onClick={() => setInfoModal('patternLibrary')}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                      View Tensions
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pattern Cards */}
+              <div className="p-6">
+                <div className="space-y-4">
+                  {patterns.map((p, idx) => (
+                    <div key={idx} className="group relative">
+                      {/* Priority indicator */}
+                      <div className="absolute -left-2.5 top-4 w-5 h-5 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center shadow-lg border-2 border-white z-10">
+                        {idx + 1}
+                      </div>
+                      
+                      <div className="ml-3 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        {/* Pattern header */}
+                        <div className="px-6 py-3 border-b border-slate-100 bg-white">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="font-bold text-slate-900 text-base leading-snug">{p.pattern}</h4>
+                            </div>
+                            <div className="flex-shrink-0">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-white text-[10px] font-semibold">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Priority {idx + 1}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Two-column content */}
+                        <div className="grid grid-cols-2 divide-x divide-slate-100">
+                          {/* Implication */}
+                          <div className="px-6 py-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-5 h-5 rounded bg-slate-100 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">What This Means</span>
+                            </div>
+                            <p className="text-slate-600 text-sm leading-relaxed">{p.implication}</p>
+                          </div>
+                          
+                          {/* Recommendation */}
+                          <div className="px-6 py-4 bg-slate-50/50">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                </svg>
+                              </div>
+                              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                Recommended Action
+                                {editMode && <span className="ml-2 text-amber-700 font-normal normal-case">(editable)</span>}
+                              </span>
+                            </div>
+                            {editMode ? (
+                              <div className="flex flex-col gap-2">
+                                <textarea
+                                  value={customCrossRecommendations[idx] ?? p.recommendation}
+                                  onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
+                                  className="w-full text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-y"
+                                  placeholder="Enter custom recommendation..."
+                                />
+                                {customCrossRecommendations[idx] && (
+                                  <button 
+                                    onClick={() => updateCustomCrossRecommendation(idx, '')}
+                                    className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 self-start"
+                                  >
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Reset to default
+                                  </button>
+                                )}
+                              </div>
+                            ) : (
+                              <p className="text-slate-700 text-sm leading-relaxed font-medium">{customCrossRecommendations[idx] || p.recommendation}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Also Worth Noting - Positive & Noteworthy Insights */}
+                {(positiveInsights.length > 0 || noteworthyInsights.length > 0) && (
+                  <div className="mt-5 pt-5 border-t border-slate-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <h4 className="text-sm font-semibold text-slate-700">Also Worth Noting</h4>
+                    </div>
+                    <div className="space-y-3">
+                      {positiveInsights.map((p, idx) => (
+                        <div key={`pos-${idx}`} className="bg-white rounded-xl border border-slate-200 p-4">
+                          <h5 className="font-semibold text-slate-800 text-sm mb-2">{p.pattern}</h5>
+                          <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
+                          <p className="text-slate-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                        </div>
+                      ))}
+                      {noteworthyInsights.map((p, idx) => (
+                        <div key={`note-${idx}`} className="bg-white rounded-xl border border-slate-200 p-4">
+                          <h5 className="font-semibold text-slate-800 text-sm mb-2">{p.pattern}</h5>
+                          <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
+                          <p className="text-slate-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom guidance */}
+                <div className="mt-6 pt-4 border-t border-slate-200">
+                  <div className="flex items-start gap-3 p-4 bg-slate-800 rounded-xl">
+                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="4" width="18" height="14" rx="2" />
+                        <path d="M7 9h10M7 13h6" strokeLinecap="round" />
+                        <circle cx="17" cy="13" r="1.5" fill="currentColor" stroke="none" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-white text-sm">How to use these insights</h4>
+                      <p className="text-slate-200 text-sm mt-1 leading-relaxed">
+                        Use these patterns as a <span className="font-semibold text-white">discussion guide for leadership alignment</span>. Validate internally where needed, then assign owners to the recommended actions. These tensions often explain why existing investments underperform. Addressing them typically <span className="font-semibold text-white">unlocks value across multiple dimensions</span>.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {/* ============ STRATEGIC PRIORITY MATRIX ============ */}
           <div id="strategic-priority-matrix" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-break-before pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center justify-between gap-6 flex-wrap">
@@ -8240,215 +8448,6 @@ export default function ExportReportPage() {
             </div>
           )}
           
-          
-          {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
-          {patterns.length > 0 && (
-            <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
-              {/* Header with gradient and visual interest */}
-              <div className="px-12 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10">
-                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <defs>
-                      <pattern id="crossGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <path d="M 20 0 L 0 20 M 10 -10 L -10 10 M 30 10 L 10 30" stroke="white" strokeWidth="0.5" fill="none" opacity="0.3"/>
-                      </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#crossGrid)" />
-                  </svg>
-                </div>
-                <div className="relative flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                        </svg>
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-white text-2xl tracking-tight">Cross-Dimensional Insights</h3>
-                        <p className="text-white text-sm opacity-90">Connecting the dots across your report</p>
-                      </div>
-                    </div>
-                    <div className="ml-[52px]">
-                      <p className="text-white text-sm leading-relaxed mb-3 opacity-90">
-                        Highlights likely tensions where a lower-scoring area may be limiting the impact of stronger programs elsewhere.
-                        Based on the most common cross-dimensional tensions observed to date across participating organizations.
-                      </p>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-1.5">
-                          <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="10" cy="10" r="6" />
-                            <path d="M14.5 14.5L20 20" strokeLinecap="round" />
-                          </svg>
-                          <span className="text-white text-sm opacity-90"><span className="text-white font-semibold">{patterns[0]?.pattern === 'No major cross-dimensional tensions detected' ? 0 : patterns.length}</span> {patterns[0]?.pattern === 'No major cross-dimensional tensions detected' || patterns.length !== 1 ? 'tensions' : 'tension'} flagged</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="8" />
-                            <circle cx="12" cy="12" r="4" />
-                            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
-                          </svg>
-                          <span className="text-white text-sm opacity-90">Each includes an <span className="text-white font-semibold">actionable starting step</span></span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setInfoModal('crossDimensional')}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      Learn More
-                    </button>
-                    <button 
-                      onClick={() => setInfoModal('patternLibrary')}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                      View Tensions
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pattern Cards */}
-              <div className="p-6">
-                <div className="space-y-4">
-                  {patterns.map((p, idx) => (
-                    <div key={idx} className="group relative">
-                      {/* Priority indicator */}
-                      <div className="absolute -left-2.5 top-4 w-5 h-5 rounded-full bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center shadow-lg border-2 border-white z-10">
-                        {idx + 1}
-                      </div>
-                      
-                      <div className="ml-3 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        {/* Pattern header */}
-                        <div className="px-6 py-3 border-b border-slate-100 bg-white">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <h4 className="font-bold text-slate-900 text-base leading-snug">{p.pattern}</h4>
-                            </div>
-                            <div className="flex-shrink-0">
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 text-white text-[10px] font-semibold">
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                                Priority {idx + 1}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Two-column content */}
-                        <div className="grid grid-cols-2 divide-x divide-slate-100">
-                          {/* Implication */}
-                          <div className="px-6 py-4">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-5 h-5 rounded bg-slate-100 flex items-center justify-center">
-                                <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                </svg>
-                              </div>
-                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">What This Means</span>
-                            </div>
-                            <p className="text-slate-600 text-sm leading-relaxed">{p.implication}</p>
-                          </div>
-                          
-                          {/* Recommendation */}
-                          <div className="px-6 py-4 bg-slate-50/50">
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-5 h-5 rounded bg-slate-800 flex items-center justify-center">
-                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                              </div>
-                              <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
-                                Recommended Action
-                                {editMode && <span className="ml-2 text-amber-700 font-normal normal-case">(editable)</span>}
-                              </span>
-                            </div>
-                            {editMode ? (
-                              <div className="flex flex-col gap-2">
-                                <textarea
-                                  value={customCrossRecommendations[idx] ?? p.recommendation}
-                                  onChange={(e) => updateCustomCrossRecommendation(idx, e.target.value)}
-                                  className="w-full text-sm text-slate-700 leading-relaxed bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 resize-y"
-                                  placeholder="Enter custom recommendation..."
-                                />
-                                {customCrossRecommendations[idx] && (
-                                  <button 
-                                    onClick={() => updateCustomCrossRecommendation(idx, '')}
-                                    className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 self-start"
-                                  >
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Reset to default
-                                  </button>
-                                )}
-                              </div>
-                            ) : (
-                              <p className="text-slate-700 text-sm leading-relaxed font-medium">{customCrossRecommendations[idx] || p.recommendation}</p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Also Worth Noting - Positive & Noteworthy Insights */}
-                {(positiveInsights.length > 0 || noteworthyInsights.length > 0) && (
-                  <div className="mt-5 pt-5 border-t border-slate-200">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5 text-emerald-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <h4 className="text-sm font-semibold text-slate-700">Also Worth Noting</h4>
-                    </div>
-                    <div className="space-y-3">
-                      {positiveInsights.map((p, idx) => (
-                        <div key={`pos-${idx}`} className="bg-white rounded-xl border border-slate-200 p-4">
-                          <h5 className="font-semibold text-slate-800 text-sm mb-2">{p.pattern}</h5>
-                          <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
-                          <p className="text-slate-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
-                        </div>
-                      ))}
-                      {noteworthyInsights.map((p, idx) => (
-                        <div key={`note-${idx}`} className="bg-white rounded-xl border border-slate-200 p-4">
-                          <h5 className="font-semibold text-slate-800 text-sm mb-2">{p.pattern}</h5>
-                          <p className="text-slate-600 text-sm leading-relaxed mb-2">{p.implication}</p>
-                          <p className="text-slate-700 text-sm leading-relaxed"><span className="font-medium">Next step:</span> {p.recommendation}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Bottom guidance */}
-                <div className="mt-6 pt-4 border-t border-slate-200">
-                  <div className="flex items-start gap-3 p-4 bg-slate-800 rounded-xl">
-                    <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="3" y="4" width="18" height="14" rx="2" />
-                        <path d="M7 9h10M7 13h6" strokeLinecap="round" />
-                        <circle cx="17" cy="13" r="1.5" fill="currentColor" stroke="none" />
-                      </svg>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-white text-sm">How to use these insights</h4>
-                      <p className="text-slate-200 text-sm mt-1 leading-relaxed">
-                        Use these patterns as a <span className="font-semibold text-white">discussion guide for leadership alignment</span>. Validate internally where needed, then assign owners to the recommended actions. These tensions often explain why existing investments underperform. Addressing them typically <span className="font-semibold text-white">unlocks value across multiple dimensions</span>.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           
           {/* ============ REPORT SUMMARY ============ */}
           {(() => {
@@ -13166,8 +13165,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 19: Interactive Performance Matrix (unified view with benchmark overlay) */}
-                {currentSlide === 19 && (
+                {/* Slide 20: Interactive Performance Matrix (unified view with benchmark overlay) */}
+                {currentSlide === 20 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -13387,8 +13386,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 20: Cross-Dimensional Insights - polished design */}
-                {currentSlide === 20 && (
+                {/* Slide 19: Cross-Dimensional Insights - polished design */}
+                {currentSlide === 19 && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* Header */}
                     <div className="px-10 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden flex-shrink-0">
@@ -16430,21 +16429,21 @@ export default function ExportReportPage() {
                   )}
                   {currentSlide === 19 && (
                     <div>
-                      <p className="mb-2"><strong>Performance Matrix:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Top-left quadrant (Priority Gaps) = high weight, low score. Focus here first</li>
-                        <li>Top-right (Core Strengths) = high weight, high score. Protect these</li>
-                        <li>Help them identify the 2-3 highest-impact moves</li>
-                      </ul>
-                    </div>
-                  )}
-                  {currentSlide === 20 && (
-                    <div>
                       <p className="mb-2"><strong>Cross-dimensional insights:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>These patterns reveal systemic issues, not isolated gaps</li>
                         <li>Highlight 1-2 root causes that can unlock multiple improvements</li>
                         <li>Tie patterns back to actual employee experience friction points</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 20 && (
+                    <div>
+                      <p className="mb-2"><strong>Performance Matrix:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Top-left quadrant (Priority Gaps) = high weight, low score. Focus here first</li>
+                        <li>Top-right (Core Strengths) = high weight, high score. Protect these</li>
+                        <li>Help them identify the 2-3 highest-impact moves</li>
                       </ul>
                     </div>
                   )}
@@ -16631,8 +16630,8 @@ export default function ExportReportPage() {
                            i === 4 ? 'Executive Overview' :
                            i === 5 ? 'Dimension Performance' :
                            i >= 6 && i <= 18 ? `D${i - 5} Deep Dive` :
-                           i === 19 ? 'Interactive Performance Matrix' :
-                           i === 20 ? 'Cross-Dimensional Insights' :
+                           i === 19 ? 'Cross-Dimensional Insights' :
+                           i === 20 ? 'Interactive Performance Matrix' :
                            i === 21 ? 'Report Summary: Areas of Strength' :
                            i === 22 ? 'Report Summary: Initiatives in Progress' :
                            i === 23 ? 'Report Summary: Opportunities to Grow' :
