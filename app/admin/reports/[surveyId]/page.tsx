@@ -3631,14 +3631,14 @@ export default function ExportReportPage() {
     kind?: 'section' | 'dim';
     dimNum?: number;
   }> = [
-    { id: 'report-hero-section', label: 'Title & Overview' },
+    { id: 'slide-hero-title', label: 'Title & Overview' },
     { id: 'how-index-section', label: 'How This Index Was Developed' },
     { id: 'score-composition-section', label: 'Understanding Your Composite Score' },
     { id: 'thirteen-dimensions-section', label: 'The 13 Dimensions of Workplace Support' },
     { id: 'executive-overview-section', label: 'Executive Overview' },
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most' },
-    // Per-dimension deep-dive slides. Each clones the matching [data-dim-num] row from the main
-    // Dim Performance section via the DOM-clone effect.
+    // Per-dimension deep-dive slides. Each clones the matching [data-dim-num] row PLUS its
+    // [data-dim-drilldown] sibling from the main Dim Performance section.
     ...Array.from({ length: 13 }, (_, i) => ({
       id: 'dimension-performance-table',
       label: `D${i + 1} Deep Dive`,
@@ -3647,7 +3647,10 @@ export default function ExportReportPage() {
     })),
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix' },
-    { id: 'report-summary', label: 'Report Summary' },
+    { id: 'report-summary-card-strength', label: 'Report Summary: Areas of Strength' },
+    { id: 'report-summary-card-progress', label: 'Report Summary: Initiatives in Progress' },
+    { id: 'report-summary-card-grow', label: 'Report Summary: Opportunities to Grow' },
+    { id: 'report-summary-card-unsure', label: 'Report Summary: Unsure' },
     { id: 'your-support-in-context', label: 'Your Support in Context' },
     { id: 'impact-ranked-priorities', label: 'Your Improvement Priorities' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations' },
@@ -3929,7 +3932,7 @@ export default function ExportReportPage() {
   };
   const totalNoteCount = Object.values(slideNotes).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
-  // Presentation deck auto-scaling: fit 1280x720 slides into the viewport.
+  // Presentation deck auto-scaling: fit 1280x960 slides into the viewport.
   // Scroll view leaves breathing room on the sides (cap at 78% of viewport so slides are not
   // oppressive on wide monitors). Presenter view uses the full viewport and accounts for both
   // width and height so the slide fits on screen without cropping.
@@ -3942,7 +3945,7 @@ export default function ExportReportPage() {
         const toolbarReserve = 140;
         const availW = Math.max(400, vw - 48);
         const availH = Math.max(400, vh - toolbarReserve);
-        setDeckScale(Math.min(availW / 1280, availH / 720, 1));
+        setDeckScale(Math.min(availW / 1280, availH / 960, 1));
       } else {
         // Scroll view: cap at 72% of viewport width OR a max effective slide width of 1100px,
         // whichever is smaller. Slides feel natural at report design width, not oppressive.
@@ -3973,12 +3976,13 @@ export default function ExportReportPage() {
           const dimNumAttr = slideContent.getAttribute('data-slide-dim-num');
           const dimNum = dimNumAttr ? parseInt(dimNumAttr, 10) : null;
           if (!sourceId) return;
-          // DIMENSION DEEP-DIVE SLIDE: find the matching [data-dim-num] card inside the Dim
-          // Performance section and clone only that.
+          // DIMENSION DEEP-DIVE SLIDE: clone both the [data-dim-num] row AND its sibling
+          // [data-dim-drilldown] (rendered when presentationMode is true).
           if (slideKind === 'dim' && dimNum) {
             try {
-              const source = document.querySelector<HTMLElement>(`[data-dim-num="${dimNum}"]`);
-              if (!source) {
+              const row = document.querySelector<HTMLElement>(`[data-dim-num="${dimNum}"]`);
+              const drill = document.querySelector<HTMLElement>(`[data-dim-drilldown="${dimNum}"]`);
+              if (!row) {
                 slideContent.innerHTML = '';
                 const missing = document.createElement('div');
                 missing.className = 'flex items-center justify-center h-full text-slate-400 text-sm italic';
@@ -3986,17 +3990,18 @@ export default function ExportReportPage() {
                 slideContent.appendChild(missing);
                 return;
               }
-              const clone = source.cloneNode(true) as HTMLElement;
-              clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-              clone.removeAttribute('id');
-              // Remove click handlers by clearing onclick (clone does not carry React handlers anyway).
-              clone.style.cursor = 'default';
               slideContent.innerHTML = '';
-              const header = document.createElement('div');
-              header.className = 'mb-4';
-              header.innerHTML = `<h2 style="font-size:24px;font-weight:700;color:#0f172a;margin:0 0 4px;">Dimension ${dimNum} Deep Dive</h2><p style="font-size:14px;color:#475569;margin:0;">Element-level detail for this dimension. See the full scorecard in the live report.</p>`;
-              slideContent.appendChild(header);
-              slideContent.appendChild(clone);
+              const rowClone = row.cloneNode(true) as HTMLElement;
+              rowClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+              rowClone.removeAttribute('id');
+              rowClone.style.cursor = 'default';
+              slideContent.appendChild(rowClone);
+              if (drill) {
+                const drillClone = drill.cloneNode(true) as HTMLElement;
+                drillClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                drillClone.removeAttribute('id');
+                slideContent.appendChild(drillClone);
+              }
             } catch (err) {
               slideContent.innerHTML = '';
               const errDiv = document.createElement('div');
@@ -4026,6 +4031,18 @@ export default function ExportReportPage() {
             const clone = (source as HTMLElement).cloneNode(true) as HTMLElement;
             clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
             clone.removeAttribute('id');
+            // The "Dimension Performance" summary slide should show collapsed rows only,
+            // so strip the drill-downs from its clone (the per-dim slides show drill-downs).
+            if (sourceId === 'dimension-performance-table') {
+              clone.querySelectorAll('[data-dim-drilldown]').forEach(el => el.remove());
+            }
+            // Report-summary card slides live in a hidden off-screen container; reveal the clone.
+            if (sourceId && sourceId.startsWith('report-summary-card-')) {
+              clone.style.position = 'static';
+              clone.style.left = 'auto';
+              clone.style.visibility = 'visible';
+              clone.style.display = 'block';
+            }
             slideContent.innerHTML = '';
             slideContent.appendChild(clone);
           } catch (err) {
@@ -5916,7 +5933,7 @@ export default function ExportReportPage() {
   '  body.presentation-print .slide-wrapper {',
   '    transform: none !important;',
   '    width: 1280px !important;',
-  '    height: 720px !important;',
+  '    height: 960px !important;',
   '    position: static !important;',
   '    display: block !important;',
   '    top: auto !important;',
@@ -5930,12 +5947,12 @@ export default function ExportReportPage() {
   '  body.presentation-print .slide {',
   '    transform: none !important;',
   '    width: 1280px !important;',
-  '    height: 720px !important;',
+  '    height: 960px !important;',
   '    box-shadow: none !important;',
   '    border-radius: 0 !important;',
   '    overflow: hidden !important;',
   '  }',
-  '  body.presentation-print .slide-body { overflow: hidden !important; height: 680px !important; }',
+  '  body.presentation-print .slide-body { overflow: hidden !important; height: 920px !important; }',
   '  body.presentation-print .notes-panel, body.presentation-print .notes-tab, body.presentation-print [data-no-print] { display: none !important; }',
   '}',
   ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
@@ -6166,14 +6183,14 @@ export default function ExportReportPage() {
               {/* PDF Export */}
               <button
                 onClick={() => {
-                  // Inject an @page size rule for PDF export (1280x720 per slide). We add / remove
+                  // Inject an @page size rule for PDF export (1280x960 per slide). We add / remove
                   // it inline because @page does not respond to class selectors.
                   const wasPresentation = presentationMode;
                   if (!wasPresentation) setPresentationMode(true);
                   document.body.classList.add('presentation-print');
                   const styleEl = document.createElement('style');
                   styleEl.id = 'presentation-print-page-rule';
-                  styleEl.textContent = '@page { size: 1280px 720px; margin: 0; }';
+                  styleEl.textContent = '@page { size: 1280px 960px; margin: 0; }';
                   document.head.appendChild(styleEl);
                   // Give the deck time to populate clones before printing
                   setTimeout(() => {
@@ -6188,7 +6205,7 @@ export default function ExportReportPage() {
                 }}
                 className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
-                title="Export deck as PDF (each slide on its own 1280x720 page)"
+                title="Export deck as PDF (each slide on its own 1280x960 page)"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -6237,7 +6254,7 @@ export default function ExportReportPage() {
           {/* ============ HEADER ============ */}
           <div id="report-hero-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             {/* Dark header band */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
+            <div id="slide-hero-title" className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-10">
                   <div className="bg-white rounded-xl p-5 shadow-lg">
@@ -7617,10 +7634,10 @@ export default function ExportReportPage() {
                 }).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   const pg = getEmployeePriorityGroup(d.weight);
-                  // Force-expand only for PDF; in presentation mode keep drill-downs closed so the
-                  // dimension-performance-table section does not contain 13 simultaneous drill-downs
-                  // (which was freezing the browser on dim deep-dive slides).
-                  const isOpen = isPdf || dimensionDetailModal === d.dim;
+                  // Force-expand in presentation mode so every per-dim slide has a full drill-down
+                  // to clone. The dimension-performance-table summary slide strips drill-downs from
+                  // its clone (see DOM-clone effect) so it still renders as collapsed rows.
+                  const isOpen = isPdf || presentationMode || dimensionDetailModal === d.dim;
                   // Delta pill color bands: green if >= +5, red if <= -5, grey otherwise
                   const deltaBand = diff === null ? 'none' : diff >= 5 ? 'positive' : diff <= -5 ? 'negative' : 'neutral';
                   const deltaStyles = deltaBand === 'positive' ? { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', arrow: 'M5 15l7-7 7 7' }
@@ -7698,10 +7715,10 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                      {(isPdf || dimensionDetailModal === d.dim) && (() => {
-                        const d = dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
+                      {(isPdf || presentationMode || dimensionDetailModal === d.dim) && ((outerD: any) => {
+                        const d = (isPdf || presentationMode) ? outerD : dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
                         if (!d) return null;
-                        const elemBench = elementBenchmarks[dimensionDetailModal] || {};
+                        const elemBench = elementBenchmarks[d.dim] || {};
                         const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                         
                         const STATUS = {
@@ -7760,7 +7777,7 @@ export default function ExportReportPage() {
                         const totalDimWeight = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => (a as number) + (b as number), 0);
                         const dimWeightPct = totalDimWeight > 0 ? Math.round(((DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0) / (totalDimWeight as number)) * 100) : 0;
                         return (
-                          <div ref={dimDetailRef} className="border-t border-slate-200 bg-slate-50/50">
+                          <div ref={dimDetailRef} data-dim-drilldown={d.dim} className="border-t border-slate-200 bg-slate-50/50">
                             <div className="px-6 py-6">
                               {/* Three summary cards */}
                               <div className="grid grid-cols-7 gap-4 mb-6">
@@ -8086,7 +8103,7 @@ export default function ExportReportPage() {
                             </div>
                           </div>
                         );
-                      })()}
+                      })(d)}
                   </Fragment>);
                 })}
               </div>
@@ -8975,74 +8992,111 @@ export default function ExportReportPage() {
                   <p className="text-center text-sm text-slate-500 mt-3">Select a tab to explore your results</p>
                 </div>
 
-                {/* Tab content */}
-                {activeReportTab !== null && (() => {
-                  const activeBucket = buckets[activeReportTab];
-                  const dimsInTab = [...activeBucket].sort((a, b) => {
-                    if (b.elements.length !== a.elements.length) return b.elements.length - a.elements.length;
-                    return a.dim - b.dim;
-                  });
-                  const totalInTab = dimsInTab.reduce((s, g) => s + g.elements.length, 0);
-                  const activeTabMeta = tabs.find(t => t.key === activeReportTab)!;
-                  return (
-                    <div className="px-12 py-8">
-                      <div className="flex items-baseline justify-between mb-5">
-                        <div>
-                          <h3 className="text-xl font-bold text-slate-800">{activeTabMeta.label}</h3>
-                          <p className="text-sm text-slate-500 mt-0.5 italic">Click any dimension to see its elements</p>
+                {/* Tab content — rendered inline for the active tab, and (in presentation mode)
+                    rendered off-screen for ALL 4 cards so each has its own slide. */}
+                {(() => {
+                  const renderCard = (tabKey: 'strength' | 'progress' | 'grow' | 'unsure', opts?: { expandAll?: boolean }) => {
+                    const expandAll = !!(opts?.expandAll);
+                    const activeBucket = buckets[tabKey];
+                    const dimsInTab = [...activeBucket].sort((a, b) => {
+                      if (b.elements.length !== a.elements.length) return b.elements.length - a.elements.length;
+                      return a.dim - b.dim;
+                    });
+                    const totalInTab = dimsInTab.reduce((s, g) => s + g.elements.length, 0);
+                    const tabMeta = tabs.find(t => t.key === tabKey)!;
+                    return (
+                      <div className="px-12 py-8">
+                        <div className="flex items-baseline justify-between mb-5">
+                          <div>
+                            <h3 className="text-xl font-bold text-slate-800">{tabMeta.label}</h3>
+                            <p className="text-sm text-slate-500 mt-0.5 italic">{expandAll ? 'All dimensions with elements in this status.' : 'Click any dimension to see its elements'}</p>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-700 tabular-nums">{totalInTab} element{totalInTab === 1 ? '' : 's'} across {dimsInTab.length} dimension{dimsInTab.length === 1 ? '' : 's'}</p>
                         </div>
-                        <p className="text-sm font-semibold text-slate-700 tabular-nums">{totalInTab} element{totalInTab === 1 ? '' : 's'} across {dimsInTab.length} dimension{dimsInTab.length === 1 ? '' : 's'}</p>
-                      </div>
 
-                      {dimsInTab.length === 0 ? (
-                        <div className="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
-                          <p className="text-slate-500">No elements in this status.</p>
+                        {dimsInTab.length === 0 ? (
+                          <div className="text-center py-12 bg-slate-50 rounded-xl border border-slate-200">
+                            <p className="text-slate-500">No elements in this status.</p>
+                          </div>
+                        ) : (
+                          <div className="divide-y divide-slate-200 border-t border-b border-slate-200">
+                            {dimsInTab.map(group => {
+                              const isOpen = (isPdf || expandAll || reportSummaryExpandedDim === group.dim);
+                              const groupPg = getEmployeePriorityGroup(group.weight);
+                              return (
+                                <div key={group.dim}>
+                                  <button
+                                    onClick={() => setReportSummaryExpandedDim(isOpen && !isPdf && !expandAll ? null : group.dim)}
+                                    className={`w-full flex items-center gap-3 py-3.5 px-2 text-left transition-colors ${isOpen ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
+                                  >
+                                    <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''} text-slate-400`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                    <span className="inline-flex items-center justify-center h-6 min-w-[42px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: groupPg.color }}>
+                                      D{group.dim}
+                                    </span>
+                                    <span className="text-[15px] font-semibold text-slate-800 flex-1">{group.name}</span>
+                                    <span className="text-[13px] font-semibold text-slate-600 tabular-nums pr-2">{group.elements.length} element{group.elements.length === 1 ? '' : 's'}</span>
+                                  </button>
+                                  {isOpen && (
+                                    <div className="pl-12 pr-4 pt-3 pb-5">
+                                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
+                                        {group.elements.map((el: any, i: number) => (
+                                          <li key={i} className="flex items-start gap-2.5 text-[14px] text-slate-700">
+                                            <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 flex-shrink-0 mt-1" />
+                                            <span className="leading-snug">
+                                              {el.name}
+                                              {tabKey === 'progress' && (
+                                                <span className={`ml-1.5 text-[12px] italic ${el.isPlanning ? 'text-blue-700' : 'text-amber-700'}`}>
+                                                  ({el.isPlanning ? 'In Development' : 'Under Review'})
+                                                </span>
+                                              )}
+                                            </span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  };
+                  const renderCardSlide = (tabKey: 'strength' | 'progress' | 'grow' | 'unsure') => {
+                    const tabMeta = tabs.find(t => t.key === tabKey)!;
+                    return (
+                      <div id={`report-summary-card-${tabKey}`} className="bg-white" style={{ width: '1280px' }}>
+                        <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                            {tabMeta.icon}
+                          </div>
+                          <div className="flex-1">
+                            <h2 className="text-2xl font-bold text-white">{tabMeta.label}</h2>
+                            <p className="text-white text-sm opacity-90 mt-0.5">{tabMeta.subtitle}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-5xl font-bold text-white tabular-nums leading-none">{tabMeta.count}</p>
+                            <p className="text-xs uppercase tracking-wider text-slate-300 mt-1">elements</p>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="divide-y divide-slate-200 border-t border-b border-slate-200">
-                          {dimsInTab.map(group => {
-                            const isOpen = (isPdf || reportSummaryExpandedDim === group.dim);
-                            const groupPg = getEmployeePriorityGroup(group.weight);
-                            return (
-                              <div key={group.dim}>
-                                <button
-                                  onClick={() => setReportSummaryExpandedDim(isOpen && !isPdf ? null : group.dim)}
-                                  className={`w-full flex items-center gap-3 py-3.5 px-2 text-left transition-colors ${isOpen ? 'bg-slate-50' : 'hover:bg-slate-50'}`}
-                                >
-                                  <svg className={`w-4 h-4 flex-shrink-0 transition-transform ${isOpen ? 'rotate-90' : ''} text-slate-400`} fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                                  </svg>
-                                  <span className="inline-flex items-center justify-center h-6 min-w-[42px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: groupPg.color }}>
-                                    D{group.dim}
-                                  </span>
-                                  <span className="text-[15px] font-semibold text-slate-800 flex-1">{group.name}</span>
-                                  <span className="text-[13px] font-semibold text-slate-600 tabular-nums pr-2">{group.elements.length} element{group.elements.length === 1 ? '' : 's'}</span>
-                                </button>
-                                {isOpen && (
-                                  <div className="pl-12 pr-4 pt-3 pb-5">
-                                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2.5">
-                                      {group.elements.map((el: any, i: number) => (
-                                        <li key={i} className="flex items-start gap-2.5 text-[14px] text-slate-700">
-                                          <span className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 flex-shrink-0 mt-1" />
-                                          <span className="leading-snug">
-                                            {el.name}
-                                            {activeReportTab === 'progress' && (
-                                              <span className={`ml-1.5 text-[12px] italic ${el.isPlanning ? 'text-blue-700' : 'text-amber-700'}`}>
-                                                ({el.isPlanning ? 'In Development' : 'Under Review'})
-                                              </span>
-                                            )}
-                                          </span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
+                        {renderCard(tabKey, { expandAll: true })}
+                      </div>
+                    );
+                  };
+                  return (
+                    <>
+                      {activeReportTab !== null && renderCard(activeReportTab)}
+                      {presentationMode && (
+                        <div aria-hidden="true" style={{ position: 'absolute', left: '-99999px', top: 0, width: '1280px' }} data-presentation-only>
+                          {(['strength', 'progress', 'grow', 'unsure'] as const).map(key => (
+                            <div key={key}>{renderCardSlide(key)}</div>
+                          ))}
                         </div>
                       )}
-                    </div>
+                    </>
                   );
                 })()}
               </div>
@@ -12860,7 +12914,7 @@ export default function ExportReportPage() {
               </div>
             )}
             
-            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1280x720 fixed, auto-scaled to viewport. */}
+            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1280x960 fixed, auto-scaled to viewport. */}
             <div
               data-presentation-deck
               className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-10"
@@ -12879,9 +12933,9 @@ export default function ExportReportPage() {
                 const NAV_RESERVE = 48;
                 const topReserve = (editMode ? 40 : 0) + (reorderMode ? 40 : 0);
                 const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1280;
-                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 720;
+                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 960;
                 const offsetX = isActivePresenter ? (viewportW - 1280 * deckScale) / 2 : 0;
-                const offsetY = isActivePresenter ? topReserve + (viewportH - 720 * deckScale) / 2 : 0;
+                const offsetY = isActivePresenter ? topReserve + (viewportH - 960 * deckScale) / 2 : 0;
                 return (
                 <div
                   key={`${slide.id}-${idx}`}
@@ -12889,7 +12943,7 @@ export default function ExportReportPage() {
                   data-slide-idx={idx}
                   style={{
                     width: isActivePresenter ? `100vw` : `${1280 * deckScale}px`,
-                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${720 * deckScale}px`,
+                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${960 * deckScale}px`,
                     display: presenterView && !isActivePresenter ? 'none' : undefined,
                     position: isActivePresenter ? 'fixed' as const : 'relative' as const,
                     top: isActivePresenter ? topReserve : undefined,
@@ -12901,7 +12955,7 @@ export default function ExportReportPage() {
                     className="slide bg-white relative"
                     style={{
                       width: '1280px',
-                      height: '720px',
+                      height: '960px',
                       transform: isActivePresenter
                         ? `translate(${offsetX}px, ${offsetY}px) scale(${deckScale})`
                         : `scale(${deckScale})`,
@@ -12915,7 +12969,7 @@ export default function ExportReportPage() {
                   >
                     <div
                       className="slide-body"
-                      style={{ width: '100%', height: `${720 - 40}px`, padding: '16px 0', overflow: 'auto' }}
+                      style={{ width: '100%', height: `${960 - 40}px`, padding: '16px 0', overflow: 'auto' }}
                     >
                       <div
                         data-slide-source-id={slide.id}
@@ -13058,13 +13112,13 @@ export default function ExportReportPage() {
                   <span>{presenterView ? 'Scroll' : 'Presenter'}</span>
                 </button>
 
-                {/* Print (each slide = one 1280x720 page) */}
+                {/* Print (each slide = one 1280x960 page) */}
                 <button
                   onClick={() => {
                     document.body.classList.add('presentation-print');
                     const styleEl = document.createElement('style');
                     styleEl.id = 'presentation-print-page-rule';
-                    styleEl.textContent = '@page { size: 1280px 720px; margin: 0; }';
+                    styleEl.textContent = '@page { size: 1280px 960px; margin: 0; }';
                     document.head.appendChild(styleEl);
                     setTimeout(() => {
                       window.print();
@@ -13076,7 +13130,7 @@ export default function ExportReportPage() {
                     }, 80);
                   }}
                   className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
-                  title="Print deck (each slide on its own 1280x720 page)"
+                  title="Print deck (each slide on its own 1280x960 page)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
