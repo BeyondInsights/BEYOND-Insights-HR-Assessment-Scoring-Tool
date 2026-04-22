@@ -3628,9 +3628,7 @@ export default function ExportReportPage() {
   const PRESENTATION_SLIDES: Array<{
     id: string;
     label: string;
-    kind?: 'section' | 'dim' | 'report-summary-tab';
-    dimNum?: number;
-    reportTab?: 'strength' | 'progress' | 'grow' | 'unsure';
+    kind?: 'section';
   }> = [
     { id: 'report-hero-section', label: 'Title & Overview' },
     { id: 'how-index-section', label: 'How This Index Was Developed' },
@@ -3638,18 +3636,9 @@ export default function ExportReportPage() {
     { id: 'thirteen-dimensions-section', label: 'The 13 Dimensions of Workplace Support' },
     { id: 'executive-overview-section', label: 'Executive Overview' },
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most' },
-    ...Array.from({ length: 13 }, (_, i) => ({
-      id: 'dimension-performance-table',
-      label: `D${i + 1} Deep Dive`,
-      kind: 'dim' as const,
-      dimNum: i + 1,
-    })),
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix' },
-    { id: 'report-summary', label: 'Report Summary: Areas of Strength', kind: 'report-summary-tab' as const, reportTab: 'strength' as const },
-    { id: 'report-summary', label: 'Report Summary: Initiatives in Progress', kind: 'report-summary-tab' as const, reportTab: 'progress' as const },
-    { id: 'report-summary', label: 'Report Summary: Opportunities to Grow', kind: 'report-summary-tab' as const, reportTab: 'grow' as const },
-    { id: 'report-summary', label: 'Report Summary: Unsure', kind: 'report-summary-tab' as const, reportTab: 'unsure' as const },
+    { id: 'report-summary', label: 'Report Summary' },
     { id: 'your-support-in-context', label: 'Your Support in Context' },
     { id: 'impact-ranked-priorities', label: 'Your Improvement Priorities' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations' },
@@ -3932,8 +3921,9 @@ export default function ExportReportPage() {
   const totalNoteCount = Object.values(slideNotes).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
   // Presentation deck auto-scaling: fit 1920x1080 slides into the viewport.
-  // Scroll view leaves padding on the sides; presenter view uses the full viewport and accounts
-  // for both width and height so the slide fits on screen without cropping.
+  // Scroll view leaves breathing room on the sides (cap at 78% of viewport so slides are not
+  // oppressive on wide monitors). Presenter view uses the full viewport and accounts for both
+  // width and height so the slide fits on screen without cropping.
   useEffect(() => {
     if (!presentationMode) return;
     const updateScale = () => {
@@ -3945,8 +3935,10 @@ export default function ExportReportPage() {
         const availH = Math.max(400, vh - toolbarReserve);
         setDeckScale(Math.min(availW / 1920, availH / 1080, 1));
       } else {
-        const available = Math.max(400, vw - 80);
-        setDeckScale(Math.min(1, available / 1920));
+        // Scroll view: cap at 78% of viewport width OR a max effective slide width of 1520px,
+        // whichever is smaller. Leaves generous breathing room on large monitors.
+        const targetWidth = Math.min(1520, vw * 0.78);
+        setDeckScale(Math.min(1, targetWidth / 1920));
       }
     };
     updateScale();
