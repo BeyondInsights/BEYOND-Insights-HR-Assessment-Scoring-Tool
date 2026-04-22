@@ -3736,6 +3736,10 @@ export default function ExportReportPage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   // Presenter view: when true, only the current slide shows (fullscreen single-slide mode)
   const [presenterView, setPresenterView] = useState(false);
+  // Reorder mode: when true, each slide in the deck gets up/down arrows to rearrange.
+  const [reorderMode, setReorderMode] = useState(false);
+  // Custom slide order (array of indices into PRESENTATION_SLIDES). Persisted per survey.
+  const [slideOrder, setSlideOrder] = useState<number[]>([]);
   // Review notes panel (Dash-In style) for slide feedback
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [reviewerName, setReviewerName] = useState('');
@@ -3836,8 +3840,50 @@ export default function ExportReportPage() {
       if (name) setReviewerName(name);
       const notesRaw = localStorage.getItem(`cac-deck-notes-${surveyKey}`);
       if (notesRaw) setSlideNotes(JSON.parse(notesRaw));
+      const orderRaw = localStorage.getItem(`cac-deck-order-${surveyKey}`);
+      if (orderRaw) {
+        const parsed = JSON.parse(orderRaw);
+        if (Array.isArray(parsed) && parsed.every((n: unknown) => typeof n === 'number')) {
+          setSlideOrder(parsed);
+        }
+      }
     } catch {}
   }, [company?.survey_id]);
+
+  // Ensure slideOrder covers all current slides (default natural order, add any new ones at end)
+  useEffect(() => {
+    const n = PRESENTATION_SLIDES.length;
+    setSlideOrder(prev => {
+      if (prev.length === 0) return Array.from({ length: n }, (_, i) => i);
+      const valid = prev.filter(i => i >= 0 && i < n);
+      const present = new Set(valid);
+      for (let i = 0; i < n; i++) if (!present.has(i)) valid.push(i);
+      return valid;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [PRESENTATION_SLIDES.length]);
+
+  // Persist slide order
+  useEffect(() => {
+    if (slideOrder.length === 0) return;
+    const surveyKey = company?.survey_id || 'default';
+    try { localStorage.setItem(`cac-deck-order-${surveyKey}`, JSON.stringify(slideOrder)); } catch {}
+  }, [slideOrder, company?.survey_id]);
+
+  // Reorder actions
+  const moveSlide = (fromPos: number, delta: number) => {
+    setSlideOrder(prev => {
+      const next = [...prev];
+      const to = fromPos + delta;
+      if (to < 0 || to >= next.length) return prev;
+      const tmp = next[fromPos]; next[fromPos] = next[to]; next[to] = tmp;
+      return next;
+    });
+  };
+  const resetSlideOrder = () => {
+    if (!confirm('Reset slide order to the default?')) return;
+    setSlideOrder(Array.from({ length: PRESENTATION_SLIDES.length }, (_, i) => i));
+  };
 
   // Persist notes and reviewer name whenever they change
   useEffect(() => {
@@ -5982,6 +6028,28 @@ export default function ExportReportPage() {
                   </div>
                 )}
               </div>
+              {/* Reorder (opens presentation mode with reorder mode on) */}
+              <button
+                onClick={() => {
+                  if (enabledSlides.size === 0) {
+                    const allSlides = new Set<number>();
+                    for (let i = 0; i < totalSlides; i++) allSlides.add(i);
+                    setEnabledSlides(allSlides);
+                  }
+                  setPresentationMode(true);
+                  setPresenterView(false);
+                  setReorderMode(true);
+                }}
+                className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                style={{ background: 'linear-gradient(135deg, #3730A3, #1E3A8A)' }}
+                title="Reorder slides"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+                Reorder
+              </button>
+
               {/* Comments (opens presentation mode with notes panel) */}
               <button
                 onClick={() => {
@@ -12657,6 +12725,19 @@ export default function ExportReportPage() {
                 </button>
               </div>
             )}
+            {/* Reorder-mode banner */}
+            {reorderMode && (
+              <div className="flex-shrink-0 bg-indigo-600 text-white px-6 py-2 flex items-center justify-between text-sm font-semibold">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                  Reorder mode. Use the up/down buttons on each slide to rearrange. Order is saved locally.
+                </div>
+                <div className="flex items-center gap-2">
+                  <button onClick={resetSlideOrder} className="px-3 py-1 bg-white/10 hover:bg-white/20 border border-white/30 rounded text-xs">Reset order</button>
+                  <button onClick={() => setReorderMode(false)} className="px-3 py-1 bg-white text-indigo-700 rounded text-xs hover:bg-slate-100">Done</button>
+                </div>
+              </div>
+            )}
             {/* Laser Pointer */}
             {laserPointer && (
               <div 
@@ -12682,13 +12763,18 @@ export default function ExportReportPage() {
                 justifyContent: presenterView ? 'center' : 'flex-start',
               }}
             >
-              {PRESENTATION_SLIDES.map((slide, idx) => {
+              {(slideOrder.length === PRESENTATION_SLIDES.length ? slideOrder : PRESENTATION_SLIDES.map((_, i) => i)).map((origIdx, pos) => {
+                const slide = PRESENTATION_SLIDES[origIdx];
+                const idx = pos; // position in the reordered deck
                 const isActivePresenter = presenterView && idx === currentSlide;
-                // In presenter view, pin the active slide to the full viewport and translate+scale to center-fit.
+                // In presenter view, pin the active slide above the top banners but below the bottom nav bar.
+                // Reserve space for any active top banners (edit / reorder) + the bottom nav bar (~48px).
+                const NAV_RESERVE = 48;
+                const topReserve = (editMode ? 40 : 0) + (reorderMode ? 40 : 0);
                 const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1920;
-                const viewportH = typeof window !== 'undefined' ? window.innerHeight : 1080;
+                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 1080;
                 const offsetX = isActivePresenter ? (viewportW - 1920 * deckScale) / 2 : 0;
-                const offsetY = isActivePresenter ? (viewportH - 1080 * deckScale) / 2 : 0;
+                const offsetY = isActivePresenter ? topReserve + (viewportH - 1080 * deckScale) / 2 : 0;
                 return (
                 <div
                   key={`${slide.id}-${idx}`}
@@ -12696,10 +12782,10 @@ export default function ExportReportPage() {
                   data-slide-idx={idx}
                   style={{
                     width: isActivePresenter ? `100vw` : `${1920 * deckScale}px`,
-                    height: isActivePresenter ? `100vh` : `${1080 * deckScale}px`,
+                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${1080 * deckScale}px`,
                     display: presenterView && !isActivePresenter ? 'none' : undefined,
                     position: isActivePresenter ? 'fixed' as const : 'relative' as const,
-                    top: isActivePresenter ? 0 : undefined,
+                    top: isActivePresenter ? topReserve : undefined,
                     left: isActivePresenter ? 0 : undefined,
                     zIndex: isActivePresenter ? 1 : undefined,
                   }}
@@ -12733,14 +12819,39 @@ export default function ExportReportPage() {
                       <span className="text-slate-400 uppercase tracking-wider text-xs font-semibold">{slide.label}</span>
                       <span className="tabular-nums">{idx + 1} / {PRESENTATION_SLIDES.length}</span>
                     </div>
+                    {/* Reorder controls overlay */}
+                    {reorderMode && !presenterView && (
+                      <div
+                        className="absolute top-4 right-4 flex items-center gap-2 bg-white rounded-lg shadow-lg border-2 border-amber-500 px-2 py-1.5"
+                        style={{ zIndex: 50 }}
+                      >
+                        <span className="text-xs font-bold text-slate-700 px-2">Slide {idx + 1}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); moveSlide(idx, -1); }}
+                          disabled={idx === 0}
+                          className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded text-slate-800"
+                          title="Move up"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); moveSlide(idx, 1); }}
+                          disabled={idx === PRESENTATION_SLIDES.length - 1}
+                          className="w-8 h-8 flex items-center justify-center bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded text-slate-800"
+                          title="Move down"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
                 );
               })}
             </div>
 
-            {/* Navigation Bar - enhanced */}
-            <div className="flex-shrink-0 bg-slate-800 px-6 py-2 flex items-center justify-between">
+            {/* Navigation Bar - enhanced (stays on top of fixed presenter slide) */}
+            <div className="flex-shrink-0 bg-slate-800 px-6 py-2 flex items-center justify-between relative z-10">
               {/* Left side - slide counter and progress */}
               <div className="flex items-center gap-4">
                 <button
@@ -13227,7 +13338,7 @@ export default function ExportReportPage() {
                 <div className="text-sm text-slate-700">
                   <span className="font-semibold">Slide {currentSlide + 1} / {PRESENTATION_SLIDES.length}</span>
                   <span className="text-slate-400 mx-2">|</span>
-                  <span className="text-slate-600">{PRESENTATION_SLIDES[currentSlide]?.label ?? ''}</span>
+                  <span className="text-slate-600">{PRESENTATION_SLIDES[slideOrder[currentSlide] ?? currentSlide]?.label ?? ''}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => setCurrentSlide(i => Math.max(0, i - 1))} className="w-7 h-7 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-700" title="Previous slide">
