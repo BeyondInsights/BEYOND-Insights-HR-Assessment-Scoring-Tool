@@ -15451,51 +15451,86 @@ export default function ExportReportPage() {
                             <p className="text-[11px] text-slate-600">Ranked by projected impact on composite score</p>
                           </div>
                           <div className="space-y-2.5">
-                            {strategicPriorityDims.slice(0, 3).map((d, idx) => {
-                              const pg = getEmployeePriorityGroup(d.weight);
-                              const bench = d.benchmark != null ? Math.round(d.benchmark) : null;
-                              const delta = bench != null ? Math.round(d.score) - bench : null;
-                              return (
-                                <div key={d.dim} className="relative flex gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
-                                  <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white text-sm font-bold">{idx + 1}</span>
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-3 flex-wrap">
-                                      <div className="flex items-center gap-2">
-                                        <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-md text-white text-[10px] font-bold" style={{ backgroundColor: pg.color }}>
-                                          D{d.dim}
-                                        </span>
-                                        <span className="text-[15px] font-bold text-slate-900 leading-tight">{d.name}</span>
-                                      </div>
-                                      <div className="flex items-center gap-3 bg-slate-50 rounded-md px-3 py-1 border border-slate-200">
-                                        <div className="flex items-baseline gap-1.5">
-                                          <span className="text-[10px] font-semibold text-slate-600 uppercase">Score</span>
-                                          <span className="text-base font-bold text-slate-900 tabular-nums">{Math.round(d.score)}</span>
+                            {(() => {
+                              const playsLookupSlide: Record<number, { play: string; firstStep: string }> = {
+                                1: { play: 'Tighten the leave experience end-to-end', firstStep: 'Map the leave journey and close handoff gaps between HR, benefits, and manager.' },
+                                2: { play: 'Close financial protection gaps', firstStep: 'Review insurance navigation resources and ensure employees know how to access them.' },
+                                3: { play: 'Reduce manager variance', firstStep: 'Require training, create a one-page manager playbook, and define escalation pathways.' },
+                                4: { play: 'Make cancer resources findable and trusted', firstStep: 'Audit resource visibility. Test whether a newly diagnosed employee can find support in under 5 minutes.' },
+                                5: { play: 'Make accommodations fast and consistent', firstStep: 'Standardize the process so access does not depend on individual manager discretion.' },
+                                6: { play: 'Build a culture where disclosure feels safe', firstStep: 'Train managers on response protocols and audit psychological safety signals.' },
+                                7: { play: 'Protect career trajectories through treatment', firstStep: 'Review promotion and performance review policies for treatment-period bias.' },
+                                8: { play: 'Structure the return-to-work experience', firstStep: 'Create a phased return checklist with clear manager and HR responsibilities.' },
+                                9: { play: 'Operationalize executive commitment', firstStep: 'Assign executive sponsors to cancer support initiatives with measurable goals.' },
+                                10: { play: 'Extend support to caregivers', firstStep: 'Audit caregiver-specific leave policies and resource access.' },
+                                11: { play: 'Expand prevention and early detection', firstStep: 'Review screening program participation rates and remove access barriers.' },
+                                12: { play: 'Build a feedback loop for continuous improvement', firstStep: 'Establish annual assessment cadence and track dimension-level trends.' },
+                                13: { play: 'Ensure employees know what is available', firstStep: 'Test communication reach. Survey whether employees can name 3 cancer support resources.' },
+                              };
+                              const employeeImpactSlide: Record<number, string> = {
+                                1: 'Employees can focus on treatment knowing their job and income are protected.',
+                                2: 'Employees do not delay care or make medical decisions based on cost.',
+                                3: 'Confident managers reduce escalations and create consistent employee experiences.',
+                                4: 'A newly diagnosed employee knows exactly where to start and what is available.',
+                                5: 'Employees receive accommodations quickly and consistently, regardless of manager.',
+                                6: 'Employees disclose earlier, which means support starts sooner.',
+                                7: 'Employees stay because they believe their career survives a diagnosis.',
+                                8: 'Employees return gradually and successfully instead of struggling in silence.',
+                                9: 'Employees see that leadership takes cancer support seriously, not just HR.',
+                                10: 'Caregivers can sustain their role instead of quietly burning out.',
+                                11: 'Earlier detection leads to better outcomes and less time away from work.',
+                                12: 'Support gets better each year based on what employees actually need.',
+                                13: 'Employees learn what is available when they need it, not after.',
+                              };
+                              return strategicPriorityDims.slice(0, 3).map((d, idx) => {
+                                const pg = getEmployeePriorityGroup(d.weight);
+                                const bench = d.benchmark != null ? Math.round(d.benchmark) : null;
+                                const delta = bench != null ? Math.round(d.score) - bench : null;
+                                const play = playsLookupSlide[d.dim]?.play ?? ('Build out ' + d.name);
+                                const firstStep = playsLookupSlide[d.dim]?.firstStep ?? 'Conduct a gap analysis and identify quick wins.';
+                                const whyForEmployees = employeeImpactSlide[d.dim] ?? 'Employees managing cancer would experience more consistent, reliable support.';
+                                return (
+                                  <div key={d.dim} className="relative flex gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
+                                    <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white text-sm font-bold">{idx + 1}</span>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                                        <div className="flex items-center gap-2">
+                                          <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-md text-white text-[10px] font-bold" style={{ backgroundColor: pg.color }}>
+                                            D{d.dim}
+                                          </span>
+                                          <span className="text-[15px] font-bold text-slate-900 leading-tight">{d.name}</span>
                                         </div>
-                                        {bench != null && (
-                                          <>
-                                            <span className="w-px h-4 bg-slate-300"></span>
-                                            <div className="flex items-baseline gap-1.5">
-                                              <span className="text-[10px] font-semibold text-slate-600 uppercase">Bench</span>
-                                              <span className="text-base font-bold text-slate-900 tabular-nums">{bench}</span>
-                                              {delta != null && (
-                                                <span className={`text-[10px] font-bold tabular-nums ${delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                                                  {delta >= 0 ? '+' : ''}{delta}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </>
-                                        )}
+                                        <div className="flex items-center gap-3 bg-slate-50 rounded-md px-3 py-1 border border-slate-200">
+                                          <div className="flex items-baseline gap-1.5">
+                                            <span className="text-[10px] font-semibold text-slate-600 uppercase">Score</span>
+                                            <span className="text-base font-bold text-slate-900 tabular-nums">{Math.round(d.score)}</span>
+                                          </div>
+                                          {bench != null && (
+                                            <>
+                                              <span className="w-px h-4 bg-slate-300"></span>
+                                              <div className="flex items-baseline gap-1.5">
+                                                <span className="text-[10px] font-semibold text-slate-600 uppercase">Bench</span>
+                                                <span className="text-base font-bold text-slate-900 tabular-nums">{bench}</span>
+                                                {delta != null && (
+                                                  <span className={`text-[10px] font-bold tabular-nums ${delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                                    {delta >= 0 ? '+' : ''}{delta}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </>
+                                          )}
+                                        </div>
                                       </div>
+                                      <p className="text-[12.5px] mt-2 leading-relaxed">
+                                        <strong className="text-slate-900">{play}.</strong>
+                                        <span className="text-slate-700"> {firstStep}</span>
+                                      </p>
+                                      <p className="text-[11.5px] text-slate-600 italic mt-1.5 leading-relaxed">{whyForEmployees}</p>
                                     </div>
-                                    <p className="text-[12.5px] text-slate-700 mt-2 leading-relaxed">
-                                      {d.selectionReason === 'risk'
-                                        ? 'A low score here means employees managing cancer are most likely to experience gaps today. Addressing this is a Foundation Focus priority.'
-                                        : 'High impact weight combined with headroom means targeted investment here yields system-wide improvement. A Strategic Leverage priority.'}
-                                    </p>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              });
+                            })()}
                           </div>
                         </div>
                       </div>
