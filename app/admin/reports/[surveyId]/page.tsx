@@ -3930,7 +3930,7 @@ export default function ExportReportPage() {
   };
   const totalNoteCount = Object.values(slideNotes).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
-  // Presentation deck auto-scaling: fit 1280x960 slides into the viewport.
+  // Presentation deck auto-scaling: fit 1280x1440 slides into the viewport.
   // Scroll view leaves breathing room on the sides (cap at 78% of viewport so slides are not
   // oppressive on wide monitors). Presenter view uses the full viewport and accounts for both
   // width and height so the slide fits on screen without cropping.
@@ -3943,7 +3943,7 @@ export default function ExportReportPage() {
         const toolbarReserve = 140;
         const availW = Math.max(400, vw - 48);
         const availH = Math.max(400, vh - toolbarReserve);
-        setDeckScale(Math.min(availW / 1280, availH / 960, 1));
+        setDeckScale(Math.min(availW / 1280, availH / 1440, 1));
       } else {
         // Scroll view: cap at 72% of viewport width OR a max effective slide width of 1100px,
         // whichever is smaller. Slides feel natural at report design width, not oppressive.
@@ -4043,6 +4043,21 @@ export default function ExportReportPage() {
             }
             slideContent.innerHTML = '';
             slideContent.appendChild(clone);
+            // Slide 1 ("Title & Overview"): also append the 40%/70% intro stats block so
+            // the slide has context below the title band.
+            if (sourceId === 'slide-hero-title') {
+              const stats = document.querySelector<HTMLElement>('#slide-hero-stats');
+              if (stats) {
+                const statsClone = stats.cloneNode(true) as HTMLElement;
+                statsClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                statsClone.removeAttribute('id');
+                const wrap = document.createElement('div');
+                wrap.style.padding = '40px 48px';
+                wrap.style.background = 'linear-gradient(to bottom, #f8fafc, #ffffff)';
+                wrap.appendChild(statsClone);
+                slideContent.appendChild(wrap);
+              }
+            }
           } catch (err) {
             slideContent.innerHTML = '';
             const errDiv = document.createElement('div');
@@ -4052,7 +4067,7 @@ export default function ExportReportPage() {
           }
         });
         // SCALE-TO-FIT: after all slides have their cloned content, measure each and scale
-        // down oversized content so the slide body (920px) never clips.
+        // down oversized content so the slide body (1400px) never clips.
         requestAnimationFrame(() => requestAnimationFrame(() => {
           deckHost.querySelectorAll<HTMLElement>('[data-slide-source-id]').forEach(slideContent => {
             const body = slideContent.parentElement;
@@ -5947,7 +5962,7 @@ export default function ExportReportPage() {
   '  body.presentation-print .slide-wrapper {',
   '    transform: none !important;',
   '    width: 1280px !important;',
-  '    height: 960px !important;',
+  '    height: 1440px !important;',
   '    position: static !important;',
   '    display: block !important;',
   '    top: auto !important;',
@@ -5961,12 +5976,12 @@ export default function ExportReportPage() {
   '  body.presentation-print .slide {',
   '    transform: none !important;',
   '    width: 1280px !important;',
-  '    height: 960px !important;',
+  '    height: 1440px !important;',
   '    box-shadow: none !important;',
   '    border-radius: 0 !important;',
   '    overflow: hidden !important;',
   '  }',
-  '  body.presentation-print .slide-body { overflow: hidden !important; height: 920px !important; }',
+  '  body.presentation-print .slide-body { overflow: hidden !important; height: 1400px !important; }',
   '  body.presentation-print .notes-panel, body.presentation-print .notes-tab, body.presentation-print [data-no-print] { display: none !important; }',
   '}',
   ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
@@ -6197,14 +6212,14 @@ export default function ExportReportPage() {
               {/* PDF Export */}
               <button
                 onClick={() => {
-                  // Inject an @page size rule for PDF export (1280x960 per slide). We add / remove
+                  // Inject an @page size rule for PDF export (1280x1440 per slide). We add / remove
                   // it inline because @page does not respond to class selectors.
                   const wasPresentation = presentationMode;
                   if (!wasPresentation) setPresentationMode(true);
                   document.body.classList.add('presentation-print');
                   const styleEl = document.createElement('style');
                   styleEl.id = 'presentation-print-page-rule';
-                  styleEl.textContent = '@page { size: 1280px 960px; margin: 0; }';
+                  styleEl.textContent = '@page { size: 1280px 1440px; margin: 0; }';
                   document.head.appendChild(styleEl);
                   // Give the deck time to populate clones AND run scale-to-fit before printing.
                   // 13 drill-downs + multiple cloned sections need ~1.5s on typical machines.
@@ -6220,7 +6235,7 @@ export default function ExportReportPage() {
                 }}
                 className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
-                title="Export deck as PDF (each slide on its own 1280x960 page)"
+                title="Export deck as PDF (each slide on its own 1280x1440 page)"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -6293,7 +6308,7 @@ export default function ExportReportPage() {
             {/* The Context, Why This Work Matters */}
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
-              <div className="flex items-start gap-10 mb-8">
+              <div id="slide-hero-stats" className="flex items-start gap-10 mb-8">
                 <div className="flex-shrink-0">
                   <div className="flex gap-4">
                     <div className="bg-white rounded-2xl px-6 py-5 border border-slate-200 shadow-sm text-center min-w-[120px]">
@@ -12929,7 +12944,7 @@ export default function ExportReportPage() {
               />
             )}
             
-            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1280x960 fixed, auto-scaled to viewport. */}
+            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1280x1440 fixed, auto-scaled to viewport. */}
             <div
               data-presentation-deck
               className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-10"
@@ -12948,17 +12963,18 @@ export default function ExportReportPage() {
                 const NAV_RESERVE = 48;
                 const topReserve = (editMode ? 40 : 0) + (reorderMode ? 40 : 0);
                 const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1280;
-                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 960;
-                const offsetX = isActivePresenter ? (viewportW - 1280 * deckScale) / 2 : 0;
-                const offsetY = isActivePresenter ? topReserve + (viewportH - 960 * deckScale) / 2 : 0;
+                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 1440;
+                const effectiveScale = deckScale * slideZoom / 100;
+                const offsetX = isActivePresenter ? (viewportW - 1280 * effectiveScale) / 2 : 0;
+                const offsetY = isActivePresenter ? topReserve + (viewportH - 1440 * effectiveScale) / 2 : 0;
                 return (
                 <div
                   key={`${slide.id}-${idx}`}
                   className="slide-wrapper flex-shrink-0 relative"
                   data-slide-idx={idx}
                   style={{
-                    width: isActivePresenter ? `100vw` : `${1280 * deckScale}px`,
-                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${960 * deckScale}px`,
+                    width: isActivePresenter ? `100vw` : `${1280 * effectiveScale}px`,
+                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${1440 * effectiveScale}px`,
                     display: presenterView && !isActivePresenter ? 'none' : undefined,
                     position: isActivePresenter ? 'fixed' as const : 'relative' as const,
                     top: isActivePresenter ? topReserve : undefined,
@@ -12970,10 +12986,10 @@ export default function ExportReportPage() {
                     className="slide bg-white relative"
                     style={{
                       width: '1280px',
-                      height: '960px',
+                      height: '1440px',
                       transform: isActivePresenter
-                        ? `translate(${offsetX}px, ${offsetY}px) scale(${deckScale})`
-                        : `scale(${deckScale})`,
+                        ? `translate(${offsetX}px, ${offsetY}px) scale(${effectiveScale})`
+                        : `scale(${effectiveScale})`,
                       transformOrigin: 'top left',
                       boxShadow: isActivePresenter
                         ? 'none'
@@ -12984,7 +13000,7 @@ export default function ExportReportPage() {
                   >
                     <div
                       className="slide-body"
-                      style={{ width: '100%', height: `${960 - 40}px`, padding: '16px 0', overflow: 'hidden' }}
+                      style={{ width: '100%', height: `${1440 - 40}px`, padding: '16px 0', overflow: 'hidden' }}
                     >
                       <div
                         data-slide-source-id={slide.id}
@@ -13127,14 +13143,14 @@ export default function ExportReportPage() {
                   <span>{presenterView ? 'Scroll' : 'Presenter'}</span>
                 </button>
 
-                {/* Print (each slide = one 1280x960 page) */}
+                {/* Print (each slide = one 1280x1440 page) */}
                 <button
                   onClick={() => {
                     // Force re-run of the clone/scale-to-fit effect so the deck is fresh.
                     document.body.classList.add('presentation-print');
                     const styleEl = document.createElement('style');
                     styleEl.id = 'presentation-print-page-rule';
-                    styleEl.textContent = '@page { size: 1280px 960px; margin: 0; }';
+                    styleEl.textContent = '@page { size: 1280px 1440px; margin: 0; }';
                     document.head.appendChild(styleEl);
                     setTimeout(() => {
                       window.print();
@@ -13146,7 +13162,7 @@ export default function ExportReportPage() {
                     }, 1200);
                   }}
                   className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
-                  title="Print deck (each slide on its own 1280x960 page)"
+                  title="Print deck (each slide on its own 1280x1440 page)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
