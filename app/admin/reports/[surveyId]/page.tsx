@@ -3732,6 +3732,7 @@ export default function ExportReportPage() {
   // When presentation mode is active, force every collapsed section to render fully expanded
   // so each slide in the deck shows the real live-report content. Same pattern as isPdf.
   const isPresentation = presentationMode;
+  const [deckScale, setDeckScale] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [slideZoom, setSlideZoom] = useState(100); // percentage
   const [showSlideNav, setShowSlideNav] = useState(false);
@@ -3819,7 +3820,49 @@ export default function ExportReportPage() {
     setCustomNotes(notes);
     localStorage.setItem(`presenter_notes_${company?.survey_id || 'default'}`, JSON.stringify(notes));
   };
-  
+
+  // Presentation deck auto-scaling: fit 1920px slides into the viewport width.
+  useEffect(() => {
+    if (!presentationMode) return;
+    const updateScale = () => {
+      const vw = window.innerWidth;
+      const padding = 80;
+      const available = Math.max(400, vw - padding);
+      setDeckScale(Math.min(1, available / 1920));
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [presentationMode]);
+
+  // Clone live-report sections into the slide deck. Runs after render so the main report
+  // DOM has the expanded sections available to copy. Strips ids from the clone to avoid
+  // duplicate-id warnings in the DOM.
+  useEffect(() => {
+    if (!presentationMode) return;
+    const timer = setTimeout(() => {
+      const deckHost = document.querySelector('[data-presentation-deck]');
+      if (!deckHost) return;
+      deckHost.querySelectorAll<HTMLElement>('[data-slide-source-id]').forEach(slideContent => {
+        const sourceId = slideContent.getAttribute('data-slide-source-id');
+        if (!sourceId) return;
+        // Find source in the main report (not inside the deck itself)
+        const all = document.querySelectorAll<HTMLElement>(`#${CSS.escape(sourceId)}`);
+        let source: HTMLElement | null = null;
+        all.forEach(s => {
+          if (!source && !s.closest('[data-presentation-deck]')) source = s;
+        });
+        if (!source) return;
+        const clone = source.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+        clone.removeAttribute('id');
+        slideContent.innerHTML = '';
+        slideContent.appendChild(clone);
+      });
+    }, 120);
+    return () => clearTimeout(timer);
+  }, [presentationMode, currentSlide]);
+
   // Open presenter notes in separate window
   const openPresenterNotesWindow = () => {
     if (presenterNotesWindowRef.current && !presenterNotesWindowRef.current.closed) {
@@ -5661,6 +5704,30 @@ export default function ExportReportPage() {
   '  .pdf-break-before { page-break-before: always; }',
   '  .pdf-no-break { page-break-inside: avoid; }',
   '}',
+  '@media print {',
+  '  body.presentation-print { background: white !important; }',
+  '  body.presentation-print .slide-wrapper {',
+  '    transform: none !important;',
+  '    width: 1920px !important;',
+  '    height: 1080px !important;',
+  '    page-break-after: always;',
+  '    break-after: page;',
+  '    page-break-inside: avoid;',
+  '    break-inside: avoid;',
+  '  }',
+  '  body.presentation-print .slide-wrapper:last-of-type { page-break-after: auto; break-after: auto; }',
+  '  body.presentation-print .slide {',
+  '    transform: none !important;',
+  '    width: 1920px !important;',
+  '    height: 1080px !important;',
+  '    box-shadow: none !important;',
+  '    border-radius: 0 !important;',
+  '  }',
+  '}',
+  '@page :presentation-page {',
+  '  size: 1920px 1080px;',
+  '  margin: 0;',
+  '}',
   ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
   ".polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {",
   "  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;",
@@ -5926,7 +5993,7 @@ export default function ExportReportPage() {
               </div>
               
               {/* Research Foundation */}
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div id="how-index-section" className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 bg-slate-800">
                   <p className="text-slate-300 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
                   <h4 className="font-semibold text-white text-lg">How This Index Was Developed</h4>
@@ -6135,7 +6202,7 @@ export default function ExportReportPage() {
             </div>
             
             
-            <div className="px-12 py-6 bg-white border-b border-slate-200">
+            <div id="thirteen-dimensions-section" className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
                 className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
@@ -6774,7 +6841,7 @@ export default function ExportReportPage() {
             )}
             
             {/* Executive Overview */}
-            <div className="px-12 pt-6 pb-8 bg-white">
+            <div id="executive-overview-section" className="px-12 pt-6 pb-8 bg-white">
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Overview</h3>
 
               <div data-export="executive-summary-text">
@@ -12462,17 +12529,50 @@ export default function ExportReportPage() {
               </div>
             )}
             
-            {/* Slide Content Area - centered. Slide rendering is being rebuilt (Dash-In scroll-list pattern). */}
-            <div className="flex-1 overflow-hidden flex items-center justify-center p-8">
-              <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full p-12 text-center">
-                <h2 className="text-2xl font-bold text-slate-900 mb-3">Presentation Mode is being rebuilt</h2>
-                <p className="text-slate-600 leading-relaxed mb-2">
-                  The slide deck is being replaced with a Dash-In style scroll list that renders the live report sections directly, so it stays in sync automatically.
-                </p>
-                <p className="text-slate-500 text-sm">
-                  Press <kbd className="px-2 py-0.5 bg-slate-100 border border-slate-200 rounded text-xs font-semibold">Esc</kbd> to close presentation mode.
-                </p>
-              </div>
+            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1920x1080 fixed, auto-scaled to viewport. */}
+            <div
+              data-presentation-deck
+              className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-10"
+              style={{ backgroundColor: '#CBD5E1', gap: `${Math.round(40 * deckScale)}px` }}
+            >
+              {PRESENTATION_SLIDES.map((slide, idx) => (
+                <div
+                  key={`${slide.id}-${idx}`}
+                  className="slide-wrapper flex-shrink-0 relative"
+                  data-slide-idx={idx}
+                  style={{
+                    width: `${1920 * deckScale}px`,
+                    height: `${1080 * deckScale}px`,
+                  }}
+                >
+                  <div
+                    className="slide bg-white relative"
+                    style={{
+                      width: '1920px',
+                      height: '1080px',
+                      transform: `scale(${deckScale})`,
+                      transformOrigin: 'top left',
+                      boxShadow: '0 20px 60px rgba(0,0,0,0.28), 0 8px 24px rgba(0,0,0,0.15)',
+                      borderRadius: '4px',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <div
+                      data-slide-source-id={slide.id}
+                      className="slide-body overflow-hidden"
+                      style={{ width: '100%', height: `${1080 - 54}px`, padding: '40px 60px' }}
+                    >
+                      {/* Live-report section cloned here by the DOM-clone effect. Fallback text shown if no clone. */}
+                      <div className="text-slate-400 text-sm italic">Loading {slide.label}...</div>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 h-[54px] bg-slate-900 flex items-center justify-between px-14 text-white text-sm">
+                      <span className="font-medium">{companyName || 'Company'}</span>
+                      <span className="text-slate-400 uppercase tracking-wider text-xs font-semibold">{slide.label}</span>
+                      <span className="tabular-nums">{idx + 1} / {PRESENTATION_SLIDES.length}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
             
             {/* Navigation Bar - enhanced */}
