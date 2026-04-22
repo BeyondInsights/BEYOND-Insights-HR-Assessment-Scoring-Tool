@@ -3734,6 +3734,8 @@ export default function ExportReportPage() {
   const isPresentation = presentationMode;
   const [deckScale, setDeckScale] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
+  // Presenter view: when true, only the current slide shows (fullscreen single-slide mode)
+  const [presenterView, setPresenterView] = useState(false);
   // Review notes panel (Dash-In style) for slide feedback
   const [notesPanelOpen, setNotesPanelOpen] = useState(false);
   const [reviewerName, setReviewerName] = useState('');
@@ -3881,19 +3883,28 @@ export default function ExportReportPage() {
   };
   const totalNoteCount = Object.values(slideNotes).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
-  // Presentation deck auto-scaling: fit 1920px slides into the viewport width.
+  // Presentation deck auto-scaling: fit 1920x1080 slides into the viewport.
+  // Scroll view leaves padding on the sides; presenter view uses the full viewport and accounts
+  // for both width and height so the slide fits on screen without cropping.
   useEffect(() => {
     if (!presentationMode) return;
     const updateScale = () => {
       const vw = window.innerWidth;
-      const padding = 80;
-      const available = Math.max(400, vw - padding);
-      setDeckScale(Math.min(1, available / 1920));
+      const vh = window.innerHeight;
+      if (presenterView) {
+        const toolbarReserve = 140;
+        const availW = Math.max(400, vw - 48);
+        const availH = Math.max(400, vh - toolbarReserve);
+        setDeckScale(Math.min(availW / 1920, availH / 1080, 1));
+      } else {
+        const available = Math.max(400, vw - 80);
+        setDeckScale(Math.min(1, available / 1920));
+      }
     };
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
-  }, [presentationMode]);
+  }, [presentationMode, presenterView]);
 
   // Clone live-report sections into the slide deck. Runs after render so the main report
   // DOM has the expanded sections available to copy. Strips ids from the clone to avoid
@@ -12571,7 +12582,7 @@ export default function ExportReportPage() {
         
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (
-          <div 
+          <div
             className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col"
             onMouseMove={(e) => {
               if (laserPointer) {
@@ -12580,6 +12591,21 @@ export default function ExportReportPage() {
             }}
             style={{ cursor: laserPointer ? 'none' : 'default' }}
           >
+            {/* Edit-mode banner (visible when editMode is on) */}
+            {editMode && (
+              <div className="flex-shrink-0 bg-amber-500 text-slate-900 px-6 py-2 flex items-center justify-between text-sm font-semibold">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  Edit mode is active. Report narrative edits will propagate to the live report.
+                </div>
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="px-3 py-1 bg-slate-900 text-amber-300 rounded text-xs hover:bg-slate-800"
+                >
+                  Exit edit mode
+                </button>
+              </div>
+            )}
             {/* Laser Pointer */}
             {laserPointer && (
               <div 
@@ -12599,7 +12625,11 @@ export default function ExportReportPage() {
             <div
               data-presentation-deck
               className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-10"
-              style={{ backgroundColor: '#CBD5E1', gap: `${Math.round(40 * deckScale)}px` }}
+              style={{
+                backgroundColor: presenterView ? '#0f172a' : '#CBD5E1',
+                gap: presenterView ? '0' : `${Math.round(40 * deckScale)}px`,
+                justifyContent: presenterView ? 'center' : 'flex-start',
+              }}
             >
               {PRESENTATION_SLIDES.map((slide, idx) => (
                 <div
@@ -12609,6 +12639,7 @@ export default function ExportReportPage() {
                   style={{
                     width: `${1920 * deckScale}px`,
                     height: `${1080 * deckScale}px`,
+                    display: presenterView && idx !== currentSlide ? 'none' : undefined,
                   }}
                 >
                   <div
@@ -12715,6 +12746,41 @@ export default function ExportReportPage() {
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                     <circle cx="12" cy="12" r="3" fill={laserPointer ? "currentColor" : "none"} />
                     <path strokeLinecap="round" d="M12 2v4M12 18v4M2 12h4M18 12h4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                  </svg>
+                </button>
+
+                <div className="w-px h-6 bg-slate-600 mx-2"></div>
+
+                {/* Scroll / Presenter view toggle */}
+                <button
+                  onClick={() => setPresenterView(v => !v)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${presenterView ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                  title={presenterView ? 'Switch to scroll view' : 'Switch to presenter (single slide) view'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    {presenterView ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5h16v10H4zM8 19h8" />
+                    )}
+                  </svg>
+                  <span>{presenterView ? 'Scroll' : 'Presenter'}</span>
+                </button>
+
+                {/* Print (each slide = one 1920x1080 page) */}
+                <button
+                  onClick={() => {
+                    document.body.classList.add('presentation-print');
+                    setTimeout(() => {
+                      window.print();
+                      setTimeout(() => document.body.classList.remove('presentation-print'), 300);
+                    }, 80);
+                  }}
+                  className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
+                  title="Print deck (each slide on its own 1920x1080 page)"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                 </button>
               </div>
