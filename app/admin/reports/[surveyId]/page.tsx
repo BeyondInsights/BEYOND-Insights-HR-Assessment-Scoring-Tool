@@ -7416,25 +7416,31 @@ export default function ExportReportPage() {
                                   { key: 'followup' as const, label: 'Follow-Up Questions', count: FOLLOW_UP_QUESTIONS[d.dim]?.length ?? null, show: [1, 3, 12, 13].includes(d.dim) && !!FOLLOW_UP_QUESTIONS[d.dim] },
                                 ].filter(t => t.show);
                                 return (
-                                  <div className="border-b border-slate-200 flex items-end gap-6 px-6 mb-0">
-                                    {tabs.map(t => {
-                                      const isActive = activeDimTab === t.key;
-                                      return (
-                                        <button
-                                          key={t.key}
-                                          onClick={() => setActiveDimTab(t.key)}
-                                          className={`relative pb-3 text-sm font-semibold transition-colors ${isActive ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700'}`}
-                                        >
-                                          <span className="inline-flex items-center gap-2">
-                                            {t.label}
-                                            {t.count !== null && (
-                                              <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600'}`}>{t.count}</span>
-                                            )}
-                                          </span>
-                                          {isActive && <span className="absolute bottom-0 left-0 right-0 h-[3px]" style={{ backgroundColor: '#1E3A5F' }} />}
-                                        </button>
-                                      );
-                                    })}
+                                  <div className="bg-slate-100 border-b-2 border-slate-300 px-6 pt-3">
+                                    <div className="flex items-end gap-1.5">
+                                      {tabs.map(t => {
+                                        const isActive = activeDimTab === t.key;
+                                        return (
+                                          <button
+                                            key={t.key}
+                                            onClick={() => setActiveDimTab(t.key)}
+                                            className={`relative px-4 py-2.5 text-sm font-semibold transition-all rounded-t-lg border-2 ${
+                                              isActive
+                                                ? 'bg-white text-slate-900 border-slate-300 border-b-white shadow-[0_-2px_4px_rgba(0,0,0,0.04)] z-10'
+                                                : 'bg-slate-200 text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300'
+                                            }`}
+                                            style={isActive ? { marginBottom: '-2px' } : {}}
+                                          >
+                                            <span className="inline-flex items-center gap-2">
+                                              {t.label}
+                                              {t.count !== null && (
+                                                <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-slate-900 text-white' : 'bg-slate-300 text-slate-700'}`}>{t.count}</span>
+                                              )}
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
                                 );
                               })()}
@@ -7595,9 +7601,12 @@ export default function ExportReportPage() {
             
                                 {/* Follow-Up Questions, only for D1, D3, D12, D13 */}
                                 {activeDimTab === 'followup' && [1, 3, 12, 13].includes(d.dim) && FOLLOW_UP_QUESTIONS[d.dim] && (
-                                  <div className="mx-4 mb-4 bg-blue-50 rounded-lg border border-blue-200 px-5 py-3 mt-4">
-                                    <h4 className="font-bold text-blue-800 text-sm mb-3">Follow-Up Questions</h4>
-                                    <div className="space-y-4">
+                                  <div className="mx-4 mb-4 mt-4 bg-white rounded-lg border border-slate-200 overflow-hidden">
+                                    <div className="px-5 py-3 bg-slate-50 border-b border-slate-200">
+                                      <h4 className="font-bold text-slate-800 text-sm">Follow-Up Questions</h4>
+                                      <p className="text-xs text-slate-600 mt-0.5">Your response compared to the participating-companies benchmark</p>
+                                    </div>
+                                    <div className="px-5 py-4 space-y-5">
                                       {FOLLOW_UP_QUESTIONS[d.dim].filter(fq => !fq.nonUsaOnly || !isSingleCountryCompany).map(fq => {
                                         const currentScore = (() => {
                                           if (d.dim === 1) {
@@ -7613,19 +7622,33 @@ export default function ExportReportPage() {
                                           if (d.dim === 13) return d.followUpRaw?.d13_1_score ?? null;
                                           return null;
                                         })();
+                                        const maxBench = Math.max(...fq.options.map(o => o.benchPct));
                                         return (
                                           <div key={fq.key}>
-                                            <p className="text-xs text-slate-600 mb-2 font-medium">{fq.question}</p>
-                                            <div className="space-y-1">
+                                            <p className="text-sm text-slate-800 mb-2.5 font-semibold">{fq.question}</p>
+                                            {/* Column headers */}
+                                            <div className="grid grid-cols-[1fr_auto_auto] gap-3 items-center pb-1.5 mb-1 border-b border-slate-100 px-3">
+                                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Response</span>
+                                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center" style={{ width: '64px' }}>Your Answer</span>
+                                              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center" style={{ width: '84px' }}>Benchmark</span>
+                                            </div>
+                                            <div className="space-y-0.5">
                                               {fq.options.map((opt, i) => {
                                                 const isSelected = currentScore === opt.score;
+                                                const isMostCommon = opt.benchPct === maxBench;
                                                 return (
-                                                  <div key={i} className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-sm ${isSelected ? 'bg-white border border-blue-300 font-medium text-blue-800 shadow-sm' : 'bg-white/50 text-slate-600'}`}>
-                                                    <span className="flex items-center gap-2">
-                                                      {isSelected && <svg className="w-4 h-4 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>}
-                                                      {opt.label}
+                                                  <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-3 items-center px-3 py-2 rounded-md text-sm ${isSelected ? 'bg-blue-50 border border-blue-200' : 'border border-transparent'}`}>
+                                                    <span className={`${isSelected ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>{opt.label}</span>
+                                                    <span className="text-center" style={{ width: '64px' }}>
+                                                      {isSelected ? (
+                                                        <svg className="w-5 h-5 text-blue-700 inline-block" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                      ) : (
+                                                        <span className="text-slate-300">{'–'}</span>
+                                                      )}
                                                     </span>
-                                                    <span className={`text-xs ${isSelected ? 'text-blue-700' : 'text-slate-400'}`}>{opt.benchPct}%</span>
+                                                    <span className={`text-sm tabular-nums text-center ${isMostCommon ? 'font-bold text-slate-900' : 'text-slate-600'}`} style={{ width: '84px' }}>
+                                                      {opt.benchPct}%{isMostCommon ? <span className="block text-[9px] font-semibold text-slate-500 uppercase tracking-wider leading-none">most common</span> : null}
+                                                    </span>
                                                   </div>
                                                 );
                                               })}
@@ -7633,7 +7656,7 @@ export default function ExportReportPage() {
                                           </div>
                                         );
                                       })}
-                                      {d.dim === 12 && <p className="text-xs text-slate-400 italic mt-1">Follow-up score = average of both questions.</p>}
+                                      {d.dim === 12 && <p className="text-xs text-slate-500 italic pt-2 border-t border-slate-100">Follow-up score is the average of both questions.</p>}
                                     </div>
                                   </div>
                                 )}
