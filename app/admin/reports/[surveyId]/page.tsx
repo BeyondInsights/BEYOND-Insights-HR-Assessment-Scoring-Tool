@@ -6036,7 +6036,7 @@ export default function ExportReportPage() {
               <button 
                 onClick={generateInteractiveLink}
                 disabled={generatingLink}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm disabled:opacity-50"
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs disabled:opacity-50"
               >
                 {generatingLink ? (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -6075,7 +6075,7 @@ export default function ExportReportPage() {
                   setPresenterView(false);
                   setReorderMode(true);
                 }}
-                className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #3730A3, #1E3A8A)' }}
                 title="Reorder slides"
               >
@@ -6096,7 +6096,7 @@ export default function ExportReportPage() {
                   setPresentationMode(true);
                   setNotesPanelOpen(true);
                 }}
-                className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #7C3AED, #5B21B6)' }}
                 title="Open slide review notes"
               >
@@ -6134,7 +6134,7 @@ export default function ExportReportPage() {
                     }, 400);
                   }, 600);
                 }}
-                className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
                 title="Export deck as PDF (each slide on its own 1920x1080 page)"
               >
@@ -6154,9 +6154,9 @@ export default function ExportReportPage() {
                   }
                   setShowSlideSelector(true);
                 }}
-                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
+                className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -7565,7 +7565,10 @@ export default function ExportReportPage() {
                 }).map((d, idx) => {
                   const diff = d.benchmark !== null ? d.score - d.benchmark : null;
                   const pg = getEmployeePriorityGroup(d.weight);
-                  const isOpen = isPdf || isPresentation || dimensionDetailModal === d.dim;
+                  // Force-expand only for PDF; in presentation mode keep drill-downs closed so the
+                  // dimension-performance-table section does not contain 13 simultaneous drill-downs
+                  // (which was freezing the browser on dim deep-dive slides).
+                  const isOpen = isPdf || dimensionDetailModal === d.dim;
                   // Delta pill color bands: green if >= +5, red if <= -5, grey otherwise
                   const deltaBand = diff === null ? 'none' : diff >= 5 ? 'positive' : diff <= -5 ? 'negative' : 'neutral';
                   const deltaStyles = deltaBand === 'positive' ? { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', arrow: 'M5 15l7-7 7 7' }
@@ -7641,7 +7644,7 @@ export default function ExportReportPage() {
                         </div>
                       </div>
                     </div>
-                      {(isPdf || isPresentation || dimensionDetailModal === d.dim) && (() => {
+                      {(isPdf || dimensionDetailModal === d.dim) && (() => {
                         const d = dimensionAnalysis.find(dim => dim.dim === dimensionDetailModal);
                         if (!d) return null;
                         const elemBench = elementBenchmarks[dimensionDetailModal] || {};
@@ -8944,7 +8947,7 @@ export default function ExportReportPage() {
                       ) : (
                         <div className="divide-y divide-slate-200 border-t border-b border-slate-200">
                           {dimsInTab.map(group => {
-                            const isOpen = (isPdf || isPresentation || reportSummaryExpandedDim === group.dim);
+                            const isOpen = (isPdf || reportSummaryExpandedDim === group.dim);
                             const groupPg = getEmployeePriorityGroup(group.weight);
                             return (
                               <div key={group.dim}>
@@ -12857,8 +12860,8 @@ export default function ExportReportPage() {
                   >
                     <div
                       data-slide-source-id={slide.id}
-                      className="slide-body overflow-hidden"
-                      style={{ width: '100%', height: `${1080 - 54}px`, padding: '40px 60px' }}
+                      className="slide-body"
+                      style={{ width: '100%', height: `${1080 - 54}px`, padding: '30px 48px', overflow: 'auto' }}
                     >
                       {/* Live-report section cloned here by the DOM-clone effect. Fallback text shown if no clone. */}
                       <div className="text-slate-400 text-sm italic">Loading {slide.label}...</div>
