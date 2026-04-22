@@ -6202,7 +6202,7 @@ export default function ExportReportPage() {
               {showLevelsOverview && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
-                    Each of the {totalElementCount} self-reported program elements is classified into one of three levels: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three levels of workplace support: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
                   </p>
 
 
@@ -6242,7 +6242,7 @@ export default function ExportReportPage() {
                               </div>
                               <div>
                                 <h4 className="font-bold text-sm" style={{ color: L.color }}>{L.name}</h4>
-                                <span className="text-[11px] text-slate-600 font-medium">{count} Elements ({pct}%){avgPeerPct !== null ? ` · offered by ${avgPeerPct}% of participants` : ''}</span>
+                                <span className="text-[11px] text-slate-600 font-medium">{count} Elements ({pct}%){avgPeerPct !== null ? ` · offered by ${avgPeerPct}% of participating companies` : ''}</span>
                               </div>
                             </div>
                             <div className="flex-1">
@@ -6258,6 +6258,11 @@ export default function ExportReportPage() {
                           </div>
                           {isExp && (
                             <div className="px-4 py-3" style={{ borderTop: `1px solid ${L.border}`, backgroundColor: 'white' }}>
+                              <div className="flex items-center gap-2 pb-2 mb-1.5 border-b border-slate-100">
+                                <div className="w-5 flex-shrink-0"></div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-1">Dimension</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 text-right" style={{ width: '88px' }}>Elements in this level</span>
+                              </div>
                               <div className="space-y-1.5">
                                 {Object.entries(dimCounts).sort(([,a],[,b]) => b.count - a.count).map(([dStr, cnt]) => {
                                   const d = parseInt(dStr);
@@ -6266,8 +6271,10 @@ export default function ExportReportPage() {
                                     <div key={d} className="flex items-center gap-2">
                                       <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: '#475569', fontSize: 9 }}>{d}</div>
                                       <span className="text-xs text-slate-600 flex-1 truncate" style={{ minWidth: 0 }}>{dimInfo?.name || `Dimension ${d}`}</span>
-                                      <span className="text-xs font-bold flex-shrink-0 w-10 text-right" style={{ color: L.color }}>{cnt.count}</span>
-                                      <span className="text-xs text-slate-500 flex-shrink-0">of {cnt.total}</span>
+                                      <span className="text-xs tabular-nums flex-shrink-0 text-right" style={{ width: '88px' }}>
+                                        <span className="font-bold" style={{ color: L.color }}>{cnt.count}</span>
+                                        <span className="text-slate-500"> of {cnt.total}</span>
+                                      </span>
                                     </div>
                                   );
                                 })}
@@ -6293,7 +6300,7 @@ export default function ExportReportPage() {
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
                   </div>
                   <div className="text-left">
-                    <span className="text-base font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Report Sections and What They Measure</span>
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Report Sections and What They Measure</span>
                   </div>
                 </div>
                 <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
@@ -11879,7 +11886,7 @@ export default function ExportReportPage() {
 
               {/* 30-minute call scheduling */}
               <p className="text-slate-700 text-base leading-relaxed mb-8">
-                CAC will schedule a 30-minute call to review your report and identify the improvement priorities with the greatest impact on supporting your employees managing cancer and other serious health issues.
+                CAC will schedule a 30-minute call to review your report, identify the improvement priorities with the greatest impact on supporting your employees managing cancer and other serious health issues, and provide strategic recommendations.
               </p>
 
               {editMode && <p className="text-sm text-amber-700 mb-4">(editable below)</p>}
