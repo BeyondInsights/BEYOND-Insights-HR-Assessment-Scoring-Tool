@@ -27,6 +27,7 @@ import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { calculateElementWeightedDimScore } from '@/lib/wsi-scoring';
+import { normalizeCompanyName } from '@/lib/founding-partners';
 import Link from 'next/link';
 
 // ============================================
@@ -547,7 +548,7 @@ function calculateCompanyScores(
   ) : 0;
   
   return {
-    companyName: (assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co '),
+    companyName: normalizeCompanyName((assessment.company_name || 'Unknown').replace('Panel Company ', 'Panel Co ')),
     surveyId: assessment.app_id || assessment.survey_id || 'N/A',
     dimensions, unweightedScore, weightedScore, insufficientDataCount,
     isProvisional, isComplete, isFoundingPartner, isPanel,

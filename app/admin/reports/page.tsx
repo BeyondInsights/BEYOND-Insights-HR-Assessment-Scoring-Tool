@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase/client'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import { generateCompleteReport } from '@/lib/report-generator'
+import { normalizeCompanyName } from '@/lib/founding-partners'
 
 interface Assessment {
   survey_id: string
@@ -76,8 +77,9 @@ export default function AdminReportsPage() {
     // Search filter
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase()
-      filtered = filtered.filter(a => 
+      filtered = filtered.filter(a =>
         a.company_name?.toLowerCase().includes(term) ||
+        normalizeCompanyName(a.company_name).toLowerCase().includes(term) ||
         a.survey_id?.toLowerCase().includes(term) ||
         a.email?.toLowerCase().includes(term)
       )
@@ -108,7 +110,7 @@ export default function AdminReportsPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${selectedAssessment.company_name.replace(/[^a-z0-9]/gi, '_')}_Dimension_Report.${format}`
+    a.download = `${normalizeCompanyName(selectedAssessment.company_name).replace(/[^a-z0-9]/gi, '_')}_Dimension_Report.${format}`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -127,7 +129,7 @@ export default function AdminReportsPage() {
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
         a.href = url
-        a.download = `${assessment.company_name.replace(/[^a-z0-9]/gi, '_')}_Dimension_Report.md`
+        a.download = `${normalizeCompanyName(assessment.company_name).replace(/[^a-z0-9]/gi, '_')}_Dimension_Report.md`
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
@@ -279,7 +281,7 @@ export default function AdminReportsPage() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="font-semibold text-gray-900">
-                              {assessment.company_name}
+                              {normalizeCompanyName(assessment.company_name)}
                             </div>
                             <div className="text-sm text-gray-500 mt-1">
                               {assessment.survey_id}
@@ -316,7 +318,7 @@ export default function AdminReportsPage() {
                   <div className="flex items-center justify-between mb-2">
                     <div>
                       <h2 className="text-xl font-bold text-gray-900">
-                        {selectedAssessment.company_name}
+                        {normalizeCompanyName(selectedAssessment.company_name)}
                         {selectedAssessment.survey_id?.startsWith('FP-HR-') && (
                           <span className="ml-3 px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded">
                             Founding Partner
