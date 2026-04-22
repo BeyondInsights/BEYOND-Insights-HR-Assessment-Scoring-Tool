@@ -3734,6 +3734,11 @@ export default function ExportReportPage() {
   const isPresentation = presentationMode;
   const [deckScale, setDeckScale] = useState(1);
   const [currentSlide, setCurrentSlide] = useState(0);
+  // Review notes panel (Dash-In style) for slide feedback
+  const [notesPanelOpen, setNotesPanelOpen] = useState(false);
+  const [reviewerName, setReviewerName] = useState('');
+  const [slideNotes, setSlideNotes] = useState<Record<number, Array<{ id: string; name: string; text: string; ts: number }>>>({});
+  const [noteInput, setNoteInput] = useState('');
   const [slideZoom, setSlideZoom] = useState(100); // percentage
   const [showSlideNav, setShowSlideNav] = useState(false);
   const [showJumpTo, setShowJumpTo] = useState(false);
@@ -3820,6 +3825,61 @@ export default function ExportReportPage() {
     setCustomNotes(notes);
     localStorage.setItem(`presenter_notes_${company?.survey_id || 'default'}`, JSON.stringify(notes));
   };
+
+  // Load persisted review notes and reviewer name on mount
+  useEffect(() => {
+    const surveyKey = company?.survey_id || 'default';
+    try {
+      const name = localStorage.getItem('cac-reviewer-name');
+      if (name) setReviewerName(name);
+      const notesRaw = localStorage.getItem(`cac-deck-notes-${surveyKey}`);
+      if (notesRaw) setSlideNotes(JSON.parse(notesRaw));
+    } catch {}
+  }, [company?.survey_id]);
+
+  // Persist notes and reviewer name whenever they change
+  useEffect(() => {
+    const surveyKey = company?.survey_id || 'default';
+    try { localStorage.setItem(`cac-deck-notes-${surveyKey}`, JSON.stringify(slideNotes)); } catch {}
+  }, [slideNotes, company?.survey_id]);
+  useEffect(() => {
+    try { localStorage.setItem('cac-reviewer-name', reviewerName); } catch {}
+  }, [reviewerName]);
+
+  // Note actions
+  const addNote = () => {
+    const text = noteInput.trim();
+    if (!text) return;
+    const name = (reviewerName || 'Anonymous').trim();
+    const note = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, text, ts: Date.now() };
+    setSlideNotes(prev => ({ ...prev, [currentSlide]: [...(prev[currentSlide] || []), note] }));
+    setNoteInput('');
+  };
+  const clearSlideNotes = () => {
+    if (!confirm('Clear all notes for this slide?')) return;
+    setSlideNotes(prev => { const next = { ...prev }; delete next[currentSlide]; return next; });
+  };
+  const emailAllNotes = () => {
+    const lines: string[] = [];
+    lines.push(`Report Review Notes for ${companyName || 'Company'}`);
+    lines.push(`Reviewer: ${(reviewerName || 'Anonymous').trim()}`);
+    lines.push(`Generated: ${new Date().toLocaleString()}`);
+    lines.push('');
+    PRESENTATION_SLIDES.forEach((slide, idx) => {
+      const notes = slideNotes[idx];
+      if (!notes || notes.length === 0) return;
+      lines.push(`Slide ${idx + 1}: ${slide.label}`);
+      notes.forEach(n => {
+        const when = new Date(n.ts).toLocaleString();
+        lines.push(`  - [${n.name}, ${when}] ${n.text}`);
+      });
+      lines.push('');
+    });
+    const subject = `Report review notes: ${companyName || 'Company'}`;
+    const body = lines.join('\n');
+    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+  const totalNoteCount = Object.values(slideNotes).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
   // Presentation deck auto-scaling: fit 1920px slides into the viewport width.
   useEffect(() => {
@@ -4838,7 +4898,11 @@ export default function ExportReportPage() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!presentationMode) return;
-      
+      // Ignore shortcuts while the user is typing in an input/textarea (e.g. the notes panel)
+      const target = e.target as HTMLElement | null;
+      const isTyping = target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if (isTyping && e.key !== 'Escape') return;
+
       if (e.key === 'Escape') {
         if (showSlideNav) {
           setShowSlideNav(false);
@@ -4886,6 +4950,8 @@ export default function ExportReportPage() {
         }
       } else if (e.key === 'l' || e.key === 'L') {
         setLaserPointer(prev => !prev);
+      } else if (e.key === 'c' || e.key === 'C') {
+        setNotesPanelOpen(prev => !prev);
       }
     };
     
@@ -12842,7 +12908,15 @@ export default function ExportReportPage() {
                       <div className="flex gap-1 justify-center">
                         <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">L</kbd>
                       </div>
-                      
+
+                      <span className="text-slate-600">Review notes panel</span>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">C</kbd>
+                      </div>
+                      <div className="flex gap-1 justify-center">
+                        <kbd className="px-1.5 py-0.5 bg-blue-50 rounded text-blue-700 font-mono text-xs">C</kbd>
+                      </div>
+
                       <span className="text-slate-600">Exit presentation</span>
                       <div className="flex gap-1 justify-center">
                         <kbd className="px-1.5 py-0.5 bg-slate-100 rounded text-slate-700 font-mono text-xs">Esc</kbd>
@@ -12969,6 +13043,106 @@ export default function ExportReportPage() {
               </div>
             )}
             
+            {/* Notes Tab (right edge, vertical label) */}
+            <button
+              onClick={() => setNotesPanelOpen(v => !v)}
+              className="fixed top-1/2 right-0 -translate-y-1/2 z-[10001] bg-slate-700 hover:bg-slate-800 text-white px-2.5 py-4 rounded-l-lg shadow-lg transition-colors"
+              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', fontFamily: 'sans-serif', letterSpacing: '0.1em', fontSize: '13px', fontWeight: 700, textTransform: 'uppercase' }}
+              title="Review notes (N)"
+            >
+              Notes
+              {totalNoteCount > 0 && (
+                <span
+                  className="ml-2 inline-block bg-amber-400 text-slate-900 rounded-full px-1.5 py-0 text-xs font-bold"
+                  style={{ writingMode: 'horizontal-tb' }}
+                >
+                  {totalNoteCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notes Panel */}
+            <div
+              className="fixed top-0 bottom-0 z-[10002] bg-white flex flex-col shadow-2xl transition-all duration-300"
+              style={{
+                right: notesPanelOpen ? '0' : '-440px',
+                width: '420px',
+                fontFamily: 'sans-serif',
+              }}
+            >
+              <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between flex-shrink-0">
+                <h3 className="text-base font-bold">Slide Notes</h3>
+                <div className="flex items-center gap-2">
+                  <button onClick={clearSlideNotes} className="px-3 py-1.5 text-xs font-semibold bg-white/10 hover:bg-white/20 border border-white/20 rounded">Clear Slide</button>
+                  <button onClick={emailAllNotes} className="px-3 py-1.5 text-xs font-semibold bg-[#7C3AED] hover:bg-[#5B21B6] rounded">Email All Notes</button>
+                  <button onClick={() => setNotesPanelOpen(false)} className="w-7 h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded" title="Close">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div className="px-5 py-3 border-b border-slate-200 flex items-center gap-3 flex-shrink-0">
+                <label className="text-sm text-slate-600 font-medium whitespace-nowrap">Your name:</label>
+                <input
+                  type="text"
+                  value={reviewerName}
+                  onChange={(e) => setReviewerName(e.target.value)}
+                  placeholder="e.g. Andy"
+                  className="flex-1 px-3 py-1.5 border border-slate-300 rounded text-sm focus:outline-none focus:border-slate-500"
+                />
+              </div>
+              <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between flex-shrink-0 bg-slate-50">
+                <div className="text-sm text-slate-700">
+                  <span className="font-semibold">Slide {currentSlide + 1} / {PRESENTATION_SLIDES.length}</span>
+                  <span className="text-slate-400 mx-2">|</span>
+                  <span className="text-slate-600">{PRESENTATION_SLIDES[currentSlide]?.label ?? ''}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => setCurrentSlide(i => Math.max(0, i - 1))} className="w-7 h-7 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-700" title="Previous slide">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                  </button>
+                  <button onClick={() => setCurrentSlide(i => Math.min(PRESENTATION_SLIDES.length - 1, i + 1))} className="w-7 h-7 flex items-center justify-center bg-slate-200 hover:bg-slate-300 rounded text-slate-700" title="Next slide">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                {(slideNotes[currentSlide] || []).length === 0 ? (
+                  <div className="text-center text-slate-400 text-sm italic py-8">No notes for this slide yet.</div>
+                ) : (
+                  <div className="space-y-3">
+                    {(slideNotes[currentSlide] || []).map(n => (
+                      <div key={n.id} className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
+                        <div className="flex items-baseline justify-between mb-1">
+                          <span className="text-xs font-bold text-slate-900">{n.name}</span>
+                          <span className="text-[11px] text-slate-500">{new Date(n.ts).toLocaleString()}</span>
+                        </div>
+                        <p className="text-sm text-slate-700 leading-relaxed">{n.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="px-5 py-3 border-t border-slate-200 flex-shrink-0 bg-slate-50">
+                <textarea
+                  value={noteInput}
+                  onChange={(e) => setNoteInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); addNote(); }
+                  }}
+                  placeholder="Add a note for this slide... (Cmd/Ctrl+Enter to submit)"
+                  rows={3}
+                  className="w-full px-3 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:border-slate-500 resize-none"
+                />
+                <button
+                  onClick={addNote}
+                  disabled={!noteInput.trim()}
+                  className="mt-2 w-full py-2 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded font-semibold text-sm transition-colors"
+                >
+                  Add Note
+                </button>
+              </div>
+            </div>
+
             {/* Slide Navigator Modal */}
             {showSlideNav && (
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowSlideNav(false)}>
@@ -12980,40 +13154,21 @@ export default function ExportReportPage() {
                     </button>
                   </div>
                   <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-[60vh] pr-2">
-                    {Array.from({ length: totalSlides }, (_, i) => (
+                    {PRESENTATION_SLIDES.map((slide, i) => (
                       <button
                         key={i}
-                        onClick={() => { setCurrentSlide(i); setShowSlideNav(false); }}
+                        onClick={() => {
+                          setCurrentSlide(i);
+                          setShowSlideNav(false);
+                          // Scroll the deck to the selected slide
+                          const deckHost = document.querySelector('[data-presentation-deck]');
+                          const target = deckHost?.querySelector(`[data-slide-idx="${i}"]`) as HTMLElement | null;
+                          if (target && deckHost) (target as any).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
                         className={`p-3 rounded-lg text-left transition-colors ${currentSlide === i ? 'bg-violet-100 border-2 border-violet-500' : 'bg-slate-50 hover:bg-slate-100 border-2 border-transparent'}`}
                       >
                         <div className="text-xs font-bold text-slate-800 mb-1">Slide {i + 1}</div>
-                        <div className="text-[10px] text-slate-500 leading-tight truncate">
-                          {i === 0 ? 'Title & Overview' :
-                           i === 1 ? 'How Index Was Developed' :
-                           i === 2 ? 'Understanding Your Composite Score' :
-                           i === 3 ? 'The 13 Dimensions' :
-                           i === 4 ? 'Executive Overview' :
-                           i === 5 ? 'Dimension Performance' :
-                           i >= 6 && i <= 18 ? `D${i - 5} Deep Dive` :
-                           i === 19 ? 'Cross-Dimensional Insights' :
-                           i === 20 ? 'Interactive Performance Matrix' :
-                           i === 21 ? 'Report Summary: Areas of Strength' :
-                           i === 22 ? 'Report Summary: Initiatives in Progress' :
-                           i === 23 ? 'Report Summary: Opportunities to Grow' :
-                           i === 24 ? 'Report Summary: Unsure' :
-                           i === 25 ? 'Your Support in Context' :
-                           i === 26 ? 'Your Improvement Priorities' :
-                           i === 27 ? 'Strategic Recommendations' :
-                           i >= 28 && i <= 32 ? `Recommendation ${i - 27}` :
-                           i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
-                           i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
-                           i === 34 + additionalAnalyzedDims.length ? 'What-If Scenarios' :
-                           i === 35 + additionalAnalyzedDims.length ? 'Summary and Next Steps' :
-                           i === 36 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
-                           i === 37 + additionalAnalyzedDims.length ? 'Thank You' :
-                           i === 38 + additionalAnalyzedDims.length ? 'Methodology' :
-                           `Slide ${i + 1}`}
-                        </div>
+                        <div className="text-[10px] text-slate-500 leading-tight truncate">{slide.label}</div>
                       </button>
                     ))}
                   </div>
