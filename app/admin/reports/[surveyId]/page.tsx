@@ -3628,7 +3628,8 @@ export default function ExportReportPage() {
   const PRESENTATION_SLIDES: Array<{
     id: string;
     label: string;
-    kind?: 'section';
+    kind?: 'section' | 'dim';
+    dimNum?: number;
   }> = [
     { id: 'report-hero-section', label: 'Title & Overview' },
     { id: 'how-index-section', label: 'How This Index Was Developed' },
@@ -3636,6 +3637,14 @@ export default function ExportReportPage() {
     { id: 'thirteen-dimensions-section', label: 'The 13 Dimensions of Workplace Support' },
     { id: 'executive-overview-section', label: 'Executive Overview' },
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most' },
+    // Per-dimension deep-dive slides. Each clones the matching [data-dim-num] row from the main
+    // Dim Performance section via the DOM-clone effect.
+    ...Array.from({ length: 13 }, (_, i) => ({
+      id: 'dimension-performance-table',
+      label: `D${i + 1} Deep Dive`,
+      kind: 'dim' as const,
+      dimNum: i + 1,
+    })),
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix' },
     { id: 'report-summary', label: 'Report Summary' },
@@ -3920,7 +3929,7 @@ export default function ExportReportPage() {
   };
   const totalNoteCount = Object.values(slideNotes).reduce((sum, arr) => sum + (arr?.length || 0), 0);
 
-  // Presentation deck auto-scaling: fit 1920x1080 slides into the viewport.
+  // Presentation deck auto-scaling: fit 1280x720 slides into the viewport.
   // Scroll view leaves breathing room on the sides (cap at 78% of viewport so slides are not
   // oppressive on wide monitors). Presenter view uses the full viewport and accounts for both
   // width and height so the slide fits on screen without cropping.
@@ -3933,12 +3942,12 @@ export default function ExportReportPage() {
         const toolbarReserve = 140;
         const availW = Math.max(400, vw - 48);
         const availH = Math.max(400, vh - toolbarReserve);
-        setDeckScale(Math.min(availW / 1920, availH / 1080, 1));
+        setDeckScale(Math.min(availW / 1280, availH / 720, 1));
       } else {
-        // Scroll view: cap at 78% of viewport width OR a max effective slide width of 1520px,
-        // whichever is smaller. Leaves generous breathing room on large monitors.
-        const targetWidth = Math.min(1520, vw * 0.78);
-        setDeckScale(Math.min(1, targetWidth / 1920));
+        // Scroll view: cap at 72% of viewport width OR a max effective slide width of 1100px,
+        // whichever is smaller. Slides feel natural at report design width, not oppressive.
+        const targetWidth = Math.min(1100, vw * 0.72);
+        setDeckScale(Math.min(1, targetWidth / 1280));
       }
     };
     updateScale();
@@ -3958,19 +3967,46 @@ export default function ExportReportPage() {
       try {
         const deckHost = document.querySelector('[data-presentation-deck]');
         if (!deckHost) return;
-        const seen = new Set<string>();
         deckHost.querySelectorAll<HTMLElement>('[data-slide-source-id]').forEach(slideContent => {
           const sourceId = slideContent.getAttribute('data-slide-source-id');
+          const slideKind = slideContent.getAttribute('data-slide-kind');
+          const dimNumAttr = slideContent.getAttribute('data-slide-dim-num');
+          const dimNum = dimNumAttr ? parseInt(dimNumAttr, 10) : null;
           if (!sourceId) return;
-          if (seen.has(sourceId)) {
-            slideContent.innerHTML = '';
-            const placeholder = document.createElement('div');
-            placeholder.className = 'flex items-center justify-center h-full text-slate-500 text-base';
-            placeholder.textContent = 'See preceding slide for the full section. This slide is a focused view.';
-            slideContent.appendChild(placeholder);
+          // DIMENSION DEEP-DIVE SLIDE: find the matching [data-dim-num] card inside the Dim
+          // Performance section and clone only that.
+          if (slideKind === 'dim' && dimNum) {
+            try {
+              const source = document.querySelector<HTMLElement>(`[data-dim-num="${dimNum}"]`);
+              if (!source) {
+                slideContent.innerHTML = '';
+                const missing = document.createElement('div');
+                missing.className = 'flex items-center justify-center h-full text-slate-400 text-sm italic';
+                missing.textContent = `Dimension ${dimNum} card not found.`;
+                slideContent.appendChild(missing);
+                return;
+              }
+              const clone = source.cloneNode(true) as HTMLElement;
+              clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+              clone.removeAttribute('id');
+              // Remove click handlers by clearing onclick (clone does not carry React handlers anyway).
+              clone.style.cursor = 'default';
+              slideContent.innerHTML = '';
+              const header = document.createElement('div');
+              header.className = 'mb-4';
+              header.innerHTML = `<h2 style="font-size:24px;font-weight:700;color:#0f172a;margin:0 0 4px;">Dimension ${dimNum} Deep Dive</h2><p style="font-size:14px;color:#475569;margin:0;">Element-level detail for this dimension. See the full scorecard in the live report.</p>`;
+              slideContent.appendChild(header);
+              slideContent.appendChild(clone);
+            } catch (err) {
+              slideContent.innerHTML = '';
+              const errDiv = document.createElement('div');
+              errDiv.className = 'flex items-center justify-center h-full text-rose-600 text-sm';
+              errDiv.textContent = `Could not render D${dimNum} (${String(err)}).`;
+              slideContent.appendChild(errDiv);
+            }
             return;
           }
-          seen.add(sourceId);
+          // SECTION SLIDE: clone the section by id from the main report.
           let source: HTMLElement | null = null;
           try {
             const all = document.querySelectorAll<HTMLElement>(`#${CSS.escape(sourceId)}`);
@@ -5855,11 +5891,36 @@ export default function ExportReportPage() {
   '  .pdf-no-break { page-break-inside: avoid; }',
   '}',
   '@media print {',
-  '  body.presentation-print { background: white !important; }',
+  '  body.presentation-print { background: white !important; margin: 0 !important; padding: 0 !important; }',
+  '  body.presentation-print > *:not([data-presentation-root]) { display: none !important; }',
+  '  body.presentation-print [data-presentation-root] {',
+  '    position: static !important;',
+  '    inset: auto !important;',
+  '    z-index: auto !important;',
+  '    background: white !important;',
+  '    display: block !important;',
+  '    height: auto !important;',
+  '    overflow: visible !important;',
+  '  }',
+  '  body.presentation-print [data-presentation-root] > *:not([data-presentation-deck]) { display: none !important; }',
+  '  body.presentation-print [data-presentation-deck] {',
+  '    position: static !important;',
+  '    display: block !important;',
+  '    background: white !important;',
+  '    padding: 0 !important;',
+  '    margin: 0 !important;',
+  '    overflow: visible !important;',
+  '    gap: 0 !important;',
+  '    height: auto !important;',
+  '  }',
   '  body.presentation-print .slide-wrapper {',
   '    transform: none !important;',
-  '    width: 1920px !important;',
-  '    height: 1080px !important;',
+  '    width: 1280px !important;',
+  '    height: 720px !important;',
+  '    position: static !important;',
+  '    display: block !important;',
+  '    top: auto !important;',
+  '    left: auto !important;',
   '    page-break-after: always;',
   '    break-after: page;',
   '    page-break-inside: avoid;',
@@ -5868,15 +5929,14 @@ export default function ExportReportPage() {
   '  body.presentation-print .slide-wrapper:last-of-type { page-break-after: auto; break-after: auto; }',
   '  body.presentation-print .slide {',
   '    transform: none !important;',
-  '    width: 1920px !important;',
-  '    height: 1080px !important;',
+  '    width: 1280px !important;',
+  '    height: 720px !important;',
   '    box-shadow: none !important;',
   '    border-radius: 0 !important;',
+  '    overflow: hidden !important;',
   '  }',
-  '}',
-  '@page :presentation-page {',
-  '  size: 1920px 1080px;',
-  '  margin: 0;',
+  '  body.presentation-print .slide-body { overflow: hidden !important; height: 680px !important; }',
+  '  body.presentation-print .notes-panel, body.presentation-print .notes-tab, body.presentation-print [data-no-print] { display: none !important; }',
   '}',
   ".polished-report { font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }",
   ".polished-report h1, .polished-report h2, .polished-report h3, .polished-report h4 {",
@@ -6106,14 +6166,14 @@ export default function ExportReportPage() {
               {/* PDF Export */}
               <button
                 onClick={() => {
-                  // Inject an @page size rule for PDF export (1920x1080 per slide). We add / remove
+                  // Inject an @page size rule for PDF export (1280x720 per slide). We add / remove
                   // it inline because @page does not respond to class selectors.
                   const wasPresentation = presentationMode;
                   if (!wasPresentation) setPresentationMode(true);
                   document.body.classList.add('presentation-print');
                   const styleEl = document.createElement('style');
                   styleEl.id = 'presentation-print-page-rule';
-                  styleEl.textContent = '@page { size: 1920px 1080px; margin: 0; }';
+                  styleEl.textContent = '@page { size: 1280px 720px; margin: 0; }';
                   document.head.appendChild(styleEl);
                   // Give the deck time to populate clones before printing
                   setTimeout(() => {
@@ -6128,7 +6188,7 @@ export default function ExportReportPage() {
                 }}
                 className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
-                title="Export deck as PDF (each slide on its own 1920x1080 page)"
+                title="Export deck as PDF (each slide on its own 1280x720 page)"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -7568,6 +7628,8 @@ export default function ExportReportPage() {
                     : { bg: 'bg-slate-100', text: 'text-slate-600', border: 'border-slate-200', arrow: 'M5 12h14' };
                   return (<Fragment key={d.dim}>
                     <div
+                      data-dim-num={d.dim}
+                      data-dim-name={d.name}
                       onClick={() => {
                         if (isOpen) {
                           setDimensionDetailModal(null);
@@ -12740,6 +12802,7 @@ export default function ExportReportPage() {
         {/* ============ PRESENTATION MODE OVERLAY ============ */}
         {presentationMode && (
           <div
+            data-presentation-root
             className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col"
             onMouseMove={(e) => {
               if (!laserPointer) return;
@@ -12797,7 +12860,7 @@ export default function ExportReportPage() {
               </div>
             )}
             
-            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1920x1080 fixed, auto-scaled to viewport. */}
+            {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1280x720 fixed, auto-scaled to viewport. */}
             <div
               data-presentation-deck
               className="flex-1 overflow-y-auto overflow-x-hidden flex flex-col items-center py-10"
@@ -12815,18 +12878,18 @@ export default function ExportReportPage() {
                 // Reserve space for any active top banners (edit / reorder) + the bottom nav bar (~48px).
                 const NAV_RESERVE = 48;
                 const topReserve = (editMode ? 40 : 0) + (reorderMode ? 40 : 0);
-                const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1920;
-                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 1080;
-                const offsetX = isActivePresenter ? (viewportW - 1920 * deckScale) / 2 : 0;
-                const offsetY = isActivePresenter ? topReserve + (viewportH - 1080 * deckScale) / 2 : 0;
+                const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1280;
+                const viewportH = typeof window !== 'undefined' ? Math.max(400, window.innerHeight - NAV_RESERVE - topReserve) : 720;
+                const offsetX = isActivePresenter ? (viewportW - 1280 * deckScale) / 2 : 0;
+                const offsetY = isActivePresenter ? topReserve + (viewportH - 720 * deckScale) / 2 : 0;
                 return (
                 <div
                   key={`${slide.id}-${idx}`}
                   className="slide-wrapper flex-shrink-0 relative"
                   data-slide-idx={idx}
                   style={{
-                    width: isActivePresenter ? `100vw` : `${1920 * deckScale}px`,
-                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${1080 * deckScale}px`,
+                    width: isActivePresenter ? `100vw` : `${1280 * deckScale}px`,
+                    height: isActivePresenter ? `calc(100vh - ${NAV_RESERVE + topReserve}px)` : `${720 * deckScale}px`,
                     display: presenterView && !isActivePresenter ? 'none' : undefined,
                     position: isActivePresenter ? 'fixed' as const : 'relative' as const,
                     top: isActivePresenter ? topReserve : undefined,
@@ -12837,8 +12900,8 @@ export default function ExportReportPage() {
                   <div
                     className="slide bg-white relative"
                     style={{
-                      width: '1920px',
-                      height: '1080px',
+                      width: '1280px',
+                      height: '720px',
                       transform: isActivePresenter
                         ? `translate(${offsetX}px, ${offsetY}px) scale(${deckScale})`
                         : `scale(${deckScale})`,
@@ -12851,14 +12914,20 @@ export default function ExportReportPage() {
                     }}
                   >
                     <div
-                      data-slide-source-id={slide.id}
                       className="slide-body"
-                      style={{ width: '100%', height: `${1080 - 54}px`, padding: '30px 48px', overflow: 'auto' }}
+                      style={{ width: '100%', height: `${720 - 40}px`, padding: '16px 0', overflow: 'auto' }}
                     >
-                      {/* Live-report section cloned here by the DOM-clone effect. Fallback text shown if no clone. */}
-                      <div className="text-slate-400 text-sm italic">Loading {slide.label}...</div>
+                      <div
+                        data-slide-source-id={slide.id}
+                        data-slide-dim-num={slide.dimNum ?? ''}
+                        data-slide-kind={slide.kind ?? 'section'}
+                        style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}
+                      >
+                        {/* Live-report section cloned here by the DOM-clone effect. Fallback text shown if no clone. */}
+                        <div className="text-slate-400 text-sm italic">Loading {slide.label}...</div>
+                      </div>
                     </div>
-                    <div className="absolute bottom-0 left-0 right-0 h-[54px] bg-slate-900 flex items-center justify-between px-14 text-white text-sm">
+                    <div className="absolute bottom-0 left-0 right-0 h-[40px] bg-slate-900 flex items-center justify-between px-14 text-white text-sm">
                       <span className="font-medium">{companyName || 'Company'}</span>
                       <span className="text-slate-400 uppercase tracking-wider text-xs font-semibold">{slide.label}</span>
                       <span className="tabular-nums">{idx + 1} / {PRESENTATION_SLIDES.length}</span>
@@ -12989,13 +13058,13 @@ export default function ExportReportPage() {
                   <span>{presenterView ? 'Scroll' : 'Presenter'}</span>
                 </button>
 
-                {/* Print (each slide = one 1920x1080 page) */}
+                {/* Print (each slide = one 1280x720 page) */}
                 <button
                   onClick={() => {
                     document.body.classList.add('presentation-print');
                     const styleEl = document.createElement('style');
                     styleEl.id = 'presentation-print-page-rule';
-                    styleEl.textContent = '@page { size: 1920px 1080px; margin: 0; }';
+                    styleEl.textContent = '@page { size: 1280px 720px; margin: 0; }';
                     document.head.appendChild(styleEl);
                     setTimeout(() => {
                       window.print();
@@ -13007,7 +13076,7 @@ export default function ExportReportPage() {
                     }, 80);
                   }}
                   className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
-                  title="Print deck (each slide on its own 1920x1080 page)"
+                  title="Print deck (each slide on its own 1280x720 page)"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
