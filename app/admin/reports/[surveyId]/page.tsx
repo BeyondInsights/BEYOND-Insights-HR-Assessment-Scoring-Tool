@@ -4412,15 +4412,16 @@ export default function ExportReportPage() {
           .or(`survey_id.eq.${surveyId},survey_id.eq.${normalizedId},survey_id.eq.${fpFormat},app_id.eq.${surveyId},app_id.eq.${normalizedId}`);
 
         // Pick the correct row: use year param if specified, otherwise prefer 2026
+        // survey_year is stored as a number in the DB, so normalize to string before comparing.
         let assessment = null;
         if (matchingRows && matchingRows.length > 0) {
           if (yearParam) {
-            assessment = matchingRows.find((r: any) => r.survey_year === yearParam) || matchingRows[0];
+            assessment = matchingRows.find((r: any) => String(r.survey_year) === String(yearParam)) || matchingRows[0];
           } else if (matchingRows.length === 1) {
             assessment = matchingRows[0];
           } else {
             // Multiple rows, prefer 2026 (completed year) over 2027 (in-progress)
-            assessment = matchingRows.find((r: any) => r.survey_year === '2026') || matchingRows[0];
+            assessment = matchingRows.find((r: any) => String(r.survey_year) === '2026') || matchingRows[0];
           }
         }
         
@@ -5223,7 +5224,8 @@ export default function ExportReportPage() {
   const companyName = normalizeCompanyName(company.firmographics_data?.company_name || company.company_name) || 'Unknown Company';
   const contactName = company.firmographics_data?.primary_contact_name || '';
   const contactEmail = company.firmographics_data?.primary_contact_email || '';
-  const surveyYear = company.survey_year || '2026';
+  // survey_year comes back as a number from Postgres but older code paths compare it as a string. Normalize once.
+  const surveyYear = String(company.survey_year || '2026');
   const bestCompaniesLogo = surveyYear === '2027' ? '/best-companies-2027-logo.png' : '/best-companies-2026-logo.png';
   const indexYear = surveyYear === '2027' ? '2027' : '2026';
   const rawElementCount = Object.values(elementDetails || {}).flat().length;
