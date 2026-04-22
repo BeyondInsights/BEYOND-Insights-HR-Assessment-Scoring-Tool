@@ -3799,6 +3799,8 @@ export default function ExportReportPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
   const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
+  const laserRafRef = useRef<number | null>(null);
+  const laserPendingRef = useRef<{ x: number; y: number } | null>(null);
   
   // Monitor presenter notes window - check if it's been closed externally
   useEffect(() => {
@@ -3954,31 +3956,64 @@ export default function ExportReportPage() {
 
   // Clone live-report sections into the slide deck. Runs after render so the main report
   // DOM has the expanded sections available to copy. Strips ids from the clone to avoid
-  // duplicate-id warnings in the DOM.
+  // duplicate-id warnings. Each source-id is cloned once; subsequent slides that share
+  // a source (e.g. dimension deep-dive slides all pointing at dimension-performance-table)
+  // render a lightweight placeholder instead of a duplicated full section, which avoids
+  // the browser choking on 13 copies of a massive tree.
   useEffect(() => {
     if (!presentationMode) return;
     const timer = setTimeout(() => {
-      const deckHost = document.querySelector('[data-presentation-deck]');
-      if (!deckHost) return;
-      deckHost.querySelectorAll<HTMLElement>('[data-slide-source-id]').forEach(slideContent => {
-        const sourceId = slideContent.getAttribute('data-slide-source-id');
-        if (!sourceId) return;
-        // Find source in the main report (not inside the deck itself)
-        const all = document.querySelectorAll<HTMLElement>(`#${CSS.escape(sourceId)}`);
-        let source: HTMLElement | null = null;
-        all.forEach(s => {
-          if (!source && !s.closest('[data-presentation-deck]')) source = s;
+      try {
+        const deckHost = document.querySelector('[data-presentation-deck]');
+        if (!deckHost) return;
+        const seen = new Set<string>();
+        deckHost.querySelectorAll<HTMLElement>('[data-slide-source-id]').forEach(slideContent => {
+          const sourceId = slideContent.getAttribute('data-slide-source-id');
+          if (!sourceId) return;
+          if (seen.has(sourceId)) {
+            slideContent.innerHTML = '';
+            const placeholder = document.createElement('div');
+            placeholder.className = 'flex items-center justify-center h-full text-slate-500 text-base';
+            placeholder.textContent = 'See preceding slide for the full section. This slide is a focused view.';
+            slideContent.appendChild(placeholder);
+            return;
+          }
+          seen.add(sourceId);
+          let source: HTMLElement | null = null;
+          try {
+            const all = document.querySelectorAll<HTMLElement>(`#${CSS.escape(sourceId)}`);
+            all.forEach(s => {
+              if (!source && !s.closest('[data-presentation-deck]')) source = s;
+            });
+          } catch {}
+          if (!source) {
+            slideContent.innerHTML = '';
+            const missing = document.createElement('div');
+            missing.className = 'flex items-center justify-center h-full text-slate-400 text-sm italic';
+            missing.textContent = `Section "${sourceId}" is not rendered yet. Try reopening the deck.`;
+            slideContent.appendChild(missing);
+            return;
+          }
+          try {
+            const clone = (source as HTMLElement).cloneNode(true) as HTMLElement;
+            clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+            clone.removeAttribute('id');
+            slideContent.innerHTML = '';
+            slideContent.appendChild(clone);
+          } catch (err) {
+            slideContent.innerHTML = '';
+            const errDiv = document.createElement('div');
+            errDiv.className = 'flex items-center justify-center h-full text-rose-600 text-sm';
+            errDiv.textContent = `Could not render this slide (${sourceId}).`;
+            slideContent.appendChild(errDiv);
+          }
         });
-        if (!source) return;
-        const clone = source.cloneNode(true) as HTMLElement;
-        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-        clone.removeAttribute('id');
-        slideContent.innerHTML = '';
-        slideContent.appendChild(clone);
-      });
-    }, 120);
+      } catch (err) {
+        console.warn('[presentation-deck] clone error', err);
+      }
+    }, 150);
     return () => clearTimeout(timer);
-  }, [presentationMode, currentSlide]);
+  }, [presentationMode, currentSlide, slideOrder]);
 
   // Open presenter notes in separate window
   const openPresenterNotesWindow = () => {
@@ -6079,17 +6114,25 @@ export default function ExportReportPage() {
               {/* PDF Export */}
               <button
                 onClick={() => {
-                  document.body.classList.add('presentation-print');
-                  // If we're not already in presentation mode, enter it so the 1920x1080 deck renders for print.
+                  // Inject an @page size rule for PDF export (1920x1080 per slide). We add / remove
+                  // it inline because @page does not respond to class selectors.
                   const wasPresentation = presentationMode;
                   if (!wasPresentation) setPresentationMode(true);
+                  document.body.classList.add('presentation-print');
+                  const styleEl = document.createElement('style');
+                  styleEl.id = 'presentation-print-page-rule';
+                  styleEl.textContent = '@page { size: 1920px 1080px; margin: 0; }';
+                  document.head.appendChild(styleEl);
+                  // Give the deck time to populate clones before printing
                   setTimeout(() => {
                     window.print();
                     setTimeout(() => {
                       document.body.classList.remove('presentation-print');
+                      const s = document.getElementById('presentation-print-page-rule');
+                      if (s) s.remove();
                       if (!wasPresentation) setPresentationMode(false);
                     }, 400);
-                  }, 250);
+                  }, 600);
                 }}
                 className="px-4 py-2.5 text-white rounded-lg font-semibold flex items-center gap-2 shadow-sm text-sm"
                 style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
@@ -6262,7 +6305,7 @@ export default function ExportReportPage() {
                 </div>
               </button>
               
-              {showCompositeScoreGuide && (
+              {(showCompositeScoreGuide || isPresentation) && (
                 <div className="mt-4 pb-1">
                   <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="p-6">
@@ -6285,7 +6328,7 @@ export default function ExportReportPage() {
                                   <svg className={`w-3.5 h-3.5 transition-transform ${showHowItsBuilt ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
                                 </span>
                               </button>
-                              {showHowItsBuilt && (
+                              {(showHowItsBuilt || isPresentation) && (
                                 <div className="bg-white border border-t-0 border-slate-200 rounded-b-lg px-4 py-3 -mt-[1px]">
                                   <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
                                     Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
@@ -6416,7 +6459,7 @@ export default function ExportReportPage() {
                 </div>
               </button>
               
-              {showDimensionsOverview && (
+              {(showDimensionsOverview || isPresentation) && (
                 <div className="mt-4 pb-1">
                   <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="p-6">
@@ -6520,7 +6563,7 @@ export default function ExportReportPage() {
                 </div>
               </button>
               
-              {showLevelsOverview && (
+              {(showLevelsOverview || isPresentation) && (
                 <div className="mt-5">
                   <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
                     Each of the {totalElementCount} self-reported program elements is classified into one of three levels of workplace support: <span className="font-semibold text-slate-800">Foundation</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
@@ -6629,7 +6672,7 @@ export default function ExportReportPage() {
                 </div>
               </button>
               
-              {showReportSections && (
+              {(showReportSections || isPresentation) && (
                 <div className="mt-4 pb-1">
                   <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     {/* REPORT SECTIONS - Expandable Grid */}
@@ -9384,7 +9427,7 @@ export default function ExportReportPage() {
                         </div>
                       </button>
 
-                      {showScoreComparison && (
+                      {(showScoreComparison || isPresentation) && (
                         <div className="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
                           {/* Explanation header */}
                           <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
@@ -12704,8 +12747,14 @@ export default function ExportReportPage() {
           <div
             className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col"
             onMouseMove={(e) => {
-              if (laserPointer) {
-                setLaserPosition({ x: e.clientX, y: e.clientY });
+              if (!laserPointer) return;
+              // rAF-throttle laser position updates so every mousemove does not trigger a React re-render.
+              laserPendingRef.current = { x: e.clientX, y: e.clientY };
+              if (laserRafRef.current == null) {
+                laserRafRef.current = window.requestAnimationFrame(() => {
+                  laserRafRef.current = null;
+                  if (laserPendingRef.current) setLaserPosition(laserPendingRef.current);
+                });
               }
             }}
             style={{ cursor: laserPointer ? 'none' : 'default' }}
@@ -12949,9 +12998,17 @@ export default function ExportReportPage() {
                 <button
                   onClick={() => {
                     document.body.classList.add('presentation-print');
+                    const styleEl = document.createElement('style');
+                    styleEl.id = 'presentation-print-page-rule';
+                    styleEl.textContent = '@page { size: 1920px 1080px; margin: 0; }';
+                    document.head.appendChild(styleEl);
                     setTimeout(() => {
                       window.print();
-                      setTimeout(() => document.body.classList.remove('presentation-print'), 300);
+                      setTimeout(() => {
+                        document.body.classList.remove('presentation-print');
+                        const s = document.getElementById('presentation-print-page-rule');
+                        if (s) s.remove();
+                      }, 300);
                     }, 80);
                   }}
                   className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
