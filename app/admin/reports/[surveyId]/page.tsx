@@ -13008,8 +13008,8 @@ export default function ExportReportPage() {
                             </div>
                             <div className="w-32 flex justify-center">
                               <span
-                                className={`text-xs font-bold px-3 py-1 rounded-full border ${pg.bgColor} ${pg.borderColor}`}
-                                style={{ color: pg.color }}
+                                className="text-xs font-bold px-2.5 py-1 rounded-md border"
+                                style={{ color: pg.color, borderColor: pg.color + '40', backgroundColor: pg.color + '0d' }}
                               >
                                 {pg.chip}
                               </span>
@@ -13215,17 +13215,13 @@ export default function ExportReportPage() {
 
                             <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
                               {/* Top labels */}
-                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#EF4444" />
+                              <rect x={0} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#B91C1C" />
                               <text x={PLOT_WIDTH/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">PRIORITY GAPS</text>
 
-                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#10B981" />
+                              <rect x={PLOT_WIDTH/2 + 2} y={-28} width={PLOT_WIDTH/2 - 2} height={24} rx="4" fill="#047857" />
                               <text x={PLOT_WIDTH * 3/4} y={-16} textAnchor="middle" dominantBaseline="middle" fill="white" fontSize="11" fontWeight="700">CORE STRENGTHS</text>
 
-                              {/* Quadrant backgrounds - subtle professional tones */}
-                              <rect x={0} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#fef2f2" opacity="0.8" />
-                              <rect x={PLOT_WIDTH/2} y={0} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f0fdfa" opacity="0.8" />
-                              <rect x={0} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#f8fafc" opacity="0.9" />
-                              <rect x={PLOT_WIDTH/2} y={PLOT_HEIGHT/2} width={PLOT_WIDTH/2} height={PLOT_HEIGHT/2} fill="#eef2ff" opacity="0.8" />
+                              {/* No quadrant background fills (matches live matrix where quadrant colors were removed) */}
 
                               {/* Grid lines - solid */}
                               <line x1={0} y1={PLOT_HEIGHT/2} x2={PLOT_WIDTH} y2={PLOT_HEIGHT/2} stroke="#CBD5E1" strokeWidth="1.5" />
