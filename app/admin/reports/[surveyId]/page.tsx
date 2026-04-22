@@ -3573,6 +3573,7 @@ export default function ExportReportPage() {
   const [showReportSections, setShowReportSections] = useState(false);
   const [expandedReportSection, setExpandedReportSection] = useState<string | null>(null);
   const [showCompositeScoreGuide, setShowCompositeScoreGuide] = useState(false);
+  const [showHowItsBuilt, setShowHowItsBuilt] = useState(false);
   const [showDimensionsOverview, setShowDimensionsOverview] = useState(false);
   const [activeReportTab, setActiveReportTab] = useState<'strength' | 'progress' | 'grow' | 'unsure' | null>(null);
   const [reportSummaryExpandedDim, setReportSummaryExpandedDim] = useState<number | null>(null);
@@ -5953,17 +5954,30 @@ export default function ExportReportPage() {
                             <p className="text-sm text-slate-700 leading-relaxed mb-4">
                               Each of the {totalElementCount} elements is also classified into one of three support levels: <span className="font-semibold text-slate-900">Foundation</span>, <span className="font-semibold text-slate-900">Expanded</span>, and <span className="font-semibold text-slate-900">Signature</span>. These levels provide context for how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. <span className="italic text-slate-600">(See Your Support in Context.)</span>
                             </p>
-                            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-3">
-                              <p className="text-sm font-bold text-slate-900 mb-2">How It&apos;s Built</p>
-                              <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
-                                Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
-                              </p>
-                              <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
-                                The {totalElementCount} elements are also grouped into three support levels (Foundation, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. See <span className="font-semibold text-slate-900">Your Support in Context</span>.
-                              </p>
-                              <p className="text-sm text-slate-700 leading-relaxed">
-                                Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of support.
-                              </p>
+                            <div className="mb-3">
+                              <button
+                                onClick={() => setShowHowItsBuilt(!showHowItsBuilt)}
+                                className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors group"
+                              >
+                                <span className="text-sm font-bold text-slate-900">How It&apos;s Built</span>
+                                <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600 group-hover:text-slate-900">
+                                  {showHowItsBuilt ? 'Hide details' : 'Learn more'}
+                                  <svg className={`w-3.5 h-3.5 transition-transform ${showHowItsBuilt ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                                </span>
+                              </button>
+                              {showHowItsBuilt && (
+                                <div className="bg-white border border-t-0 border-slate-200 rounded-b-lg px-4 py-3 -mt-[1px]">
+                                  <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
+                                    Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
+                                  </p>
+                                  <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
+                                    The {totalElementCount} elements are also grouped into three support levels (Foundation, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. See <span className="font-semibold text-slate-900">Your Support in Context</span>.
+                                  </p>
+                                  <p className="text-sm text-slate-700 leading-relaxed">
+                                    Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of support.
+                                  </p>
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-start gap-2 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-md px-3 py-2.5">
                               <svg className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
