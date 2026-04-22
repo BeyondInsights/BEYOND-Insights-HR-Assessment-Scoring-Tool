@@ -3799,9 +3799,7 @@ export default function ExportReportPage() {
   const [recViewMode, setRecViewMode] = useState<'roadmap' | 'balanced' | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [laserPointer, setLaserPointer] = useState(false);
-  const [laserPosition, setLaserPosition] = useState({ x: 0, y: 0 });
-  const laserRafRef = useRef<number | null>(null);
-  const laserPendingRef = useRef<{ x: number; y: number } | null>(null);
+  const laserDotRef = useRef<HTMLDivElement | null>(null);
   
   // Monitor presenter notes window - check if it's been closed externally
   useEffect(() => {
@@ -4053,10 +4051,26 @@ export default function ExportReportPage() {
             slideContent.appendChild(errDiv);
           }
         });
+        // SCALE-TO-FIT: after all slides have their cloned content, measure each and scale
+        // down oversized content so the slide body (920px) never clips.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          deckHost.querySelectorAll<HTMLElement>('[data-slide-source-id]').forEach(slideContent => {
+            const body = slideContent.parentElement;
+            if (!body) return;
+            slideContent.style.transform = '';
+            slideContent.style.transformOrigin = 'top center';
+            const bodyH = body.clientHeight;
+            const contentH = slideContent.scrollHeight;
+            if (contentH > bodyH && bodyH > 0 && contentH > 0) {
+              const ratio = Math.max(0.35, bodyH / contentH);
+              slideContent.style.transform = `scale(${ratio})`;
+            }
+          });
+        }));
       } catch (err) {
         console.warn('[presentation-deck] clone error', err);
       }
-    }, 150);
+    }, 400);
     return () => clearTimeout(timer);
   }, [presentationMode, currentSlide, slideOrder]);
 
@@ -6192,7 +6206,8 @@ export default function ExportReportPage() {
                   styleEl.id = 'presentation-print-page-rule';
                   styleEl.textContent = '@page { size: 1280px 960px; margin: 0; }';
                   document.head.appendChild(styleEl);
-                  // Give the deck time to populate clones before printing
+                  // Give the deck time to populate clones AND run scale-to-fit before printing.
+                  // 13 drill-downs + multiple cloned sections need ~1.5s on typical machines.
                   setTimeout(() => {
                     window.print();
                     setTimeout(() => {
@@ -6201,7 +6216,7 @@ export default function ExportReportPage() {
                       if (s) s.remove();
                       if (!wasPresentation) setPresentationMode(false);
                     }, 400);
-                  }, 600);
+                  }, 1800);
                 }}
                 className="px-3 py-1.5 text-white rounded-md font-semibold flex items-center gap-1.5 shadow-sm text-xs"
                 style={{ background: 'linear-gradient(135deg, #DC2626, #B91C1C)' }}
@@ -12860,14 +12875,10 @@ export default function ExportReportPage() {
             className="fixed inset-0 z-[9999] bg-slate-900 flex flex-col"
             onMouseMove={(e) => {
               if (!laserPointer) return;
-              // rAF-throttle laser position updates so every mousemove does not trigger a React re-render.
-              laserPendingRef.current = { x: e.clientX, y: e.clientY };
-              if (laserRafRef.current == null) {
-                laserRafRef.current = window.requestAnimationFrame(() => {
-                  laserRafRef.current = null;
-                  if (laserPendingRef.current) setLaserPosition(laserPendingRef.current);
-                });
-              }
+              // Direct DOM update, no React state — keeps the pointer pinned to the cursor
+              // at full frame rate with zero re-render overhead.
+              const el = laserDotRef.current;
+              if (el) el.style.transform = `translate3d(${e.clientX - 10}px, ${e.clientY - 10}px, 0)`;
             }}
             style={{ cursor: laserPointer ? 'none' : 'default' }}
           >
@@ -12899,19 +12910,23 @@ export default function ExportReportPage() {
                 </div>
               </div>
             )}
-            {/* Laser Pointer */}
+            {/* Laser Pointer — direct-DOM updates via ref, no React re-renders per frame */}
             {laserPointer && (
-              <div 
+              <div
+                ref={laserDotRef}
                 className="pointer-events-none fixed z-[10000]"
-                style={{ 
-                  left: laserPosition.x - 8, 
-                  top: laserPosition.y - 8,
-                  transition: 'left 0.02s, top 0.02s'
+                style={{
+                  top: 0,
+                  left: 0,
+                  width: '20px',
+                  height: '20px',
+                  transform: 'translate3d(-999px, -999px, 0)',
+                  willChange: 'transform',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle, rgba(255,68,68,1) 0%, rgba(255,34,34,0.85) 45%, rgba(255,34,34,0) 72%)',
+                  boxShadow: '0 0 14px 4px rgba(255,34,34,0.55)',
                 }}
-              >
-                <div className="w-4 h-4 bg-red-700 rounded-full shadow-lg shadow-red-500/50 animate-pulse"></div>
-                <div className="absolute inset-0 w-4 h-4 bg-red-400 rounded-full animate-ping opacity-75"></div>
-              </div>
+              />
             )}
             
             {/* Slide Scroll Deck - Dash-In pattern. Each slide is 1280x960 fixed, auto-scaled to viewport. */}
@@ -12969,7 +12984,7 @@ export default function ExportReportPage() {
                   >
                     <div
                       className="slide-body"
-                      style={{ width: '100%', height: `${960 - 40}px`, padding: '16px 0', overflow: 'auto' }}
+                      style={{ width: '100%', height: `${960 - 40}px`, padding: '16px 0', overflow: 'hidden' }}
                     >
                       <div
                         data-slide-source-id={slide.id}
@@ -13115,6 +13130,7 @@ export default function ExportReportPage() {
                 {/* Print (each slide = one 1280x960 page) */}
                 <button
                   onClick={() => {
+                    // Force re-run of the clone/scale-to-fit effect so the deck is fresh.
                     document.body.classList.add('presentation-print');
                     const styleEl = document.createElement('style');
                     styleEl.id = 'presentation-print-page-rule';
@@ -13126,8 +13142,8 @@ export default function ExportReportPage() {
                         document.body.classList.remove('presentation-print');
                         const s = document.getElementById('presentation-print-page-rule');
                         if (s) s.remove();
-                      }, 300);
-                    }, 80);
+                      }, 400);
+                    }, 1200);
                   }}
                   className="w-8 h-8 flex items-center justify-center bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
                   title="Print deck (each slide on its own 1280x960 page)"
