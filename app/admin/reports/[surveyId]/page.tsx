@@ -5973,17 +5973,17 @@ export default function ExportReportPage() {
                                   <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
                                     The {totalElementCount} elements are also grouped into three support levels (Foundation, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. See <span className="font-semibold text-slate-900">Your Support in Context</span>.
                                   </p>
-                                  <p className="text-sm text-slate-700 leading-relaxed">
+                                  <p className="text-sm text-slate-700 leading-relaxed mb-3">
                                     Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of support.
                                   </p>
+                                  <div className="flex items-start gap-2 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-md px-3 py-2.5">
+                                    <svg className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <p className="text-xs text-slate-700 leading-relaxed">
+                                      <span className="font-bold text-slate-900">Tip:</span> Use the three level scores to understand where your results are coming from. <span className="font-semibold">Foundation</span> captures baseline practices most workplaces establish first. <span className="font-semibold">Expanded</span> captures mid-tier offerings that strengthen the employee experience. <span className="font-semibold">Signature</span> captures standout programs that go beyond the norm.
+                                    </p>
+                                  </div>
                                 </div>
                               )}
-                            </div>
-                            <div className="flex items-start gap-2 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-md px-3 py-2.5">
-                              <svg className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                              <p className="text-xs text-slate-700 leading-relaxed">
-                                <span className="font-bold text-slate-900">Tip:</span> Use the three level scores to understand where your results are coming from. <span className="font-semibold">Foundation</span> captures baseline practices most workplaces establish first. <span className="font-semibold">Expanded</span> captures mid-tier offerings that strengthen the employee experience. <span className="font-semibold">Signature</span> captures standout programs that go beyond the norm.
-                              </p>
                             </div>
                       </div>
                       
