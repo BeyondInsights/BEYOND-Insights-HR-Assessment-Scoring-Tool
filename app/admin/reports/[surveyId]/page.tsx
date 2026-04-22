@@ -3621,32 +3621,38 @@ export default function ExportReportPage() {
     execNext90?: string[];
   }>({});
 
-  // Computed total slides - base 35 + any additional dimension deep dives
-  const totalSlides = 38 + additionalAnalyzedDims.length;
-  
+  // Computed total slides - base 36 + any additional dimension deep dives
+  const totalSlides = 36 + additionalAnalyzedDims.length;
+
   // Helper to get all slide names for the selector
   const getSlideNames = () => {
     const addDimCount = additionalAnalyzedDims.length;
     const names: Record<number, string> = {
       0: 'Title & Overview',
-      1: 'How Index Was Developed', 
-      2: 'Understanding Your Workplace Support Composite Score',
+      1: 'How Index Was Developed',
+      2: 'Understanding Your Composite Score',
       3: 'The 13 Dimensions',
       4: 'Executive Overview',
-      5: 'Dimension Performance Based on What Matters Most'
+      5: 'Dimension Performance'
     };
     for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
-    for (let i = 19; i <= 28; i++) names[i] = `Strategic Content ${i - 18}`;
-    for (let i = 27; i <= 30; i++) names[i] = `Recommendation ${i - 26}`;
+    names[19] = 'Interactive Performance Matrix';
+    names[20] = 'Cross-Dimensional Insights';
+    names[21] = 'Report Summary';
+    names[22] = 'Your Support in Context';
+    names[23] = 'Your Improvement Priorities';
+    names[24] = 'Strategic Recommendations';
+    for (let i = 25; i <= 29; i++) names[i] = `Recommendation ${i - 24}`;
     for (let i = 0; i < addDimCount; i++) {
       const dimNum = additionalAnalyzedDims[i];
-      names[33 + i] = `Additional: Dimension ${dimNum}`;
+      names[30 + i] = `Additional: Dimension ${dimNum}`;
     }
-    names[33 + addDimCount] = 'Implementation Roadmap';
-    // names[34 + addDimCount] = 'Working with Cancer Pledge'; // Commented out - will likely bring back
-    names[35 + addDimCount] = 'How CAC Can Help';
-    names[36 + addDimCount] = 'Thank You';
-    names[37 + addDimCount] = 'Methodology';
+    names[30 + addDimCount] = 'Implementation Roadmap';
+    names[31 + addDimCount] = 'What-If Scenarios';
+    names[32 + addDimCount] = 'Summary and Next Steps';
+    names[33 + addDimCount] = 'How CAC Can Help';
+    names[34 + addDimCount] = 'Thank You';
+    names[35 + addDimCount] = 'Methodology';
     return names;
   };
   
@@ -12755,16 +12761,85 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 4: Executive Overview + Summary */}
-                {currentSlide === 4 && (
-                  <div className="overflow-hidden">
-                    {/* Top section - Prepared For header */}
-                    <div className="px-12 py-8 border-b border-slate-100">
-                      <div className="flex items-end justify-between">
-                        <div>
-                          <p className="text-slate-500 text-sm font-semibold uppercase tracking-wider">Prepared Exclusively for</p>
-                          <h2 className="text-5xl font-bold text-slate-900 mt-2">{companyName}</h2>
-                          {isWwcPledge && (
+                {/* Slide 4: Executive Overview (mirrors live report: intro + 3 priority cards) */}
+                {currentSlide === 4 && (() => {
+                  const dimsWithBench4 = dimensionAnalysis.filter((d: any) => d.benchmark !== null && d.benchmark !== undefined);
+                  const withDelta4 = dimsWithBench4.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
+                  const strongest4 = [...withDelta4].sort((a, b) => b.delta - a.delta).slice(0, 3);
+                  const areasToAddress4 = [...withDelta4].sort((a, b) => a.delta - b.delta).slice(0, 3);
+                  const avgW4 = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
+                  const tensions4 = withDelta4
+                    .filter((d: any) => d.weight >= avgW4 && d.score < 75 && !strongest4.some((s: any) => s.dim === d.dim) && !areasToAddress4.some((a: any) => a.dim === d.dim))
+                    .sort((a: any, b: any) => a.delta - b.delta)
+                    .slice(0, 3);
+
+                  const iconTrend4 = (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 18l6-6 4 3 7-9" />
+                      <circle cx="20" cy="6" r="1.8" fill="currentColor" stroke="none" />
+                    </svg>
+                  );
+                  const iconBars4 = (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+                      <rect x="4" y="13" width="5" height="8" rx="0.75" fill="currentColor" stroke="none" />
+                      <rect x="15" y="4" width="5" height="17" rx="0.75" fill="currentColor" stroke="none" />
+                      <line x1="4" y1="13" x2="15" y2="13" strokeDasharray="2,2" strokeLinecap="round" />
+                      <line x1="15" y1="13" x2="15" y2="4" strokeDasharray="2,2" strokeLinecap="round" opacity="0.6" />
+                    </svg>
+                  );
+                  const iconSprout4 = (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 14c-2 0-6-2-6-7 5 0 6 2 6 7z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c2 0 6-2 6-7-5 0-6 2-6 7z" />
+                    </svg>
+                  );
+
+                  const renderCard4 = (title: string, subtitle: string, accent: string, accentSoft: string, icon: JSX.Element, dims: any[]) => (
+                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-md flex flex-col">
+                      <div className="h-2" style={{ backgroundColor: accent }} />
+                      <div className="p-5 flex-1">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
+                            {icon}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-[17px] font-bold text-slate-900 leading-tight">{title}</h4>
+                            <p className="text-[12px] text-slate-500 leading-snug mt-0.5">{subtitle}</p>
+                          </div>
+                        </div>
+                        <ul className="space-y-2.5">
+                          {dims.length === 0 ? (
+                            <li className="text-[13px] text-slate-400 italic">No dimensions match this profile.</li>
+                          ) : dims.map((d: any) => {
+                            const dimPg = getEmployeePriorityGroup(d.weight);
+                            return (
+                              <li key={d.dim} className="flex items-start gap-2">
+                                <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-md text-white text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: dimPg.color }}>
+                                  D{d.dim}
+                                </span>
+                                <span className="text-[13px] text-slate-700 font-semibold flex-1 leading-snug">{d.name}</span>
+                                <span className="text-[20px] font-bold tabular-nums text-slate-900 text-right w-9 flex-shrink-0 leading-none mt-0.5">{d.score}</span>
+                                <span className={`text-[11px] font-bold tabular-nums text-right w-10 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                  {d.delta >= 0 ? '+' : ''}{d.delta}
+                                </span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    </div>
+                  );
+
+                  return (
+                    <div className="overflow-hidden">
+                      {/* Prepared For header */}
+                      <div className="px-12 py-6 border-b border-slate-100">
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Prepared Exclusively for</p>
+                            <h2 className="text-4xl font-bold text-slate-900 mt-1.5">{companyName}</h2>
+                            {isWwcPledge && (
                             <div className="mt-4 flex items-center gap-3">
                               <div className="w-10 h-10 flex-shrink-0">
                                 <svg viewBox="0 0 300 300" className="w-full h-full">
@@ -12779,325 +12854,60 @@ export default function ExportReportPage() {
                             </div>
                           )}
                         </div>
-                        <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-6">
                           <div className="text-right">
-                            <p className="text-slate-500 text-sm font-medium">{'Workplace Support Composite Score'}</p>
-                            <p className="text-7xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{wsiScoreHeader}</p>
+                            <p className="text-slate-500 text-xs font-medium">Workplace Support Composite Score</p>
+                            <p className="text-6xl font-bold mt-1" style={{ color: tier?.color || '#666' }}>{wsiScoreHeader}</p>
                           </div>
                           {tier && (
-                            <div className="flex flex-col items-center">
-                              <div className={`px-8 py-5 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
-                                <p className="text-3xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
-                                <p className="text-sm text-slate-500 font-medium">Performance Tier</p>
-                                {isProvisional && (
-                                  <p className="text-xs text-amber-700 font-medium mt-1">Provisional*</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => setShowTierOverlay(true)}
-                                className="mt-3 flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-slate-300 text-slate-700 hover:bg-slate-800 hover:text-white hover:border-slate-800 active:scale-95 animate-[buttonPulseLight_2s_ease-in-out_1]"
-                              >
-                                Show All Tiers
-                              </button>
+                            <div className={`px-6 py-4 rounded-xl ${tier.bgColor} border-2 ${tier.borderColor}`}>
+                              <p className="text-2xl font-bold" style={{ color: tier.color }}>{tier.name}</p>
+                              <p className="text-xs text-slate-500 font-medium">Performance Tier</p>
                             </div>
                           )}
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Executive Overview section */}
-                    <div className="px-12 py-8 bg-slate-50">
-                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Overview</h3>
-                      {(() => {
-                        const execBenchDiff = compositeScore && benchmarks?.compositeScore ? compositeScore - benchmarks.compositeScore : null;
-                        const execDescriptor = execBenchDiff !== null
-                          ? (execBenchDiff >= 8 ? 'a clear leader' : execBenchDiff >= 2 ? 'ahead of participating organizations' : execBenchDiff >= -1 ? 'in line with participating organizations' : 'behind participating organizations')
-                          : tier?.name?.toLowerCase();
-                        const execDescColor = execBenchDiff !== null
-                          ? (execBenchDiff >= 8 ? '#047857' : execBenchDiff >= 2 ? '#1D4ED8' : execBenchDiff >= -1 ? '#B45309' : '#B91C1C')
-                          : (tier?.color || '#666');
-                        return (
-                          <p className="text-slate-700 leading-relaxed text-lg">
-                            With a composite score of <strong>{wsiScoreHeader}</strong>, {companyName} is <strong className="font-semibold" style={{ color: execDescColor }}>{execDescriptor}</strong> in supporting employees managing cancer
-                            {execBenchDiff !== null && <span> (benchmark: {benchmarks?.compositeScore})</span>}
-                            {percentileRank !== null && totalCompanies > 1 && (
-                              <span>, placing in the <strong style={{ color: '#5B21B6' }}>{percentileRank}th percentile</strong> among assessed companies</span>
-                            )}.
-                            {topDimension && bottomDimension && (
-                              <span> The strongest dimension is <strong style={{ color: '#047857' }}>{topDimension.name}</strong> ({topDimension.score}),
-                              while <strong style={{ color: '#B45309' }}>{bottomDimension.name}</strong> ({bottomDimension.score}) presents the greatest opportunity for advancement.</span>
-                            )}
-                          </p>
-                        );
-                      })()}
-                      
-                      {/* Provisional Classification Notice */}
+                    <div className="px-12 py-6 bg-white">
+                      <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Executive Overview</h3>
+                      <p className="text-[15px] text-slate-700 leading-relaxed">
+                        {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
+                        {wsiPercentile !== null && totalCompanies > 1 && (
+                          <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
+                        )}. The score is weighted across 13 dimensions and {totalElementCount} elements of workplace cancer support, reflecting their impact on employee wellbeing and organizational outcomes.
+                      </p>
+                      <p className="text-[14px] text-slate-700 leading-relaxed mt-4 font-medium">
+                        Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
+                      </p>
+
+                      <div className="grid grid-cols-3 gap-4 mt-5">
+                        {renderCard4('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend4, strongest4)}
+                        {renderCard4('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars4, tensions4)}
+                        {renderCard4('Areas to Address', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout4, areasToAddress4)}
+                      </div>
+                      <p className="mt-3 text-[11px] text-slate-500 leading-relaxed text-center">
+                        The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
+                      </p>
+
                       {isProvisional && (
-                        <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
+                        <div className="mt-5 p-3 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
                           <div className="flex items-start gap-3">
                             <svg className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                             <div>
                               <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
-                              <p className="text-sm text-amber-700 mt-1">{dimsWithHighUnsure} dimensions have 40%+ "Unsure" responses. Results provisional until confirmed.</p>
+                              <p className="text-sm text-amber-700 mt-1">{dimsWithHighUnsure} dimensions have 40% or more Unsure responses. Results remain provisional until confirmed.</p>
                             </div>
                           </div>
                         </div>
                       )}
-                      
-                      {/* Tier Progress Box */}
-                      {(() => {
-                        const topGrowthDims = [...dimensionAnalysis].sort((a, b) => a.score - b.score).slice(0, 3).map(d => d.name);
-                        const dimList = topGrowthDims.length === 3 
-                          ? `${topGrowthDims[0]}, ${topGrowthDims[1]}, or ${topGrowthDims[2]}`
-                          : topGrowthDims.length === 2
-                          ? `${topGrowthDims[0]} or ${topGrowthDims[1]}`
-                          : topGrowthDims[0];
-                        
-                        return (
-                          <div className="mt-6 p-5 bg-violet-50 border border-violet-200 rounded-xl flex items-start gap-4">
-                            <svg className="w-6 h-6 text-violet-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                            <div>
-                              {nextTierUp && pointsToNextTier ? (
-                                <>
-                                  <p className="text-base font-bold text-violet-800">
-                                    {pointsToNextTier} points away from {nextTierUp.name} tier
-                                  </p>
-                                  <p className="text-sm text-violet-600 mt-1">Targeted improvements in {dimList} could elevate overall standing.</p>
-                                </>
-                              ) : (
-                                <>
-                                  <p className="text-base font-bold text-violet-800">Leading tier achieved</p>
-                                  <p className="text-sm text-violet-600 mt-1">Continue strengthening {dimList} to maintain leadership position.</p>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-                      
-                      {/* Combined Summary Section */}
-                      <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-8">
-                        <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-6">Summary</h3>
-                        
-                        {/* Top Row - Stats */}
-                        <div className="grid grid-cols-4 gap-4 mb-6">
-                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{currentlyOffering}</p>
-                            <p className="text-sm text-slate-500 mt-1">of {totalElements} support elements offered</p>
-                          </div>
-                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{planningItems + assessingItems}</p>
-                            <p className="text-sm text-slate-500 mt-1">support elements in development</p>
-                            <div className="mt-1 space-y-0.5">
-                              <p className="text-xs text-sky-400">{planningItems} planned</p>
-                              <p className="text-xs text-sky-400">{assessingItems} assessing</p>
-                            </div>
-                          </div>
-                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{gapItems + unsureItems}</p>
-                            <p className="text-sm text-slate-500 mt-1">identified support element gaps</p>
-                            <div className="mt-1 space-y-0.5">
-                              <p className="text-xs text-amber-400">{notPlannedItems} not planned</p>
-                              <p className="text-xs text-amber-400">{unsureItems} unsure</p>
-                            </div>
-                          </div>
-                          <div className="bg-white/10 rounded-xl p-4 backdrop-blur">
-                            <p className="text-3xl font-bold text-white">{tierCounts.leading + tierCounts.established}<span className="text-lg font-normal text-slate-500 ml-1">/13</span></p>
-                            <p className="text-sm text-slate-500 mt-1">dimensions at Advancing+</p>
-                            <div className="mt-1 space-y-0.5">
-                              <p className="text-xs text-violet-400">{tierCounts.leading} Leading</p>
-                              <p className="text-xs text-violet-400">{tierCounts.established} Advancing</p>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Bottom Row - Top Strengths and Opportunities */}
-                        {(() => {
-                          const slideTopStrengths = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 3);
-                          const slideStrengthDimsAbove64 = new Set(slideTopStrengths.filter(d => d.score >= 64).map(d => d.dim));
-                          const slideDedupedRankings = rankings.filter(r => !slideStrengthDimsAbove64.has(r.dimNum)).slice(0, 3);
-                          return (
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Top 3 Strengths */}
-                          <div className="bg-emerald-900/30 rounded-xl p-5 border border-emerald-700/50">
-                            <p className="text-xs text-emerald-400 font-semibold uppercase tracking-wider mb-3">Top Strengths</p>
-                            <div className="space-y-3">
-                              {slideTopStrengths.map((d, idx) => (
-                                <div key={d.dim} className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-emerald-400 font-bold text-sm">{idx + 1}.</span>
-                                    <span className="text-white font-semibold">{d.name}</span>
-                                  </div>
-                                  <span className="text-emerald-400 font-bold">Score: {d.score}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Top 3 Opportunities */}
-                          <div className="bg-amber-900/30 rounded-xl p-5 border border-amber-700/50">
-                            <p className="text-xs text-amber-400 font-semibold uppercase tracking-wider mb-3">Top Priorities for Employee Experience Impact</p>
-                            <div className="space-y-3">
-                              {slideDedupedRankings.map((r, idx) => (
-                                <div key={r.dimNum} className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-amber-400 font-bold text-sm">{idx + 1}.</span>
-                                    <span className="text-white font-semibold">{r.dimName}</span>
-                                  </div>
-                                  <span className="text-amber-400 font-bold">Score: {r.currentScore}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                          );
-                        })()}
-                      </div>
-
-                      {/* Auto-Generated Executive Insight Blocks */}
-                      {(() => {
-                        // BLOCK A: "What You Do Well", top 2 scoring dimensions with a named element
-                        const top2Dims = [...dimensionAnalysis].sort((a, b) => b.score - a.score).slice(0, 2);
-                        const doWellDefaults = top2Dims.map(d => {
-                          const dimBench = elementBenchmarks[d.dim] || {};
-                          // Find a Signature Strength or Competitive Standard element
-                          const namedElem = d.strengths?.map((s: any) => {
-                            const bench = dimBench[s.name] || { currently: 0, total: 1 };
-                            const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
-                            return { name: s.name, pct, cls: classifyElement(s, pct) };
-                          }).sort((a: any, b: any) => a.pct - b.pct)[0] || null;
-                          const benchDiff = d.benchmark != null ? d.score - d.benchmark : null;
-                          const benchStr = benchDiff !== null ? `${benchDiff >= 0 ? '+' : ''}${benchDiff} vs participating orgs` : '';
-                          const elemStr = namedElem ? `. ${namedElem.cls === 'Signature Strength' ? 'You differentiate on' : 'Strong on'} ${namedElem.name}` : '';
-                          return `${d.name} (${d.score}${benchStr ? ', ' + benchStr : ''})${elemStr}`;
-                        });
-
-                        // BLOCK B: "Where to Improve", top 2 by impact-weighted gap magnitude
-                        // Exclude dims already cited in "What You Do Well" to avoid contradictions
-                        const doWellDimSet = new Set(top2Dims.map(d => d.dim));
-                        const improveDims = [...dimensionAnalysis]
-                          .filter(d => !doWellDimSet.has(d.dim))
-                          .map(d => {
-                            const dimBench = elementBenchmarks[d.dim] || {};
-                            const gapMagnitude = d.benchmark != null ? Math.max(0, d.benchmark - d.score) : 0;
-                            const tableStakesCount = (d.gaps || []).filter((g: any) => {
-                              const bench = dimBench[g.name] || { currently: 0, total: 1 };
-                              return Math.round((bench.currently / (bench.total || 1)) * 100) > 60;
-                            }).length;
-                            const impactScore = d.weight * (gapMagnitude + tableStakesCount * 2);
-                            // Find top Table Stakes Gap element
-                            const topTSG = (d.gaps || []).map((g: any) => {
-                              const bench = dimBench[g.name] || { currently: 0, total: 1 };
-                              const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
-                              return { name: g.name, pct };
-                            }).filter((g: any) => g.pct > 60).sort((a: any, b: any) => b.pct - a.pct)[0] || null;
-                            return { ...d, impactScore, topTSG };
-                          })
-                          .sort((a, b) => b.impactScore - a.impactScore)
-                          .slice(0, 2);
-                        const improveDefaults = improveDims.map(d => {
-                          const pg = getEmployeePriorityGroup(d.weight);
-                          const tsgStr = d.topTSG ? `. ${d.topTSG.name} is a table-stakes gap (${d.topTSG.pct}% of participating organizations have it)` : '';
-                          return `${d.name} (${d.score}, ${pg.chip})${tsgStr}`;
-                        });
-
-                        // BLOCK C: "Building Momentum", top 3 Momentum Opportunity elements
-                        const momentumItems: { name: string; dimName: string; pct: number }[] = [];
-                        dimensionAnalysis.forEach(d => {
-                          const dimBench = elementBenchmarks[d.dim] || {};
-                          [...(d.planning || []), ...(d.assessing || [])].forEach((item: any) => {
-                            const bench = dimBench[item.name] || { currently: 0, total: 1 };
-                            const pct = Math.round((bench.currently / (bench.total || 1)) * 100);
-                            if (pct > 60) momentumItems.push({ name: item.name, dimName: d.name, pct });
-                          });
-                        });
-                        momentumItems.sort((a, b) => b.pct - a.pct);
-                        const next90Defaults = momentumItems.slice(0, 3).map(m =>
-                          `${m.name} (${m.dimName}). In development, ${m.pct}% peer adoption`
-                        );
-
-                        return (
-                          <div className="grid grid-cols-3 gap-5 mt-6">
-                            {/* What You Do Well */}
-                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <span className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-emerald-700 text-xs font-bold">✓</span>
-                                </span>
-                                <h4 className="text-xs font-bold text-emerald-800 uppercase tracking-wider">What You Do Well</h4>
-                              </div>
-                              {editMode ? (
-                                <textarea
-                                  value={(customNextSteps.execDoWell || doWellDefaults).join('\n')}
-                                  onChange={(e) => { setCustomNextSteps(prev => ({ ...prev, execDoWell: e.target.value.split('\n') })); setHasUnsavedChanges(true); }}
-                                  className="w-full text-sm text-slate-700 bg-white border border-emerald-200 rounded px-2 py-1.5 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-emerald-400/50 resize-y"
-                                />
-                              ) : (
-                                <ul className="space-y-2">
-                                  {(customNextSteps.execDoWell || doWellDefaults).filter(s => s.trim()).map((line, i) => (
-                                    <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-
-                            {/* Where to Improve */}
-                            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <span className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-amber-700 text-xs font-bold">!</span>
-                                </span>
-                                <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider">Where to Improve</h4>
-                              </div>
-                              {editMode ? (
-                                <textarea
-                                  value={(customNextSteps.execImprove || improveDefaults).join('\n')}
-                                  onChange={(e) => { setCustomNextSteps(prev => ({ ...prev, execImprove: e.target.value.split('\n') })); setHasUnsavedChanges(true); }}
-                                  className="w-full text-sm text-slate-700 bg-white border border-amber-200 rounded px-2 py-1.5 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-amber-400/50 resize-y"
-                                />
-                              ) : (
-                                <ul className="space-y-2">
-                                  {(customNextSteps.execImprove || improveDefaults).filter(s => s.trim()).map((line, i) => (
-                                    <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
-                                  ))}
-                                </ul>
-                              )}
-                            </div>
-
-                            {/* Building Momentum */}
-                            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
-                              <div className="flex items-center gap-2 mb-3">
-                                <span className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-blue-700 text-xs font-bold">→</span>
-                                </span>
-                                <h4 className="text-xs font-bold text-blue-800 uppercase tracking-wider">Building Momentum</h4>
-                              </div>
-                              {editMode ? (
-                                <textarea
-                                  value={(customNextSteps.execNext90 || next90Defaults).join('\n')}
-                                  onChange={(e) => { setCustomNextSteps(prev => ({ ...prev, execNext90: e.target.value.split('\n') })); setHasUnsavedChanges(true); }}
-                                  className="w-full text-sm text-slate-700 bg-white border border-blue-200 rounded px-2 py-1.5 min-h-[80px] focus:outline-none focus:ring-2 focus:ring-blue-400/50 resize-y"
-                                />
-                              ) : (
-                                <ul className="space-y-2">
-                                  {(customNextSteps.execNext90 || next90Defaults).filter(s => s.trim()).map((line, i) => (
-                                    <li key={i} className="text-sm text-slate-700 leading-relaxed">{line}</li>
-                                  ))}
-                                  {next90Defaults.length === 0 && !customNextSteps.execNext90 && (
-                                    <li className="text-sm text-slate-500">No momentum opportunities identified. Confirm unsure items to unlock recommendations.</li>
-                                  )}
-                                </ul>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
                 {/* Slide 6: Dimension Performance Based on What Matters Most Table */}
                 {currentSlide === 5 && (
@@ -13344,8 +13154,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 20: Interactive Performance Matrix WITHOUT Benchmarks */}
-                {currentSlide === 19 && (
+                {/* Slide 19 (retired): Interactive Performance Matrix WITHOUT Benchmarks - superseded by the unified matrix below */}
+                {false && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -13523,16 +13333,16 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 21: Interactive Performance Matrix WITH Benchmarks */}
-                {currentSlide === 20 && (
+                {/* Slide 19: Interactive Performance Matrix (unified view with benchmark overlay) */}
+                {currentSlide === 19 && (
                   <div className="p-8">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h3 className="font-bold text-slate-900 text-2xl">Interactive Performance Matrix</h3>
-                        <p className="text-slate-500 mt-1">Dimensions plotted by support score vs. impact weight. <span className="text-cyan-600">Hover for details, click to explore.</span></p>
+                        <p className="text-slate-500 mt-1">Dimensions plotted by support score vs. impact weight, with benchmark position overlaid (dashed ring).</p>
                       </div>
                       <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-                        <span className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-slate-900 shadow-sm">Both</span>
+                        <span className="px-3 py-1.5 rounded-md text-sm font-medium bg-white text-slate-900 shadow-sm">Your Scores and Benchmarks</span>
                       </div>
                     </div>
                     
@@ -13748,8 +13558,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 22: Cross-Dimensional Insights - polished design */}
-                {currentSlide === 21 && (
+                {/* Slide 20: Cross-Dimensional Insights - polished design */}
+                {currentSlide === 20 && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* Header */}
                     <div className="px-10 py-6 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden flex-shrink-0">
@@ -13858,8 +13668,373 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 28: Improvement Priorities (Dims 1-3) */}
-                {currentSlide === 31 && (() => {
+                {/* Slide 21: Report Summary (4-tab coverage, stacked on one slide) */}
+                {currentSlide === 21 && (() => {
+                  const bucketOf21 = (el: any): 'strength' | 'progress' | 'grow' | 'unsure' | null => {
+                    if (el.isUnsure) return 'unsure';
+                    if (el.isStrength) return 'strength';
+                    if (el.isPlanning || el.isAssessing) return 'progress';
+                    if (el.isGap) return 'grow';
+                    return null;
+                  };
+                  const buckets21: Record<'strength' | 'progress' | 'grow' | 'unsure', { dim: number; name: string; weight: number; elements: any[] }[]> = {
+                    strength: [], progress: [], grow: [], unsure: [],
+                  };
+                  dimensionAnalysis.forEach((d: any) => {
+                    const byBucket: Record<string, any[]> = { strength: [], progress: [], grow: [], unsure: [] };
+                    (d.elements || []).forEach((el: any) => {
+                      const b = bucketOf21(el);
+                      if (b === null) return;
+                      byBucket[b].push(el);
+                    });
+                    (['strength', 'progress', 'grow', 'unsure'] as const).forEach(b => {
+                      if (byBucket[b].length > 0) {
+                        buckets21[b].push({ dim: d.dim, name: d.name, weight: d.weight, elements: byBucket[b] });
+                      }
+                    });
+                  });
+                  const countIn21 = (b: 'strength' | 'progress' | 'grow' | 'unsure') => buckets21[b].reduce((s, g) => s + g.elements.length, 0);
+                  const tabsDef = [
+                    { key: 'strength' as const, label: 'Areas of Strength', count: countIn21('strength'), color: '#065F46' },
+                    { key: 'progress' as const, label: 'Initiatives in Progress', count: countIn21('progress'), color: '#3730A3' },
+                    { key: 'grow' as const, label: 'Opportunities to Grow', count: countIn21('grow'), color: '#92400E' },
+                    { key: 'unsure' as const, label: 'Unsure', count: countIn21('unsure'), color: '#5B21B6' },
+                  ];
+
+                  return (
+                    <div className="overflow-hidden">
+                      <div className="px-12 py-5 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h4V11z" />
+                            <path d="M15 3h-4a2 2 0 00-2 2v15h6V3z" opacity="0.75" />
+                            <path d="M19 7h-4v13h4a2 2 0 002-2V9a2 2 0 00-2-2z" opacity="0.5" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Report Summary</h3>
+                          <p className="text-white text-xs mt-0.5 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure across all {totalElementCount} support elements.</p>
+                        </div>
+                      </div>
+
+                      <div className="px-8 py-4">
+                        {/* Tab summary header */}
+                        <div className="grid grid-cols-4 gap-2 mb-4">
+                          {tabsDef.map(t => (
+                            <div key={t.key} className="rounded-lg border-2 p-2.5" style={{ borderColor: t.color, backgroundColor: t.color + '0C' }}>
+                              <div className="flex items-baseline justify-between">
+                                <p className="text-[11px] font-bold" style={{ color: t.color }}>{t.label}</p>
+                                <span className="text-xl font-bold tabular-nums" style={{ color: t.color }}>{t.count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Stacked per-bucket lists */}
+                        <div className="grid grid-cols-2 gap-3">
+                          {tabsDef.map(t => {
+                            const dimsInTab = [...buckets21[t.key]].sort((a, b) => b.elements.length - a.elements.length).slice(0, 6);
+                            return (
+                              <div key={t.key} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
+                                <div className="px-3 py-2" style={{ backgroundColor: t.color + '0F', borderBottom: `1px solid ${t.color}30` }}>
+                                  <p className="text-[12px] font-bold" style={{ color: t.color }}>{t.label} ({t.count})</p>
+                                </div>
+                                <div className="p-2 max-h-[260px] overflow-y-auto">
+                                  {dimsInTab.length === 0 ? (
+                                    <p className="text-[11px] text-slate-500 italic p-2">No elements in this bucket.</p>
+                                  ) : dimsInTab.map(group => {
+                                    const groupPg = getEmployeePriorityGroup(group.weight);
+                                    return (
+                                      <div key={group.dim} className="px-2 py-1.5 border-b border-slate-100 last:border-b-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <span className="inline-flex items-center justify-center h-5 min-w-[32px] px-1.5 rounded text-white text-[10px] font-bold" style={{ backgroundColor: groupPg.color }}>
+                                            D{group.dim}
+                                          </span>
+                                          <span className="text-[11px] font-semibold text-slate-800 flex-1 truncate">{group.name}</span>
+                                          <span className="text-[10px] font-semibold text-slate-500 tabular-nums">{group.elements.length}</span>
+                                        </div>
+                                        <ul className="pl-8 space-y-0.5">
+                                          {group.elements.slice(0, 3).map((el: any, idx: number) => (
+                                            <li key={idx} className="text-[10.5px] text-slate-600 leading-tight truncate">{el.name}</li>
+                                          ))}
+                                          {group.elements.length > 3 && (
+                                            <li className="text-[10px] text-slate-400 italic">+ {group.elements.length - 3} more</li>
+                                          )}
+                                        </ul>
+                                      </div>
+                                    );
+                                  })}
+                                  {buckets21[t.key].length > dimsInTab.length && (
+                                    <p className="text-[10px] text-slate-400 italic px-2 pt-1">+ {buckets21[t.key].length - dimsInTab.length} more dimension{buckets21[t.key].length - dimsInTab.length === 1 ? '' : 's'}</p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Slide 22: Your Support in Context - composite + three-level breakdown */}
+                {currentSlide === 22 && (() => {
+                  const allElems22 = dimensionAnalysis?.flatMap((d: any) =>
+                    (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))
+                  ) || [];
+                  const tierCalc22 = (level: string) => {
+                    const elems = allElems22.filter((e: any) => getElementLevel(e.name) === level);
+                    if (elems.length === 0) return { score: 0, total: 0 };
+                    const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                    const dimConfirmRates: Record<number, number> = {};
+                    for (let d = 1; d <= 13; d++) {
+                      const dimElems = allElems22.filter((e: any) => e.dim === d);
+                      if (dimElems.length === 0) { dimConfirmRates[d] = 1; continue; }
+                      const confirmed = dimElems.filter((e: any) => !e.isUnsure).length;
+                      dimConfirmRates[d] = confirmed / dimElems.length;
+                    }
+                    let weightedNum = 0, weightedDen = 0;
+                    elems.forEach((e: any) => {
+                      const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                      const dimNum = ew ? ew[0] : (e.dim || 1);
+                      const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / elems.length);
+                      let scoreNorm = 0;
+                      if (e.isUnsure) {
+                        const mu = TIER_MEANS[dimNum]?.[level] || 0;
+                        const cr = dimConfirmRates[dimNum] || 0;
+                        scoreNorm = (mu * cr * cr) / 5;
+                      } else if (e.isStrength) scoreNorm = 1;
+                      else if (e.isPlanning) scoreNorm = 0.6;
+                      else if (e.isAssessing) scoreNorm = 0.4;
+                      weightedNum += w * scoreNorm;
+                      weightedDen += w;
+                    });
+                    return { score: weightedDen > 0 ? Math.round((weightedNum / weightedDen) * 100) : 0, total: elems.length };
+                  };
+                  const core22 = tierCalc22('core');
+                  const enh22 = tierCalc22('enhanced');
+                  const adv22 = tierCalc22('advanced');
+                  const bench22 = { composite: 59, core: 60, enhanced: 55, advanced: 45 };
+
+                  const tierRow = [
+                    { label: 'Composite', score: wsiScoreHeader, bench: bench22.composite, color: '#334155' },
+                    { label: 'Foundation', score: core22.score, bench: bench22.core, color: '#047857' },
+                    { label: 'Expanded', score: enh22.score, bench: bench22.enhanced, color: '#B45309' },
+                    { label: 'Signature', score: adv22.score, bench: bench22.advanced, color: '#7C3AED' },
+                  ];
+                  return (
+                    <div className="overflow-hidden">
+                      <div className="px-12 py-5 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="16.5" width="18" height="3.5" rx="0.75" />
+                            <rect x="6" y="10.25" width="12" height="3.5" rx="0.75" />
+                            <rect x="9" y="4" width="6" height="3.5" rx="0.75" />
+                          </svg>
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-bold text-white">Your Support in Context</h3>
+                          <p className="text-white text-xs mt-0.5 opacity-90">How your self-reported support compares to participating organizations across the three levels of workplace support.</p>
+                        </div>
+                      </div>
+
+                      <div className="px-8 py-6">
+                        <div className="grid grid-cols-[1fr_auto_3fr] gap-5 items-stretch mb-6">
+                          {/* Composite cluster */}
+                          <div className="flex flex-col">
+                            <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">Composite Score</p>
+                            <div className="flex-1 bg-white rounded-lg p-4 text-center shadow-sm" style={{ border: '2px solid #334155' }}>
+                              <p className="text-5xl font-bold text-slate-900 leading-none">{wsiScoreHeader}</p>
+                              <p className="text-sm font-bold mt-2" style={{ color: tier?.color }}>{tier?.name}</p>
+                              <div className="mt-3 pt-3 border-t border-slate-100">
+                                <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{bench22.composite}</span></p>
+                                {(() => {
+                                  const diff = (wsiScoreHeader || 0) - bench22.composite;
+                                  if (diff === 0) return null;
+                                  return (
+                                    <p className={`text-xs font-bold mt-0.5 tabular-nums ${diff > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                      {diff > 0 ? '+' : ''}{diff} vs benchmark
+                                    </p>
+                                  );
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="w-px bg-slate-200 mt-6" />
+
+                          {/* Three Levels cluster */}
+                          <div className="flex flex-col">
+                            <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">The Three Levels of Support</p>
+                            <div className="grid grid-cols-3 gap-3 flex-1">
+                              {[
+                                { key: 'core', name: 'Foundation', score: core22.score, total: core22.total, bench: bench22.core, color: '#047857' },
+                                { key: 'enh', name: 'Expanded', score: enh22.score, total: enh22.total, bench: bench22.enhanced, color: '#B45309' },
+                                { key: 'adv', name: 'Signature', score: adv22.score, total: adv22.total, bench: bench22.advanced, color: '#7C3AED' },
+                              ].map((lvl) => {
+                                const t = lvl.score >= 80 ? { label: 'Leading', color: '#047857' } : lvl.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : lvl.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' };
+                                const diff = lvl.score - lvl.bench;
+                                return (
+                                  <div key={lvl.key} className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: `2px solid ${lvl.color}30` }}>
+                                    <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: lvl.color }}>{lvl.name}</p>
+                                    <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: lvl.color }}>{lvl.score}</p>
+                                    <p className="text-xs font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>
+                                    <p className="text-[10px] text-slate-500 mt-1">{lvl.total} elements</p>
+                                    <div className="mt-2 pt-2 border-t border-slate-100">
+                                      <p className="text-xs text-slate-600">Benchmark <span className="font-semibold text-slate-800">{lvl.bench}</span></p>
+                                      <p className={`text-xs font-bold mt-0.5 tabular-nums ${diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                        {diff >= 0 ? '+' : ''}{diff} vs benchmark
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Benchmark Distribution table, monochromatic slate ramp */}
+                        <div className="rounded-xl border border-slate-200 overflow-hidden">
+                          <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                            <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">How does {companyName} compare? Benchmark Distribution</p>
+                          </div>
+                          <div className="grid grid-cols-[180px_70px_110px_1fr_1fr_1fr_1fr] gap-0 px-4 py-2 bg-white border-b border-slate-100">
+                            <div></div>
+                            <div className="text-[10px] font-bold text-slate-500 uppercase text-center">Score</div>
+                            <div className="text-[10px] font-bold text-slate-500 uppercase text-center">Your Tier</div>
+                            {[
+                              { label: 'Leading', range: '80-100', color: '#0f172a' },
+                              { label: 'Advancing', range: '64-79', color: '#334155' },
+                              { label: 'Accelerating', range: '50-63', color: '#64748b' },
+                              { label: 'Building', range: '0-49', color: '#94a3b8' },
+                            ].map((td, i) => (
+                              <div key={td.label} className={`text-center ${i === 0 ? 'border-l border-slate-200' : ''}`}>
+                                <p className="text-[10px] font-bold uppercase" style={{ color: td.color }}>{td.label}</p>
+                                <p className="text-[9px] text-slate-500">{td.range}</p>
+                              </div>
+                            ))}
+                          </div>
+                          {tierRow.map((row, i) => {
+                            const rowTier = row.score >= 80 ? { label: 'Leading', color: '#0f172a' } : row.score >= 64 ? { label: 'Advancing', color: '#334155' } : row.score >= 50 ? { label: 'Accelerating', color: '#64748b' } : { label: 'Building', color: '#94a3b8' };
+                            return (
+                              <div key={row.label} className={`grid grid-cols-[180px_70px_110px_1fr_1fr_1fr_1fr] gap-0 px-4 py-2.5 items-center ${i < tierRow.length - 1 ? 'border-b border-slate-100' : ''} ${i === 0 ? 'bg-slate-50/50' : ''}`}>
+                                <div className="flex items-center gap-2">
+                                  <div className="w-1 h-6 rounded-full" style={{ backgroundColor: row.color }} />
+                                  <span className="text-sm font-semibold text-slate-800">{row.label}</span>
+                                </div>
+                                <div className="text-center">
+                                  <span className="text-xl font-bold" style={{ color: row.color }}>{row.score}</span>
+                                </div>
+                                <div className="text-center">
+                                  <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded" style={{ backgroundColor: rowTier.color + '15', color: rowTier.color }}>
+                                    {rowTier.label}
+                                  </span>
+                                </div>
+                                {['Leading', 'Advancing', 'Accelerating', 'Building'].map((td, j) => {
+                                  const isYour = rowTier.label === td;
+                                  const tdColor = ['#0f172a', '#334155', '#64748b', '#94a3b8'][j];
+                                  return (
+                                    <div key={td} className={`text-center ${j === 0 ? 'border-l border-slate-200' : ''}`}>
+                                      <span className={`text-sm tabular-nums ${isYour ? 'font-bold' : 'text-slate-400'}`} style={isYour ? { color: tdColor } : {}}>
+                                        {isYour ? '●' : '·'}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-2">Your tier is highlighted across Composite and each of the three support levels.</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Slide 23: Your Improvement Priorities (combined, Dims 1-5) */}
+                {currentSlide === 23 && (() => {
+                  const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
+                  const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
+                  const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
+                  const totalAccel23 = rankings.slice(0, 5).reduce((s, r) => s + r.accelerateToOffering12 + r.accelerateToPlanning12, 0);
+                  const totalBuild23 = rankings.slice(0, 5).reduce((s, r) => s + r.buildToOffering12 + r.buildToPlanning12, 0);
+                  return (
+                    <div className="overflow-hidden h-full flex flex-col">
+                      <div className="px-8 py-4 bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 flex items-center gap-4">
+                        <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <svg className="w-5 h-5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-white text-xl">Your Improvement Priorities</h3>
+                          <p className="text-slate-300 mt-0.5 text-xs">Year 1 roadmap, ranked by projected score impact</p>
+                        </div>
+                      </div>
+                      <div className="p-6 flex-1">
+                        <p className="text-slate-600 text-sm mb-3">Based on your report, these are the top 5 dimensions with the highest potential impact on your composite score and on employee experiences.</p>
+
+                        <div className="grid grid-cols-4 gap-3 mb-4">
+                          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Accelerate</p>
+                            <p className="text-2xl font-bold text-slate-800 mt-1">{totalAccel23}</p>
+                            <p className="text-[11px] text-slate-500">work already in motion</p>
+                          </div>
+                          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Build</p>
+                            <p className="text-2xl font-bold text-slate-800 mt-1">{totalBuild23}</p>
+                            <p className="text-[11px] text-slate-500">net-new capabilities</p>
+                          </div>
+                          <div className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Year 1 Roadmap</p>
+                            <p className="text-2xl font-bold text-slate-800 mt-1">{totalElementsY1}</p>
+                            <p className="text-[11px] text-slate-500">elements advanced</p>
+                          </div>
+                          <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+                            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Projected Impact</p>
+                            <p className="text-2xl font-bold text-emerald-700 mt-1">{wsiScoreHeader} &rarr; {projectedCompositeY1}</p>
+                            <p className="text-[11px] text-emerald-700">+{totalGainY1.toFixed(1)} composite gain</p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          {rankings.slice(0, 5).map((r, idx) => {
+                            const accelCount = r.accelerateToOffering12 + r.accelerateToPlanning12;
+                            const buildCount = r.buildToOffering12 + r.buildToPlanning12;
+                            const totalDimElements = accelCount + buildCount;
+                            const barWidth = totalGainY1 > 0 ? (r.potentialGain12 / totalGainY1) * 100 : 0;
+                            const dimWeight = dimensionAnalysis.find((dd: any) => dd.dim === r.dimNum)?.weight || 0;
+                            const pg = getEmployeePriorityGroup(dimWeight);
+                            return (
+                              <div key={r.dimNum} className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-lg">
+                                <span className="w-7 h-7 rounded bg-slate-900 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{idx + 1}</span>
+                                <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-md text-white text-[11px] font-bold flex-shrink-0" style={{ backgroundColor: pg.color }}>D{r.dimNum}</span>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-semibold text-slate-900 truncate">{r.dimName}</p>
+                                  <p className="text-[11px] text-slate-500">{accelCount} accelerated + {buildCount} built ({totalDimElements} total)</p>
+                                </div>
+                                <div className="flex flex-col items-end flex-shrink-0">
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-[10px] text-slate-500">Score {r.currentScore} &rarr; {r.projectedScore12}</span>
+                                    <span className="text-sm font-bold text-emerald-700 tabular-nums">+{r.potentialGain12}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                      <div className="h-full bg-slate-700 rounded-full" style={{ width: `${barWidth}%` }} />
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 tabular-nums w-8">{Math.round(barWidth)}%</span>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-4 text-center">Projections assume sustained execution, actual results vary based on feasibility.</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Retired: Improvement Priorities (Dims 1-3). Consolidated into slide 23 above */}
+                {false && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
@@ -14126,8 +14301,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 29: Improvement Priorities (Dims 4-5) */}
-                {currentSlide === 32 && (() => {
+                {/* Retired: Improvement Priorities (Dims 4-5). Consolidated into slide 23 below */}
+                {false && (() => {
                   const totalElementsY1 = rankings.reduce((s, r) => s + r.elementsProgressed12, 0);
                   const totalGainY1 = rankings.reduce((s, r) => s + r.potentialGain12, 0);
                   const projectedCompositeY1 = Math.round(((wsiScoreHeader || 0) + totalGainY1) * 10) / 10;
@@ -14305,8 +14480,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 23: Areas of Strength - exact match to report */}
-                {currentSlide === 22 && (
+                {/* Retired: Areas of Strength slide, replaced by unified Report Summary (slide 21) */}
+                {false && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-teal-700 to-teal-800">
                       <div className="flex items-center justify-between">
@@ -14356,8 +14531,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 24: Opportunities to Grow - exact match to report */}
-                {currentSlide === 23 && (
+                {/* Retired: Opportunities to Grow slide, replaced by unified Report Summary (slide 21) */}
+                {false && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-5 bg-gradient-to-r from-slate-700 to-slate-800">
                       <div className="flex items-center justify-between">
@@ -14405,8 +14580,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 25: Initiatives in Progress - exact match to report */}
-                {currentSlide === 24 && (
+                {/* Retired: Initiatives in Progress slide, replaced by unified Report Summary (slide 21) */}
+                {false && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-violet-700 to-violet-800">
                       <div className="flex items-center justify-between">
@@ -14471,8 +14646,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 26: Strategic Recommendations Setup - matches main report */}
-                {currentSlide === 25 && (
+                {/* Slide 24: Strategic Recommendations Setup - matches main report */}
+                {currentSlide === 24 && (
                   <div className="overflow-hidden">
                     {/* Header with gradient and dot pattern */}
                     <div className="px-10 py-8 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 relative overflow-hidden">
@@ -14579,7 +14754,7 @@ export default function ExportReportPage() {
                               </div>
                               <div>
                                 <h5 className="font-bold text-white text-sm">Foundation Focus</h5>
-                                <p className="text-amber-100 text-xs">Core support gaps to address</p>
+                                <p className="text-amber-100 text-xs">Foundation-tier support gaps to address</p>
                               </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold">2 dimensions</span>
@@ -14724,8 +14899,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 27: From Insight to Action */}
-                {currentSlide === 26 && (
+                {/* Retired: From Insight to Action slide, removed from live report */}
+                {false && (
                   <div className="overflow-hidden">
                     <div className="px-10 py-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
                       <div className="absolute top-0 right-0 w-48 h-48 opacity-5">
@@ -14822,11 +14997,11 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slides 29-32: 4 Strategic Rec Cards */}
-                {currentSlide >= 27 && currentSlide <= 30 && (() => {
-                  const recIdx = currentSlide - 27;
+                {/* Slides 25-29: Up to 5 Strategic Rec Cards */}
+                {currentSlide >= 25 && currentSlide <= 29 && (() => {
+                  const recIdx = currentSlide - 25;
                   const d = strategicPriorityDims[recIdx];
-                  if (!d) return <div className="p-10 text-center text-slate-500">Recommendation data not available</div>;
+                  if (!d) return <div className="p-10 text-center text-slate-500">No additional recommendation at this slot. Press right to continue.</div>;
                   
                   const evidence = getTopEvidence(d.dim, d.strengths, d.gaps, d.planning, elementBenchmarks);
                   const roadmap = getTwoStepRoadmap(d.dim, d.gaps, d.planning, d.assessing || [], elementBenchmarks);
@@ -15047,8 +15222,8 @@ export default function ExportReportPage() {
                 })()}
 
                 {/* Additional Analyzed Dimensions in Presentation Mode */}
-                {additionalAnalyzedDims.length > 0 && currentSlide >= 33 && currentSlide < 33 + additionalAnalyzedDims.length && (() => {
-                  const addIdx = currentSlide - 33;
+                {additionalAnalyzedDims.length > 0 && currentSlide >= 30 && currentSlide < 30 + additionalAnalyzedDims.length && (() => {
+                  const addIdx = currentSlide - 30;
                   const dimNum = additionalAnalyzedDims[addIdx];
                   const d = allDimensionsByScore.find(dim => dim.dim === dimNum);
                   if (!d) return null;
@@ -15259,8 +15434,8 @@ export default function ExportReportPage() {
                   );
                 })()}
 
-                {/* Slide 33: Implementation Roadmap - exact match to report */}
-                {currentSlide === 33 + additionalAnalyzedDims.length && (
+                {/* Slide 30 (+addl): Implementation Roadmap - exact match to report */}
+                {currentSlide === 30 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-700">
                       <div className="flex items-center justify-between">
@@ -15389,8 +15564,198 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 34: Working with Cancer Pledge - hidden, will likely bring back */}
-                {false && currentSlide === 34 + additionalAnalyzedDims.length && (
+                {/* Slide 31 (+addl): What-If Scenarios */}
+                {currentSlide === 31 + additionalAnalyzedDims.length && (
+                  <div className="overflow-hidden">
+                    <div className="px-12 py-5 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-violet-300" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-white">What-If Scenarios</h3>
+                        <p className="text-white text-xs mt-0.5 opacity-90">An interactive tool to model the impact of program changes on your score.</p>
+                      </div>
+                    </div>
+
+                    <div className="px-12 py-8">
+                      <p className="text-[15px] text-slate-700 leading-relaxed mb-6">
+                        Select a dimension, toggle individual support elements on or off, and see the projected impact on your composite score in real time. Useful for stress-testing budget tradeoffs and building the business case for specific investments.
+                      </p>
+
+                      <div className="grid grid-cols-3 gap-5 mb-6">
+                        <div className="rounded-xl border border-slate-200 bg-white p-5">
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
+                            <span className="text-slate-700 font-bold">1</span>
+                          </div>
+                          <p className="font-bold text-slate-900 text-sm mb-1">Select a Dimension</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">Choose any of the 13 dimensions from the dropdown to start modeling.</p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200 bg-white p-5">
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
+                            <span className="text-slate-700 font-bold">2</span>
+                          </div>
+                          <p className="font-bold text-slate-900 text-sm mb-1">Toggle Elements</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">Change the status of any element. Start offering it, move it into planning, or remove it entirely.</p>
+                        </div>
+                        <div className="rounded-xl border border-slate-200 bg-white p-5">
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center mb-3">
+                            <span className="text-slate-700 font-bold">3</span>
+                          </div>
+                          <p className="font-bold text-slate-900 text-sm mb-1">See Projected Score</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">The dimension score and overall composite update instantly so tradeoffs are visible side by side.</p>
+                        </div>
+                      </div>
+
+                      <div className="bg-orange-50 border-l-[3px] border-[#F37021] px-6 py-4 rounded-r-lg flex items-start gap-3">
+                        <svg className="w-5 h-5 text-[#F37021] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <p className="text-[14px] text-slate-700 leading-relaxed">
+                          <span className="text-[15px] font-bold text-slate-900">Best explored with CAC.</span> Your 30-minute consultation call is where we help identify which scenarios matter most for your organization&apos;s planning cycle.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Slide 32 (+addl): Summary and Next Steps */}
+                {currentSlide === 32 + additionalAnalyzedDims.length && (() => {
+                  const allElems32 = dimensionAnalysis?.flatMap((d: any) =>
+                    (d.elements || []).map((e: any) => ({ ...e, dim: d.dim }))
+                  ) || [];
+                  const tierCalc32 = (level: string) => {
+                    const elems = allElems32.filter((e: any) => getElementLevel(e.name) === level);
+                    if (elems.length === 0) return 0;
+                    const dimWtTotal = Object.values(DEFAULT_DIMENSION_WEIGHTS).reduce((a: number, b: number) => a + b, 0);
+                    let weightedNum = 0, weightedDen = 0;
+                    elems.forEach((e: any) => {
+                      const ew = ELEMENT_DIM_WEIGHTS[e.name];
+                      const w = ew ? ((DEFAULT_DIMENSION_WEIGHTS[ew[0]] || 0) / dimWtTotal) * ew[1] : (1 / elems.length);
+                      let scoreNorm = 0;
+                      if (e.isStrength) scoreNorm = 1;
+                      else if (e.isPlanning) scoreNorm = 0.6;
+                      else if (e.isAssessing) scoreNorm = 0.4;
+                      weightedNum += w * scoreNorm;
+                      weightedDen += w;
+                    });
+                    return weightedDen > 0 ? Math.round((weightedNum / weightedDen) * 100) : 0;
+                  };
+                  const c32Score = tierCalc32('core');
+                  const e32Score = tierCalc32('enhanced');
+                  const a32Score = tierCalc32('advanced');
+                  const b32 = { composite: 59, core: 60, enhanced: 55, advanced: 45 };
+                  const wsiBenchDiff32 = (wsiScoreHeader || 0) - b32.composite;
+
+                  return (
+                    <div className="overflow-hidden">
+                      <div className="px-10 py-5 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-white text-xl">Summary and Next Steps</h3>
+                            <p className="text-white text-xs mt-0.5 opacity-90">Strengths to protect and priorities to address</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <span className="text-white text-[11px] uppercase tracking-wider font-semibold opacity-90">Composite</span>
+                          <span className="text-3xl font-bold text-white">{wsiScoreHeader}</span>
+                          <span className="px-3 py-1 rounded-md text-xs font-bold text-white" style={{ backgroundColor: tier?.color }}>{tier?.name}</span>
+                          {wsiBenchDiff32 !== 0 && (
+                            <span className={`text-sm font-semibold ${wsiBenchDiff32 >= 0 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                              {wsiBenchDiff32 >= 0 ? '+' : ''}{wsiBenchDiff32} vs benchmark
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="px-8 py-5">
+                        <div className="grid grid-cols-4 gap-3 mb-5">
+                          {[
+                            { label: 'Composite', score: wsiScoreHeader, benchmark: b32.composite, color: '#334155' },
+                            { label: 'Foundation', score: c32Score, benchmark: b32.core, color: '#047857' },
+                            { label: 'Expanded', score: e32Score, benchmark: b32.enhanced, color: '#B45309' },
+                            { label: 'Signature', score: a32Score, benchmark: b32.advanced, color: '#7C3AED' },
+                          ].map(item => {
+                            const diff = (item.score ?? 0) - item.benchmark;
+                            return (
+                              <div key={item.label} className="rounded-xl px-4 py-3" style={{ backgroundColor: item.color + '08', borderLeft: '3px solid ' + item.color }}>
+                                <p className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">{item.label}</p>
+                                <div className="flex items-baseline gap-2 mt-1.5">
+                                  <span className="text-2xl font-bold" style={{ color: item.color }}>{item.score ?? '-'}</span>
+                                  <span className={`text-xs font-bold tabular-nums ${diff >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                    {diff >= 0 ? '+' : ''}{diff}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-slate-600 mt-1 font-medium">Benchmark <span className="font-bold text-slate-800 tabular-nums">{item.benchmark}</span></p>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="border-t border-slate-200 pt-4">
+                          <div className="flex items-baseline justify-between mb-3 pb-2 border-b border-slate-200">
+                            <h4 className="text-[12px] font-bold text-slate-800 uppercase tracking-wider">Priority Dimensions</h4>
+                            <p className="text-[11px] text-slate-600">Ranked by projected impact on composite score</p>
+                          </div>
+                          <div className="space-y-2.5">
+                            {strategicPriorityDims.slice(0, 3).map((d, idx) => {
+                              const pg = getEmployeePriorityGroup(d.weight);
+                              const bench = d.benchmark != null ? Math.round(d.benchmark) : null;
+                              const delta = bench != null ? Math.round(d.score) - bench : null;
+                              return (
+                                <div key={d.dim} className="relative flex gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm" style={{ borderLeftWidth: '4px', borderLeftColor: pg.color }}>
+                                  <span className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white text-sm font-bold">{idx + 1}</span>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                                      <div className="flex items-center gap-2">
+                                        <span className="inline-flex items-center justify-center h-5 px-1.5 rounded-md text-white text-[10px] font-bold" style={{ backgroundColor: pg.color }}>
+                                          D{d.dim}
+                                        </span>
+                                        <span className="text-[15px] font-bold text-slate-900 leading-tight">{d.name}</span>
+                                      </div>
+                                      <div className="flex items-center gap-3 bg-slate-50 rounded-md px-3 py-1 border border-slate-200">
+                                        <div className="flex items-baseline gap-1.5">
+                                          <span className="text-[10px] font-semibold text-slate-600 uppercase">Score</span>
+                                          <span className="text-base font-bold text-slate-900 tabular-nums">{Math.round(d.score)}</span>
+                                        </div>
+                                        {bench != null && (
+                                          <>
+                                            <span className="w-px h-4 bg-slate-300"></span>
+                                            <div className="flex items-baseline gap-1.5">
+                                              <span className="text-[10px] font-semibold text-slate-600 uppercase">Bench</span>
+                                              <span className="text-base font-bold text-slate-900 tabular-nums">{bench}</span>
+                                              {delta != null && (
+                                                <span className={`text-[10px] font-bold tabular-nums ${delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                                  {delta >= 0 ? '+' : ''}{delta}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <p className="text-[12.5px] text-slate-700 mt-2 leading-relaxed">
+                                      {d.selectionReason === 'risk'
+                                        ? 'A low score here means employees managing cancer are most likely to experience gaps today. Addressing this is a Foundation Focus priority.'
+                                        : 'High impact weight combined with headroom means targeted investment here yields system-wide improvement. A Strategic Leverage priority.'}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* WWC Pledge slide - hidden, will likely bring back (kept off the numbered deck) */}
+                {false && currentSlide === -1 && (
                   <div className="overflow-hidden">
                     {/* Header - Clean white/cream with logo */}
                     <div className="px-12 py-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #fafaf8 0%, #f5f3f0 100%)' }}>
@@ -15566,8 +15931,8 @@ export default function ExportReportPage() {
                 )}
 
 
-                {/* Slide 35: How Cancer and Careers Can Help - exact match to report */}
-                {currentSlide === 35 + additionalAnalyzedDims.length && (
+                {/* Slide 33 (+addl): How Cancer and Careers Can Help - exact match to report */}
+                {currentSlide === 33 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden">
                     {/* Header */}
                     <div className="px-12 py-8 bg-gradient-to-r from-[#F37021] to-orange-500 relative overflow-hidden">
@@ -15655,8 +16020,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 38: Methodology - appendix */}
-                {currentSlide === 37 + additionalAnalyzedDims.length && (
+                {/* Slide 35 (+addl): Methodology - appendix */}
+                {currentSlide === 35 + additionalAnalyzedDims.length && (
                   <div className="rounded-2xl overflow-hidden bg-slate-50 border border-slate-200">
                     <div className="px-12 py-6 border-b border-slate-200">
                       <h3 className="font-bold text-slate-700 text-base">Report Methodology</h3>
@@ -15751,8 +16116,8 @@ export default function ExportReportPage() {
                   </div>
                 )}
 
-                {/* Slide 37: Thank You */}
-                {currentSlide === 36 + additionalAnalyzedDims.length && (
+                {/* Slide 34 (+addl): Thank You */}
+                {currentSlide === 34 + additionalAnalyzedDims.length && (
                   <div className="overflow-hidden h-full flex flex-col">
                     {/* White header section with logos on sides and Thank You centered */}
                     <div className="bg-white px-12 py-8">
@@ -16214,7 +16579,7 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Key talking points:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Start with the composite score - <strong style={{ color: tier?.color }}>{wsiScoreHeader}</strong> places them in the <strong>{tier?.name}</strong> tier</li>
+                        <li>Start with the composite score. <strong style={{ color: tier?.color }}>{wsiScoreHeader}</strong> places them in the <strong>{tier?.name}</strong> tier</li>
                         <li>Highlight report date and that this represents current state, not aspirational</li>
                         <li>Mention the {totalElements} support elements evaluated across {Object.keys(dimensionScores).length} dimensions</li>
                       </ul>
@@ -16224,7 +16589,7 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Framework context:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Emphasize CAC&apos;s 20+ years of frontline experience with cancer and the workplace</li>
+                        <li>Emphasize CAC&apos;s 25 years of frontline experience with cancer and the workplace</li>
                         <li>Research-driven: shaped by HR leaders, employees, and general workforce input</li>
                         <li>Note this is the first comprehensive benchmark for cancer support at work</li>
                       </ul>
@@ -16234,8 +16599,8 @@ export default function ExportReportPage() {
                     <div>
                       <p className="mb-2"><strong>Composite score explanation:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Explain how the 90% weighted dimensions + 5% maturity + 5% breadth combine</li>
-                        <li>Point out the performance tier distribution - few organizations reach Leading tier</li>
+                        <li>Built from the ground up: {totalElementCount} elements, 13 dimensions, weighted by employee priority and impact</li>
+                        <li>Elements are also classified across Foundation, Expanded, and Signature levels</li>
                         <li>Frame this as a baseline for their journey, not a final judgment</li>
                       </ul>
                     </div>
@@ -16246,27 +16611,18 @@ export default function ExportReportPage() {
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Walk through the dimension categories and what each measures</li>
                         <li>Note that dimensions are weighted by impact importance based on research</li>
-                        <li>Emphasize that all dimensions matter - improvements anywhere create lasting impact</li>
+                        <li>Emphasize that all dimensions matter. Improvements anywhere create lasting impact</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 4 && (
                     <div>
-                      <p className="mb-2"><strong>How to use this report:</strong></p>
+                      <p className="mb-2"><strong>Executive overview focus:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Walk through the four-step workflow: Confirm, Prioritize, Plan, Track</li>
-                        <li>Items marked &quot;Needs confirmation&quot; are scored as Not Planned until verified</li>
-                        <li>Focus attention on high-weight gaps first - small changes there move the score fastest</li>
-                      </ul>
-                    </div>
-                  )}
-                  {currentSlide === 4 && (
-                    <div>
-                      <p className="mb-2"><strong>Executive summary focus:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Three cards: Strongest Dimensions, Priority Gaps, Areas to Address</li>
                         <li>Top dimension: <strong className="text-emerald-400">{dimensionAnalysis[0]?.name}</strong> ({dimensionAnalysis[0]?.score})</li>
                         <li>Greatest opportunity: <strong className="text-amber-400">{dimensionAnalysis[dimensionAnalysis.length - 1]?.name}</strong></li>
-                        <li>{unsureItems > 0 ? `Note: ${unsureItems} items need confirmation before final scoring` : 'All items confirmed - score is final'}</li>
+                        <li>{unsureItems > 0 ? `Note: ${unsureItems} items need confirmation before final scoring` : 'All items confirmed, score is final'}</li>
                       </ul>
                     </div>
                   )}
@@ -16283,36 +16639,26 @@ export default function ExportReportPage() {
                   )}
                   {currentSlide >= 6 && currentSlide <= 18 && (
                     <div>
-                      <p className="mb-2"><strong>Dimension {currentSlide - 6} deep dive:</strong></p>
+                      <p className="mb-2"><strong>Dimension {currentSlide - 5} deep dive:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Review strengths (green) - acknowledge what&apos;s working well</li>
-                        <li>Highlight planning items (blue) - show momentum</li>
-                        <li>Address gaps constructively - frame as opportunities</li>
+                        <li>Review strengths (green). Acknowledge what&apos;s working well</li>
+                        <li>Highlight items in development (blue). Show momentum</li>
+                        <li>Address gaps constructively. Frame as opportunities</li>
                         <li>Connect to real employee impact where possible</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 19 && (
                     <div>
-                      <p className="mb-2"><strong>Strategic matrix (company view):</strong></p>
+                      <p className="mb-2"><strong>Performance Matrix:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Top-left quadrant (Priority Gaps) = high weight, low score - focus here first</li>
-                        <li>Top-right (Core Strengths) = high weight, high score - protect these</li>
+                        <li>Top-left quadrant (Priority Gaps) = high weight, low score. Focus here first</li>
+                        <li>Top-right (Core Strengths) = high weight, high score. Protect these</li>
                         <li>Help them identify the 2-3 highest-impact moves</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 20 && (
-                    <div>
-                      <p className="mb-2"><strong>Strategic matrix (with benchmarks):</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Compare company dots to benchmark triangles</li>
-                        <li>Dimensions where they trail benchmark = priority opportunities</li>
-                        <li>Set realistic targets based on where participating organizations typically perform</li>
-                      </ul>
-                    </div>
-                  )}
-                  {currentSlide === 21 && (
                     <div>
                       <p className="mb-2"><strong>Cross-dimensional insights:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -16322,57 +16668,37 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 31 && (
+                  {currentSlide === 21 && (
                     <div>
-                      <p className="mb-2"><strong>Impact-ranked priorities (Dims 1-3):</strong></p>
+                      <p className="mb-2"><strong>Report Summary:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Top 3 dimensions ranked by potential composite score impact</li>
-                        <li>Accelerate = work in motion; Build = net-new capabilities</li>
-                        <li>Review specific elements and confirm feasibility</li>
-                      </ul>
-                    </div>
-                  )}
-                  {currentSlide === 32 && (
-                    <div>
-                      <p className="mb-2"><strong>Impact-ranked priorities (Dims 4-5):</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Dimensions 4-5 complete the Year 1 roadmap</li>
-                        <li>Discuss prioritization and sequencing for implementation</li>
-                        <li>Define success metrics and milestone checkpoints</li>
+                        <li>Four-tab coverage across all {totalElementCount} support elements</li>
+                        <li>Areas of Strength, Initiatives in Progress, Opportunities to Grow, Unsure</li>
+                        <li>Use this as the full inventory to see where every element stands</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 22 && (
                     <div>
-                      <p className="mb-2"><strong>Areas of excellence:</strong></p>
+                      <p className="mb-2"><strong>Your Support in Context:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Celebrate what&apos;s working - these are strengths to protect and communicate</li>
-                        <li>Ask: How can we leverage these as proof points internally?</li>
-                        <li>These demonstrate commitment to employees managing cancer</li>
+                        <li>Composite Score on the left, three support levels on the right</li>
+                        <li>Foundation, Expanded, Signature with score, tier, benchmark, and delta</li>
+                        <li>Shows whether coverage is concentrated at baseline or extends into standout programs</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 23 && (
                     <div>
-                      <p className="mb-2"><strong>Areas for growth:</strong></p>
+                      <p className="mb-2"><strong>Your Improvement Priorities:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>Frame gaps as opportunities, not failures</li>
-                        <li>Improving one tier in 2-3 high-weight dimensions = meaningful progress</li>
-                        <li>Pick ladder steps and commit to moving them this cycle</li>
+                        <li>Year 1 roadmap ranked by projected composite score impact</li>
+                        <li>Accelerate = work in motion; Build = net-new capabilities</li>
+                        <li>Define success metrics and milestone checkpoints</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 24 && (
-                    <div>
-                      <p className="mb-2"><strong>Initiatives in progress:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>These represent momentum - work already underway</li>
-                        <li>Confirm timelines and owners for each initiative</li>
-                        <li>Ask: What&apos;s blocking completion? How can we accelerate?</li>
-                      </ul>
-                    </div>
-                  )}
-                  {currentSlide === 25 && (
                     <div>
                       <p className="mb-2"><strong>Strategic recommendations intro:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
@@ -16382,9 +16708,9 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide >= 27 && currentSlide <= 30 && (
+                  {currentSlide >= 25 && currentSlide <= 29 && (
                     <div>
-                      <p className="mb-2"><strong>Recommendation {currentSlide - 29}:</strong></p>
+                      <p className="mb-2"><strong>Recommendation {currentSlide - 24}:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Review the specific action items in this recommendation</li>
                         <li>Discuss feasibility and resource requirements</li>
@@ -16393,53 +16719,60 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {additionalAnalyzedDims.length > 0 && currentSlide >= 34 && currentSlide < 34 + additionalAnalyzedDims.length && (
+                  {additionalAnalyzedDims.length > 0 && currentSlide >= 30 && currentSlide < 30 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Additional dimension analysis:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Review the element breakdown for this dimension</li>
-                        <li>Green items are strengths, blue shows momentum, red are opportunities</li>
+                        <li>Green items are strengths, blue shows momentum, amber are opportunities</li>
                         <li>Connect findings to overall strategic priorities discussed earlier</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 30 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Implementation roadmap:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>This is a suggested phasing that can be customized to priorities</li>
+                        <li>Quick Wins: Low effort, high impact items to build momentum</li>
+                        <li>Foundation Building: Medium-term investments for sustainable change</li>
+                        <li>Excellence: Long-term culture and system enhancements</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 31 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>What-If Scenarios:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Interactive tool to model the impact of program changes on the score</li>
+                        <li>Select a dimension and toggle elements on or off to see projected impact</li>
+                        <li>Useful for stress-testing budget tradeoffs and building the business case</li>
+                      </ul>
+                    </div>
+                  )}
+                  {currentSlide === 32 + additionalAnalyzedDims.length && (
+                    <div>
+                      <p className="mb-2"><strong>Summary and Next Steps:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 text-slate-300">
+                        <li>Composite + tier level scores with benchmark context</li>
+                        <li>Top 3 priority dimensions with a recommended first step</li>
+                        <li>The single executive read to share with sponsors</li>
                       </ul>
                     </div>
                   )}
                   {currentSlide === 33 + additionalAnalyzedDims.length && (
                     <div>
-                      <p className="mb-2"><strong>Implementation roadmap:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>This is a suggested phasing - can be customized to priorities</li>
-                        <li>Phase 1 (Quick Wins): Low effort, high impact items to build momentum</li>
-                        <li>Phase 2 (Strategic): Medium-term investments for sustainable change</li>
-                        <li>Phase 3 (Optimize): Long-term culture and system enhancements</li>
-                      </ul>
-                    </div>
-                  )}
-                  {/* Commented out - will likely bring back
-                  {currentSlide === 34 + additionalAnalyzedDims.length && (
-                    <div>
-                      <p className="mb-2"><strong>Working with Cancer Pledge:</strong></p>
-                      <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>5,000+ companies globally have signed - creates accountability</li>
-                        <li>The Pledge is about intent; this Index measures actual execution</li>
-                        <li>81% of employees managing cancer say this matters for trust</li>
-                        <li>Only 16-18% employee awareness - opportunity to communicate better</li>
-                      </ul>
-                    </div>
-                  )}
-                  */}
-                  {currentSlide === 35 + additionalAnalyzedDims.length && (
-                    <div>
                       <p className="mb-2"><strong>How CAC can help:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
-                        <li>20+ years of frontline experience with employees and HR teams</li>
+                        <li>Two decades of frontline experience with employees and HR teams</li>
                         <li>Can support implementation at any phase</li>
                         <li>Offer to schedule a follow-up call to discuss priorities</li>
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 36 + additionalAnalyzedDims.length && (
+                  {currentSlide === 34 + additionalAnalyzedDims.length && (
                     <div>
-                      <p className="mb-2"><strong>Thank you &amp; next steps:</strong></p>
+                      <p className="mb-2"><strong>Thank you and next steps:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Close with a decision ask: confirm top priorities, assign owners, set next checkpoint</li>
                         <li>Thank the audience for their engagement</li>
@@ -16448,12 +16781,12 @@ export default function ExportReportPage() {
                       </ul>
                     </div>
                   )}
-                  {currentSlide === 37 + additionalAnalyzedDims.length && (
+                  {currentSlide === 35 + additionalAnalyzedDims.length && (
                     <div>
                       <p className="mb-2"><strong>Methodology overview:</strong></p>
                       <ul className="list-disc list-inside space-y-1 text-slate-300">
                         <li>Reassure the audience that scoring is consistent and benchmarked</li>
-                        <li>The key message: track change over time, not a one-and-done exercise</li>
+                        <li>Key message: track change over time, not a one-and-done exercise</li>
                         <li>Answer any questions about how scores were calculated</li>
                       </ul>
                     </div>
@@ -16481,30 +16814,27 @@ export default function ExportReportPage() {
                       >
                         <div className="text-xs font-bold text-slate-800 mb-1">Slide {i + 1}</div>
                         <div className="text-[10px] text-slate-500 leading-tight truncate">
-                          {i === 0 ? 'Title & Overview' : 
+                          {i === 0 ? 'Title & Overview' :
                            i === 1 ? 'How Index Was Developed' :
-                           i === 2 ? ('Workplace Support Composite Score') :
+                           i === 2 ? 'Understanding Your Composite Score' :
                            i === 3 ? 'The 13 Dimensions' :
                            i === 4 ? 'Executive Overview' :
                            i === 5 ? 'Dimension Performance' :
                            i >= 6 && i <= 18 ? `D${i - 5} Deep Dive` :
                            i === 19 ? 'Interactive Performance Matrix' :
-                           i === 20 ? 'Benchmarks' :
-                           i === 21 ? 'Cross-Dimensional Insights' :
-                           i === 22 ? 'Areas of Strength' :
-                           i === 23 ? 'Opportunities to Grow' :
-                           i === 24 ? 'Initiatives In Development or Under Review' :
-                           i === 25 ? 'Strategic Recommendations' :
-                           i === 26 ? 'From Insight to Action' :
-                           i >= 27 && i <= 30 ? `Recommendation ${i - 26}` :
-                           i === 31 ? 'Improvement Priorities' :
-                           i === 32 ? 'Improvement Priorities (4-5)' :
-                           i >= 33 && i < 33 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 33]}` :
-                           i === 33 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
-                           // i === 34 + additionalAnalyzedDims.length ? 'Working with Cancer Pledge' : // Commented out - will likely bring back
-                           i === 35 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
-                           i === 36 + additionalAnalyzedDims.length ? 'Thank You' :
-                           i === 37 + additionalAnalyzedDims.length ? 'Methodology' :
+                           i === 20 ? 'Cross-Dimensional Insights' :
+                           i === 21 ? 'Report Summary' :
+                           i === 22 ? 'Your Support in Context' :
+                           i === 23 ? 'Your Improvement Priorities' :
+                           i === 24 ? 'Strategic Recommendations' :
+                           i >= 25 && i <= 29 ? `Recommendation ${i - 24}` :
+                           i >= 30 && i < 30 + additionalAnalyzedDims.length ? `Additional D${additionalAnalyzedDims[i - 30]}` :
+                           i === 30 + additionalAnalyzedDims.length ? 'Implementation Roadmap' :
+                           i === 31 + additionalAnalyzedDims.length ? 'What-If Scenarios' :
+                           i === 32 + additionalAnalyzedDims.length ? 'Summary and Next Steps' :
+                           i === 33 + additionalAnalyzedDims.length ? 'How CAC Can Help' :
+                           i === 34 + additionalAnalyzedDims.length ? 'Thank You' :
+                           i === 35 + additionalAnalyzedDims.length ? 'Methodology' :
                            `Slide ${i + 1}`}
                         </div>
                       </button>
