@@ -12748,7 +12748,7 @@ export default function ExportReportPage() {
               </div>
             </div>
 
-            {/* Understanding Your Composite Score */}
+            {/* Understanding Your Workplace Support Composite Score / Composite Score, Collapsible */}
             <div id="score-composition-section" className="px-12 py-6 bg-white border-b border-slate-200">
               <button
                 onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
@@ -12766,18 +12766,132 @@ export default function ExportReportPage() {
                   <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </button>
+
               {(showCompositeScoreGuide || isPresentation) && (
                 <div className="mt-4 pb-1">
                   <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                     <div className="p-6">
-                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                        Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions and {totalElementCount} elements of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
-                      </p>
-                      <p className="text-sm text-slate-700 leading-relaxed">
-                        Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
-                      </p>
-                      <p className="text-sm text-slate-700 leading-relaxed mt-3">
-                        The {totalElementCount} elements are also grouped into three support levels (Foundational, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs.
+                      <div className="mb-6">
+                        <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                          <span className="w-1.5 h-6 bg-slate-600 rounded-full"></span>
+                          {'What This Score Represents'}
+                        </h4>
+                        <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                          Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions and {totalElementCount} elements of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
+                        </p>
+                        <div className="mb-3">
+                          <button
+                            onClick={() => setShowHowItsBuilt(!showHowItsBuilt)}
+                            className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors group"
+                          >
+                            <span className="text-sm font-bold text-slate-900">How It&apos;s Built</span>
+                            <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600 group-hover:text-slate-900">
+                              {showHowItsBuilt ? 'Hide details' : 'Learn more'}
+                              <svg className={`w-3.5 h-3.5 transition-transform ${showHowItsBuilt ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2.25" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                            </span>
+                          </button>
+                          {(showHowItsBuilt || isPresentation) && (
+                            <div className="bg-white border border-t-0 border-slate-200 rounded-b-lg px-4 py-3 -mt-[1px]">
+                              <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
+                                Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed mb-2.5">
+                                The {totalElementCount} elements are also grouped into three support levels (Foundational, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs. See <span className="font-semibold text-slate-900">Your Support in Context</span>.
+                              </p>
+                              <p className="text-sm text-slate-700 leading-relaxed mb-3">
+                                Improvements in any dimension can strengthen overall support, particularly when they expand access, consistency, and continuity of support.
+                              </p>
+                              <div className="flex items-start gap-2 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-md px-3 py-2.5">
+                                <svg className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <p className="text-xs text-slate-700 leading-relaxed">
+                                  <span className="font-bold text-slate-900">Tip:</span> Use the three level scores to understand where your results are coming from. <span className="font-semibold">Foundational</span> captures baseline practices most workplaces establish first. <span className="font-semibold">Expanded</span> captures mid-tier offerings that strengthen the employee experience. <span className="font-semibold">Signature</span> captures standout programs that go beyond the norm.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Two column: Tiers + Journey */}
+                      <div className="flex gap-8">
+                        <div className="w-[480px] flex-shrink-0">
+                          <h4 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                            <span className="w-1.5 h-6 bg-slate-600 rounded-full"></span>
+                            {'Workplace Support Composite Score Tiers'}
+                          </h4>
+                          <div className="flex items-center mb-2 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            <div className="w-28">Tier</div>
+                            <div className="w-20 text-center">Range</div>
+                            <div className="flex-1 text-center">Distribution</div>
+                          </div>
+                          <div className="space-y-2">
+                            {([
+                              { name: 'Leading', range: '80+', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                              { name: 'Advancing', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                              { name: 'Accelerating', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                              { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                            ] as any).map((t: any) => {
+                              const isCurrent = supportRatingHeader === t.name;
+                              return (
+                                <div key={t.name} className={`flex items-center px-4 py-3 rounded-xl border-2 transition-all relative ${isCurrent ? 'bg-white shadow-md' : t.bg} ${isCurrent ? '' : t.border}`} style={isCurrent ? { borderColor: t.color, boxShadow: `0 4px 12px ${t.color}25` } : {}}>
+                                  {isCurrent && (
+                                    <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex items-center">
+                                      <div className="w-6 h-6 rounded-full flex items-center justify-center shadow-md" style={{ backgroundColor: t.color }}>
+                                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="w-28"><span className={`font-bold text-sm ${isCurrent ? '' : t.text}`} style={isCurrent ? { color: t.color } : {}}>{t.name}</span></div>
+                                  <div className="w-20 text-center"><span className={`text-sm font-semibold ${isCurrent ? 'text-slate-600' : t.text}`}>{t.range}</span></div>
+                                  <div className="flex-1 flex items-center gap-3">
+                                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200 shadow-inner">
+                                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct * 2.5, t.pct > 0 ? 10 : 0)}%`, backgroundColor: t.color }} />
+                                    </div>
+                                    <span className={`text-sm font-bold w-10 text-right ${isCurrent ? '' : t.text}`} style={isCurrent ? { color: t.color } : {}}>{t.pct}%</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-slate-500 mt-2 text-center">Based on participating organizations (updates as dataset grows)</p>
+                          <div className="mt-4 pt-4 border-t border-slate-200 text-center">
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold text-slate-800">{companyName}</span> WSI: <span className="font-bold text-lg" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span> · <span className="font-semibold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="h-full p-6 bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-slate-200 rounded-xl">
+                            <div className="flex items-center gap-3 mb-4">
+                              <div className="w-10 h-10 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                              </div>
+                              <p className="text-lg font-bold text-slate-800">A shared purpose in creating a resilient workforce</p>
+                            </div>
+                            <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                              We&apos;re grateful that <strong>{companyName}</strong> is among the first organizations to participate in this <span className="font-semibold text-slate-800">inaugural year</span> of the Best Companies Index. By joining now, you&apos;re not only strengthening support within your own organization but <strong>helping define what excellence looks like</strong> for employers everywhere. Workplace cancer support is an evolving field. Few organizations have reached the <strong>Leading</strong> tier yet, and that&apos;s expected at this stage.
+                            </p>
+                            <div className="bg-white/60 rounded-lg p-4 border border-slate-100">
+                              <p className="text-sm text-slate-700 leading-relaxed">
+                                <strong className="text-slate-800">The goal is progress, not perfection.</strong> This isn&apos;t about achieving a perfect score. It&apos;s about continuous improvement, taking meaningful steps forward each year, and building support systems that grow alongside your workforce.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-6 py-4 bg-slate-800 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                      </div>
+                      <p className="text-sm text-slate-200">
+                        <span className="font-semibold text-white">This score is just the beginning.</span> The detailed analysis that follows lets you
+                        explore each dimension in depth, identifying specific strengths to leverage and opportunities to strengthen your
+                        support for employees managing cancer.
                       </p>
                     </div>
                   </div>
@@ -12863,6 +12977,112 @@ export default function ExportReportPage() {
               )}
             </div>
 
+            {/* Your Support in Context - Collapsible */}
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowLevelsOverview(!showLevelsOverview)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="16.5" width="18" height="3.5" rx="0.75" />
+                      <rect x="6" y="10.25" width="12" height="3.5" rx="0.75" />
+                      <rect x="9" y="4" width="6" height="3.5" rx="0.75" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Your Support in Context</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showLevelsOverview ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              {(showLevelsOverview || isPresentation) && (
+                <div className="mt-5">
+                  <p className="text-sm text-slate-600 leading-relaxed mb-5 px-1">
+                    Each of the {totalElementCount} self-reported program elements is classified into one of three levels of workplace support: <span className="font-semibold text-slate-800">Foundational</span> practices found in most programs, <span className="font-semibold text-slate-800">Expanded</span> practices common in stronger programs, and <span className="font-semibold text-slate-800">Signature</span> offerings typical of standout programs.
+                  </p>
+                  <div className="grid grid-cols-3 gap-4 mb-2">
+                    {(['core', 'enhanced', 'advanced'] as const).map((key) => {
+                      const L = SUPPORT_LEVELS[key];
+                      const Icon = L.icon;
+                      const isExp = expandedLevel === key;
+                      const allElems = Object.values(elementDetails || {}).flat() as any[];
+                      const levelElems = allElems.filter((e: any) => getElementLevel(e.name) === key);
+                      const count = levelElems.length;
+                      const pct = allElems.length > 0 ? Math.round((count / allElems.length) * 100) : 0;
+                      const stageTag = key === 'core' ? 'found in most programs' : key === 'enhanced' ? 'common in stronger programs' : 'typical of standout programs';
+                      const dimCounts: Record<number, { count: number; total: number }> = {};
+                      const peerPcts: number[] = [];
+                      dimensionAnalysis?.forEach((dd: any) => {
+                        const total = dd.elements?.length || 0;
+                        const levelMatch = (dd.elements || []).filter((e: any) => getElementLevel(e.name) === key);
+                        if (levelMatch.length > 0) dimCounts[dd.dim] = { count: levelMatch.length, total };
+                        const benchForDim = elementBenchmarks?.[dd.dim] || {};
+                        levelMatch.forEach((e: any) => {
+                          const b = benchForDim[e.name];
+                          if (b && b.total > 0) peerPcts.push((b.currently / b.total) * 100);
+                        });
+                      });
+                      const avgPeerPct = peerPcts.length > 0 ? Math.round(peerPcts.reduce((a, b) => a + b, 0) / peerPcts.length) : null;
+                      return (
+                        <div key={key} className="rounded-xl overflow-hidden flex flex-col" style={{ border: `2px solid ${isExp ? L.color : L.border}`, boxShadow: isExp ? `0 4px 24px ${L.color}18` : '0 1px 3px rgba(0,0,0,0.04)', transition: 'all 0.2s' }}>
+                          <div className="px-4 pt-4 pb-3 flex flex-col flex-1" style={{ background: `linear-gradient(135deg, ${L.light} 0%, white 100%)` }}>
+                            <div className="flex items-center gap-2.5 mb-2">
+                              <div className="w-9 h-9 rounded-lg flex items-center justify-center shadow-sm" style={{ backgroundColor: L.color }}>
+                                <Icon size={18} color="white" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-sm" style={{ color: L.color }}>{L.name}</h4>
+                                <span className="text-[11px] text-slate-600 font-medium">{count} Elements ({pct}%){avgPeerPct !== null ? ` · offered by ${avgPeerPct}% of participating companies` : ''}</span>
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-xs font-semibold text-slate-700 leading-relaxed">{L.boldPhrase}<span className="text-slate-500">*</span></p>
+                              <p className="text-[11px] italic mt-2" style={{ color: L.color, opacity: 0.85 }}>{stageTag}</p>
+                            </div>
+                          </div>
+                          <div className="px-4 py-2.5 flex items-center justify-end" style={{ backgroundColor: L.light, borderTop: `1px solid ${L.border}` }}>
+                            <button onClick={() => setExpandedLevel(isExp ? null : key)} className="text-[11px] font-medium flex items-center gap-1" style={{ color: L.color }}>
+                              <span className="text-slate-500">*</span>{isExp ? 'Hide' : 'Explore'} by Dimension
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ transform: isExp ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                          </div>
+                          {isExp && (
+                            <div className="px-4 py-3" style={{ borderTop: `1px solid ${L.border}`, backgroundColor: 'white' }}>
+                              <div className="flex items-center gap-2 pb-2 mb-1.5 border-b border-slate-100">
+                                <div className="w-5 flex-shrink-0"></div>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-1">Dimension</span>
+                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex-shrink-0 text-right" style={{ width: '88px' }}>Elements in this level</span>
+                              </div>
+                              <div className="space-y-1.5">
+                                {Object.entries(dimCounts).sort(([,a],[,b]) => b.count - a.count).map(([dStr, cnt]) => {
+                                  const dNum = parseInt(dStr);
+                                  const dimInfo = dimensionAnalysis?.find((da: any) => da.dim === dNum);
+                                  return (
+                                    <div key={dNum} className="flex items-center gap-2">
+                                      <div className="w-5 h-5 rounded flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: '#475569', fontSize: 9 }}>{dNum}</div>
+                                      <span className="text-xs text-slate-600 flex-1 truncate" style={{ minWidth: 0 }}>{dimInfo?.name || `Dimension ${dNum}`}</span>
+                                      <span className="text-xs tabular-nums flex-shrink-0 text-right" style={{ width: '88px' }}>
+                                        <span className="font-bold" style={{ color: L.color }}>{cnt.count}</span>
+                                        <span className="text-slate-500"> of {cnt.total}</span>
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Report Sections and What They Measure */}
             <div className="px-12 py-6 bg-white border-b border-slate-200">
               <button
@@ -12883,16 +13103,62 @@ export default function ExportReportPage() {
               </button>
               {(showReportSections || isPresentation) && (
                 <div className="mt-4 pb-1">
-                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6">
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      The report is organized into sections that each play a specific role. Executive Overview and Element Overview give you the top-line picture. Dimension Performance and the Interactive Performance Matrix show you where. Your Improvement Priorities, Strategic Recommendations, and the Implementation Roadmap translate findings into action. What-If Scenarios lets you model changes. The Summary closes with next steps, and How Cancer and Careers Can Help describes the partnership options.
-                    </p>
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-8">
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <p className="text-sm text-slate-500 mt-0.5">Click any section to learn more about what it measures and how it fits</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        {[
+                          { id: 'composite', name: 'Workplace Support Composite Score', color: 'bg-slate-800', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', measures: 'The overall strength of your workplace cancer support program across all 13 dimensions and 152 elements.', fits: 'Your baseline and headline. A single metric to anchor progress over time.' },
+                          { id: 'dimensions', name: 'Dimension Performance Based on What Matters Most', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
+                          { id: 'deepdive', name: 'Dimension Deep Dive', color: 'bg-slate-700', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', measures: 'A one-dimension-at-a-time explorer. Jump between dimensions with the D1-D13 buttons to read their element scorecards side by side.', fits: 'For drill-down reading without scrolling through an accordion.' },
+                          { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-slate-700', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
+                          { id: 'matrix', name: 'Interactive Performance Matrix', color: 'bg-slate-700', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
+                          { id: 'reportsummary', name: 'Element Overview', color: 'bg-slate-700', icon: 'M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h4V11zM15 3h-4a2 2 0 00-2 2v15h6V3zM19 7h-4v13h4a2 2 0 002-2V9a2 2 0 00-2-2z', measures: 'A four-tab coverage view of every support element: Areas of Strength, Initiatives in Progress, Opportunities to Grow, and items marked Unsure.', fits: 'The full inventory. One place to see exactly where every element stands across the program.' },
+                          { id: 'support-context', name: 'Your Support in Context', color: 'bg-slate-700', icon: 'M3 19h18M6 12h12M9 5h6', measures: 'How your Composite Score breaks down across the three Levels of Workplace Support (Foundational, Expanded, Signature) and how each compares to participating organizations.', fits: 'Context and calibration. Shows whether your coverage is concentrated at baseline practices or extends into standout programs.' },
+                          { id: 'impactranked', name: 'Your Improvement Priorities', color: 'bg-slate-700', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'A Year 1 roadmap of dimensions ranked by projected impact on overall score, with element-level actions and benchmark context.', fits: 'Your execution shortlist. The gaps most likely to move the Composite and improve employee support measurably.' },
+                          { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-700', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Element-level analysis for your priority dimensions, with specific recommended actions grounded in benchmark data and projected score impact.', fits: 'The sponsor-ready agenda. A coherent plan HR and leadership can align on, fund, and execute.' },
+                          { id: 'roadmap', name: 'Implementation Roadmap', color: 'bg-slate-700', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2', measures: 'A phased timeline sequencing your recommendations into three stages: Quick Wins, Foundation Building, and Excellence.', fits: 'Turns priorities into action. Assigns owners, sets milestones, and creates accountability for progress.' },
+                          { id: 'whatif', name: 'What-If Scenarios', color: 'bg-slate-700', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'An interactive tool to model the impact on your score of adding or discontinuing specific support elements within a dimension.', fits: 'Decision support. Stress-test budget tradeoffs and build the business case for specific investments.' },
+                          { id: 'next-steps', name: 'Summary', color: 'bg-slate-700', icon: 'M5 13l4 4L19 7', measures: 'A consolidated summary of your performance, your top priority dimensions with recommended first steps, and why each matters for employees.', fits: 'The executive read. The single page to share with sponsors when you need alignment on where to focus next.' },
+                          { id: 'cachelp', name: 'How Cancer and Careers Can Help', color: 'bg-slate-700', icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 10v.01 M12 7v3', measures: 'CAC consulting services across manager preparedness, navigation, return-to-work, and policy assessment.', fits: 'The partnership option. How CAC translates your report into implementation with HR and leadership.' },
+                        ].map((section) => (
+                          <button
+                            key={section.id}
+                            onClick={() => setExpandedReportSection(expandedReportSection === section.id ? null : section.id)}
+                            className={`text-left p-4 rounded-xl border-2 transition-all ${expandedReportSection === section.id ? 'border-emerald-400 bg-emerald-50 shadow-md' : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-9 h-9 rounded-lg ${section.color} flex items-center justify-center flex-shrink-0`}>
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={section.icon} /></svg>
+                              </div>
+                              <span className="text-sm font-semibold text-slate-800">{section.name}</span>
+                            </div>
+                            {expandedReportSection === section.id && (
+                              <div className="mt-4 pt-4 border-t border-emerald-200 space-y-3">
+                                <div>
+                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">What it measures</p>
+                                  <p className="text-sm text-slate-600 leading-relaxed">{section.measures}</p>
+                                </div>
+                                <div>
+                                  <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide mb-1">How it fits</p>
+                                  <p className="text-sm text-slate-600 leading-relaxed">{section.fits}</p>
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* How to Use This Report */}
+            {/* How to Use This Report, Collapsible */}
             <div className="px-12 py-6 bg-white">
               <button
                 onClick={() => setShowReportGuide(!showReportGuide)}
@@ -12910,15 +13176,62 @@ export default function ExportReportPage() {
                   <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                 </div>
               </button>
+
               {showReportGuide && (
                 <div className="mt-4 pb-1">
-                  <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden p-6">
-                    <p className="text-sm text-slate-700 leading-relaxed mb-4">
-                      This report is interactive in many areas. Throughout the report, you will be able to see your performance benchmarked against other participating companies, both at the dimension level and across each element assessed in the survey. Company-identifying information has been withheld; only you will know how your organization performed.
-                    </p>
-                    <p className="text-sm text-slate-700 leading-relaxed">
-                      Use this report as a starting point for strategic conversations, to identify policies and benefits that best support employees managing cancer, and to connect with Cancer and Careers for hands-on guidance and implementation support. Every organization is different. Your industry, workforce, benefits structure, and current capabilities all shape what&apos;s realistic for your team.
-                    </p>
+                  <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden">
+                    <div className="p-6">
+                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                        This report is interactive in many areas. Throughout the report, you will be able to see your performance benchmarked against other participating companies, both at the dimension level and across each element assessed in the survey. Company-identifying information has been withheld; only you will know how your organization performed.
+                      </p>
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        This report provides a comprehensive review of your organization&apos;s self-reported support infrastructure for employees managing cancer and other serious health conditions across 13 dimensions. It highlights strengths and identifies opportunities to expand or initiate support based on what matters most to employees.
+                      </p>
+
+                      <p className="text-sm font-semibold text-slate-800 mb-3">How to apply the report findings:</p>
+                      <div className="space-y-2.5 mb-6">
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                          </div>
+                          <p className="text-sm text-slate-600">As a <strong className="text-slate-800">starting point for strategic conversations</strong> to shape current and future programs</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                          </div>
+                          <p className="text-sm text-slate-600">To <strong className="text-slate-800">identify policies and benefits</strong> that best support employees managing cancer and other serious health conditions, whether they are currently facing a diagnosis or may in their working years</p>
+                        </div>
+                        <div className="bg-white rounded-lg px-4 py-3 border border-slate-200 flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-sky-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                          </div>
+                          <p className="text-sm text-slate-600"><strong className="text-slate-800">Connect with Cancer and Careers</strong> for hands-on guidance, industry context, and implementation support to help you prioritize based on what matters most</p>
+                        </div>
+                      </div>
+
+                      <p className="text-sm font-semibold text-slate-800 mb-3">Cancer and Careers can help you:</p>
+                      <div className="space-y-2 mb-5">
+                        <div className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                          <p className="text-sm text-slate-600">Understand the patterns behind any gaps</p>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                          <p className="text-sm text-slate-600">Focus on where the biggest returns are likely</p>
+                        </div>
+                        <div className="flex items-start gap-2.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-sky-500 mt-2 flex-shrink-0"></span>
+                          <p className="text-sm text-slate-600">Translate insights into a realistic and impactful plan</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        Every organization is different. Your industry, workforce, benefits structure, and current capabilities all shape what&apos;s realistic for your team. Some recommendations may already align with your priorities; others may not be feasible now or ever, and that&apos;s expected.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
