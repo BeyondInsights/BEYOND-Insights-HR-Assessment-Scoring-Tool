@@ -6456,10 +6456,14 @@ export default function ExportReportPage() {
                 const dimsWithBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null);
                 const withDelta = dimsWithBench.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
                 const strongest = [...withDelta].sort((a, b) => b.delta - a.delta).slice(0, 3);
-                // Sort by raw score ascending so we surface the three dimensions where the
-                // company scored lowest relative to its own set, regardless of whether those
-                // dims are above or below the benchmark.
-                const areasToAddress = [...withDelta].sort((a, b) => a.score - b.score).slice(0, 3);
+                // Biggest Opportunities = the 3 absolute lowest-scoring dimensions across the full
+                // set of 13, regardless of whether each dim has a benchmark. delta is still attached
+                // when available so the per-row chip can show vs-benchmark; renders null otherwise.
+                const allWithDelta = dimensionAnalysis.map((d: any) => ({
+                  ...d,
+                  delta: d.benchmark !== null ? d.score - d.benchmark : null,
+                }));
+                const areasToAddress = [...allWithDelta].sort((a: any, b: any) => a.score - b.score).slice(0, 3);
                 const avgW = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
                 const tensions = withDelta
                   .filter((d: any) => d.weight >= avgW && d.score < 75 && !strongest.some(s => s.dim === d.dim) && !areasToAddress.some(a => a.dim === d.dim))
@@ -6516,10 +6520,12 @@ export default function ExportReportPage() {
                             </span>
                             <span className="text-[14px] text-slate-700 font-semibold flex-1 leading-snug">{d.name}</span>
                             <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none mt-0.5">{d.score}</span>
-                            {showDelta ? (
+                            {showDelta && d.delta !== null && d.delta !== undefined ? (
                               <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
                                 {d.delta >= 0 ? '+' : ''}{d.delta}
                               </span>
+                            ) : showDelta ? (
+                              <span className="w-11 flex-shrink-0" />
                             ) : null}
                           </li>
                           );
