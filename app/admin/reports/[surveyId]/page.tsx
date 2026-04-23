@@ -7706,13 +7706,14 @@ export default function ExportReportPage() {
                       data-dim-num={d.dim}
                       data-dim-name={d.name}
                       onClick={() => {
-                        setDeepDiveDim(d.dim);
-                        setOpenedDims(prev => new Set(prev).add(d.dim));
-                        if (typeof document !== 'undefined') {
-                          document.getElementById('dimension-deep-dive')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        if (isOpen) {
+                          setDimensionDetailModal(null);
+                        } else {
+                          setDimensionDetailModal(d.dim);
+                          setOpenedDims(prev => new Set(prev).add(d.dim));
                         }
                       }}
-                      title="Click to open this dimension in the Deep Dive below"
+                      title={isOpen ? 'Collapse' : 'Click for details'}
                       className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[72px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
                       <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
@@ -8192,7 +8193,7 @@ export default function ExportReportPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">Dimension Deep Dive</h2>
-                <p className="text-white text-base mt-1 opacity-90">Explore each dimension element by element. Use the dimension buttons below to jump between dimensions without scrolling.</p>
+                <p className="text-white text-base mt-1 opacity-90">Explore each dimension element by element. Use the dimension buttons below to jump between dimensions.</p>
               </div>
             </div>
             {(() => {
@@ -8244,7 +8245,7 @@ export default function ExportReportPage() {
                   <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-2">Jump to dimension:</span>
-                      {dimensionAnalysis.map((dm: any) => {
+                      {[...dimensionAnalysis].sort((a: any, b: any) => a.dim - b.dim).map((dm: any) => {
                         const isActive = dm.dim === d.dim;
                         const dmPg = getEmployeePriorityGroup(dm.weight);
                         return (
