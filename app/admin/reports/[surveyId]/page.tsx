@@ -7821,7 +7821,8 @@ export default function ExportReportPage() {
                         return (
                           <div ref={dimDetailRef} data-dim-drilldown={d.dim} className="border-t border-slate-200 bg-slate-50/50">
                             <div className="px-6 py-6">
-                              {/* Three summary cards */}
+                              {/* Three summary cards — HIDDEN 2026-04-23 per John; keep commented for possible revert. */}
+                              {false && (
                               <div className="grid grid-cols-7 gap-4 mb-6">
                                 {/* Card 1: Score vs Benchmark (1.5x = 3 of 7 cols) */}
                                 <div className="col-span-3 bg-white rounded-[10px] border border-slate-200 p-5">
@@ -7887,6 +7888,7 @@ export default function ExportReportPage() {
                                   </p>
                                 </div>
                               </div>
+                              )}
 
                               {/* Tab Bar */}
                               {(() => {
