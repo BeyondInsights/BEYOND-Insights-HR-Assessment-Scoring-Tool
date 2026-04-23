@@ -4706,17 +4706,11 @@ export default function ExportReportPage() {
   }, [dimensionDetailModal]);
 
   // Auto-expand top-priority dimension in DP accordion on first load
+  // DISABLED 2026-04-23 per John: Dim Performance table should start fully
+  // collapsed. The Dimension Deep Dive section below owns the default-open
+  // experience (defaults to D1).
   useEffect(() => {
     if (!dpInitialized && elementDetails && companyScores?.dimensionScores) {
-      let topDim = 1;
-      let maxWeight = 0;
-      Object.keys(companyScores.dimensionScores).forEach(k => {
-        const dimNum = parseInt(k);
-        const w = DEFAULT_DIMENSION_WEIGHTS[dimNum] || 0;
-        if (w > maxWeight) { maxWeight = w; topDim = dimNum; }
-      });
-      setDimensionDetailModal(topDim);
-      setOpenedDims(new Set([topDim]));
       setDpInitialized(true);
     }
   }, [elementDetails, companyScores, dpInitialized]);
