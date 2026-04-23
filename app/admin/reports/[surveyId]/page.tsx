@@ -6455,14 +6455,16 @@ export default function ExportReportPage() {
               {(() => {
                 const dimsWithBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null);
                 const withDelta = dimsWithBench.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
-                const strongest = [...withDelta].sort((a, b) => b.delta - a.delta).slice(0, 3);
-                // Biggest Opportunities = the 3 absolute lowest-scoring dimensions across the full
-                // set of 13, regardless of whether each dim has a benchmark. delta is still attached
-                // when available so the per-row chip can show vs-benchmark; renders null otherwise.
+                // Strongest Dimensions and Biggest Opportunities are both sourced from all 13 dims
+                // and sorted by raw score, not by delta vs benchmark. A dim with a high absolute
+                // score is 'strongest' even if its benchmark delta is small; a dim with a low
+                // absolute score is a 'biggest opportunity' even if it sits above the benchmark.
+                // delta is still attached when available so each row's chip can show vs-benchmark.
                 const allWithDelta = dimensionAnalysis.map((d: any) => ({
                   ...d,
                   delta: d.benchmark !== null ? d.score - d.benchmark : null,
                 }));
+                const strongest = [...allWithDelta].sort((a: any, b: any) => b.score - a.score).slice(0, 3);
                 const areasToAddress = [...allWithDelta].sort((a: any, b: any) => a.score - b.score).slice(0, 3);
                 const avgW = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
                 const tensions = withDelta
@@ -6540,7 +6542,7 @@ export default function ExportReportPage() {
                       Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
-                      {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
+                      {renderCard('Strongest Dimensions', 'Your highest-scoring dimensions', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
                       {/* Priority Gaps card hidden 2026-04-23 per John */}
                       {false && renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
                       {renderCard('Biggest Opportunities', 'Your lowest-scoring dimensions', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
