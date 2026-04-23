@@ -6303,7 +6303,7 @@ export default function ExportReportPage() {
                   <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={96} height={96} className="object-contain" />
                 </div>
                 <div>
-                  <p className="text-white text-xs font-semibold tracking-widest uppercase">Performance Report</p>
+                  <p className="text-white text-xs font-semibold tracking-widest uppercase">Report</p>
                   <h1 className="text-2xl font-bold text-white mt-1">Best Companies for Working with Cancer</h1>
                   <p className="text-slate-300 mt-0.5 text-base">Index {indexYear}</p>
                 </div>
