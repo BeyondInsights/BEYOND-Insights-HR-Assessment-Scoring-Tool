@@ -7706,14 +7706,13 @@ export default function ExportReportPage() {
                       data-dim-num={d.dim}
                       data-dim-name={d.name}
                       onClick={() => {
-                        if (isOpen) {
-                          setDimensionDetailModal(null);
-                        } else {
-                          setDimensionDetailModal(d.dim);
-                          setOpenedDims(prev => new Set(prev).add(d.dim));
+                        setDeepDiveDim(d.dim);
+                        setOpenedDims(prev => new Set(prev).add(d.dim));
+                        if (typeof document !== 'undefined') {
+                          document.getElementById('dimension-deep-dive')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }
                       }}
-                      title={isOpen ? 'Collapse' : 'Click for details'}
+                      title="Click to open this dimension in the Deep Dive below"
                       className={`group flex items-center py-4 cursor-pointer transition-colors min-h-[72px] ${isOpen ? 'bg-slate-50' : 'bg-white hover:bg-slate-50'}`}
                     >
                       <div className="flex-1 flex items-center gap-3 pl-2 pr-4">
@@ -8269,7 +8268,12 @@ export default function ExportReportPage() {
                       <div className="flex items-center gap-4">
                         <span className="inline-flex items-center justify-center h-12 min-w-[60px] px-3 rounded-xl text-white text-lg font-bold shadow-sm" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
                         <div>
-                          <h3 className="text-xl font-bold text-slate-900 leading-tight">{d.name}</h3>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <h3 className="text-xl font-bold text-slate-900 leading-tight">{d.name}</h3>
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider text-white" style={{ backgroundColor: pg.color }}>
+                              {pg.chip}
+                            </span>
+                          </div>
                           {diff !== null && (
                             <p className="text-sm text-slate-600 mt-1">
                               Score <span className="font-bold text-slate-900 tabular-nums">{d.score}</span>
