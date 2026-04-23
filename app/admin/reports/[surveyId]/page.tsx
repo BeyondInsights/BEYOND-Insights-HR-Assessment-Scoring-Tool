@@ -7997,7 +7997,7 @@ export default function ExportReportPage() {
 
                                       {/* Benchmark Distribution - Wide Stacked Bar */}
                                       <div className="col-span-5 flex items-center">
-                                        <div className="w-full h-[22px] rounded overflow-hidden flex bg-slate-100">
+                                        <div className="w-full h-[36px] rounded-md overflow-hidden flex bg-slate-100">
                                           <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>
                                             {pctCurrently >= 8 ? `${pctCurrently}%` : ''}
                                           </div>
@@ -8331,7 +8331,7 @@ export default function ExportReportPage() {
                             </span>
                           </div>
                           <div className="col-span-5 flex items-center">
-                            <div className="w-full h-[22px] rounded overflow-hidden flex bg-slate-100">
+                            <div className="w-full h-[36px] rounded-md overflow-hidden flex bg-slate-100">
                               <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>{pctCurrently >= 8 ? `${pctCurrently}%` : ''}</div>
                               <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6' }}>{pctPlanning >= 8 ? `${pctPlanning}%` : ''}</div>
                               <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#D97706' }}>{pctAssessing >= 8 ? `${pctAssessing}%` : ''}</div>
