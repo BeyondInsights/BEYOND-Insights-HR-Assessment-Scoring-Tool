@@ -8004,16 +8004,16 @@ export default function ExportReportPage() {
                                       <div className="col-span-5 flex items-center">
                                         <div className="w-full h-[36px] rounded-md overflow-hidden flex bg-slate-100">
                                           <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>
-                                            {pctCurrently >= 8 ? `${pctCurrently}%` : ''}
+                                            {pctCurrently >= 4 ? `${pctCurrently}%` : ''}
                                           </div>
                                           <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6' }}>
-                                            {pctPlanning >= 8 ? `${pctPlanning}%` : ''}
+                                            {pctPlanning >= 4 ? `${pctPlanning}%` : ''}
                                           </div>
                                           <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#D97706' }}>
-                                            {pctAssessing >= 8 ? `${pctAssessing}%` : ''}
+                                            {pctAssessing >= 4 ? `${pctAssessing}%` : ''}
                                           </div>
                                           <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctNotOffering}%`, backgroundColor: '#9CA3AF' }}>
-                                            {pctNotOffering >= 8 ? `${pctNotOffering}%` : ''}
+                                            {pctNotOffering >= 4 ? `${pctNotOffering}%` : ''}
                                           </div>
                                         </div>
                                       </div>
@@ -8337,10 +8337,10 @@ export default function ExportReportPage() {
                           </div>
                           <div className="col-span-5 flex items-center">
                             <div className="w-full h-[36px] rounded-md overflow-hidden flex bg-slate-100">
-                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>{pctCurrently >= 8 ? `${pctCurrently}%` : ''}</div>
-                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6' }}>{pctPlanning >= 8 ? `${pctPlanning}%` : ''}</div>
-                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#D97706' }}>{pctAssessing >= 8 ? `${pctAssessing}%` : ''}</div>
-                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctNotOffering}%`, backgroundColor: '#9CA3AF' }}>{pctNotOffering >= 8 ? `${pctNotOffering}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>{pctCurrently >= 4 ? `${pctCurrently}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6' }}>{pctPlanning >= 4 ? `${pctPlanning}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#D97706' }}>{pctAssessing >= 4 ? `${pctAssessing}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctNotOffering}%`, backgroundColor: '#9CA3AF' }}>{pctNotOffering >= 4 ? `${pctNotOffering}%` : ''}</div>
                             </div>
                           </div>
                           <div className="col-span-2 pl-4 flex flex-col justify-center">
