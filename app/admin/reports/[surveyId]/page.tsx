@@ -3631,20 +3631,22 @@ export default function ExportReportPage() {
     kind?: 'section' | 'dim';
     dimNum?: number;
   }> = [
-    { id: 'slide-hero-title', label: 'Title & Overview' },
-    { id: 'how-index-section', label: 'How This Index Was Developed' },
-    { id: 'score-composition-section', label: 'Understanding Your Composite Score' },
-    { id: 'thirteen-dimensions-section', label: 'The 13 Dimensions of Workplace Support' },
+    // Opening
+    { id: 'slide-hero-title', label: 'Title & Report Info' },
+    { id: 'slide-company-hero', label: 'Your Composite Score' },
     { id: 'executive-overview-section', label: 'Executive Overview' },
+    // Dim Performance + Deep Dive
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most' },
     // Per-dimension deep-dive slides. Each clones the matching [data-dim-num] row PLUS its
-    // [data-dim-drilldown] sibling from the main Dim Performance section.
+    // [data-dim-drilldown] sibling from the main Dim Performance section (drill-downs are
+    // force-opened in presentation mode so the [data-dim-drilldown] element exists).
     ...Array.from({ length: 13 }, (_, i) => ({
       id: 'dimension-performance-table',
       label: `D${i + 1} Deep Dive`,
       kind: 'dim' as const,
       dimNum: i + 1,
     })),
+    // Insights + inventory
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix' },
     { id: 'report-summary-card-strength', label: 'Element Overview: Areas of Strength' },
@@ -3652,48 +3654,26 @@ export default function ExportReportPage() {
     { id: 'report-summary-card-grow', label: 'Element Overview: Opportunities to Grow' },
     { id: 'report-summary-card-unsure', label: 'Element Overview: Unsure' },
     { id: 'your-support-in-context', label: 'Your Support in Context' },
+    // Action
     { id: 'impact-ranked-priorities', label: 'Your Improvement Priorities' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap' },
     { id: 'whatif-scenarios-section', label: 'What-If Scenarios' },
     { id: 'next-steps-section', label: 'Summary' },
     { id: 'cac-help-section', label: 'How Cancer and Careers Can Help' },
-    { id: 'methodology-section', label: 'Methodology' },
+    // Methodology (now after CAC in the report — keep as the closing appendix in the deck)
+    { id: 'how-index-section', label: 'How This Index Was Developed' },
+    { id: 'score-composition-section', label: 'Understanding Your Composite Score' },
+    { id: 'thirteen-dimensions-section', label: 'The 13 Dimensions of Workplace Support' },
+    { id: 'methodology-section', label: 'Scoring Appendix' },
   ];
   const totalSlides = PRESENTATION_SLIDES.length;
 
-  // Helper to get all slide names for the selector
+  // Helper to get all slide names for the selector — sourced directly from the
+  // PRESENTATION_SLIDES array so the two stay in sync automatically.
   const getSlideNames = () => {
-    const addDimCount = additionalAnalyzedDims.length;
-    const names: Record<number, string> = {
-      0: 'Title & Overview',
-      1: 'How Index Was Developed',
-      2: 'Understanding Your Composite Score',
-      3: 'The 13 Dimensions',
-      4: 'Executive Overview',
-      5: 'Dimension Performance'
-    };
-    for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
-    names[19] = 'Interactive Performance Matrix';
-    names[20] = 'Cross-Dimensional Insights';
-    names[21] = 'Element Overview: Areas of Strength';
-    names[22] = 'Element Overview: Initiatives in Progress';
-    names[23] = 'Element Overview: Opportunities to Grow';
-    names[24] = 'Element Overview: Unsure';
-    names[25] = 'Your Support in Context';
-    names[26] = 'Your Improvement Priorities';
-    names[27] = 'Strategic Recommendations';
-    for (let i = 28; i <= 32; i++) names[i] = `Recommendation ${i - 27}`;
-    for (let i = 0; i < addDimCount; i++) {
-      const dimNum = additionalAnalyzedDims[i];
-      names[33 + i] = `Additional: Dimension ${dimNum}`;
-    }
-    names[33 + addDimCount] = 'Implementation Roadmap';
-    names[34 + addDimCount] = 'What-If Scenarios';
-    names[35 + addDimCount] = 'Summary';
-    names[36 + addDimCount] = 'How CAC Can Help';
-    names[37 + addDimCount] = 'Thank You';
-    names[38 + addDimCount] = 'Methodology';
+    const names: Record<number, string> = {};
+    PRESENTATION_SLIDES.forEach((s, i) => { names[i] = s.label; });
     return names;
   };
   
@@ -4048,21 +4028,8 @@ export default function ExportReportPage() {
             }
             slideContent.innerHTML = '';
             slideContent.appendChild(clone);
-            // Slide 1 ("Title & Overview"): also append the 40%/70% intro stats block so
-            // the slide has context below the title band.
-            if (sourceId === 'slide-hero-title') {
-              const stats = document.querySelector<HTMLElement>('#slide-hero-stats');
-              if (stats) {
-                const statsClone = stats.cloneNode(true) as HTMLElement;
-                statsClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-                statsClone.removeAttribute('id');
-                const wrap = document.createElement('div');
-                wrap.style.padding = '40px 48px';
-                wrap.style.background = 'linear-gradient(to bottom, #f8fafc, #ffffff)';
-                wrap.appendChild(statsClone);
-                slideContent.appendChild(wrap);
-              }
-            }
+            // slide-hero-stats (cancer stats) is hidden in the live report now, so we no
+            // longer append it to slide 1. The company hero lives on its own slide.
           } catch (err) {
             slideContent.innerHTML = '';
             const errDiv = document.createElement('div');
@@ -4139,85 +4106,44 @@ export default function ExportReportPage() {
   const renderPresenterNotesWindow = (win: Window, slideNum: number, isInitialRender: boolean = false) => {
     if (!win || win.closed) return;
     
-    const addDimCount = additionalAnalyzedDims.length;
-    const slideNames: Record<number, string> = {
-      0: 'Title & Overview',
-      1: 'How Index Was Developed', 
-      2: 'Understanding Your Workplace Support Composite Score',
-      3: 'The 13 Dimensions',
-      4: 'Executive Overview',
-      5: 'Dimension Performance Based on What Matters Most'
-    };
-    // Dimension deep dives: slides 6-18
-    for (let i = 6; i <= 18; i++) slideNames[i] = `Dimension ${i - 5} Deep Dive`;
-    slideNames[19] = 'Interactive Performance Matrix';
-    slideNames[20] = 'Cross-Dimensional Insights';
-    slideNames[21] = 'Element Overview: Areas of Strength';
-    slideNames[22] = 'Element Overview: Initiatives in Progress';
-    slideNames[23] = 'Element Overview: Opportunities to Grow';
-    slideNames[24] = 'Element Overview: Unsure';
-    slideNames[25] = 'Your Support in Context';
-    slideNames[26] = 'Your Improvement Priorities';
-    slideNames[27] = 'Strategic Recommendations';
-    // Recommendation cards 28-32
-    for (let i = 28; i <= 32; i++) slideNames[i] = `Recommendation ${i - 27}`;
-    // Additional analyzed dimensions: slides 33 to 33+addDimCount-1
-    for (let i = 0; i < addDimCount; i++) {
-      const dimNum = additionalAnalyzedDims[i];
-      slideNames[33 + i] = `Additional Analysis: Dimension ${dimNum}`;
-    }
-    // Final slides (shifted by addDimCount)
-    slideNames[33 + addDimCount] = 'Implementation Roadmap';
-    slideNames[34 + addDimCount] = 'What-If Scenarios';
-    slideNames[35 + addDimCount] = 'Summary';
-    slideNames[36 + addDimCount] = 'How CAC Can Help';
-    slideNames[37 + addDimCount] = 'Thank You';
-    slideNames[38 + addDimCount] = 'Methodology';
-    
+    const slideNames: Record<number, string> = {};
+    PRESENTATION_SLIDES.forEach((s, i) => { slideNames[i] = s.label; });
+
     const slideName = slideNames[slideNum] || `Slide ${slideNum + 1}`;
     const noteKey = `slide_${slideNum}`;
     const customNote = customNotes[noteKey] || '';
     
-    const defaultNotes: Record<number, string> = {
-      0: 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
-      1: 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper. The benchmarks and weights reflect what stakeholders say matters most to them.',
-      2: 'Explain what the Workplace Support Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading tier. This normalizes where they are and builds commitment to improvement.',
-      3: 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter. Improvements anywhere create lasting impact for employees managing cancer.',
-      4: 'Call the headline clearly by naming the top strength, the biggest gap, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
-      5: 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
-      19: 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
-      20: 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
-      21: 'Celebrate Areas of Strength. Ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer and form a credible foundation for storytelling with leadership.',
-      22: 'Initiatives in Progress signal momentum. Confirm timelines and owners for each initiative. Ask what is blocking completion and how we can accelerate. Some of the fastest score gains come from closing out items already in flight.',
-      23: 'Opportunities to Grow is where the real planning happens. Frame gaps as opportunities rather than failures. Encourage them to pick a few candidates to advance this cycle based on employee priority weight and feasibility.',
-      24: 'Unsure items are the unlocks. Even resolving a portion of these meaningfully tightens the score and the roadmap. Identify the right stakeholder for each (HR, Benefits, Legal, Program owners) and set a deadline to confirm.',
-      25: 'Your Support in Context combines the composite with Foundation, Expanded, and Signature tiers. Call out whether coverage is concentrated at baseline or extends into standout programs. The benchmark distribution row gives them a visible peer comparison.',
-      26: 'Walk through the top 5 priority dimensions ranked by projected composite score impact. Improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Encourage them to commit to moving one ladder step this cycle.',
-      27: 'Introduce the strategic recommendations framework. Two Foundation Focus dimensions plus two Strategic Leverage dimensions. Each recommendation ties to specific dimension gaps and opportunities. Set up the audience for the detailed per-dim cards that follow.',
-      28: 'Walk through this recommendation in detail. Translate into an actionable checklist by confirming uncertain items and picking fast wins to pursue. Clarify dependencies by asking whether it requires policy change, vendor coordination, or manager enablement.',
-      29: 'Walk through this recommendation in detail. Each recommendation ties to specific dimension gaps and opportunities.',
-      30: 'Continue with the next recommendation. Explain why these gaps matter and how they connect to employee experience.',
-      31: 'Continue with the next recommendation. Keep the link to the broader strategic narrative visible.',
-      32: 'Continue with the final strategic recommendation card. End by summarizing the cumulative impact of addressing all priority dimensions together.',
+    // Keyed by slide ID so the notes stay stable when the deck order changes.
+    const notesById: Record<string, string> = {
+      'slide-hero-title': 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
+      'slide-company-hero': 'Hold on the composite score for a moment. Read the tier label out loud, name the benchmark, and call the delta. Normalize the number by reminding the audience that few organizations reach Leading at this stage of the field, so the conversation is about the next realistic ladder step, not perfection.',
+      'executive-overview-section': 'Call the headline clearly by naming the top strength, the biggest opportunity, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
+      'dimension-performance-table': 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
+      'cross-dimensional-insights': 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
+      'strategic-priority-matrix': 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
+      'report-summary-card-strength': 'Celebrate Areas of Strength. Ask how they can leverage these as proof points internally. These demonstrate commitment to employees managing cancer and form a credible foundation for storytelling with leadership.',
+      'report-summary-card-progress': 'Initiatives in Progress signal momentum. Confirm timelines and owners for each initiative. Ask what is blocking completion and how we can accelerate. Some of the fastest score gains come from closing out items already in flight.',
+      'report-summary-card-grow': 'Opportunities to Grow is where the real planning happens. Frame gaps as opportunities rather than failures. Encourage them to pick a few candidates to advance this cycle based on employee priority weight and feasibility.',
+      'report-summary-card-unsure': 'Unsure items are the unlocks. Even resolving a portion of these meaningfully tightens the score and the roadmap. Identify the right stakeholder for each (HR, Benefits, Legal, Program owners) and set a deadline to confirm.',
+      'your-support-in-context': 'Your Support in Context combines the composite with Foundational, Expanded, and Signature tiers. Call out whether coverage is concentrated at baseline or extends into standout programs. The benchmark distribution row gives them a visible peer comparison.',
+      'impact-ranked-priorities': 'Walk through the top 5 priority dimensions ranked by projected composite score impact. Improving by one tier in 2-3 high-weight dimensions represents meaningful progress. Encourage them to commit to moving one ladder step this cycle.',
+      'strategic-recommendations': 'Introduce the strategic recommendations framework. Two Foundation Focus dimensions plus two Strategic Leverage dimensions. Each recommendation ties to specific dimension gaps and opportunities.',
+      'implementation-roadmap': 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.',
+      'whatif-scenarios-section': 'What-If Scenarios is the interactive tool in the live report that lets them model the impact of program changes on their score. Select a dimension, toggle elements on or off, and see the projected composite score update in real time. Best explored with CAC in a consultation call.',
+      'next-steps-section': 'Summary is the single executive read. Composite plus tier scores with benchmark context, and the top priority dimensions with a recommended first step. Close by confirming priorities, assigning owners, and setting the next checkpoint.',
+      'cac-help-section': 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.',
+      'how-index-section': 'Emphasize credibility here. This Index was built from Cancer and Careers\' 20+ years of lived experience and validated through extensive research with HR leaders and employees. The design principle is measuring what actually drives employee outcomes, not just whether policies exist on paper.',
+      'score-composition-section': 'Explain what the Workplace Support Composite Score represents and how the tiers work. Point out the performance tier distribution showing few organizations at Leading tier. This normalizes where they are and builds commitment to improvement.',
+      'thirteen-dimensions-section': 'Walk through the 13 dimensions and what each measures. Emphasize that dimensions are weighted by impact importance based on research with employees and HR leaders. All dimensions matter. Improvements anywhere create lasting impact for employees managing cancer.',
+      'methodology-section': 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.',
     };
-    // Additional analyzed dimensions get notes (slides 33 to 33+addDimCount-1)
-    for (let i = 0; i < addDimCount; i++) {
-      defaultNotes[33 + i] = 'Review this additional dimension analysis. Walk through the element breakdown where green items are strengths, blue shows momentum, and red gaps are opportunities. Connect findings to the overall strategic priorities discussed earlier.';
-    }
-    // Final slides (shifted by addDimCount)
-    defaultNotes[33 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
-    defaultNotes[34 + addDimCount] = 'What-If Scenarios is the interactive tool in the live report that lets them model the impact of program changes on their score. Select a dimension, toggle elements on or off, and see the projected composite score update in real time. Best explored with CAC in a consultation call.';
-    defaultNotes[35 + addDimCount] = 'Summary is the single executive read. Composite plus tier scores with benchmark context, and the top 3 priority dimensions with a recommended first step. Close by confirming priorities, assigning owners, and setting the next checkpoint.';
-    defaultNotes[36 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
-    defaultNotes[37 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
-    defaultNotes[38 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
-    
-    // Default notes for dimension deep dive slides (6-18) - flowing prose template
-    for (let i = 6; i <= 18; i++) {
-      defaultNotes[i] = 'Start with the outcome this dimension determines by explaining what employees can or cannot do when support is present or absent. Walk through the element breakdown where green items are strengths to protect and communicate, blue items show momentum on initiatives in progress, and red gaps are opportunities to discuss. Use the benchmark to calibrate where peers typically are and what a realistic next step looks like. End with a clear action by identifying who owns this, what the 30-60 day next step is, and what done looks like.';
-    }
-    
-    const defaultNote = defaultNotes[slideNum] || 'Review the content and connect it to the organization\'s specific context. Invite questions and discussion from the audience.';
+    const dimDeepDiveNote = 'Start with the outcome this dimension determines by explaining what employees can or cannot do when support is present or absent. Walk through the element breakdown where green items are strengths to protect and communicate, blue items show momentum on initiatives in progress, and red gaps are opportunities to discuss. Use the benchmark to calibrate where peers typically are and what a realistic next step looks like. End with a clear action by identifying who owns this, what the 30-60 day next step is, and what done looks like.';
+    const slideForNote = PRESENTATION_SLIDES[slideNum];
+    const defaultNote = !slideForNote
+      ? 'Review the content and connect it to the organization\'s specific context. Invite questions and discussion from the audience.'
+      : slideForNote.kind === 'dim'
+        ? dimDeepDiveNote
+        : (notesById[slideForNote.id] || 'Review the content and connect it to the organization\'s specific context. Invite questions and discussion from the audience.');
     
     // Use postMessage to update the popup window - more reliable than direct DOM manipulation
     if (!isInitialRender) {
@@ -6312,7 +6238,7 @@ export default function ExportReportPage() {
             <div className="h-4 bg-white" />
 
             {/* Company info + score, Dark Hero Header */}
-            <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
+            <div id="slide-company-hero" className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <p className="text-slate-200 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
