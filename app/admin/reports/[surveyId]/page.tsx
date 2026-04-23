@@ -9599,7 +9599,7 @@ export default function ExportReportPage() {
                   <div className="mb-3">
                     <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">What Each Level Includes</p>
                     <p className="text-sm text-slate-600 mt-1 leading-relaxed">
-                      Each of the {totalElementCount} support elements is classified into one of three levels: Foundation, Expanded, and Signature. This reflects a progression from baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs.
+                      Each of the {totalElementCount} support elements is classified into one of three levels: Foundational, Expanded, and Signature. This reflects a progression from baseline practices found in most programs, to the next layer common in stronger programs, to high-impact offerings typical of standout programs.
                     </p>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
@@ -9621,7 +9621,7 @@ export default function ExportReportPage() {
 
                         {/* Description, flex-1 to push View Details to consistent bottom */}
                         <div className="px-4 py-2.5 flex-1">
-                          <p className="text-[13px] text-slate-600 leading-relaxed">{t.shortDesc}</p>
+                          <p className="text-[13px] text-slate-600 leading-relaxed">{t.boldPhrase}</p>
                         </div>
 
                         {/* Score bar showing progress */}
