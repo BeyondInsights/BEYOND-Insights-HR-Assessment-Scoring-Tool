@@ -7902,12 +7902,15 @@ export default function ExportReportPage() {
                               </div>
                               )}
 
-                              {/* Tab Bar */}
-                              {(() => {
+                              {/* Tab Bar — HIDDEN 2026-04-23. Only Support Elements was a useful tab for now;
+                                  Geographic Consistency and Follow-Up Questions kept in source (show: false) in
+                                  case we want to re-enable later. The tab bar itself is wrapped in {false &&}
+                                  so a single-tab strip is not rendered. */}
+                              {false && (() => {
                                 const tabs = [
                                   { key: 'elements' as const, label: 'Support Elements', count: d.elements?.length || 0, show: true },
-                                  { key: 'geo' as const, label: 'Geographic Consistency', count: null, show: !isSingleCountryCompany },
-                                  { key: 'followup' as const, label: 'Follow-Up Questions', count: FOLLOW_UP_QUESTIONS[d.dim]?.length ?? null, show: [1, 3, 12, 13].includes(d.dim) && !!FOLLOW_UP_QUESTIONS[d.dim] },
+                                  { key: 'geo' as const, label: 'Geographic Consistency', count: null, show: false /* !isSingleCountryCompany */ },
+                                  { key: 'followup' as const, label: 'Follow-Up Questions', count: FOLLOW_UP_QUESTIONS[d.dim]?.length ?? null, show: false /* [1, 3, 12, 13].includes(d.dim) && !!FOLLOW_UP_QUESTIONS[d.dim] */ },
                                 ].filter(t => t.show);
                                 return (
                                   <div className="bg-slate-100 border-b-2 border-slate-300 px-6 pt-3">
