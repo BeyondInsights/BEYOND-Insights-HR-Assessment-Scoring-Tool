@@ -12445,47 +12445,31 @@ export default function ExportReportPage() {
                 </div>
               </div>
 
-              {/* 30-minute call scheduling */}
+              {/* Consulting areas — replaces 30-min call + Services grid 2026-04-23 */}
               <p className="text-slate-700 text-base leading-relaxed mb-8">
-                CAC will schedule a 30-minute call to review your report, identify the improvement priorities with the greatest impact on supporting your employees managing cancer and other serious health issues, and provide strategic recommendations.
+                To better ensure your workplace is supporting employees facing cancer and other serious health conditions, <strong className="text-slate-900">CAC is available for consulting</strong> in the following areas:
               </p>
 
-              {editMode && <p className="text-sm text-amber-700 mb-4">(editable below)</p>}
-
-              {/* Cancer and Careers' Services - 2-column flush-left list */}
-              <h3 className="text-xl font-bold text-[#F37021] mb-6">Cancer and Careers&apos; Services</h3>
-              <div className="grid grid-cols-2 gap-x-12 gap-y-7 mb-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
                 {[
-                  { key: 'item1', defaultTitle: 'Manager Preparedness & Training', defaultBullets: ['Live training sessions with case studies', 'Manager toolkit and conversation guides', 'Train the trainer programs'] },
-                  { key: 'item2', defaultTitle: 'Navigation & Resource Architecture', defaultBullets: ['Resource audit and gap analysis', 'Single entry point design', 'Communication strategy'] },
-                  { key: 'item3', defaultTitle: 'Return to Work Excellence', defaultBullets: ['Phased return protocols', 'Check-in cadence design', 'Career continuity planning'] },
-                  { key: 'item4', defaultTitle: 'Policy & Program Assessment', defaultBullets: ['Comprehensive policy review', 'Implementation audit', 'Business case development'] },
-                ].map(item => {
-                  const custom = customCacHelp[item.key as keyof typeof customCacHelp];
-                  const title = custom?.title || item.defaultTitle;
-                  const bullets = custom?.bullets || item.defaultBullets;
-
-                  return (
-                    <div key={item.key} className="border-l-2 border-[#F37021] pl-4">
-                      {editMode ? (
-                        <input type="text" value={title} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: e.target.value, bullets: bullets } })); setHasUnsavedChanges(true); }} className="w-full font-bold text-slate-800 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-400 mb-2" />
-                      ) : (
-                        <h4 className="font-bold text-slate-800 text-base mb-2">{title}</h4>
-                      )}
-                      {editMode ? (
-                        <textarea value={bullets.join('\n')} onChange={(e) => { setCustomCacHelp(prev => ({ ...prev, [item.key]: { title: title, bullets: e.target.value.split('\n') } })); setHasUnsavedChanges(true); }} className="w-full text-sm text-slate-700 bg-amber-50 border border-amber-300 rounded-lg px-3 py-2 min-h-[90px] focus:outline-none focus:ring-2 focus:ring-amber-400" placeholder="One bullet per line..." />
-                      ) : (
-                        <ul className="text-sm text-slate-700 space-y-1.5 ml-4">
-                          {bullets.map((b: string, i: number) => (
-                            <li key={i} className="list-disc marker:text-[#F37021]">
-                              <span>{b}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                  'Identifying Growth / Expansion Priorities',
+                  'Providing Strategic Recommendations and an Implementation Roadmap',
+                  'Manager Preparedness + Training',
+                  'Return to Work Excellence',
+                  'Navigation + Resource Architecture',
+                  'Policy + Program Assessment',
+                ].map((title, i) => (
+                  <div
+                    key={i}
+                    className="relative flex items-start gap-4 p-5 rounded-xl border border-slate-200 bg-gradient-to-br from-white to-orange-50/40 hover:shadow-md hover:border-[#F37021]/40 transition-all group"
+                  >
+                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-[#F37021] to-[#FF8C42] rounded-l-xl" />
+                    <div className="flex-shrink-0 w-11 h-11 rounded-lg bg-gradient-to-br from-[#F37021] to-[#FF8C42] flex items-center justify-center shadow-sm">
+                      <span className="text-sm font-bold text-white tabular-nums tracking-tight">{String(i + 1).padStart(2, '0')}</span>
                     </div>
-                  );
-                })}
+                    <p className="text-[15px] font-semibold text-slate-800 leading-snug pt-2 flex-1">{title}</p>
+                  </div>
+                ))}
               </div>
 
               {/* CTA Footer - CAC orange (per spec: CAC callouts stay orange) */}
