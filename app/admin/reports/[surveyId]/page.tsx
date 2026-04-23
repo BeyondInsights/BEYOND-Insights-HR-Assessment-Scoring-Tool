@@ -3656,7 +3656,7 @@ export default function ExportReportPage() {
     { id: 'strategic-recommendations', label: 'Strategic Recommendations' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap' },
     { id: 'whatif-scenarios-section', label: 'What-If Scenarios' },
-    { id: 'next-steps-section', label: 'Summary and Next Steps' },
+    { id: 'next-steps-section', label: 'Summary' },
     { id: 'cac-help-section', label: 'How Cancer and Careers Can Help' },
     { id: 'methodology-section', label: 'Methodology' },
   ];
@@ -3690,7 +3690,7 @@ export default function ExportReportPage() {
     }
     names[33 + addDimCount] = 'Implementation Roadmap';
     names[34 + addDimCount] = 'What-If Scenarios';
-    names[35 + addDimCount] = 'Summary and Next Steps';
+    names[35 + addDimCount] = 'Summary';
     names[36 + addDimCount] = 'How CAC Can Help';
     names[37 + addDimCount] = 'Thank You';
     names[38 + addDimCount] = 'Methodology';
@@ -4167,7 +4167,7 @@ export default function ExportReportPage() {
     // Final slides (shifted by addDimCount)
     slideNames[33 + addDimCount] = 'Implementation Roadmap';
     slideNames[34 + addDimCount] = 'What-If Scenarios';
-    slideNames[35 + addDimCount] = 'Summary and Next Steps';
+    slideNames[35 + addDimCount] = 'Summary';
     slideNames[36 + addDimCount] = 'How CAC Can Help';
     slideNames[37 + addDimCount] = 'Thank You';
     slideNames[38 + addDimCount] = 'Methodology';
@@ -4205,7 +4205,7 @@ export default function ExportReportPage() {
     // Final slides (shifted by addDimCount)
     defaultNotes[33 + addDimCount] = 'Sequence initiatives to avoid overload by starting with confirmation items, then quick wins, then foundational capabilities. Assign clear owners and timing for each phase. Define what minimum viable launch looks like for the first phase.';
     defaultNotes[34 + addDimCount] = 'What-If Scenarios is the interactive tool in the live report that lets them model the impact of program changes on their score. Select a dimension, toggle elements on or off, and see the projected composite score update in real time. Best explored with CAC in a consultation call.';
-    defaultNotes[35 + addDimCount] = 'Summary and Next Steps is the single executive read. Composite plus tier scores with benchmark context, and the top 3 priority dimensions with a recommended first step. Close by confirming priorities, assigning owners, and setting the next checkpoint.';
+    defaultNotes[35 + addDimCount] = 'Summary is the single executive read. Composite plus tier scores with benchmark context, and the top 3 priority dimensions with a recommended first step. Close by confirming priorities, assigning owners, and setting the next checkpoint.';
     defaultNotes[36 + addDimCount] = 'Position Cancer and Careers as an accelerant that provides validation, implementation support, training, and communications resources. Propose a concrete next step such as a 30-minute working session to confirm items and prioritize actions together.';
     defaultNotes[37 + addDimCount] = 'Close with a decision ask by confirming the top priorities, assigning owners, and setting the next checkpoint date. Thank the audience for their engagement and provide contact information for follow-up questions.';
     defaultNotes[38 + addDimCount] = 'Reassure the audience that scoring is consistent, benchmarked, and designed for repeatability over time. The key message is to track change over time rather than treating this as a one-and-done exercise.';
@@ -5665,7 +5665,7 @@ export default function ExportReportPage() {
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
     { id: 'implementation-roadmap', label: 'Implementation Roadmap', iconKey: 'roadmap' },
     { id: 'whatif-scenarios-section', label: 'What-If Scenarios', iconKey: 'insights' },
-    { id: 'next-steps-section', label: 'Summary and Next Steps', iconKey: 'progress' },
+    { id: 'next-steps-section', label: 'Summary', iconKey: 'progress' },
     { id: 'cac-help-section', label: 'How Cancer and Careers Can Help', iconKey: 'help' },
     { id: 'methodology-section', label: 'Methodology', iconKey: 'methodology' },
   ].filter(s => s.show !== false);
@@ -6317,7 +6317,288 @@ export default function ExportReportPage() {
                 </div>
               </div>
             </div>
-            
+
+            {/* Company info + score, Dark Hero Header */}
+            <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
+                  <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
+                  <p className="text-sm text-slate-500 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
+                  {isWwcPledge && (
+                    <div className="mt-5 flex items-center gap-3">
+                      <div className="w-10 h-10 flex-shrink-0">
+                        <svg viewBox="0 0 300 300" className="w-full h-full">
+                          <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
+                          <path fill="#ffffff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
+                        </svg>
+                      </div>
+                      <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
+                        <p className="text-xs font-medium text-slate-300">The <span className="font-bold text-white">Working with Cancer</span></p>
+                        <p className="text-sm font-semibold text-white">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
+                      </div>
+                    </div>
+                  )}
+                  {(contactName || contactEmail) && (
+                    <div className="mt-3 text-sm text-slate-500">
+                      {contactName && <span className="font-medium text-slate-300">{contactName}</span>}
+                      {contactName && contactEmail && <span className="mx-3 text-slate-600">|</span>}
+                      {contactEmail && <span>{contactEmail}</span>}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-6 flex-shrink-0">
+                  <div>
+                    <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
+                    <div className="flex items-end gap-10 mt-2">
+                      {/* Benchmark */}
+                      <div className="text-center">
+                        <p className="text-5xl font-bold text-slate-300 leading-none">59</p>
+                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
+                      </div>
+                      {/* Your Score */}
+                      <div className="text-center">
+                        <p className="text-8xl font-bold leading-none text-white" data-export="composite-score">{wsiScoreHeader}</p>
+                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
+                      </div>
+                    </div>
+                  </div>
+                  {tier && (
+                    <div className="px-7 py-5 rounded-xl border-2 text-center" style={{ borderColor: ratingColorHeader + '60', backgroundColor: ratingColorHeader + '15' }}>
+                      <p className="text-2xl font-bold" style={{ color: ratingColorHeader }} data-export="tier-name">{supportRatingHeader}</p>
+                      <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
+                      {isProvisional && (
+                        <p className="text-xs text-amber-400 font-medium mt-1">Provisional*</p>
+                      )}
+                      <button
+                        onClick={() => setShowTierOverlay(true)}
+                        className="mt-3 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
+                      >
+                        Show All Tiers
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Tier Overlay */}
+                  {showTierOverlay && (
+                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm" onClick={() => setShowTierOverlay(false)}>
+                      <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl shadow-2xl p-8 max-w-xl mx-4 border border-slate-200" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-6 gap-4">
+                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">{'Workplace Support Composite Score Tiers'}</h3>
+                          <button onClick={() => setShowTierOverlay(false)} className="text-slate-500 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+
+                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                              <div className="w-32">Tier</div>
+                              <div className="w-24 text-center">Score Range</div>
+                              <div className="flex-1 text-center">% of Participants</div>
+                            </div>
+                            <div className="space-y-2">
+                              {[
+                                { name: 'Leading', range: '80–100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
+                                { name: 'Advancing', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
+                                { name: 'Accelerating', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
+                                { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
+                              ].map((t) => {
+                                const isCurrentTier = getWSITier(wsiScoreHeader).name === t.name;
+                                return (
+                                  <div key={t.name} className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}>
+                                    <div className="w-32 flex items-center gap-2">
+                                      {isCurrentTier && (
+                                        <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color }}>
+                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                                        </span>
+                                      )}
+                                      <span className={`font-bold ${t.text} ${isCurrentTier ? 'text-base' : 'text-sm'}`}>{t.name}</span>
+                                    </div>
+                                    <div className="w-24 text-center"><span className={`text-sm font-medium ${t.text}`}>{t.range}</span></div>
+                                    <div className="flex-1 flex items-center gap-2">
+                                      <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200">
+                                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct, 2)}%`, backgroundColor: t.color }} />
+                                      </div>
+                                      <span className={`text-sm font-bold w-10 text-right ${t.text}`}>{t.pct}%</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+                              <p className="text-sm text-slate-600">
+                                Your current score: <span className="font-bold" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span>
+                                <span className="mx-2">·</span>
+                                <span className="font-bold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
+                              </p>
+                            </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Executive Overview */}
+            <div id="executive-overview-section" className="px-12 pt-6 pb-8 bg-white">
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Overview</h3>
+
+              <div data-export="executive-summary-text">
+                  <p className="text-lg text-slate-700 leading-relaxed">
+                    {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
+                    {wsiPercentile !== null && totalCompanies > 1 && (
+                      <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
+                    )}. The score is weighted across 13 dimensions and {totalElementCount} elements of workplace cancer support, reflecting their impact on employee wellbeing and organizational outcomes.
+                  </p>
+                </div>
+
+              {/* Executive Overview callouts: Strongest Dimensions / Key Tensions / Areas to Address */}
+              {(() => {
+                const dimsWithBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null);
+                const withDelta = dimsWithBench.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
+                const strongest = [...withDelta].sort((a, b) => b.delta - a.delta).slice(0, 3);
+                const areasToAddress = [...withDelta].sort((a, b) => a.delta - b.delta).slice(0, 3);
+                const avgW = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
+                const tensions = withDelta
+                  .filter((d: any) => d.weight >= avgW && d.score < 75 && !strongest.some(s => s.dim === d.dim) && !areasToAddress.some(a => a.dim === d.dim))
+                  .sort((a: any, b: any) => a.delta - b.delta)
+                  .slice(0, 3);
+
+                // Strongest -> trending line with peak marker (climbing past the bar)
+                const iconTrend = (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 18l6-6 4 3 7-9" />
+                    <circle cx="20" cy="6" r="1.8" fill="currentColor" stroke="none" />
+                  </svg>
+                );
+                // Priority Gaps -> two bars with dashed gap marker (literal gap)
+                const iconBars = (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
+                    <rect x="4" y="13" width="5" height="8" rx="0.75" fill="currentColor" stroke="none" />
+                    <rect x="15" y="4" width="5" height="17" rx="0.75" fill="currentColor" stroke="none" />
+                    <line x1="4" y1="13" x2="15" y2="13" strokeDasharray="2,2" strokeLinecap="round" />
+                    <line x1="15" y1="13" x2="15" y2="4" strokeDasharray="2,2" strokeLinecap="round" opacity="0.6" />
+                  </svg>
+                );
+                // Areas to Address -> sprout with two leaves (potential / growth)
+                const iconSprout = (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14c-2 0-6-2-6-7 5 0 6 2 6 7z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c2 0 6-2 6-7-5 0-6 2-6 7z" />
+                  </svg>
+                );
+
+                const renderCard = (title: string, subtitle: string, accent: string, accentSoft: string, icon: JSX.Element, dims: any[], showDelta: boolean) => (
+                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-md flex flex-col">
+                    <div className="h-2" style={{ backgroundColor: accent }} />
+                    <div className="p-7 flex-1">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
+                          {icon}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-[18px] font-bold text-slate-900 leading-tight">{title}</h4>
+                          <p className="text-[13px] text-slate-500 leading-snug mt-0.5">{subtitle}</p>
+                        </div>
+                      </div>
+                      <ul className="space-y-3.5">
+                        {dims.length === 0 ? (
+                          <li className="text-[14px] text-slate-400 italic">No dimensions match this profile.</li>
+                        ) : dims.map((d: any) => {
+                          const dimPg = getEmployeePriorityGroup(d.weight);
+                          return (
+                          <li key={d.dim} className="flex items-start gap-3">
+                            <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: dimPg.color }}>
+                              D{d.dim}
+                            </span>
+                            <span className="text-[14px] text-slate-700 font-semibold flex-1 leading-snug">{d.name}</span>
+                            <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none mt-0.5">{d.score}</span>
+                            {showDelta ? (
+                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                                {d.delta >= 0 ? '+' : ''}{d.delta}
+                              </span>
+                            ) : null}
+                          </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  </div>
+                );
+                return (
+                  <>
+                    <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
+                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                      {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
+                      {renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
+                      {renderCard('Areas to Address', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
+                    </div>
+                    <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
+                      The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
+                    </p>
+                  </>
+                );
+              })()}
+
+              {/* Provisional Classification Notice */}
+              {isProvisional && (
+                <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>
+                      <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
+                      <p className="text-sm text-amber-700 mt-1">{dimsWithHighUnsure} dimensions have 40% or more "Unsure" responses, which may affect score reliability. Results will remain provisional until these items are confirmed. We recommend following up internally to clarify these responses.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+
+              {/* Combined Summary Section */}
+              <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-10">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-8">Summary</h3>
+
+                {/* Top Row - Stats */}
+                <div className="grid grid-cols-4 gap-5 mb-6">
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #10B981' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
+                    <p className="text-lg text-slate-300 mt-3">of {totalElements} support elements in place</p>
+                  </div>
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #3B82F6' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
+                    <p className="text-lg text-slate-300 mt-3">support elements in development</p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-base text-sky-400">{planningItems} in development</p>
+                      <p className="text-base text-sky-400">{assessingItems} under review</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #F59E0B' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-gaps">{gapItems + unsureItems}</p>
+                    <p className="text-lg text-slate-300 mt-3">identified support element gaps</p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-base text-amber-400">{notPlannedItems} not planned</p>
+                      <p className="text-base text-amber-400">{unsureItems} unsure</p>
+                    </div>
+                  </div>
+                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #8B5CF6' }}>
+                    <p className="text-6xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-2xl font-normal text-slate-500 ml-1">/13</span></p>
+                    <p className="text-lg text-slate-300 mt-3">dimensions at Advancing+</p>
+                    <div className="mt-3 space-y-1">
+                      <p className="text-base text-violet-400">{tierCounts.leading} Leading</p>
+                      <p className="text-base text-violet-400">{tierCounts.established} Advancing</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
             {/* The Context, Why This Work Matters */}
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
@@ -6808,7 +7089,7 @@ export default function ExportReportPage() {
                           { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-700', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Element-level analysis for your priority dimensions, with specific recommended actions grounded in benchmark data and projected score impact.', fits: 'The sponsor-ready agenda. A coherent plan HR and leadership can align on, fund, and execute.' },
                           { id: 'roadmap', name: 'Implementation Roadmap', color: 'bg-slate-700', icon: 'M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2', measures: 'A phased timeline sequencing your recommendations into three stages: Quick Wins, Foundation Building, and Excellence.', fits: 'Turns priorities into action. Assigns owners, sets milestones, and creates accountability for progress.' },
                           { id: 'whatif', name: 'What-If Scenarios', color: 'bg-slate-700', icon: 'M8 9l4-4 4 4m0 6l-4 4-4-4', measures: 'An interactive tool to model the impact on your score of adding or discontinuing specific support elements within a dimension.', fits: 'Decision support. Stress-test budget tradeoffs and build the business case for specific investments.' },
-                          { id: 'next-steps', name: 'Summary and Next Steps', color: 'bg-slate-700', icon: 'M5 13l4 4L19 7', measures: 'A consolidated summary of your performance, your top priority dimensions with recommended first steps, and why each matters for employees.', fits: 'The executive read. The single page to share with sponsors when you need alignment on where to focus next.' },
+                          { id: 'next-steps', name: 'Summary', color: 'bg-slate-700', icon: 'M5 13l4 4L19 7', measures: 'A consolidated summary of your performance, your top priority dimensions with recommended first steps, and why each matters for employees.', fits: 'The executive read. The single page to share with sponsors when you need alignment on where to focus next.' },
                           { id: 'cachelp', name: 'How Cancer and Careers Can Help', color: 'bg-slate-700', icon: 'M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z M12 10v.01 M12 7v3', measures: 'CAC consulting services across manager preparedness, navigation, return-to-work, and policy assessment, with a 30-minute call offer to review your report.', fits: 'The partnership option. How CAC translates your report into implementation with HR and leadership.' },
                         ].map((section) => (
                           <button
@@ -6922,130 +7203,6 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
-
-            {/* Company info + score, Dark Hero Header */}
-            <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
-                  <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
-                  <p className="text-sm text-slate-500 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
-                  {isWwcPledge && (
-                    <div className="mt-5 flex items-center gap-3">
-                      <div className="w-10 h-10 flex-shrink-0">
-                        <svg viewBox="0 0 300 300" className="w-full h-full">
-                          <path fill="#ff353c" fillRule="evenodd" d="m278.12,71s-.08,0-.12,0c-44.18,0-80,35.82-80,80s35.82,80,80,80h.12V71Z"/>
-                          <path fill="#ffffff" d="m77.16,231h29.81l14.04-159.84h-28.08l-4.1,73.66h-.43l-4.32-73.66h-23.11l-4.1,73.66h-.43l-4.1-73.66h-30.89l14.04,159.84h29.81l5.83-69.77h.43l5.62,69.77Zm91.77,0h12.96l14.69-159.84h-11.23l-10.58,130.25h-.43l-11.02-130.25h-10.58l-10.8,130.25h-.43l-10.58-130.25h-11.88l14.47,159.84h12.96l11.02-130.9h.43l11.02,130.9Z"/>
-                        </svg>
-                      </div>
-                      <div className="border-l-2 pl-3" style={{ borderColor: '#ff353c' }}>
-                        <p className="text-xs font-medium text-slate-300">The <span className="font-bold text-white">Working with Cancer</span></p>
-                        <p className="text-sm font-semibold text-white">Pledge <span className="font-bold" style={{ color: '#ff353c' }}>Signatory</span></p>
-                      </div>
-                    </div>
-                  )}
-                  {(contactName || contactEmail) && (
-                    <div className="mt-3 text-sm text-slate-500">
-                      {contactName && <span className="font-medium text-slate-300">{contactName}</span>}
-                      {contactName && contactEmail && <span className="mx-3 text-slate-600">|</span>}
-                      {contactEmail && <span>{contactEmail}</span>}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-6 flex-shrink-0">
-                  <div>
-                    <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
-                    <div className="flex items-end gap-10 mt-2">
-                      {/* Benchmark */}
-                      <div className="text-center">
-                        <p className="text-5xl font-bold text-slate-300 leading-none">59</p>
-                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
-                      </div>
-                      {/* Your Score */}
-                      <div className="text-center">
-                        <p className="text-8xl font-bold leading-none text-white" data-export="composite-score">{wsiScoreHeader}</p>
-                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
-                      </div>
-                    </div>
-                  </div>
-                  {tier && (
-                    <div className="px-7 py-5 rounded-xl border-2 text-center" style={{ borderColor: ratingColorHeader + '60', backgroundColor: ratingColorHeader + '15' }}>
-                      <p className="text-2xl font-bold" style={{ color: ratingColorHeader }} data-export="tier-name">{supportRatingHeader}</p>
-                      <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
-                      {isProvisional && (
-                        <p className="text-xs text-amber-400 font-medium mt-1">Provisional*</p>
-                      )}
-                      <button
-                        onClick={() => setShowTierOverlay(true)}
-                        className="mt-3 px-4 py-2 text-sm font-semibold rounded-lg transition-all border-2 border-white/40 text-white hover:bg-white hover:text-slate-800 active:scale-95 animate-[buttonPulse_2s_ease-in-out_1]"
-                      >
-                        Show All Tiers
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* Tier Overlay */}
-                  {showTierOverlay && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm" onClick={() => setShowTierOverlay(false)}>
-                      <div className="bg-gradient-to-b from-white to-slate-50 rounded-2xl shadow-2xl p-8 max-w-xl mx-4 border border-slate-200" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-6 gap-4">
-                          <h3 className="text-xl font-bold text-slate-800 whitespace-nowrap">{'Workplace Support Composite Score Tiers'}</h3>
-                          <button onClick={() => setShowTierOverlay(false)} className="text-slate-500 hover:text-slate-600 p-2 rounded-full hover:bg-slate-100 transition-colors flex-shrink-0">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                        
-                            <div className="flex items-center gap-4 px-4 pb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                              <div className="w-32">Tier</div>
-                              <div className="w-24 text-center">Score Range</div>
-                              <div className="flex-1 text-center">% of Participants</div>
-                            </div>
-                            <div className="space-y-2">
-                              {[
-                                { name: 'Leading', range: '80–100', color: '#047857', bg: 'bg-emerald-50', border: 'border-emerald-300', text: 'text-emerald-700', ring: 'ring-emerald-400', pct: (wsiTierDistribution as any)?.leading ?? 0 },
-                                { name: 'Advancing', range: '64–79', color: '#1D4ED8', bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700', ring: 'ring-blue-400', pct: (wsiTierDistribution as any)?.established ?? 0 },
-                                { name: 'Accelerating', range: '50–63', color: '#B45309', bg: 'bg-amber-50', border: 'border-amber-300', text: 'text-amber-700', ring: 'ring-amber-400', pct: (wsiTierDistribution as any)?.progressing ?? 0 },
-                                { name: 'Building', range: '0–49', color: '#B91C1C', bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700', ring: 'ring-red-400', pct: (wsiTierDistribution as any)?.building ?? 0 },
-                              ].map((t) => {
-                                const isCurrentTier = getWSITier(wsiScoreHeader).name === t.name;
-                                return (
-                                  <div key={t.name} className={`flex items-center gap-4 p-3 rounded-xl border-2 transition-all ${t.bg} ${isCurrentTier ? `${t.border} ring-2 ${t.ring} shadow-md` : 'border-transparent'}`}>
-                                    <div className="w-32 flex items-center gap-2">
-                                      {isCurrentTier && (
-                                        <span className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: t.color }}>
-                                          <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
-                                        </span>
-                                      )}
-                                      <span className={`font-bold ${t.text} ${isCurrentTier ? 'text-base' : 'text-sm'}`}>{t.name}</span>
-                                    </div>
-                                    <div className="w-24 text-center"><span className={`text-sm font-medium ${t.text}`}>{t.range}</span></div>
-                                    <div className="flex-1 flex items-center gap-2">
-                                      <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-slate-200">
-                                        <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(t.pct, 2)}%`, backgroundColor: t.color }} />
-                                      </div>
-                                      <span className={`text-sm font-bold w-10 text-right ${t.text}`}>{t.pct}%</span>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <div className="mt-6 pt-4 border-t border-slate-200 text-center">
-                              <p className="text-sm text-slate-600">
-                                Your current score: <span className="font-bold" style={{ color: ratingColorHeader }}>{wsiScoreHeader}</span>
-                                <span className="mx-2">·</span>
-                                <span className="font-bold" style={{ color: ratingColorHeader }}>{supportRatingHeader}</span>
-                              </p>
-                            </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-            {/* Spacer below hero */}
-            <div className="h-0"></div>
 
             {/* ============ CONFIRMATORY CHECKLIST (removed) ============ */}
             {false && unsureItems > 0 && (
@@ -7191,164 +7348,6 @@ export default function ExportReportPage() {
               </div>
             )}
             
-            {/* Executive Overview */}
-            <div id="executive-overview-section" className="px-12 pt-6 pb-8 bg-white">
-              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Executive Overview</h3>
-
-              <div data-export="executive-summary-text">
-                  <p className="text-lg text-slate-700 leading-relaxed">
-                    {companyName}&apos;s Workplace Support Composite Score is <strong className="text-slate-900">{wsiScoreHeader}</strong>
-                    {wsiPercentile !== null && totalCompanies > 1 && (
-                      <span>, placing the organization in the <strong style={{ color: '#5B21B6' }}>{wsiPercentile}th percentile</strong> among participating companies</span>
-                    )}. The score is weighted across 13 dimensions and {totalElementCount} elements of workplace cancer support, reflecting their impact on employee wellbeing and organizational outcomes.
-                  </p>
-                </div>
-
-              {/* Executive Overview callouts: Strongest Dimensions / Key Tensions / Areas to Address */}
-              {(() => {
-                const dimsWithBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null);
-                const withDelta = dimsWithBench.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
-                const strongest = [...withDelta].sort((a, b) => b.delta - a.delta).slice(0, 3);
-                const areasToAddress = [...withDelta].sort((a, b) => a.delta - b.delta).slice(0, 3);
-                const avgW = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
-                const tensions = withDelta
-                  .filter((d: any) => d.weight >= avgW && d.score < 75 && !strongest.some(s => s.dim === d.dim) && !areasToAddress.some(a => a.dim === d.dim))
-                  .sort((a: any, b: any) => a.delta - b.delta)
-                  .slice(0, 3);
-
-                // Strongest -> trending line with peak marker (climbing past the bar)
-                const iconTrend = (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 18l6-6 4 3 7-9" />
-                    <circle cx="20" cy="6" r="1.8" fill="currentColor" stroke="none" />
-                  </svg>
-                );
-                // Priority Gaps -> two bars with dashed gap marker (literal gap)
-                const iconBars = (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.75} viewBox="0 0 24 24">
-                    <rect x="4" y="13" width="5" height="8" rx="0.75" fill="currentColor" stroke="none" />
-                    <rect x="15" y="4" width="5" height="17" rx="0.75" fill="currentColor" stroke="none" />
-                    <line x1="4" y1="13" x2="15" y2="13" strokeDasharray="2,2" strokeLinecap="round" />
-                    <line x1="15" y1="13" x2="15" y2="4" strokeDasharray="2,2" strokeLinecap="round" opacity="0.6" />
-                  </svg>
-                );
-                // Areas to Address -> sprout with two leaves (potential / growth)
-                const iconSprout = (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21V11" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 14c-2 0-6-2-6-7 5 0 6 2 6 7z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c2 0 6-2 6-7-5 0-6 2-6 7z" />
-                  </svg>
-                );
-
-                const renderCard = (title: string, subtitle: string, accent: string, accentSoft: string, icon: JSX.Element, dims: any[], showDelta: boolean) => (
-                  <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-md flex flex-col">
-                    <div className="h-2" style={{ backgroundColor: accent }} />
-                    <div className="p-7 flex-1">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: accentSoft, color: accent }}>
-                          {icon}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="text-[18px] font-bold text-slate-900 leading-tight">{title}</h4>
-                          <p className="text-[13px] text-slate-500 leading-snug mt-0.5">{subtitle}</p>
-                        </div>
-                      </div>
-                      <ul className="space-y-3.5">
-                        {dims.length === 0 ? (
-                          <li className="text-[14px] text-slate-400 italic">No dimensions match this profile.</li>
-                        ) : dims.map((d: any) => {
-                          const dimPg = getEmployeePriorityGroup(d.weight);
-                          return (
-                          <li key={d.dim} className="flex items-start gap-3">
-                            <span className="inline-flex items-center justify-center h-6 min-w-[36px] px-2 rounded-full text-white text-[11px] font-bold flex-shrink-0 mt-0.5" style={{ backgroundColor: dimPg.color }}>
-                              D{d.dim}
-                            </span>
-                            <span className="text-[14px] text-slate-700 font-semibold flex-1 leading-snug">{d.name}</span>
-                            <span className="text-[22px] font-bold tabular-nums text-slate-900 text-right w-10 flex-shrink-0 leading-none mt-0.5">{d.score}</span>
-                            {showDelta ? (
-                              <span className={`text-[12px] font-bold tabular-nums text-right w-11 flex-shrink-0 mt-1.5 ${d.delta >= 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
-                                {d.delta >= 0 ? '+' : ''}{d.delta}
-                              </span>
-                            ) : null}
-                          </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  </div>
-                );
-                return (
-                  <>
-                    <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
-                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
-                      {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
-                      {renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
-                      {renderCard('Areas to Address', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
-                    </div>
-                    <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
-                      The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
-                    </p>
-                  </>
-                );
-              })()}
-
-              {/* Provisional Classification Notice */}
-              {isProvisional && (
-                <div className="mt-4 p-4 bg-amber-50 border-2 border-dashed border-amber-300 rounded-xl">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    <div>
-                      <p className="text-sm font-semibold text-amber-800">Provisional Classification</p>
-                      <p className="text-sm text-amber-700 mt-1">{dimsWithHighUnsure} dimensions have 40% or more "Unsure" responses, which may affect score reliability. Results will remain provisional until these items are confirmed. We recommend following up internally to clarify these responses.</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              
-              {/* Combined Summary Section */}
-              <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-10">
-                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-8">Summary</h3>
-
-                {/* Top Row - Stats */}
-                <div className="grid grid-cols-4 gap-5 mb-6">
-                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #10B981' }}>
-                    <p className="text-6xl font-bold text-white" data-export="metric-currently-offering">{currentlyOffering}</p>
-                    <p className="text-lg text-slate-300 mt-3">of {totalElements} support elements in place</p>
-                  </div>
-                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #3B82F6' }}>
-                    <p className="text-6xl font-bold text-white" data-export="metric-in-development">{planningItems + assessingItems}</p>
-                    <p className="text-lg text-slate-300 mt-3">support elements in development</p>
-                    <div className="mt-3 space-y-1">
-                      <p className="text-base text-sky-400">{planningItems} in development</p>
-                      <p className="text-base text-sky-400">{assessingItems} under review</p>
-                    </div>
-                  </div>
-                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #F59E0B' }}>
-                    <p className="text-6xl font-bold text-white" data-export="metric-gaps">{gapItems + unsureItems}</p>
-                    <p className="text-lg text-slate-300 mt-3">identified support element gaps</p>
-                    <div className="mt-3 space-y-1">
-                      <p className="text-base text-amber-400">{notPlannedItems} not planned</p>
-                      <p className="text-base text-amber-400">{unsureItems} unsure</p>
-                    </div>
-                  </div>
-                  <div className="bg-white/[0.07] rounded-2xl p-8 backdrop-blur" style={{ borderLeft: '3px solid #8B5CF6' }}>
-                    <p className="text-6xl font-bold text-white" data-export="metric-leading-plus">{tierCounts.leading + tierCounts.established}<span className="text-2xl font-normal text-slate-500 ml-1">/13</span></p>
-                    <p className="text-lg text-slate-300 mt-3">dimensions at Advancing+</p>
-                    <div className="mt-3 space-y-1">
-                      <p className="text-base text-violet-400">{tierCounts.leading} Leading</p>
-                      <p className="text-base text-violet-400">{tierCounts.established} Advancing</p>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
           </div>
           
           {/* ============ SCORE OVERLAY MODALS ============ */}
@@ -12092,7 +12091,7 @@ export default function ExportReportPage() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="font-bold text-white text-2xl tracking-tight">Summary and Next Steps</h3>
+                        <h3 className="font-bold text-white text-2xl tracking-tight">Summary</h3>
                         <p className="text-white mt-1 text-base opacity-90">Strengths to protect and priorities to address</p>
                       </div>
                     </div>
