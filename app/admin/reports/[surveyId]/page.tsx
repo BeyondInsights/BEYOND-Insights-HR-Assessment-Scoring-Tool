@@ -6536,7 +6536,7 @@ export default function ExportReportPage() {
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
                       {/* Priority Gaps card hidden 2026-04-23 per John */}
                       {false && renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
-                      {renderCard('Biggest Opportunities', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
+                      {renderCard('Biggest Opportunities', 'Where you trail the benchmark most', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
                     </div>
                     <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
                       The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
@@ -12129,8 +12129,10 @@ export default function ExportReportPage() {
                   </div>
                 </div>
 
-                {/* === SCORE CONTEXT BLOCK === */}
-                {(() => {
+                {/* === SCORE CONTEXT BLOCK === HIDDEN 2026-04-23 (the 4 cards inside were
+                    already hidden; also skip the wrapping px-10 pt-8 pb-6 div so its padding
+                    is not left as dead whitespace above the narrative). */}
+                {false && (() => {
                   // Compute tier-level benchmark averages (matches Score Composition algorithm with unsure substitution)
                   const computeTierBenchAvg = (level: string) => {
                     try {
