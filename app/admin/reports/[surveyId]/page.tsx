@@ -5657,8 +5657,8 @@ export default function ExportReportPage() {
     { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
     { id: 'wsi-score-section', label: 'Workplace Support Composite Score', iconKey: 'performance' },
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most', iconKey: 'performance' },
-    { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
+    { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix', iconKey: 'matrix' },
     { id: 'report-summary', label: 'Element Overview', iconKey: 'progress' },
     { id: 'your-support-in-context', label: 'Your Support in Context', iconKey: 'performance' },
     { id: 'impact-ranked-priorities', label: 'Your Improvement Priorities', iconKey: 'impact' },
@@ -5667,7 +5667,8 @@ export default function ExportReportPage() {
     { id: 'whatif-scenarios-section', label: 'What-If Scenarios', iconKey: 'insights' },
     { id: 'next-steps-section', label: 'Summary', iconKey: 'progress' },
     { id: 'cac-help-section', label: 'How Cancer and Careers Can Help', iconKey: 'help' },
-    { id: 'methodology-section', label: 'Methodology', iconKey: 'methodology' },
+    { id: 'methodology-orientation', label: 'Methodology & How to Read', iconKey: 'methodology' },
+    { id: 'methodology-section', label: 'Scoring Appendix', iconKey: 'methodology' },
   ].filter(s => s.show !== false);
   
   const scrollToSection = (id: string) => {
@@ -12495,7 +12496,7 @@ export default function ExportReportPage() {
           </div>
 
           {/* ============ METHODOLOGY & HOW TO READ THIS REPORT (moved 2026-04-23 from top of report) ============ */}
-          <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+          <div id="methodology-orientation" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
             <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
