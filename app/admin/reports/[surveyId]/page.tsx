@@ -6539,7 +6539,7 @@ export default function ExportReportPage() {
                 return (
                   <>
                     <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
-                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
+                      Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>: your <span className="font-semibold">highest-scoring dimensions</span>, and those with the <span className="font-semibold">most room to grow</span>.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
                       {renderCard('Strongest Dimensions', 'Your highest-scoring dimensions', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
