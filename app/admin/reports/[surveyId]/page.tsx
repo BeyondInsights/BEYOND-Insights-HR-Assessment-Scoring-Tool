@@ -3715,6 +3715,8 @@ export default function ExportReportPage() {
   const [openedDims, setOpenedDims] = useState<Set<number>>(new Set());
   const [dpInitialized, setDpInitialized] = useState(false);
   const [activeDimTab, setActiveDimTab] = useState<'elements' | 'geo' | 'followup'>('elements');
+  // Controls which dimension the 'Dimension Deep Dive' standalone section shows (1..13).
+  const [deepDiveDim, setDeepDiveDim] = useState<number>(1);
   const dimDetailRef = useRef<HTMLDivElement | null>(null);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [exportingPptx, setExportingPptx] = useState(false);
@@ -5657,6 +5659,7 @@ export default function ExportReportPage() {
     { id: 'report-hero-section', label: 'Overview', iconKey: 'overview' },
     { id: 'wsi-score-section', label: 'Workplace Support Composite Score', iconKey: 'performance' },
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most', iconKey: 'performance' },
+    { id: 'dimension-deep-dive', label: 'Dimension Deep Dive', iconKey: 'performance' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix', iconKey: 'matrix' },
     { id: 'report-summary', label: 'Element Overview', iconKey: 'progress' },
@@ -8178,7 +8181,192 @@ export default function ExportReportPage() {
               </div>
             </div>
           </div>
-          
+
+          {/* ============ DIMENSION DEEP DIVE (nav-by-number explorer) ============ */}
+          <div id="dimension-deep-dive" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 21l-6-6" />
+                  <circle cx="10" cy="10" r="7" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Dimension Deep Dive</h2>
+                <p className="text-white text-base mt-1 opacity-90">Explore each dimension element by element. Use the dimension buttons below to jump between dimensions without scrolling.</p>
+              </div>
+            </div>
+            {(() => {
+              const d = dimensionAnalysis.find((dim: any) => dim.dim === deepDiveDim) || dimensionAnalysis[0];
+              if (!d) return null;
+              const pg = getEmployeePriorityGroup(d.weight);
+              const elemBench = elementBenchmarks[d.dim] || {};
+              const diff = d.benchmark !== null ? d.score - d.benchmark : null;
+              const STATUS = {
+                currently: { bg: '#047857', light: '#D1FAE5', text: '#065F46', label: 'In Place' },
+                planning: { bg: '#3B82F6', light: '#DBEAFE', text: '#1E40AF', label: 'In Development' },
+                assessing: { bg: '#B45309', light: '#FEF3C7', text: '#92400E', label: 'Under Review' },
+                notAble: { bg: '#B91C1C', light: '#FEE2E2', text: '#991B1B', label: 'Not Planned' },
+                unsure: { bg: '#DC2626', light: '#FEE2E2', text: '#991B1B', label: 'Unsure' }
+              };
+              const getStatusInfo = (elem: any) => {
+                if (elem.isStrength) return { key: 'currently', ...STATUS.currently };
+                if (elem.isPlanning) return { key: 'planning', ...STATUS.planning };
+                if (elem.isAssessing) return { key: 'assessing', ...STATUS.assessing };
+                if (elem.isUnsure) return { key: 'unsure', ...STATUS.unsure };
+                return { key: 'notAble', ...STATUS.notAble };
+              };
+              const getDefaultObservation = (elem: any, bench: any) => {
+                const total = bench?.total || 1;
+                const pctCurrently = Math.round(((bench?.currently || 0) / total) * 100);
+                const pctPlanning = Math.round(((bench?.planning || 0) / total) * 100);
+                const pctAssessing = Math.round(((bench?.assessing || 0) / total) * 100);
+                const statusInfo = getStatusInfo(elem);
+                if (statusInfo.key === 'currently') {
+                  if (pctCurrently < 30) return { prefix: 'Differentiator', text: `Only ${pctCurrently}% of participating organizations offer`, color: '#7C3AED' };
+                  if (pctCurrently < 50) return { prefix: 'Ahead', text: `${100 - pctCurrently}% of benchmark`, color: '#059669' };
+                  if (pctCurrently < 70) return { prefix: 'Solid', text: `${pctCurrently}% of participating organizations also offer`, color: '#059669' };
+                  return { prefix: 'Table stakes', text: `${pctCurrently}% offer`, color: '#6B7280' };
+                }
+                if (statusInfo.key === 'planning') {
+                  if (pctCurrently > 50) return { prefix: 'In progress', text: `${pctCurrently}% already offer`, color: '#2563EB' };
+                  return { prefix: 'In progress', text: `Among ${pctPlanning}% planning; ${pctCurrently}% offer`, color: '#2563EB' };
+                }
+                if (statusInfo.key === 'assessing') {
+                  return { prefix: 'Under Review', text: `${pctAssessing}% also under review; ${pctCurrently}% offer`, color: '#D97706' };
+                }
+                if (pctCurrently > 50) return { prefix: 'Gap', text: `${pctCurrently}% of participating organizations offer`, color: '#DC2626' };
+                return { prefix: 'Growth Area', text: `${pctCurrently}% offer`, color: '#6B7280' };
+              };
+
+              return (
+                <>
+                  {/* Dim nav strip */}
+                  <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-2">Jump to dimension:</span>
+                      {dimensionAnalysis.map((dm: any) => {
+                        const isActive = dm.dim === d.dim;
+                        const dmPg = getEmployeePriorityGroup(dm.weight);
+                        return (
+                          <button
+                            key={dm.dim}
+                            onClick={() => setDeepDiveDim(dm.dim)}
+                            className={`min-w-[44px] px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${isActive ? 'text-white shadow-md scale-105' : 'text-slate-700 bg-white border border-slate-200 hover:border-slate-400 hover:shadow-sm'}`}
+                            style={isActive ? { backgroundColor: dmPg.color } : {}}
+                            title={dm.name}
+                          >
+                            D{dm.dim}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Current dim header */}
+                  <div className="px-6 py-5 border-b border-slate-200 bg-white">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <span className="inline-flex items-center justify-center h-12 min-w-[60px] px-3 rounded-xl text-white text-lg font-bold shadow-sm" style={{ backgroundColor: pg.color }}>D{d.dim}</span>
+                        <div>
+                          <h3 className="text-xl font-bold text-slate-900 leading-tight">{d.name}</h3>
+                          {diff !== null && (
+                            <p className="text-sm text-slate-600 mt-1">
+                              Score <span className="font-bold text-slate-900 tabular-nums">{d.score}</span>
+                              <span className="mx-2 text-slate-300">·</span>
+                              Benchmark <span className="font-bold text-slate-900 tabular-nums">{d.benchmark}</span>
+                              <span className="mx-2 text-slate-300">·</span>
+                              <span className={`font-bold tabular-nums ${diff >= 5 ? 'text-emerald-700' : diff <= -5 ? 'text-rose-700' : 'text-slate-600'}`}>
+                                {diff >= 0 ? `+${diff}` : `${diff}`} vs benchmark
+                              </span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Elements table */}
+                  <div className="px-6 py-3 bg-slate-100 border-b border-slate-200 grid grid-cols-12 gap-3 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    <div className="col-span-3">Support Element</div>
+                    <div className="col-span-2 text-center">Your Status</div>
+                    <div className="col-span-5 text-center">
+                      <div>Benchmark Distribution</div>
+                      <div className="flex items-center justify-center gap-3 mt-1 font-normal normal-case tracking-normal">
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#059669' }}></span><span className="text-slate-500">In Place</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#3B82F6' }}></span><span className="text-slate-500">In Development</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#D97706' }}></span><span className="text-slate-500">Under Review</span></div>
+                        <div className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded" style={{ backgroundColor: '#9CA3AF' }}></span><span className="text-slate-500">Not Planned</span></div>
+                      </div>
+                    </div>
+                    <div className="col-span-2 pl-4">Observation</div>
+                  </div>
+                  <div>
+                    {d.elements?.filter((el: any) => !isSingleCountryCompany || !el.name?.toLowerCase()?.includes('global')).sort((a: any, b: any) => {
+                      const statusOrder: Record<string, number> = { currently: 0, planning: 1, assessing: 2, unsure: 3, notAble: 4 };
+                      return (statusOrder[getStatusInfo(a).key] ?? 5) - (statusOrder[getStatusInfo(b).key] ?? 5);
+                    }).map((elem: any, i: number) => {
+                      const statusInfo = getStatusInfo(elem);
+                      const bench = elemBench[elem.name] || { currently: 0, planning: 0, assessing: 0, total: 1 };
+                      const total = bench.total || 1;
+                      const pctCurrently = Math.round((bench.currently / total) * 100);
+                      const pctPlanning = Math.round((bench.planning / total) * 100);
+                      const pctAssessing = Math.round((bench.assessing / total) * 100);
+                      const pctNotOffering = Math.max(0, 100 - pctCurrently - pctPlanning - pctAssessing);
+                      const observation = getDefaultObservation(elem, bench);
+                      return (
+                        <div key={i} className="px-6 py-4 grid grid-cols-12 gap-3 items-center border-b border-slate-200 min-h-[64px]">
+                          <div className="col-span-3 flex items-center">
+                            <p className="text-[14px] text-slate-800 font-medium leading-snug">{elem.name}</p>
+                          </div>
+                          <div className="col-span-2 flex items-center justify-center">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold leading-tight whitespace-nowrap" style={{ backgroundColor: statusInfo.light, color: statusInfo.text }}>
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: statusInfo.bg }} />
+                              {statusInfo.label}
+                            </span>
+                          </div>
+                          <div className="col-span-5 flex items-center">
+                            <div className="w-full h-[22px] rounded overflow-hidden flex bg-slate-100">
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctCurrently}%`, backgroundColor: '#059669' }}>{pctCurrently >= 8 ? `${pctCurrently}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctPlanning}%`, backgroundColor: '#3B82F6' }}>{pctPlanning >= 8 ? `${pctPlanning}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctAssessing}%`, backgroundColor: '#D97706' }}>{pctAssessing >= 8 ? `${pctAssessing}%` : ''}</div>
+                              <div className="flex items-center justify-center text-[11px] font-bold text-white" style={{ width: `${pctNotOffering}%`, backgroundColor: '#9CA3AF' }}>{pctNotOffering >= 8 ? `${pctNotOffering}%` : ''}</div>
+                            </div>
+                          </div>
+                          <div className="col-span-2 pl-4 flex flex-col justify-center">
+                            <p className="text-[12px] font-bold leading-tight" style={{ color: observation.color }}>{observation.prefix}</p>
+                            <p className="text-[11px] text-slate-600 leading-snug mt-0.5">{observation.text}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer nav: Prev / indicator / Next */}
+                  <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+                    <button
+                      onClick={() => setDeepDiveDim(Math.max(1, d.dim - 1))}
+                      disabled={d.dim === 1}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                      Previous Dimension
+                    </button>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Dimension {d.dim} of 13</span>
+                    <button
+                      onClick={() => setDeepDiveDim(Math.min(13, d.dim + 1))}
+                      disabled={d.dim === 13}
+                      className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    >
+                      Next Dimension
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
           {/* ============ CROSS-DIMENSION INSIGHTS ============ */}
           {patterns.length > 0 && (
             <div id="cross-dimensional-insights" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
