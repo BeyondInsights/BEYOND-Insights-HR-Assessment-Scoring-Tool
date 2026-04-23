@@ -6320,6 +6320,11 @@ export default function ExportReportPage() {
                   <p className="text-slate-500 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
                   <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
                   <p className="text-sm text-slate-500 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
+                  <p className="text-xs text-slate-500 mt-1 font-medium tracking-wide">
+                    <span className="uppercase tracking-widest">Report Date</span>
+                    <span className="mx-2 text-slate-600">·</span>
+                    <span className="text-slate-300">{indexYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                  </p>
                   {isWwcPledge && (
                     <div className="mt-5 flex items-center gap-3">
                       <div className="w-10 h-10 flex-shrink-0">
