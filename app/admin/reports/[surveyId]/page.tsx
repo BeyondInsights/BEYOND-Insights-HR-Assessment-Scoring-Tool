@@ -6456,7 +6456,10 @@ export default function ExportReportPage() {
                 const dimsWithBench = dimensionAnalysis.filter((d: any) => d.benchmark !== null);
                 const withDelta = dimsWithBench.map((d: any) => ({ ...d, delta: d.score - d.benchmark }));
                 const strongest = [...withDelta].sort((a, b) => b.delta - a.delta).slice(0, 3);
-                const areasToAddress = [...withDelta].sort((a, b) => a.delta - b.delta).slice(0, 3);
+                // Sort by raw score ascending so we surface the three dimensions where the
+                // company scored lowest relative to its own set, regardless of whether those
+                // dims are above or below the benchmark.
+                const areasToAddress = [...withDelta].sort((a, b) => a.score - b.score).slice(0, 3);
                 const avgW = dimensionAnalysis.reduce((sum: number, d: any) => sum + d.weight, 0) / Math.max(dimensionAnalysis.length, 1);
                 const tensions = withDelta
                   .filter((d: any) => d.weight >= avgW && d.score < 75 && !strongest.some(s => s.dim === d.dim) && !areasToAddress.some(a => a.dim === d.dim))
@@ -6534,7 +6537,7 @@ export default function ExportReportPage() {
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
                       {/* Priority Gaps card hidden 2026-04-23 per John */}
                       {false && renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
-                      {renderCard('Biggest Opportunities', 'Where you trail the benchmark most', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
+                      {renderCard('Biggest Opportunities', 'Your lowest-scoring dimensions', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
                     </div>
                     <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
                       The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
