@@ -3633,8 +3633,9 @@ export default function ExportReportPage() {
   }> = [
     // Opening
     { id: 'slide-hero-title', label: 'Title & Report Info' },
-    { id: 'slide-company-hero', label: 'Your Composite Score' },
-    { id: 'executive-overview-section', label: 'Executive Overview' },
+    // Prepared For + composite score hero + Executive Overview combined on one slide.
+    // The clone effect appends #executive-overview-section below #slide-company-hero.
+    { id: 'slide-company-hero', label: 'Executive Overview' },
     // Dim Performance + Deep Dive
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most' },
     // Per-dimension deep-dive slides. Each clones the matching [data-dim-num] row PLUS its
@@ -4028,8 +4029,17 @@ export default function ExportReportPage() {
             }
             slideContent.innerHTML = '';
             slideContent.appendChild(clone);
-            // slide-hero-stats (cancer stats) is hidden in the live report now, so we no
-            // longer append it to slide 1. The company hero lives on its own slide.
+            // slide-company-hero: append the Executive Overview section below so the
+            // 'Prepared For + composite score' and 'Executive Overview' read as one slide.
+            if (sourceId === 'slide-company-hero') {
+              const exec = document.querySelector<HTMLElement>('#executive-overview-section');
+              if (exec) {
+                const execClone = exec.cloneNode(true) as HTMLElement;
+                execClone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+                execClone.removeAttribute('id');
+                slideContent.appendChild(execClone);
+              }
+            }
           } catch (err) {
             slideContent.innerHTML = '';
             const errDiv = document.createElement('div');
@@ -4116,8 +4126,7 @@ export default function ExportReportPage() {
     // Keyed by slide ID so the notes stay stable when the deck order changes.
     const notesById: Record<string, string> = {
       'slide-hero-title': 'Start by anchoring the "so what" for the audience. The tier and score show where this organization stands today compared to what leading looks like. Preview the flow of the discussion: first you will confirm any uncertain items together, then agree on the top 2-3 priorities, and finally align on a practical action plan. Set expectations upfront that this is a decision-making tool, not a compliance checklist.',
-      'slide-company-hero': 'Hold on the composite score for a moment. Read the tier label out loud, name the benchmark, and call the delta. Normalize the number by reminding the audience that few organizations reach Leading at this stage of the field, so the conversation is about the next realistic ladder step, not perfection.',
-      'executive-overview-section': 'Call the headline clearly by naming the top strength, the biggest opportunity, and what that implies operationally. Make it concrete with a statement like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, explain that publishing requires resolving the confirmation items first.',
+      'slide-company-hero': 'Hold on the composite score for a beat. Read the tier label, name the benchmark, call the delta. Normalize the number by reminding the audience that few organizations reach Leading at this stage of the field, so the conversation is about the next realistic ladder step, not perfection. Then walk the Executive Overview callouts: name the strongest dimensions, name the biggest opportunities, and make it concrete with a line like "If we address these two areas, we remove the highest-risk friction points for employees and managers." If the score is provisional, flag that publishing requires resolving the confirmation items first.',
       'dimension-performance-table': 'Explain the shape of their program by highlighting where they are strong versus where support breaks down. Help them prioritize by impact since high weight combined with low score equals their first investment. Align on owners by clarifying which functions need to verify or implement each area, whether that is Benefits, HR Ops, Managers, or Vendor partners.',
       'cross-dimensional-insights': 'These patterns explain root causes at the operating model level, not isolated gaps. Highlight one or two systemic constraints, like communications combined with manager capability, that can be fixed once to unlock multiple improvements. Tie each pattern back to where employees actually feel friction in their day-to-day experience.',
       'strategic-priority-matrix': 'The decision rule is simple: the top-left quadrant is where investment buys the most impact. Help them agree on the top 2-3 moves and discourage spreading effort across low-weight items. Confirm resourcing by discussing what can be done through policy changes versus vendor partnerships versus training investments.',
