@@ -3463,7 +3463,7 @@ function AdvancedSupportIcon({ size = 20, color = '#7C3AED' }: { size?: number; 
 
 const SUPPORT_LEVELS = {
   core: {
-    name: 'Foundation', abbr: 'Foundation', tagline: 'Baseline practices',
+    name: 'Foundational', abbr: 'Foundational', tagline: 'Baseline practices',
     color: '#047857', light: '#ECFDF5', border: '#A7F3D0',
     icon: CoreSupportIcon,
     shortDesc: 'The baseline practices most workplaces establish first.',
@@ -3507,7 +3507,7 @@ function getWSIRating(score: number) {
 
 function SupportLevelBadge({ level }: { level: string }) {
   const config = SUPPORT_LEVELS[level as keyof typeof SUPPORT_LEVELS] || SUPPORT_LEVELS.enhanced;
-  const label = level === 'core' ? 'Foundation' : level === 'enhanced' ? 'Expanded' : 'Signature';
+  const label = level === 'core' ? 'Foundational' : level === 'enhanced' ? 'Expanded' : 'Signature';
   return (
     <span
       className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap"
@@ -3647,10 +3647,10 @@ export default function ExportReportPage() {
     })),
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix' },
-    { id: 'report-summary-card-strength', label: 'Report Summary: Areas of Strength' },
-    { id: 'report-summary-card-progress', label: 'Report Summary: Initiatives in Progress' },
-    { id: 'report-summary-card-grow', label: 'Report Summary: Opportunities to Grow' },
-    { id: 'report-summary-card-unsure', label: 'Report Summary: Unsure' },
+    { id: 'report-summary-card-strength', label: 'Element Overview: Areas of Strength' },
+    { id: 'report-summary-card-progress', label: 'Element Overview: Initiatives in Progress' },
+    { id: 'report-summary-card-grow', label: 'Element Overview: Opportunities to Grow' },
+    { id: 'report-summary-card-unsure', label: 'Element Overview: Unsure' },
     { id: 'your-support-in-context', label: 'Your Support in Context' },
     { id: 'impact-ranked-priorities', label: 'Your Improvement Priorities' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations' },
@@ -3676,10 +3676,10 @@ export default function ExportReportPage() {
     for (let i = 6; i <= 18; i++) names[i] = `Dimension ${i - 5} Deep Dive`;
     names[19] = 'Interactive Performance Matrix';
     names[20] = 'Cross-Dimensional Insights';
-    names[21] = 'Report Summary: Areas of Strength';
-    names[22] = 'Report Summary: Initiatives in Progress';
-    names[23] = 'Report Summary: Opportunities to Grow';
-    names[24] = 'Report Summary: Unsure';
+    names[21] = 'Element Overview: Areas of Strength';
+    names[22] = 'Element Overview: Initiatives in Progress';
+    names[23] = 'Element Overview: Opportunities to Grow';
+    names[24] = 'Element Overview: Unsure';
     names[25] = 'Your Support in Context';
     names[26] = 'Your Improvement Priorities';
     names[27] = 'Strategic Recommendations';
@@ -4150,10 +4150,10 @@ export default function ExportReportPage() {
     for (let i = 6; i <= 18; i++) slideNames[i] = `Dimension ${i - 5} Deep Dive`;
     slideNames[19] = 'Interactive Performance Matrix';
     slideNames[20] = 'Cross-Dimensional Insights';
-    slideNames[21] = 'Report Summary: Areas of Strength';
-    slideNames[22] = 'Report Summary: Initiatives in Progress';
-    slideNames[23] = 'Report Summary: Opportunities to Grow';
-    slideNames[24] = 'Report Summary: Unsure';
+    slideNames[21] = 'Element Overview: Areas of Strength';
+    slideNames[22] = 'Element Overview: Initiatives in Progress';
+    slideNames[23] = 'Element Overview: Opportunities to Grow';
+    slideNames[24] = 'Element Overview: Unsure';
     slideNames[25] = 'Your Support in Context';
     slideNames[26] = 'Your Improvement Priorities';
     slideNames[27] = 'Strategic Recommendations';
@@ -5659,7 +5659,7 @@ export default function ExportReportPage() {
     { id: 'dimension-performance-table', label: 'Dimension Performance Based on What Matters Most', iconKey: 'performance' },
     { id: 'strategic-priority-matrix', label: 'Interactive Performance Matrix', iconKey: 'matrix' },
     { id: 'cross-dimensional-insights', label: 'Cross-Dimensional Insights', iconKey: 'insights' },
-    { id: 'report-summary', label: 'Report Summary', iconKey: 'progress' },
+    { id: 'report-summary', label: 'Element Overview', iconKey: 'progress' },
     { id: 'your-support-in-context', label: 'Your Support in Context', iconKey: 'performance' },
     { id: 'impact-ranked-priorities', label: 'Your Improvement Priorities', iconKey: 'impact' },
     { id: 'strategic-recommendations', label: 'Strategic Recommendations', iconKey: 'recommendations' },
@@ -6317,13 +6317,13 @@ export default function ExportReportPage() {
             <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="text-slate-500 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
+                  <p className="text-slate-200 text-sm font-semibold uppercase tracking-[0.2em]">Prepared Exclusively for</p>
                   <h2 className="text-5xl font-bold text-white mt-2 leading-tight" data-export="company-name">{companyName}</h2>
-                  <p className="text-sm text-slate-500 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
-                  <p className="text-xs text-slate-500 mt-1 font-medium tracking-wide">
+                  <p className="text-sm text-slate-200 mt-2 font-medium tracking-wide">Your Workplace Cancer Support Report</p>
+                  <p className="text-xs text-slate-200 mt-1 font-medium tracking-wide">
                     <span className="uppercase tracking-widest">Report Date</span>
-                    <span className="mx-2 text-slate-600">·</span>
-                    <span className="text-slate-300">{indexYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
+                    <span className="mx-2 text-slate-400">·</span>
+                    <span className="text-slate-100">{indexYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                   </p>
                   {isWwcPledge && (
                     <div className="mt-5 flex items-center gap-3">
@@ -6340,33 +6340,33 @@ export default function ExportReportPage() {
                     </div>
                   )}
                   {(contactName || contactEmail) && (
-                    <div className="mt-3 text-sm text-slate-500">
-                      {contactName && <span className="font-medium text-slate-300">{contactName}</span>}
-                      {contactName && contactEmail && <span className="mx-3 text-slate-600">|</span>}
+                    <div className="mt-3 text-sm text-slate-200">
+                      {contactName && <span className="font-medium text-slate-100">{contactName}</span>}
+                      {contactName && contactEmail && <span className="mx-3 text-slate-400">|</span>}
                       {contactEmail && <span>{contactEmail}</span>}
                     </div>
                   )}
                 </div>
                 <div className="flex items-center gap-6 flex-shrink-0">
                   <div>
-                    <p className="text-sm text-slate-500 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
+                    <p className="text-sm text-slate-200 font-semibold uppercase tracking-wider text-center">Workplace Support Composite Score</p>
                     <div className="flex items-end gap-10 mt-2">
                       {/* Benchmark */}
                       <div className="text-center">
-                        <p className="text-5xl font-bold text-slate-300 leading-none">59</p>
-                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
+                        <p className="text-5xl font-bold text-slate-200 leading-none">59</p>
+                        <p className="text-slate-200 text-[10px] font-semibold uppercase tracking-wider mt-2">Benchmark Score</p>
                       </div>
                       {/* Your Score */}
                       <div className="text-center">
                         <p className="text-8xl font-bold leading-none text-white" data-export="composite-score">{wsiScoreHeader}</p>
-                        <p className="text-slate-300 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
+                        <p className="text-slate-200 text-[10px] font-semibold uppercase tracking-wider mt-2">Your Score</p>
                       </div>
                     </div>
                   </div>
                   {tier && (
                     <div className="px-7 py-5 rounded-xl border-2 text-center" style={{ borderColor: ratingColorHeader + '60', backgroundColor: ratingColorHeader + '15' }}>
                       <p className="text-2xl font-bold" style={{ color: ratingColorHeader }} data-export="tier-name">{supportRatingHeader}</p>
-                      <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
+                      <p className="text-[10px] text-slate-200 font-semibold uppercase tracking-wider mt-1">Overall Support Rating</p>
                       {isProvisional && (
                         <p className="text-xs text-amber-400 font-medium mt-1">Provisional*</p>
                       )}
@@ -6532,10 +6532,11 @@ export default function ExportReportPage() {
                     <p className="text-[17px] text-slate-800 leading-relaxed mt-5 font-medium">
                       Below are the dimensions that stand out for <span className="font-semibold">{companyName}</span>, where you <span className="font-semibold">outperform the benchmark</span>, where <span className="font-semibold">employee priorities signal room to grow</span>, and where there&apos;s the <span className="font-semibold">greatest opportunity to improve</span>.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
                       {renderCard('Strongest Dimensions', 'Where you outperform the benchmark', '#065F46', '#ECFDF5', iconTrend, strongest, true)}
-                      {renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
-                      {renderCard('Areas to Address', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
+                      {/* Priority Gaps card hidden 2026-04-23 per John */}
+                      {false && renderCard('Priority Gaps', 'High employee priority, room to grow', '#3730A3', '#EEF2FF', iconBars, tensions, true)}
+                      {renderCard('Biggest Opportunities', 'Greatest opportunity to improve', '#92400E', '#FEF3C7', iconSprout, areasToAddress, true)}
                     </div>
                     <p className="mt-4 text-[12px] text-slate-500 leading-relaxed text-center">
                       The bold number on each row is the <span className="font-semibold text-slate-700">dimension score</span>. The smaller colored number shows how many points <span className="font-semibold text-emerald-700">above</span> or <span className="font-semibold text-rose-700">below</span> the participant benchmark.
@@ -6560,7 +6561,8 @@ export default function ExportReportPage() {
               )}
 
 
-              {/* Combined Summary Section */}
+              {/* Combined Summary Section — HIDDEN 2026-04-23 per John; keep for possible revert */}
+              {false && (
               <div className="mt-8 bg-slate-900 rounded-2xl px-8 py-10">
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-8">Summary</h3>
 
@@ -6597,8 +6599,16 @@ export default function ExportReportPage() {
                 </div>
 
               </div>
+              )}
             </div>
 
+            {/* ==================================================================
+                 HIDDEN 2026-04-23: cancer-stats + methodology block lives here
+                 but is moved visually to after the CAC section. The React state
+                 hooks (showCompositeScoreGuide, etc.) still live in this tree
+                 so we wrap in {false && ...} to fully skip rendering.
+                ================================================================== */}
+            {false && (<>
             {/* The Context, Why This Work Matters */}
             <div className="bg-gradient-to-b from-slate-50 to-white px-12 py-10 border-b border-slate-200">
               {/* Lead stat + narrative */}
@@ -7083,7 +7093,7 @@ export default function ExportReportPage() {
                           { id: 'dimensions', name: 'Dimension Performance Based on What Matters Most', color: 'bg-slate-700', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', measures: 'Performance within each of the 13 dimensions, down to the status of every support element.', fits: 'The Composite shows overall performance. Dimensions show where. Elements show exactly which programs drive results.' },
                           { id: 'matrix', name: 'Interactive Performance Matrix', color: 'bg-slate-700', icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z', measures: 'A quadrant plotting each dimension by gap size against impact weight. Weights are grounded in research with HR leaders, employees managing cancer, and general workforce.', fits: 'Your prioritization lens. High-weight dimensions with large gaps deliver the highest return on investment.' },
                           { id: 'crossdim', name: 'Cross-Dimensional Insights', color: 'bg-slate-700', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', measures: 'Patterns showing where strengths and gaps cluster, and which shared enablers (manager capability, communication, process ownership) influence multiple dimensions.', fits: 'Helps you see the program as a system so you can address root causes rather than solving 13 separate workstreams.' },
-                          { id: 'reportsummary', name: 'Report Summary', color: 'bg-slate-700', icon: 'M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h4V11zM15 3h-4a2 2 0 00-2 2v15h6V3zM19 7h-4v13h4a2 2 0 002-2V9a2 2 0 00-2-2z', measures: 'A four-tab coverage view of every support element: Areas of Strength, Initiatives in Progress, Opportunities to Grow, and items marked Unsure.', fits: 'The full inventory. One place to see exactly where every element stands across the program.' },
+                          { id: 'reportsummary', name: 'Element Overview', color: 'bg-slate-700', icon: 'M9 11H5a2 2 0 00-2 2v7a2 2 0 002 2h4V11zM15 3h-4a2 2 0 00-2 2v15h6V3zM19 7h-4v13h4a2 2 0 002-2V9a2 2 0 00-2-2z', measures: 'A four-tab coverage view of every support element: Areas of Strength, Initiatives in Progress, Opportunities to Grow, and items marked Unsure.', fits: 'The full inventory. One place to see exactly where every element stands across the program.' },
                           { id: 'support-context', name: 'Your Support in Context', color: 'bg-slate-700', icon: 'M3 19h18M6 12h12M9 5h6', measures: 'How your Composite Score breaks down across the three Levels of Workplace Support (Foundation, Expanded, Signature) and how each compares to participating organizations.', fits: 'Context and calibration. Shows whether your coverage is concentrated at baseline practices or extends into standout programs.' },
                           { id: 'impactranked', name: 'Your Improvement Priorities', color: 'bg-slate-700', icon: 'M13 10V3L4 14h7v7l9-11h-7z', measures: 'A Year 1 roadmap of dimensions ranked by projected impact on overall score, with element-level actions and benchmark context.', fits: 'Your execution shortlist. The gaps most likely to move the Composite and improve employee support measurably.' },
                           { id: 'strategic', name: 'Strategic Recommendations', color: 'bg-slate-700', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', measures: 'Element-level analysis for your priority dimensions, with specific recommended actions grounded in benchmark data and projected score impact.', fits: 'The sponsor-ready agenda. A coherent plan HR and leadership can align on, fund, and execute.' },
@@ -7203,6 +7213,8 @@ export default function ExportReportPage() {
                 </div>
               )}
             </div>
+            </>)}
+            {/* END HIDDEN METHODOLOGY BLOCK */}
 
             {/* ============ CONFIRMATORY CHECKLIST (removed) ============ */}
             {false && unsureItems > 0 && (
@@ -7860,7 +7872,7 @@ export default function ExportReportPage() {
                                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Elements by Support Level</p>
                                   <div className="space-y-2.5">
                                     {[
-                                      { key: 'core', label: 'Foundation', count: tierCounts.core, color: '#059669' },
+                                      { key: 'core', label: 'Foundational', count: tierCounts.core, color: '#059669' },
                                       { key: 'enhanced', label: 'Expanded', count: tierCounts.enhanced, color: '#C2410C' },
                                       { key: 'advanced', label: 'Signature', count: tierCounts.advanced, color: '#7C3AED' },
                                     ].map(t => {
@@ -8993,7 +9005,7 @@ export default function ExportReportPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">Report Summary</h2>
+                    <h2 className="text-2xl font-bold text-white">Element Overview</h2>
                     <p className="text-white text-base mt-1 opacity-90">Your strengths, active initiatives, opportunities to grow, and items marked Unsure, across all {totalElementCount} support elements.</p>
                   </div>
                 </div>
@@ -9339,7 +9351,7 @@ export default function ExportReportPage() {
                       <div className="grid grid-cols-3 gap-3 flex-1">
                         {/* Foundation */}
                         <div className="bg-white rounded-lg p-3 text-center shadow-sm" style={{ border: '2px solid #04785730' }}>
-                          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#047857' }}>Foundation</p>
+                          <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#047857' }}>Foundational</p>
                           <p className="text-4xl font-bold mt-1.5 leading-none" style={{ color: '#047857' }}>{coreData.score}</p>
                           {(() => { const t = coreData.score >= 80 ? { label: 'Leading', color: '#047857' } : coreData.score >= 64 ? { label: 'Advancing', color: '#1D4ED8' } : coreData.score >= 50 ? { label: 'Accelerating', color: '#B45309' } : { label: 'Building', color: '#B91C1C' }; return <p className="text-sm font-bold mt-1.5" style={{ color: t.color }}>{t.label}</p>; })()}
                           <div className="mt-2 pt-2 border-t border-slate-100">
@@ -9549,7 +9561,7 @@ export default function ExportReportPage() {
 
                   const compRows = [
                     { label: 'Composite Score', score: wsiScore, scores: allWSIScoresState, accentColor: '#334155' },
-                    { label: 'Foundation', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
+                    { label: 'Foundational', score: coreData.score, scores: tierBenchmarks.core, accentColor: '#047857' },
                     { label: 'Expanded', score: enhData.score, scores: tierBenchmarks.enhanced, accentColor: '#B45309' },
                     { label: 'Signature', score: advData.score, scores: tierBenchmarks.advanced, accentColor: '#7C3AED' },
                   ];
@@ -12167,10 +12179,12 @@ export default function ExportReportPage() {
                   const advancedTierBenchmarkAvg = computeTierBenchAvg('advanced');
                   return (
                 <div className="px-10 pt-8 pb-6">
+                  {/* 4 score context cards hidden 2026-04-23 per John */}
+                  {false && (
                   <div className="grid grid-cols-4 gap-4">
                     {[
                       { label: 'Composite', score: wsiScoreHeader, benchmark: wsiBenchmarkScore, color: '#334155' },
-                      { label: 'Foundation', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
+                      { label: 'Foundational', score: coreScoreCalc, benchmark: coreTierBenchmarkAvg, color: '#047857' },
                       { label: 'Expanded', score: enhancedScoreCalc, benchmark: enhancedTierBenchmarkAvg, color: '#B45309' },
                       { label: 'Signature', score: advancedScoreCalc, benchmark: advancedTierBenchmarkAvg, color: '#7C3AED' },
                     ].map(item => {
@@ -12200,6 +12214,7 @@ export default function ExportReportPage() {
                       );
                     })}
                   </div>
+                  )}
                 </div>
                   );
                 })()}
@@ -12487,6 +12502,246 @@ export default function ExportReportPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* ============ METHODOLOGY & HOW TO READ THIS REPORT (moved 2026-04-23 from top of report) ============ */}
+          <div className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break max-w-[1280px] mx-auto">
+            <div className="px-12 py-6 bg-gradient-to-r from-slate-800 to-slate-900 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Methodology & How to Read This Report</h2>
+                <p className="text-white text-base mt-1 opacity-90">The research behind the Index, how your score is built, what each section measures, and how to use the report.</p>
+              </div>
+            </div>
+
+            {/* Research Foundation (How This Index Was Developed) */}
+            <div id="how-index-section" className="bg-white rounded-none border-b border-slate-200 overflow-hidden">
+              <div className="px-6 py-4 bg-slate-800">
+                <p className="text-slate-300 text-xs font-semibold uppercase tracking-widest mb-1">Built on Real-World Research</p>
+                <h4 className="font-semibold text-white text-lg">How This Index Was Developed</h4>
+              </div>
+              <div className="p-6">
+                <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                  Guided by Cancer and Careers, an organization with 25 years of experience at the intersection of work and health, the 13 dimensions assessed in the Index were shaped through <strong className="text-slate-800">qualitative and quantitative research</strong>. The research is grounded in the experiences of three key audiences: employees currently or recently managing a cancer diagnosis, employees from the general population, and leaders who oversee company benefits and policies that impact employees and the workplace every day.
+                </p>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="bg-amber-50 rounded-xl p-4 border border-amber-100 text-center">
+                    <div className="w-10 h-10 rounded-full bg-amber-600 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    </div>
+                    <p className="text-sm font-bold text-amber-800">Employees Managing Cancer</p>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">Drew on lived experience to reveal what support they needed most and where gaps exist</p>
+                  </div>
+                  <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 text-center">
+                    <div className="w-10 h-10 rounded-full bg-sky-600 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    </div>
+                    <p className="text-sm font-bold text-sky-800">General Population</p>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">Revealed how workplace cancer support shapes trust, loyalty, and job decisions</p>
+                  </div>
+                  <div className="bg-violet-50 rounded-xl p-4 border border-violet-100 text-center">
+                    <div className="w-10 h-10 rounded-full bg-violet-600 flex items-center justify-center mx-auto mb-3">
+                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                    </div>
+                    <p className="text-sm font-bold text-violet-800">HR Leaders</p>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">Helped shape the formation of each dimension and what to consider within them</p>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-500 italic mt-3 mb-5">Research, Index framework, and scoring methodology developed by BEYOND Insights, an independent research and insights firm, in collaboration with Cancer and Careers.</p>
+                <p className="text-sm text-slate-700 leading-relaxed">
+                  This same research drives how each dimension is weighted in the Index, and reflected in your overall company score. Dimensions that employees and HR leaders consistently ranked as most critical carry greater weight, ensuring your score reflects what matters most to the people in your organization.
+                </p>
+              </div>
+              <div className="px-6 py-5 bg-slate-800">
+                <p className="text-sm text-center leading-relaxed">
+                  <strong className="text-white">13 dimensions.</strong>
+                  <span className="text-slate-500 mx-2">•</span>
+                  <strong className="text-violet-400">Research-driven weights.</strong>
+                  <span className="text-slate-500 mx-2">•</span>
+                  <span className="text-slate-300">Grounded in the voices of employees, the general population, and HR leaders.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Understanding Your Composite Score */}
+            <div id="score-composition-section" className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowCompositeScoreGuide(!showCompositeScoreGuide)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">{'Understanding Your Workplace Support Composite Score'}</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showCompositeScoreGuide ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              {(showCompositeScoreGuide || isPresentation) && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-gradient-to-br from-slate-50 via-white to-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-6">
+                      <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                        Your Workplace Support Composite Score summarizes the share of support practices your organization has in place across 13 dimensions and {totalElementCount} elements of workplace cancer support. The score is weighted by what matters most to employees navigating cancer, and by the impact of each practice on employee wellbeing and organizational outcomes.
+                      </p>
+                      <p className="text-sm text-slate-700 leading-relaxed">
+                        Your Composite Score is built from the ground up using your responses across the <span className="font-semibold text-slate-900">{totalElementCount} individual elements</span> that make up the <span className="font-semibold text-slate-900">13 dimensions</span> of workplace cancer support. Each element carries its own weight within its dimension, based on that element&apos;s measured impact on the overall score. Each dimension, in turn, is weighted by how much it matters to employees navigating cancer. Together, these element-level and dimension-level weights produce your Composite Score.
+                      </p>
+                      <p className="text-sm text-slate-700 leading-relaxed mt-3">
+                        The {totalElementCount} elements are also grouped into three support levels (Foundational, Expanded, and Signature) for additional context on how your coverage is distributed across baseline practices, mid-tier offerings, and standout programs.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* The 13 Dimensions of Workplace Support */}
+            <div id="thirteen-dimensions-section" className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowDimensionsOverview(!showDimensionsOverview)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-150 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">The 13 Dimensions of Workplace Support</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showDimensionsOverview ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              {(showDimensionsOverview || isPresentation) && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="p-6">
+                      <div className="flex items-center gap-2 mb-5 pb-4 border-b border-slate-200">
+                        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mr-1">Employee Priority:</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#7C3AED' }}>Most Critical</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#D97706' }}>Highly Important</span>
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold text-white" style={{ backgroundColor: '#475569' }}>Important</span>
+                        <span className="text-xs text-slate-500 ml-1">= dimension badge color</span>
+                      </div>
+                      <p className="text-sm text-slate-700 leading-relaxed mb-5">
+                        Each dimension includes multiple support elements. Together they form your <span className="font-semibold text-slate-800">end-to-end employee experience</span>, from leave and benefits to manager capability and culture.
+                      </p>
+                      <div className="grid grid-cols-3 gap-4">
+                        {[
+                          { dim: 1, name: 'Medical Leave & Flexibility', color: '#5B21B6', def: 'Policies and practices that allow employees to take necessary time off for treatment, recovery, and medical appointments while maintaining job security and benefits.' },
+                          { dim: 2, name: 'Insurance & Financial Protection', color: '#3730A3', def: 'Health insurance coverage, disability benefits, life insurance, and other financial protections that help employees manage the costs associated with serious illness.' },
+                          { dim: 3, name: 'Manager Preparedness & Capability', color: '#3B82F6', def: 'Training, resources, and support for managers to effectively lead and support team members facing serious health conditions.' },
+                          { dim: 4, name: 'Specialized Resources', color: '#0EA5E9', def: 'Access to care coordinators, patient advocates, benefits specialists, and expert resources that help employees navigate the healthcare system.' },
+                          { dim: 5, name: 'Workplace Accommodations', color: '#14B8A6', def: 'Physical and operational adjustments to the work environment that enable employees to continue working during and after treatment.' },
+                          { dim: 6, name: 'Culture & Psychological Safety', color: '#047857', def: 'An organizational environment where employees feel comfortable disclosing health conditions without fear of stigma or negative career impact.' },
+                          { dim: 7, name: 'Career Continuity & Advancement', color: '#22C55E', def: 'Policies and practices that protect career progression for employees managing serious health conditions.' },
+                          { dim: 8, name: 'Work Continuation & Resumption', color: '#84CC16', def: 'Structured programs that support employees\' successful transition back to work after medical leave.' },
+                          { dim: 9, name: 'Executive Commitment & Resources', color: '#EAB308', def: 'Visible leadership support, dedicated budget, and organizational resources allocated to supporting employees with serious health conditions.' },
+                          { dim: 10, name: 'Caregiver & Family Support', color: '#B45309', def: 'Programs and benefits that recognize and support employees who are caring for family members with serious health conditions.' },
+                          { dim: 11, name: 'Prevention & Wellness', color: '#F97316', def: 'Proactive health and wellness programs, preventive care benefits, and compliance with legal requirements (ADA, FMLA, etc.).' },
+                          { dim: 12, name: 'Continuous Improvement', color: '#B91C1C', def: 'Systems for measuring program effectiveness, gathering employee feedback, and using data to continuously improve support.' },
+                          { dim: 13, name: 'Communication & Awareness', color: '#EC4899', def: 'Strategic and ongoing communication about available programs, benefits, and resources to ensure employees know what support is available.' },
+                        ].map((d) => {
+                          const dimData = dimensionAnalysis?.find((da: any) => da.dim === d.dim);
+                          const elementCount = dimData?.elements?.length || 0;
+                          const weightPct = DEFAULT_DIMENSION_WEIGHTS[d.dim] || 0;
+                          const epGroup = getEmployeePriorityGroup(weightPct);
+                          return (
+                            <div key={d.dim} className="p-4 rounded-xl border-2 border-slate-100 bg-gradient-to-br from-slate-50 to-white hover:border-slate-200 hover:shadow-sm transition-all">
+                              <div className="flex items-center gap-3 mb-2">
+                                <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0 shadow-sm" style={{ backgroundColor: epGroup.color }} title={epGroup.label}>
+                                  D{d.dim}
+                                </div>
+                                <h5 className="font-bold text-slate-800 text-sm leading-tight">{d.name}</h5>
+                              </div>
+                              <p className="text-xs text-slate-500 leading-relaxed mb-2">{d.def}</p>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                  <span>{elementCount} support elements</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-500">{weightPct}% weight</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Report Sections and What They Measure */}
+            <div className="px-12 py-6 bg-white border-b border-slate-200">
+              <button
+                onClick={() => setShowReportSections(!showReportSections)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">Report Sections and What They Measure</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showReportSections ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              {(showReportSections || isPresentation) && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm p-6">
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      The report is organized into sections that each play a specific role. Executive Overview and Element Overview give you the top-line picture. Dimension Performance and the Interactive Performance Matrix show you where. Your Improvement Priorities, Strategic Recommendations, and the Implementation Roadmap translate findings into action. What-If Scenarios lets you model changes. The Summary closes with next steps, and How Cancer and Careers Can Help describes the partnership options.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* How to Use This Report */}
+            <div className="px-12 py-6 bg-white">
+              <button
+                onClick={() => setShowReportGuide(!showReportGuide)}
+                className="w-full flex items-center justify-between px-5 py-3.5 bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 rounded-xl hover:from-slate-100 hover:to-slate-200 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-slate-800 group-hover:text-slate-900 transition-colors">How to Use This Report</span>
+                  </div>
+                </div>
+                <div className={`w-7 h-7 rounded-full bg-white border border-slate-200 flex items-center justify-center transition-transform duration-200 ${showReportGuide ? 'rotate-180' : ''}`}>
+                  <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                </div>
+              </button>
+              {showReportGuide && (
+                <div className="mt-4 pb-1">
+                  <div className="bg-gradient-to-br from-sky-50 to-slate-50 border border-sky-200 rounded-xl overflow-hidden p-6">
+                    <p className="text-sm text-slate-700 leading-relaxed mb-4">
+                      This report is interactive in many areas. Throughout the report, you will be able to see your performance benchmarked against other participating companies, both at the dimension level and across each element assessed in the survey. Company-identifying information has been withheld; only you will know how your organization performed.
+                    </p>
+                    <p className="text-sm text-slate-700 leading-relaxed">
+                      Use this report as a starting point for strategic conversations, to identify policies and benefits that best support employees managing cancer, and to connect with Cancer and Careers for hands-on guidance and implementation support. Every organization is different. Your industry, workforce, benefits structure, and current capabilities all shape what&apos;s realistic for your team.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -13683,7 +13938,7 @@ export default function ExportReportPage() {
                   },
                   { label: '', isSeparator: true, getValue: () => null, getBenchmark: () => null },
                   {
-                    label: 'Foundation', getValue: (r) => r.coreScore, getBenchmark: () => ib?.coreScore,
+                    label: 'Foundational', getValue: (r) => r.coreScore, getBenchmark: () => ib?.coreScore,
                     renderCell: (val) => <span style={{ color: getScoreColor(val || 0) }}>{val ?? '-'}</span>
                   },
                   {
