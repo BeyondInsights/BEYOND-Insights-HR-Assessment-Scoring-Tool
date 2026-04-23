@@ -6297,26 +6297,21 @@ export default function ExportReportPage() {
           {/* ============ HEADER ============ */}
           <div id="report-hero-section" className="ppt-break bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 pdf-no-break">
             {/* Dark header band */}
-            <div id="slide-hero-title" className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-10">
-                  <div className="bg-white rounded-xl p-5 shadow-lg">
-                    <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={140} height={140} className="object-contain" />
-                  </div>
-                  <div>
-                    <p className="text-white text-sm font-semibold tracking-widest uppercase">Performance Report</p>
-                    <h1 className="text-3xl font-bold text-white mt-2">Best Companies for Working with Cancer</h1>
-                    <p className="text-white mt-1 text-lg">Index {indexYear}</p>
-                  </div>
+            <div id="slide-hero-title" className="bg-gradient-to-r from-slate-900 to-slate-800 px-12 py-6">
+              <div className="flex items-center gap-8">
+                <div className="bg-white rounded-xl p-3 shadow-lg">
+                  <Image src={bestCompaniesLogo} alt={`Best Companies ${indexYear}`} width={96} height={96} className="object-contain" />
                 </div>
-                <div className="text-right">
-                  <p className="text-white text-sm font-medium">Prepared Exclusively for</p>
-                  <p className="text-white font-semibold text-lg mb-4">{companyName || 'Your Organization'}</p>
-                  <p className="text-white text-sm font-medium">Report Date</p>
-                  <p className="text-white font-semibold text-lg">{indexYear === '2026' ? 'April 27, 2026' : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <div>
+                  <p className="text-white text-xs font-semibold tracking-widest uppercase">Performance Report</p>
+                  <h1 className="text-2xl font-bold text-white mt-1">Best Companies for Working with Cancer</h1>
+                  <p className="text-slate-300 mt-0.5 text-base">Index {indexYear}</p>
                 </div>
               </div>
             </div>
+
+            {/* Visual separation between title band and company hero */}
+            <div className="h-4 bg-white" />
 
             {/* Company info + score, Dark Hero Header */}
             <div className="px-12 py-12" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)' }}>
