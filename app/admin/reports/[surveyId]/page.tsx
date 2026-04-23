@@ -11637,17 +11637,36 @@ export default function ExportReportPage() {
                 return STATUS_POINTS[currentStatus] ?? 0;
               };
 
-              // Compute projected score FROM SCRATCH using element weights
-              // (delta approach breaks for unsure elements which get partial credit in actual scoring)
+              // Compute projected score using the SAME element-weighted math as the real
+              // scoring function (calculateElementWeightedDimScore). In particular, unsure
+              // elements get partial credit via peer-mean substitution:
+              //   earned = TIER_MEANS[dim][level] * confirmRate^2 * elemWeight
+              // The old projection treated unsure as 0, which made the projection start
+              // below the actual baseline — so a 'Not Planned → In Place' change could
+              // still show a net drop.
+              let unsureCountProj = 0;
+              dimElements.forEach((el: any) => {
+                const newStatus = whatIfChanges[el.name];
+                const effectiveStatus = newStatus ?? getStatusFromElement(el);
+                if (effectiveStatus === 'unsure') unsureCountProj++;
+              });
+              const projConfirmRate = dimElements.length > 0
+                ? (dimElements.length - unsureCountProj) / dimElements.length
+                : 1;
+
               let wEarned = 0, wMax = 0;
               dimElements.forEach((el: any) => {
                 const ew = ELEMENT_DIM_WEIGHTS[el.name];
                 const elemWeight = ew ? ew[1] : (1 / dimElements.length);
                 const newStatus = whatIfChanges[el.name];
-                const finalPts = newStatus
-                  ? (STATUS_POINTS[newStatus] ?? 0)
-                  : (STATUS_POINTS[getStatusFromElement(el)] ?? 0);
-                wEarned += finalPts * elemWeight;
+                const effectiveStatus = newStatus ?? getStatusFromElement(el);
+                if (effectiveStatus === 'unsure') {
+                  const level = getElementLevel(el.name);
+                  const mu = TIER_MEANS[whatIfDimension]?.[level] || 0;
+                  wEarned += (mu * projConfirmRate * projConfirmRate) * elemWeight;
+                } else {
+                  wEarned += (STATUS_POINTS[effectiveStatus] ?? 0) * elemWeight;
+                }
                 wMax += 5 * elemWeight;
               });
               const projectedRawScore = wMax > 0 ? (wEarned / wMax) * 100 : 0;
