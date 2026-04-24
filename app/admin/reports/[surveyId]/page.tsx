@@ -3536,6 +3536,10 @@ export default function ExportReportPage() {
   // Polished design toggle: ?design=polished
   const usePolishedDesign = searchParams?.get('design') === 'polished';
 
+  // Clean-header mode: ?view=clean hides every admin-only control in the action bar
+  // except Back and Jump To. Used when sharing a report link with a client.
+  const cleanView = searchParams?.get('view') === 'clean';
+
   const surveyId = Array.isArray(params.surveyId) ? params.surveyId[0] : params.surveyId;
   const printRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
@@ -5990,7 +5994,9 @@ export default function ExportReportPage() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                 Back
               </button>
-              <span className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold tracking-wider">ADMIN MODE</span>
+              {!cleanView && (
+                <span className="ml-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 text-white text-xs font-bold tracking-wider">ADMIN MODE</span>
+              )}
               
               {/* Jump To Dropdown */}
               <div className="relative">
@@ -6019,6 +6025,7 @@ export default function ExportReportPage() {
               </div>
               
             </div>
+            {!cleanView && (
             <div className="flex items-center gap-4">
 
               {/* Index Summary Button */}
@@ -6208,9 +6215,10 @@ export default function ExportReportPage() {
                 Present
               </button>
             </div>
+            )}
           </div>
         </div>
-        
+
         {/* Edit Mode Banner */}
         {editMode && (
           <div className="no-print bg-amber-50 border-b border-amber-200 px-10 py-3">
