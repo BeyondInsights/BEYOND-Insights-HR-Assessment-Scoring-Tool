@@ -12204,7 +12204,7 @@ export default function ExportReportPage() {
               : Math.abs(benchDiffNarr) + ' points below the benchmark, suggesting foundational gaps in how employees managing cancer experience workplace support'
               : '';
 
-            const para1 = companyName + ' received a Composite Score of **' + (wsiScoreHeader ?? 0) + ' (' + tierName + ')**, ' + benchContext + '. Core Support is the strongest layer at **' + coreScoreCalc + '**, reflecting solid baseline protections and access. Enhanced Support scored **' + enhancedScoreCalc + '**, showing developing consistency in coordination and manager readiness. Advanced Support at **' + advancedScoreCalc + '** represents the greatest opportunity to deepen the overall support ecosystem.';
+            const para1 = companyName + ' received a Composite Score of **' + (wsiScoreHeader ?? 0) + ' (' + tierName + ')**, ' + benchContext + '. Foundational is the strongest layer at **' + coreScoreCalc + '**, reflecting solid baseline protections and access. Expanded scored **' + enhancedScoreCalc + '**, showing developing consistency in coordination and manager readiness. Signature at **' + advancedScoreCalc + '** represents the greatest opportunity to deepen the overall support ecosystem.';
 
             // Paragraph 2: What is working
             const strengthNames = topStrengths.map(d => d.name);
